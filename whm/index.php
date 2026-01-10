@@ -130,303 +130,459 @@ $stats = explode('|', (string) cmd("get-stats"));
 
 <head>
     <meta charset="UTF-8">
-    <title>VIVZON WHM | Production</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIVZON WHM | System Administration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background: #020617;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a;
             color: #f1f5f9;
         }
 
+        .font-heading {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Glass Panes */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Transitions */
         .view-pane {
             display: none;
-            animation: fadeIn 0.2s ease-out;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .view-pane.active {
             display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(4px);
-            }
+        /* Sidebar Nav */
+        .nav-link {
+            display: flex;
+            items-center;
+            gap: 12px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: #e2e8f0;
         }
 
         .nav-link.active {
             background: #1e293b;
-            color: #60a5fa;
-            border-left: 4px solid #3b82f6;
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
 
-<body class="flex h-screen overflow-hidden">
+<body class="flex h-screen overflow-hidden text-sm">
 
     <!-- Sidebar -->
-    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
-        <div class="p-6 text-xl font-black tracking-tighter border-b border-slate-800 flex items-center gap-2">
-            <div class="bg-blue-600 p-1 rounded-md text-white"><i data-lucide="shield"></i></div> VIVZON <span
-                class="text-blue-500">WHM</span>
+    <aside class="w-72 bg-slate-950 border-r border-slate-900 flex flex-col z-20 shadow-2xl">
+        <div class="p-8 pb-6">
+            <div class="flex items-center gap-3 mb-10">
+                <div
+                    class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white font-heading tracking-tight leading-none">SHM PANEL</h1>
+                    <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Admin Console</span>
+                </div>
+            </div>
+
+            <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest pl-4 mb-3">Management</div>
+            <nav class="space-y-1">
+                <button onclick="switchTab('dash', this)" class="nav-link active w-full"><i
+                        data-lucide="layout-dashboard" class="w-4"></i> Overview</button>
+                <button onclick="switchTab('acc', this)" class="nav-link w-full"><i data-lucide="users" class="w-4"></i>
+                    Accounts</button>
+                <button onclick="switchTab('pkg', this)" class="nav-link w-full"><i data-lucide="package"
+                        class="w-4"></i> Packages</button>
+            </nav>
+
+            <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest pl-4 mb-3 mt-8">System</div>
+            <nav class="space-y-1">
+                <button onclick="switchTab('serv', this)" class="nav-link w-full"><i data-lucide="cpu" class="w-4"></i>
+                    Service Node</button>
+                <button onclick="switchTab('hosting', this)" class="nav-link w-full"><i data-lucide="wrench"
+                        class="w-4"></i> Tools</button>
+            </nav>
         </div>
-        <nav class="flex-1 p-4 space-y-1">
-            <button onclick="switchTab('dash', this)"
-                class="nav-link active w-full flex items-center gap-3 p-3 rounded-xl transition-all"><i
-                    data-lucide="layout-dashboard" class="w-5"></i> Dashboard</button>
-            <button onclick="switchTab('acc', this)"
-                class="nav-link w-full flex items-center gap-3 p-3 rounded-xl transition-all"><i data-lucide="users"
-                    class="w-5"></i> Accounts</button>
-            <button onclick="switchTab('pkg', this)"
-                class="nav-link w-full flex items-center gap-3 p-3 rounded-xl transition-all"><i data-lucide="package"
-                    class="w-5"></i> Packages</button>
-            <button onclick="switchTab('serv', this)"
-                class="nav-link w-full flex items-center gap-3 p-3 rounded-xl transition-all"><i data-lucide="activity"
-                    class="w-5"></i> Services</button>
-            <button onclick="switchTab('hosting', this)"
-                class="nav-link w-full flex items-center gap-3 p-3 rounded-xl transition-all"><i data-lucide="database"
-                    class="w-5"></i> FTP & Mail</button>
-        </nav>
+
+        <div class="mt-auto p-6 border-t border-slate-900 bg-slate-950/50">
+            <a href="logout.php"
+                class="flex items-center gap-3 text-slate-400 hover:text-red-400 transition group p-2 rounded-lg hover:bg-red-500/10">
+                <i data-lucide="log-out" class="w-4 group-hover:-translate-x-1 transition"></i>
+                <span class="font-bold">End Session</span>
+            </a>
+        </div>
     </aside>
 
-    <main class="flex-1 p-10 overflow-y-auto">
+    <main class="flex-1 flex flex-col h-full bg-[#0b1120] relative overflow-hidden">
+        <!-- Top Header -->
+        <header
+            class="h-16 px-8 flex items-center justify-between border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+            <div class="flex items-center gap-4">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></span>
+                <span class="text-xs font-bold text-slate-400 font-mono">SYSTEM ONLINE</span>
+            </div>
+            <div class="text-xs font-bold text-slate-500">v4.5-STABLE</div>
+        </header>
 
-        <!-- DASHBOARD -->
-        <div id="view-dash" class="view-pane active">
-            <h2 class="text-3xl font-bold mb-8">System Health</h2>
-            <div class="grid grid-cols-4 gap-6">
-                <?php $icons = ['cpu', 'layers', 'database', 'clock'];
-                $labels = ['CPU Usage', 'RAM Load', 'Disk Space', 'Uptime'];
-                foreach ($labels as $i => $l): ?>
-                    <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl">
-                        <div class="flex justify-between items-center mb-4 text-slate-500">
-                            <i data-lucide="<?= $icons[$i] ?>" class="w-5"></i>
-                            <span class="text-[10px] font-bold uppercase"><?= $l ?></span>
-                        </div>
-                        <p class="text-3xl font-bold"><?= $stats[$i] ?? '0' ?><?= $i < 3 ? '%' : '' ?></p>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
+        <div class="flex-1 overflow-y-auto p-10 pb-24">
 
-        <!-- ACCOUNTS -->
-        <div id="view-acc" class="view-pane">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-bold">Client Accounts</h2>
-                <button onclick="openAccModal()"
-                    class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-600/20">+
-                    Create Account</button>
-            </div>
-            <div class="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-800 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                        <tr>
-                            <th class="p-5">User / Primary Domain</th>
-                            <th class="p-5">Package</th>
-                            <th class="p-5 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800">
-                        <?php foreach ($clients as $c): ?>
-                            <tr class="hover:bg-slate-800/30 transition-colors">
-                                <td class="p-5">
-                                    <div class="font-bold text-white"><?= $c['username'] ?></div>
-                                    <div class="text-xs text-blue-400"><?= $c['domain'] ?></div>
-                                </td>
-                                <td class="p-5"><span
-                                        class="bg-slate-800 px-3 py-1 rounded-full text-[11px] font-bold"><?= $c['pkg_name'] ?></span>
-                                </td>
-                                <td class="p-5 text-right flex justify-end gap-2">
-                                    <button onclick='openAccModal(<?= json_encode($c) ?>)'
-                                        class="p-2 hover:bg-slate-700 rounded-lg"><i data-lucide="edit-3"
-                                            class="w-4"></i></button>
-                                    <button
-                                        onclick="delAcc(<?= $c['id'] ?>, '<?= $c['username'] ?>', '<?= $c['domain'] ?>')"
-                                        class="p-2 hover:bg-red-500/10 text-red-500 rounded-lg"><i data-lucide="trash-2"
-                                            class="w-4"></i></button>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- PACKAGES -->
-        <div id="view-pkg" class="view-pane">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-bold">Service Packages</h2>
-                <button onclick="openPkgModal()"
-                    class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl font-bold shadow-lg shadow-emerald-600/20">Add
-                    Package</button>
-            </div>
-            <div class="grid grid-cols-3 gap-6">
-                <?php foreach ($packages as $p): ?>
-                    <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 relative group">
-                        <h3 class="text-xl font-bold mb-4"><?= $p['name'] ?></h3>
-                        <div class="space-y-3 text-sm text-slate-400 mb-8">
-                            <div class="flex items-center gap-2"><i data-lucide="hard-drive" class="w-4"></i>
-                                <?= $p['disk_mb'] ?> MB Storage</div>
-                            <div class="flex items-center gap-2"><i data-lucide="globe" class="w-4"></i>
-                                <?= $p['max_domains'] ?> Domains</div>
-                            <div class="flex items-center gap-2"><i data-lucide="mail" class="w-4"></i>
-                                <?= $p['max_emails'] ?> Emails</div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick='openPkgModal(<?= json_encode($p) ?>)'
-                                class="flex-1 bg-slate-800 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-700">Edit</button>
-                            <button onclick="delPkg(<?= $p['id'] ?>)" class="bg-red-500/10 p-3 rounded-xl text-red-500"><i
-                                    data-lucide="trash-2"></i></button>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-
-        <!-- SERVICES -->
-        <div id="view-serv" class="view-pane">
-            <h2 class="text-3xl font-bold mb-8">Service Engine</h2>
-            <div class="grid grid-cols-2 gap-6">
-                <?php foreach ($services as $id => $name):
-                    $active = trim(cmd("service-status $id")) == 'active'; ?>
-                    <div class="bg-slate-900 p-6 rounded-3xl border border-slate-800 flex justify-between items-center">
-                        <div class="flex items-center gap-4">
+            <!-- DASHBOARD -->
+            <div id="view-dash" class="view-pane active">
+                <h2 class="text-2xl font-bold mb-6 text-white font-heading">System Overview</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <?php
+                    $metrics = [
+                        ['CPU Load', 'cpu', 'text-blue-400', 'bg-blue-500/10', 'border-blue-500/20'],
+                        ['RAM Usage', 'layers', 'text-purple-400', 'bg-purple-500/10', 'border-purple-500/20'],
+                        ['Disk Space', 'hard-drive', 'text-emerald-400', 'bg-emerald-500/10', 'border-emerald-500/20'],
+                        ['Uptime', 'clock', 'text-orange-400', 'bg-orange-500/10', 'border-orange-500/20']
+                    ];
+                    foreach ($metrics as $i => $m):
+                        ?>
+                        <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
                             <div
-                                class="w-3 h-3 rounded-full <?= $active ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-red-500 shadow-[0_0_10px_#ef4444]' ?>">
+                                class="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-110 transition duration-500">
+                                <i data-lucide="<?= $m[1] ?>" class="w-16 h-16 text-white"></i>
                             </div>
-                            <div>
-                                <p class="font-bold text-lg"><?= $name ?></p>
-                                <p class="text-[10px] font-mono text-slate-500 uppercase"><?= $id ?></p>
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="p-2 rounded-lg <?= $m[3] ?> <?= $m[2] ?> border <?= $m[4] ?>">
+                                    <i data-lucide="<?= $m[1] ?>" class="w-5 h-5"></i>
+                                </div>
+                                <span
+                                    class="text-[11px] font-bold text-slate-400 uppercase tracking-widest"><?= $m[0] ?></span>
                             </div>
+                            <p class="text-3xl font-bold text-white tracking-tight">
+                                <?= $stats[$i] ?? '0' ?>    <?= $i < 3 ? '%' : '' ?></p>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="servAction('<?= $id ?>','restart')" title="Restart"
-                                class="p-4 bg-slate-800 rounded-2xl text-blue-400 hover:bg-slate-700 transition-all"><i
-                                    data-lucide="refresh-cw"></i></button>
-                            <button onclick="servAction('<?= $id ?>','stop')" title="Stop"
-                                class="p-4 bg-slate-800 rounded-2xl text-red-500 hover:bg-slate-700 transition-all"><i
-                                    data-lucide="power"></i></button>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        </div>
 
-        <!-- FTP & MAIL -->
-        <div id="view-hosting" class="view-pane">
-            <div class="grid grid-cols-2 gap-10">
-                <div class="bg-slate-900 p-10 rounded-[2.5rem] border border-slate-800 shadow-2xl">
-                    <h3 class="text-2xl font-bold mb-8 flex items-center gap-3"><i data-lucide="folder-key"
-                            class="text-emerald-500"></i> FTP Provisioning</h3>
-                    <form onsubmit="handleGeneric(event, 'add_ftp')" class="space-y-4">
-                        <input name="ftp_user" required placeholder="FTP Username"
-                            class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 outline-none focus:border-blue-500">
-                        <input name="ftp_pass" required type="password" placeholder="FTP Password"
-                            class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 outline-none focus:border-blue-500">
-                        <select name="sys_user" class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800">
+            <!-- ACCOUNTS -->
+            <div id="view-acc" class="view-pane">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold text-white font-heading">Client Accounts</h2>
+                    <button onclick="openAccModal()"
+                        class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-900/20 text-sm flex items-center gap-2 transition border border-blue-500/50">
+                        <i data-lucide="plus-circle" class="w-4"></i> Create Account
+                    </button>
+                </div>
+                <div class="glass-panel rounded-2xl overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead
+                            class="bg-slate-900/50 text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b border-slate-800">
+                            <tr>
+                                <th class="p-5">Client / Domain</th>
+                                <th class="p-5">Plan</th>
+                                <th class="p-5 text-right">Management</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/50">
                             <?php foreach ($clients as $c): ?>
-                                <option value="<?= $c['username'] ?>">Root: <?= $c['username'] ?></option>
+                                <tr class="hover:bg-slate-800/30 transition-colors group">
+                                    <td class="p-5">
+                                        <div class="font-bold text-white text-sm"><?= $c['username'] ?></div>
+                                        <a href="http://<?= $c['domain'] ?>" target="_blank"
+                                            class="text-xs text-blue-400 hover:underline flex items-center gap-1">
+                                            <?= $c['domain'] ?> <i data-lucide="external-link"
+                                                class="w-3 opacity-0 group-hover:opacity-100 transition"></i>
+                                        </a>
+                                    </td>
+                                    <td class="p-5">
+                                        <span
+                                            class="bg-slate-800 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-300">
+                                            <?= $c['pkg_name'] ?>
+                                        </span>
+                                    </td>
+                                    <td class="p-5 text-right flex justify-end gap-2">
+                                        <button onclick='openAccModal(<?= json_encode($c) ?>)'
+                                            class="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition border border-transparent hover:border-blue-500/20"
+                                            title="Edit">
+                                            <i data-lucide="edit-3" class="w-4"></i>
+                                        </button>
+                                        <button
+                                            onclick="delAcc(<?= $c['id'] ?>, '<?= $c['username'] ?>', '<?= $c['domain'] ?>')"
+                                            class="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition border border-transparent hover:border-red-500/20"
+                                            title="Delete">
+                                            <i data-lucide="trash-2" class="w-4"></i>
+                                        </button>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
-                        </select>
-                        <button
-                            class="w-full bg-emerald-600 py-4 rounded-2xl font-bold mt-4 shadow-lg shadow-emerald-600/20">Add
-                            FTP User</button>
-                    </form>
-                </div>
-                <div class="bg-slate-900 p-10 rounded-[2.5rem] border border-slate-800 shadow-2xl">
-                    <h3 class="text-2xl font-bold mb-8 flex items-center gap-3"><i data-lucide="mail"
-                            class="text-blue-500"></i> New Mailbox</h3>
-                    <form onsubmit="handleGeneric(event, 'add_mail')" class="space-y-4">
-                        <div class="flex gap-2">
-                            <input name="prefix" required placeholder="admin"
-                                class="flex-1 bg-slate-950 p-4 rounded-2xl border border-slate-800">
-                            <select name="domain" class="flex-1 bg-slate-950 p-4 rounded-2xl border border-slate-800">
-                                <?php foreach ($clients as $c): ?>
-                                    <option value="<?= $c['domain'] ?>">@<?= $c['domain'] ?></option><?php endforeach; ?>
-                            </select>
-                        </div>
-                        <input name="mail_pass" required type="password" placeholder="Password"
-                            class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 outline-none">
-                        <button
-                            class="w-full bg-blue-600 py-4 rounded-2xl font-bold mt-4 shadow-lg shadow-blue-600/20">Create
-                            Mailbox</button>
-                    </form>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
 
+            <!-- PACKAGES -->
+            <div id="view-pkg" class="view-pane">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold text-white font-heading">Service Packages</h2>
+                    <button onclick="openPkgModal()"
+                        class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-900/20 text-sm flex items-center gap-2 transition border border-emerald-500/50">
+                        <i data-lucide="plus" class="w-4"></i> Add Package
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <?php foreach ($packages as $p): ?>
+                        <div class="glass-panel p-6 rounded-2xl relative group hover:border-slate-600 transition">
+                            <div class="flex justify-between items-start mb-6">
+                                <h3 class="text-lg font-bold text-white"><?= $p['name'] ?></h3>
+                                <div class="p-2 bg-slate-800 rounded-lg text-slate-400"><i data-lucide="box"
+                                        class="w-4"></i></div>
+                            </div>
+                            <div class="space-y-4 text-sm text-slate-400 mb-8 font-medium">
+                                <div
+                                    class="flex items-center gap-3 p-2 rounded-lg bg-slate-900/30 border border-slate-800/50">
+                                    <i data-lucide="hard-drive" class="w-4 text-blue-400"></i> <?= $p['disk_mb'] ?> MB
+                                    Storage
+                                </div>
+                                <div
+                                    class="flex items-center gap-3 p-2 rounded-lg bg-slate-900/30 border border-slate-800/50">
+                                    <i data-lucide="globe" class="w-4 text-emerald-400"></i> <?= $p['max_domains'] ?>
+                                    Domains
+                                </div>
+                                <div
+                                    class="flex items-center gap-3 p-2 rounded-lg bg-slate-900/30 border border-slate-800/50">
+                                    <i data-lucide="mail" class="w-4 text-purple-400"></i> <?= $p['max_emails'] ?> Emails
+                                </div>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick='openPkgModal(<?= json_encode($p) ?>)'
+                                    class="flex-1 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-300 transition border border-slate-700">Edit</button>
+                                <button onclick="delPkg(<?= $p['id'] ?>)"
+                                    class="bg-red-500/10 hover:bg-red-500/20 p-2.5 rounded-xl text-red-400 border border-red-500/20 transition"><i
+                                        data-lucide="trash-2" class="w-4"></i></button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <!-- SERVICES -->
+            <div id="view-serv" class="view-pane">
+                <h2 class="text-2xl font-bold mb-8 text-white font-heading">Service Engine</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <?php foreach ($services as $id => $name):
+                        $active = trim(cmd("service-status $id")) == 'active'; ?>
+                        <div
+                            class="glass-panel p-6 rounded-2xl flex justify-between items-center group hover:border-blue-500/30 transition">
+                            <div class="flex items-center gap-4">
+                                <div class="relative">
+                                    <div
+                                        class="w-3 h-3 rounded-full <?= $active ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-red-500 shadow-[0_0_10px_#ef4444]' ?>">
+                                    </div>
+                                    <div
+                                        class="w-3 h-3 rounded-full <?= $active ? 'bg-emerald-500' : 'bg-red-500' ?> absolute top-0 animate-ping opacity-75">
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-lg text-white group-hover:text-blue-400 transition">
+                                        <?= $name ?></p>
+                                    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest"><?= $id ?></p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="servAction('<?= $id ?>','restart')" title="Restart"
+                                    class="p-3 bg-slate-800 rounded-xl text-blue-400 hover:text-white hover:bg-blue-600 transition-all border border-slate-700 shadow-lg">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="servAction('<?= $id ?>','stop')" title="Stop"
+                                    class="p-3 bg-slate-800 rounded-xl text-red-500 hover:text-white hover:bg-red-600 transition-all border border-slate-700 shadow-lg">
+                                    <i data-lucide="power" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <!-- FTP & MAIL TOOLS -->
+            <div id="view-hosting" class="view-pane">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-600/10 rounded-full blur-3xl"></div>
+                        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
+                            <div class="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20 text-emerald-500">
+                                <i data-lucide="folder-key" class="w-5 h-5"></i></div>
+                            FTP Provisioning
+                        </h3>
+                        <form onsubmit="handleGeneric(event, 'add_ftp')" class="space-y-4 relative z-10">
+                            <input name="ftp_user" required placeholder="FTP Username"
+                                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                            <input name="ftp_pass" required type="password" placeholder="FTP Password"
+                                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition mb-2">
+                            <select name="sys_user"
+                                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-emerald-500 focus:bg-slate-900 transition">
+                                <?php foreach ($clients as $c): ?>
+                                    <option value="<?= $c['username'] ?>">Root: <?= $c['username'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button
+                                class="w-full bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-emerald-600/20 text-white transition border border-emerald-500/50">Create
+                                FTP User</button>
+                        </form>
+                    </div>
+
+                    <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl"></div>
+                        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
+                            <div class="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20 text-blue-500"><i
+                                    data-lucide="mail" class="w-5 h-5"></i></div>
+                            New Mailbox
+                        </h3>
+                        <form onsubmit="handleGeneric(event, 'add_mail')" class="space-y-4 relative z-10">
+                            <div class="flex gap-2">
+                                <input name="prefix" required placeholder="admin"
+                                    class="flex-1 bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                                <select name="domain"
+                                    class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-blue-500 focus:bg-slate-900 transition w-1/3">
+                                    <?php foreach ($clients as $c): ?>
+                                        <option value="<?= $c['domain'] ?>">@<?= $c['domain'] ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <input name="mail_pass" required type="password" placeholder="Password"
+                                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition mb-2">
+                            <button
+                                class="w-full bg-blue-600 hover:bg-blue-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-blue-600/20 text-white transition border border-blue-500/50">Create
+                                Mailbox</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </main>
 
     <!-- ACCOUNT MODAL -->
-    <div id="modal-acc"
-        class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
+    <div id="modal-acc" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
         <form id="form-acc" onsubmit="handleGeneric(event, 'save_account')"
-            class="bg-slate-900 p-10 rounded-[2.5rem] w-full max-w-lg border border-slate-800 shadow-2xl">
-            <h3 id="acc-title" class="text-2xl font-bold mb-8">New Account</h3>
+            class="glass-panel p-10 rounded-3xl w-full max-w-lg relative">
+            <h3 id="acc-title" class="text-2xl font-bold mb-8 text-white font-heading">Provision Account</h3>
             <input type="hidden" name="id" id="acc-id">
-            <div class="space-y-4">
-                <input name="user" id="acc-user" placeholder="Username (alpha-numeric)"
-                    class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 outline-none focus:border-blue-500"
-                    required>
-                <input name="dom" id="acc-dom" placeholder="Primary Domain (domain.com)"
-                    class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 outline-none focus:border-blue-500"
-                    required>
-                <input name="email" id="acc-email" placeholder="Contact Email"
-                    class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 outline-none focus:border-blue-500"
-                    required>
-                <input name="pass" type="password" placeholder="Password (leave blank to keep current)"
-                    class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 outline-none focus:border-blue-500">
-                <select name="package_id" id="acc-pkg"
-                    class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800">
-                    <?php foreach ($packages as $p): ?>
-                        <option value="<?= $p['id'] ?>"><?= $p['name'] ?></option><?php endforeach; ?>
-                </select>
-                <div class="flex gap-4 pt-6">
+            
+            <div class="space-y-5">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Client ID</label>
+                    <input name="user" id="acc-user" placeholder="Username" required
+                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Primary Domain</label>
+                    <input name="dom" id="acc-dom" placeholder="example.com" required
+                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                </div>
+
+                <div class="space-y-2">
+                     <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Contact</label>
+                    <input name="email" id="acc-email" placeholder="client@email.com" required
+                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Security</label>
+                    <input name="pass" type="password" placeholder="Password (Leave empty to keep)"
+                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Plan</label>
+                    <div class="relative">
+                        <select name="package_id" id="acc-pkg"
+                            class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-blue-500 focus:bg-slate-900 transition appearance-none cursor-pointer">
+                            <?php foreach ($packages as $p): ?>
+                                <option value="<?= $p['id'] ?>"><?= $p['name'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <i data-lucide="chevron-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4">
                     <button type="button" onclick="closeModal('modal-acc')"
-                        class="flex-1 bg-slate-800 p-4 rounded-2xl font-bold hover:bg-slate-700">Cancel</button>
+                        class="flex-1 p-4 rounded-xl font-bold text-slate-400 hover:bg-slate-800 transition">Cancel</button>
                     <button type="submit"
-                        class="flex-1 bg-blue-600 p-4 rounded-2xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-600/20">Save
-                        Account</button>
+                        class="flex-1 bg-blue-600 hover:bg-blue-500 p-4 rounded-xl font-bold text-white shadow-lg shadow-blue-600/20 transition">
+                        Confirm
+                    </button>
                 </div>
             </div>
         </form>
     </div>
 
     <!-- PACKAGE MODAL -->
-    <div id="modal-pkg"
-        class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
+    <div id="modal-pkg" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
         <form id="form-pkg" onsubmit="handleGeneric(event, 'save_package')"
-            class="bg-slate-900 p-10 rounded-[2.5rem] w-full max-w-md border border-slate-800 shadow-2xl">
-            <h3 id="pkg-title" class="text-2xl font-bold mb-8">Plan Configuration</h3>
+            class="glass-panel p-10 rounded-3xl w-full max-w-md relative">
+            <h3 id="pkg-title" class="text-2xl font-bold mb-8 text-white font-heading">Plan Configuration</h3>
             <input type="hidden" name="id" id="pkg-id">
-            <div class="space-y-4">
-                <input name="name" id="pkg-name" placeholder="Package Name"
-                    class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 outline-none" required>
-                <input name="disk" id="pkg-disk" type="number" placeholder="Disk Limit (MB)"
-                    class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800" required>
-                <input name="doms" id="pkg-doms" type="number" placeholder="Max Domains"
-                    class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800" required>
-                <input name="mails" id="pkg-mails" type="number" placeholder="Max Emails"
-                    class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800" required>
-                <div class="flex gap-4 pt-6">
+            
+            <div class="space-y-5">
+                <input name="name" id="pkg-name" placeholder="Package Name" required
+                    class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="space-y-2">
+                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Disk</label>
+                        <input name="disk" id="pkg-disk" type="number" placeholder="MB" required
+                            class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white focus:bg-slate-900 transition text-center">
+                    </div>
+                    <div class="space-y-2">
+                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Doms</label>
+                        <input name="doms" id="pkg-doms" type="number" placeholder="#" required
+                            class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white focus:bg-slate-900 transition text-center">
+                    </div>
+                    <div class="space-y-2">
+                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Mail</label>
+                        <input name="mails" id="pkg-mails" type="number" placeholder="#" required
+                            class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white focus:bg-slate-900 transition text-center">
+                    </div>
+                </div>
+
+                <div class="flex gap-4 pt-4">
                     <button type="button" onclick="closeModal('modal-pkg')"
-                        class="flex-1 bg-slate-800 p-4 rounded-2xl font-bold">Cancel</button>
+                        class="flex-1 p-4 rounded-xl font-bold text-slate-400 hover:bg-slate-800 transition">Cancel</button>
                     <button type="submit"
-                        class="flex-1 bg-emerald-600 p-4 rounded-2xl font-bold shadow-lg shadow-emerald-600/20">Save
-                        Plan</button>
+                        class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-4 rounded-xl font-bold text-white shadow-lg shadow-emerald-600/20 transition">Save Plan</button>
                 </div>
             </div>
         </form>
     </div>
 
     <script>
+        // Init Icons
+        lucide.createIcons();
+
         function switchTab(id, btn) {
             document.querySelectorAll('.view-pane').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
@@ -438,6 +594,8 @@ $stats = explode('|', (string) cmd("get-stats"));
 
         function openAccModal(data = null) {
             const f = document.getElementById('form-acc'); f.reset();
+            const title = document.getElementById('acc-title');
+            
             if (data) {
                 document.getElementById('acc-id').value = data.id;
                 document.getElementById('acc-user').value = data.username;
@@ -445,17 +603,18 @@ $stats = explode('|', (string) cmd("get-stats"));
                 document.getElementById('acc-dom').value = data.domain;
                 document.getElementById('acc-email').value = data.email;
                 document.getElementById('acc-pkg').value = data.package_id;
-                document.getElementById('acc-title').innerText = "Edit Account";
+                title.innerText = "Edit Account";
             } else {
                 document.getElementById('acc-id').value = "";
                 document.getElementById('acc-user').readOnly = false;
-                document.getElementById('acc-title').innerText = "Provision Account";
+                title.innerText = "Provision Account";
             }
             document.getElementById('modal-acc').classList.remove('hidden');
         }
 
         function openPkgModal(data = null) {
             const f = document.getElementById('form-pkg'); f.reset();
+            const title = document.getElementById('pkg-title');
             if (data) {
                 document.getElementById('pkg-id').value = data.id;
                 document.getElementById('pkg-name').value = data.name;
@@ -468,70 +627,61 @@ $stats = explode('|', (string) cmd("get-stats"));
             document.getElementById('modal-pkg').classList.remove('hidden');
         }
 
-        /**
-         * GLOBAL AJAX HANDLER (502 Protected)
-         */
         async function handleGeneric(e, action) {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            btn.disabled = true; btn.innerHTML = "Processing Node...";
+            btn.disabled = true; 
+            btn.innerHTML = `<span class="animate-pulse">Processing...</span>`;
 
             const fd = new FormData(e.target);
             fd.append('ajax_action', action);
 
             try {
                 const response = await fetch('', { method: 'POST', body: fd });
-
-                // If 502 occurs, server is restarting. Just refresh after delay.
-                if (response.status === 502 || response.status === 504) {
-                    btn.innerHTML = "Server Reloading...";
-                    setTimeout(() => location.reload(), 2500);
+                
+                // Handling Nginx Reloads (502/504)
+                if ([502, 504].includes(response.status)) {
+                    btn.innerHTML = "Reloading Node...";
+                    setTimeout(() => location.reload(), 2000);
                     return;
                 }
 
                 const data = await response.json();
                 if (data.status === 'success') location.reload();
-                else { alert(data.msg); btn.disabled = false; btn.innerHTML = originalText; }
-
+                else { 
+                    alert(data.msg); 
+                    btn.disabled = false; 
+                    btn.innerHTML = originalText; 
+                }
             } catch (err) {
-                // Handle JSON parse errors during service restarts
-                btn.innerHTML = "Node Syncing...";
-                setTimeout(() => location.reload(), 2500);
+                // If JSON fails, it's likely a service reload interruption, which is good.
+                location.reload();
             }
         }
 
         async function delAcc(id, user, dom) {
-            if (!confirm(`Permanent Purge: Delete ${user}?`)) return;
-            const fd = new FormData();
-            fd.append('ajax_action', 'delete_account');
-            fd.append('id', id); fd.append('user', user); fd.append('dom', dom);
-            await fetch('', { method: 'POST', body: fd });
-            location.reload();
+            if (!confirm(`Warning: This will permanently delete ${user} and all associated data. Continue?`)) return;
+            postDat('delete_account', { id, user, dom });
         }
 
         async function delPkg(id) {
-            if (!confirm('Delete this plan?')) return;
-            const fd = new FormData();
-            fd.append('ajax_action', 'delete_package');
-            fd.append('id', id);
-            await fetch('', { method: 'POST', body: fd });
-            location.reload();
+            if (!confirm('Delete this service package?')) return;
+            postDat('delete_package', { id });
         }
 
         async function servAction(service, op) {
-            const fd = new FormData();
-            fd.append('ajax_action', 'service_action');
-            fd.append('service', service); fd.append('op', op);
-
-            try {
-                await fetch('', { method: 'POST', body: fd });
-                setTimeout(() => location.reload(), 2000);
-            } catch (e) { location.reload(); }
+            postDat('service_action', { service, op });
         }
 
-        lucide.createIcons();
+        async function postDat(action, data) {
+            const fd = new FormData();
+            fd.append('ajax_action', action);
+            for (let k in data) fd.append(k, data[k]);
+            
+            try { await fetch('', { method: 'POST', body: fd }); } catch(e) {}
+            setTimeout(() => location.reload(), 1500);
+        }
     </script>
 </body>
-
 </html>
