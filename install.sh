@@ -110,8 +110,48 @@ sed -i "s/SHMPanel_Secure_Pass_2025/$DB_PASS/" /var/www/panel/shared/config.php
 chown -R www-data:www-data /var/www/panel
 chmod -R 755 /var/www/panel
 
+# --- 4b. Service Configuration (SQL Auth) ---
+log "Configuring Services for SQL..."
+
+# ProFTPD SQL Config
+cat > /etc/proftpd/sql.conf << EOF
+<IfModule mod_sql.c>
+    SQLBackend mysql
+    SQLConnectInfo $DB_NAME@localhost $DB_USER $DB_PASS
+    SQLLogFile /var/log/proftpd/sql.log
+    SQLAuthenticate users
+    SQLAuthTypes Crypt
+    SQLUserInfo ftp_users userid passwd uid gid homedir shell
+</IfModule>
+EOF
+sed -i 's|#Include /etc/proftpd/sql.conf|Include /etc/proftpd/sql.conf|' /etc/proftpd/proftpd.conf
+
+# Postfix/Dovecot SQL Config
+cat > /etc/dovecot/dovecot-sql.conf.ext << EOF
+driver = mysql
+connect = host=localhost dbname=$DB_NAME user=$DB_USER password=$DB_PASS
+default_pass_scheme = BLF-CRYPT
+password_query = SELECT email as user, password FROM mail_users WHERE email='%u';
+user_query = SELECT 5000 as uid, 5000 as gid, '/var/mail/vhosts/%d/%n' as home;
+EOF
+
+cat > /etc/postfix/mysql-virtual-mailbox-domains.cf << EOF
+user = $DB_USER
+password = $DB_PASS
+hosts = 127.0.0.1
+dbname = $DB_NAME
+query = SELECT 1 FROM mail_domains WHERE domain='%s'
+EOF
+
+cat > /etc/postfix/mysql-virtual-mailbox-maps.cf << EOF
+user = $DB_USER
+password = $DB_PASS
+hosts = 127.0.0.1
+dbname = $DB_NAME
+query = SELECT 1 FROM mail_users WHERE email='%s'
+EOF
+
 # --- 5. Nginx VHost Setup ---
-log "Configuring Nginx..."
 
 declare -A SUBDOMAINS=(
     ["admin.$MAIN_DOMAIN"]="/var/www/panel/whm"

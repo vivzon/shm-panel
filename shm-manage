@@ -122,6 +122,10 @@ NGINX
             mysql -e "GRANT ALL PRIVILEGES ON $5.* TO '$3'@'localhost';"
             mysql -e "FLUSH PRIVILEGES;"
             log_action "Created DB User: $3 for $5"
+        elif [ "$SUB" == "delete-db" ]; then
+            # $3: db_name
+            mysql -e "DROP DATABASE IF EXISTS $3;"
+            log_action "Dropped DB: $3"
         fi
         ;;
 
