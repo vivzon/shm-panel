@@ -89,8 +89,30 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        if ($action == 'delete_dns') {
+            $did = (int) $_POST['id'];
+            $dom_id = (int) $_POST['domain_id'];
+            $check = $pdo->prepare("SELECT id FROM domains WHERE id = ? AND client_id = ?");
+            $check->execute([$dom_id, $cid]);
+            if (!$check->fetch())
+                throw new Exception("Access Denied");
+
+            $pdo->prepare("DELETE FROM dns_records WHERE id = ? AND domain_id = ?")->execute([$did, $dom_id]);
+            sendResponse($res);
+            cmd("dns-tool sync " . $dom_id);
+            exit;
+        }
+
         if ($action == 'delete_email') {
-            // Unimplemented in UI but good to have
+            $email = $_POST['email'];
+            $check = $pdo->prepare("SELECT m.id FROM mail_users m JOIN mail_domains md ON m.domain_id = md.id JOIN domains d ON md.domain = d.domain WHERE m.email = ? AND d.client_id = ?");
+            $check->execute([$email, $cid]);
+            if (!$check->fetch())
+                throw new Exception("Access Denied");
+
+            $pdo->prepare("DELETE FROM mail_users WHERE email = ?")->execute([$email]);
+            // Postfix uses DB directly.
+            sendResponse($res);
             exit;
         }
     } catch (Exception $e) {
@@ -196,20 +218,24 @@ $my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON
                     </div>
                 </div>
             </div>
+            <?php
+            $host_parts = explode('.', $_SERVER['HTTP_HOST']);
+            $base_domain = implode('.', array_slice($host_parts, -2));
+            ?>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <a href="http://filemanager.vivzon.cloud" target="_blank"
+                <a href="http://filemanager.<?= $base_domain ?>" target="_blank"
                     class="bg-white p-8 rounded-3xl border text-center hover:shadow-xl transition group border-orange-100"><i
                         data-lucide="folder-open"
                         class="mx-auto w-10 h-10 text-orange-500 mb-3 group-hover:scale-110 transition"></i>
                     <p class="font-bold">File Manager</p>
                 </a>
-                <a href="http://phpmyadmin.vivzon.cloud" target="_blank"
+                <a href="http://phpmyadmin.<?= $base_domain ?>" target="_blank"
                     class="bg-white p-8 rounded-3xl border text-center hover:shadow-xl transition group border-blue-100"><i
                         data-lucide="database"
                         class="mx-auto w-10 h-10 text-blue-500 mb-3 group-hover:scale-110 transition"></i>
                     <p class="font-bold">phpMyAdmin</p>
                 </a>
-                <a href="http://webmail.vivzon.cloud" target="_blank"
+                <a href="http://webmail.<?= $base_domain ?>" target="_blank"
                     class="bg-white p-8 rounded-3xl border text-center hover:shadow-xl transition group border-purple-100"><i
                         data-lucide="mail"
                         class="mx-auto w-10 h-10 text-purple-500 mb-3 group-hover:scale-110 transition"></i>
@@ -267,7 +293,7 @@ $my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON
                             <tr class="border-t border-slate-100">
                                 <td class="p-6 font-mono text-blue-600"><?= $db['db_name'] ?></td>
                                 <td class="p-6 text-right">
-                                    <a href="http://phpmyadmin.vivzon.cloud" target="_blank"
+                                    <a href="http://phpmyadmin.<?= $base_domain ?>" target="_blank"
                                         class="text-blue-500 font-bold text-xs mr-4 uppercase">phpMyAdmin</a>
                                     <button onclick="deleteAction('delete_db', 'db_name', '<?= $db['db_name'] ?>')"
                                         class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition"><i
@@ -309,9 +335,10 @@ $my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON
                             <tr class="border-t">
                                 <td class="p-6 font-bold text-slate-700"><?= $mail['email'] ?></td>
                                 <td class="p-6 text-right">
-                                    <a href="http://webmail.vivzon.cloud" target="_blank"
+                                    <a href="http://webmail.<?= $base_domain ?>" target="_blank"
                                         class="text-blue-500 font-bold text-xs mr-4 uppercase tracking-tighter">Login</a>
-                                    <button class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition"><i
+                                    <button onclick="deleteAction('delete_email', 'email', '<?= $mail['email'] ?>')"
+                                        class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition"><i
                                             data-lucide="trash-2" class="w-4"></i></button>
                                 </td>
                             </tr>
@@ -371,6 +398,37 @@ $my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON
                             <button class="bg-slate-900 text-white rounded-xl font-bold text-xs uppercase shadow-xl">Add
                                 Record</button>
                         </form>
+
+                        <table class="w-full mt-6 text-left">
+                            <thead class="bg-gray-50 text-[10px] font-bold uppercase text-slate-400">
+                                <tr>
+                                    <th class="p-3">Host</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Value</th>
+                                    <th class="p-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <?php
+                                $recs = $pdo->prepare("SELECT * FROM dns_records WHERE domain_id = ?");
+                                $recs->execute([$d['id']]);
+                                while ($r = $recs->fetch()): ?>
+                                    <tr class="text-sm">
+                                        <td class="p-3 font-bold text-slate-700"><?= $r['host'] ?></td>
+                                        <td class="p-3"><span
+                                                class="bg-slate-100 px-2 py-1 rounded text-xs font-bold"><?= $r['type'] ?></span>
+                                        </td>
+                                        <td class="p-3 font-mono text-slate-500 text-xs"><?= $r['value'] ?></td>
+                                        <td class="p-3 text-right">
+                                            <button
+                                                onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
+                                                class="text-red-400 hover:text-red-600"><i data-lucide="trash-2"
+                                                    class="w-4"></i></button>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -402,9 +460,10 @@ $my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON
             } catch (err) { location.reload(); }
         }
 
-        async function deleteAction(action, key, val) {
+        async function deleteAction(action, ...args) {
             if (!confirm("Permanent Action: Are you sure?")) return;
-            const fd = new FormData(); fd.append('ajax_action', action); fd.append(key, val);
+            const fd = new FormData(); fd.append('ajax_action', action);
+            for (let i = 0; i < args.length; i += 2) fd.append(args[i], args[i + 1]);
             await fetch('', { method: 'POST', body: fd });
             location.reload();
         }

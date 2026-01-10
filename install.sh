@@ -10,8 +10,18 @@
 export DEBIAN_FRONTEND=noninteractive
 
 # --- Configuration ---
-MAIN_DOMAIN="vivzon.cloud"
-ADMIN_EMAIL="admin@vivzon.cloud"
+# --- Configuration ---
+if [ -z "$MAIN_DOMAIN" ]; then
+    read -p "Enter Main Domain (e.g. example.com): " MAIN_DOMAIN
+fi
+
+if [ -z "$ADMIN_EMAIL" ]; then
+    read -p "Enter Admin Email: " ADMIN_EMAIL
+fi
+
+# Fallback defaults if empty
+MAIN_DOMAIN=${MAIN_DOMAIN:-vivzon.cloud}
+ADMIN_EMAIL=${ADMIN_EMAIL:-admin@$MAIN_DOMAIN}
 DB_NAME="shm_panel"
 DB_USER="shm_admin"
 DB_PASS=$(openssl rand -base64 16)
@@ -83,6 +93,8 @@ cp shm-manage /usr/local/bin/shm-manage
 chmod +x /usr/local/bin/shm-manage
 mkdir -p /etc/shm
 echo "DB_NAME='$DB_NAME'" > /etc/shm/config.sh
+echo "MAIN_DOMAIN='$MAIN_DOMAIN'" >> /etc/shm/config.sh
+echo "ADMIN_EMAIL='$ADMIN_EMAIL'" >> /etc/shm/config.sh
 
 # Sudoers
 echo "www-data ALL=(root) NOPASSWD: /usr/local/bin/shm-manage" > /etc/sudoers.d/shm

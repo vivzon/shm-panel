@@ -142,9 +142,9 @@ NGINX
             ZONE_FILE="/etc/bind/zones/db.$DOM_INFO"
             cat > $ZONE_FILE <<ZONE
 \$TTL 86400
-@ IN SOA ns1.vivzon.cloud. admin.vivzon.cloud. ( $(date +%Y%m%d)01 3600 900 604800 86400 )
-@ IN NS ns1.vivzon.cloud.
-@ IN NS ns2.vivzon.cloud.
+@ IN SOA ns1.$MAIN_DOMAIN. $ADMIN_EMAIL. ( $(date +%Y%m%d)01 3600 900 604800 86400 )
+@ IN NS ns1.$MAIN_DOMAIN.
+@ IN NS ns2.$MAIN_DOMAIN.
 @ IN A $(hostname -I | awk '{print $1}')
 www IN CNAME @
 ZONE
@@ -195,7 +195,7 @@ server {
 CONF
             # SSL Handling (Simple Certbot trigger)
             if [ "$SSL" == "1" ]; then
-                certbot --nginx -d $DOM -d www.$DOM --non-interactive --agree-tos --email admin@vivzon.cloud --redirect
+                certbot --nginx -d $DOM -d www.$DOM --non-interactive --agree-tos --email $ADMIN_EMAIL --redirect
             fi
             
             # Memory Limit update
