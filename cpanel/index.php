@@ -115,6 +115,22 @@ if (isset($_POST['ajax_action'])) {
             sendResponse($res);
             exit;
         }
+
+        /** 4. APP INSTALLER LOGIC **/
+        if ($action == 'install_app') {
+            $app = $_POST['app'];
+            $dom_id = $_POST['domain_id'];
+
+            // Get Domain Name
+            $d = $pdo->query("SELECT domain FROM domains WHERE id=$dom_id AND client_id=$cid")->fetchColumn();
+            if (!$d)
+                throw new Exception("Invalid Domain");
+
+            sendResponse($res);
+            // Run in background as it takes time
+            cmd("app-tool $app " . escapeshellarg($d) . " > /dev/null 2>&1 &");
+            exit;
+        }
     } catch (Exception $e) {
         sendResponse(['status' => 'error', 'msg' => $e->getMessage()]);
     }
@@ -231,6 +247,8 @@ $usage_disk = 0; // Disk usage calculation would go here
                         class="w-5"></i> Email Boxes</button>
                 <button onclick="tab('dom')" id="btn-dom" class="nav-btn w-full"><i data-lucide="globe" class="w-5"></i>
                     SSL & DNS</button>
+                <button onclick="tab('apps')" id="btn-apps" class="nav-btn w-full"><i data-lucide="box" class="w-5"></i>
+                    App Installer</button>
             </nav>
         </div>
 
@@ -271,50 +289,66 @@ $usage_disk = 0; // Disk usage calculation would go here
                 <!-- Usage Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                     <!-- Disk -->
-                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-blue-200 transition">
-                        <div class="absolute right-0 top-0 p-6 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
+                    <div
+                        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-blue-200 transition">
+                        <div
+                            class="absolute right-0 top-0 p-6 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
                             <i data-lucide="hard-drive" class="w-24 h-24"></i>
                         </div>
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Disk Usage</p>
-                        <h3 class="text-3xl font-extrabold text-slate-900 mb-2"><?= $usage_disk ?> <span class="text-sm text-slate-400 font-medium">/ <?= $client['disk_mb'] ?> MB</span></h3>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-2"><?= $usage_disk ?> <span
+                                class="text-sm text-slate-400 font-medium">/ <?= $client['disk_mb'] ?> MB</span></h3>
                         <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-blue-600 h-full rounded-full" style="width: <?= ($usage_disk/$client['disk_mb'])*100 ?>%"></div>
+                            <div class="bg-blue-600 h-full rounded-full"
+                                style="width: <?= ($usage_disk / $client['disk_mb']) * 100 ?>%"></div>
                         </div>
                     </div>
 
                     <!-- Domains -->
-                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition">
-                         <div class="absolute right-0 top-0 p-6 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
+                    <div
+                        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-emerald-200 transition">
+                        <div
+                            class="absolute right-0 top-0 p-6 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
                             <i data-lucide="globe" class="w-24 h-24"></i>
                         </div>
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Domains</p>
-                        <h3 class="text-3xl font-extrabold text-slate-900 mb-2"><?= $usage_dom ?> <span class="text-sm text-slate-400 font-medium">/ <?= $client['max_domains'] ?></span></h3>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-2"><?= $usage_dom ?> <span
+                                class="text-sm text-slate-400 font-medium">/ <?= $client['max_domains'] ?></span></h3>
                         <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-emerald-500 h-full rounded-full" style="width: <?= ($usage_dom/$client['max_domains'])*100 ?>%"></div>
+                            <div class="bg-emerald-500 h-full rounded-full"
+                                style="width: <?= ($usage_dom / $client['max_domains']) * 100 ?>%"></div>
                         </div>
                     </div>
 
                     <!-- Emails -->
-                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-purple-200 transition">
-                         <div class="absolute right-0 top-0 p-6 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
+                    <div
+                        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-purple-200 transition">
+                        <div
+                            class="absolute right-0 top-0 p-6 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
                             <i data-lucide="mail" class="w-24 h-24"></i>
                         </div>
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Email Boxes</p>
-                        <h3 class="text-3xl font-extrabold text-slate-900 mb-2"><?= $usage_mail ?> <span class="text-sm text-slate-400 font-medium">/ <?= $client['max_emails'] ?></span></h3>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-2"><?= $usage_mail ?> <span
+                                class="text-sm text-slate-400 font-medium">/ <?= $client['max_emails'] ?></span></h3>
                         <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-purple-500 h-full rounded-full" style="width: <?= ($usage_mail/$client['max_emails'])*100 ?>%"></div>
+                            <div class="bg-purple-500 h-full rounded-full"
+                                style="width: <?= ($usage_mail / $client['max_emails']) * 100 ?>%"></div>
                         </div>
                     </div>
-                    
+
                     <!-- DBs -->
-                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-orange-200 transition">
-                         <div class="absolute right-0 top-0 p-6 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
+                    <div
+                        class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:border-orange-200 transition">
+                        <div
+                            class="absolute right-0 top-0 p-6 opacity-5 group-hover:opacity-10 transition transform group-hover:scale-110">
                             <i data-lucide="database" class="w-24 h-24"></i>
                         </div>
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Databases</p>
-                        <h3 class="text-3xl font-extrabold text-slate-900 mb-2"><?= $usage_db ?> <span class="text-sm text-slate-400 font-medium">/ <?= $client['max_databases'] ?></span></h3>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mb-2"><?= $usage_db ?> <span
+                                class="text-sm text-slate-400 font-medium">/ <?= $client['max_databases'] ?></span></h3>
                         <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-orange-500 h-full rounded-full" style="width: <?= ($usage_db/$client['max_databases'])*100 ?>%"></div>
+                            <div class="bg-orange-500 h-full rounded-full"
+                                style="width: <?= ($usage_db / $client['max_databases']) * 100 ?>%"></div>
                         </div>
                     </div>
                 </div>
@@ -360,27 +394,89 @@ $usage_disk = 0; // Disk usage calculation would go here
                 </div>
             </div>
 
+            <!-- APP INSTALLER -->
+            <div id="pane-apps" class="pane">
+                <h2 class="text-2xl font-bold mb-8">One-Click App Installer</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- WordPress -->
+                    <div
+                        class="bg-white p-6 rounded-[2rem] border shadow-sm flex flex-col items-center text-center group hover:border-blue-300 transition relative overflow-hidden">
+                        <div
+                            class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                            <i data-lucide="layout-template" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2">WordPress</h3>
+                        <p class="text-sm text-slate-500 mb-6">The world's most popular CMS.</p>
+                        <button onclick="openAppModal('wordpress', 'WordPress')"
+                            class="mt-auto w-full py-3 rounded-xl font-bold bg-slate-50 text-slate-600 hover:bg-blue-600 hover:text-white transition">Install</button>
+                    </div>
+
+                    <!-- Laravel -->
+                    <div
+                        class="bg-white p-6 rounded-[2rem] border shadow-sm flex flex-col items-center text-center group hover:border-red-300 transition relative overflow-hidden">
+                        <div
+                            class="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                            <i data-lucide="code-2" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2">Laravel</h3>
+                        <p class="text-sm text-slate-500 mb-6">The PHP Framework for Web Artisans.</p>
+                        <button onclick="openAppModal('laravel', 'Laravel')"
+                            class="mt-auto w-full py-3 rounded-xl font-bold bg-slate-50 text-slate-600 hover:bg-red-600 hover:text-white transition">Install</button>
+                    </div>
+
+                    <!-- CodeIgniter -->
+                    <div
+                        class="bg-white p-6 rounded-[2rem] border shadow-sm flex flex-col items-center text-center group hover:border-orange-300 transition relative overflow-hidden">
+                        <div
+                            class="w-16 h-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                            <i data-lucide="flame" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2">CodeIgniter</h3>
+                        <p class="text-sm text-slate-500 mb-6">Powerful PHP framework with a small footprint.</p>
+                        <button onclick="openAppModal('codeigniter', 'CodeIgniter')"
+                            class="mt-auto w-full py-3 rounded-xl font-bold bg-slate-50 text-slate-600 hover:bg-orange-600 hover:text-white transition">Install</button>
+                    </div>
+
+                    <!-- React -->
+                    <div
+                        class="bg-white p-6 rounded-[2rem] border shadow-sm flex flex-col items-center text-center group hover:border-cyan-300 transition relative overflow-hidden">
+                        <div
+                            class="w-16 h-16 bg-cyan-50 text-cyan-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                            <i data-lucide="atom" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2">React (Vite)</h3>
+                        <p class="text-sm text-slate-500 mb-6">A JavaScript library for building user interfaces.</p>
+                        <button onclick="openAppModal('react', 'React')"
+                            class="mt-auto w-full py-3 rounded-xl font-bold bg-slate-50 text-slate-600 hover:bg-cyan-600 hover:text-white transition">Install</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- FILE MANAGER -->
             <div id="pane-files" class="pane">
                 <div class="flex flex-col items-center justify-center h-[60vh] text-center">
-                    <div class="bg-white p-12 rounded-[2.5rem] border shadow-xl shadow-slate-200/50 max-w-2xl w-full relative overflow-hidden">
+                    <div
+                        class="bg-white p-12 rounded-[2.5rem] border shadow-xl shadow-slate-200/50 max-w-2xl w-full relative overflow-hidden">
                         <div class="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
                             <i data-lucide="folder-open" class="w-64 h-64"></i>
                         </div>
-                        <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <div
+                            class="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                             <i data-lucide="hard-drive" class="w-10 h-10"></i>
                         </div>
                         <h2 class="text-3xl font-extrabold text-slate-900 mb-4">File Manager</h2>
-                        <p class="text-slate-500 mb-8 font-medium">Access your files, upload content, and manage permissions using our advanced File Manager.</p>
-                        
-                        <?php 
+                        <p class="text-slate-500 mb-8 font-medium">Access your files, upload content, and manage
+                            permissions using our advanced File Manager.</p>
+
+                        <?php
                         $host_parts = explode('.', $_SERVER['HTTP_HOST']);
                         $base_domain = implode('.', array_slice($host_parts, -2));
                         ?>
-                        
-                        <a href="http://filemanager.<?= $base_domain ?>" target="_blank" 
-                           class="inline-flex items-center gap-3 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/30 group">
-                            Launch File Manager 
+
+                        <a href="http://filemanager.<?= $base_domain ?>" target="_blank"
+                            class="inline-flex items-center gap-3 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/30 group">
+                            Launch File Manager
                             <i data-lucide="arrow-right" class="w-5 group-hover:translate-x-1 transition"></i>
                         </a>
                     </div>
@@ -583,7 +679,8 @@ $usage_disk = 0; // Disk usage calculation would go here
             'files': 'File Manager',
             'db': 'Database Management',
             'mail': 'Email Accounts',
-            'dom': 'DNS & Security'
+            'dom': 'DNS & Security',
+            'apps': 'App Installer'
         };
 
         function tab(id) {
@@ -653,6 +750,31 @@ $usage_disk = 0; // Disk usage calculation would go here
             for (let i = 0; i < args.length; i += 2) fd.append(args[i], args[i + 1]);
             await fetch('', { method: 'POST', body: fd });
             location.reload();
+        }
+
+        // App Modal Logic
+        function openAppModal(app, appName) {
+            const domainId = prompt(`Install ${appName} to which domain? (Enter Domain ID)\n\nAvailable IDs:\n<?php foreach ($domains as $d)
+                echo $d['id'] . ": " . $d['domain'] . "\n"; ?>`);
+            if (!domainId) return;
+
+            if (!confirm(`WARNING: This will OVERWRITE existing content in the public_html folder for this domain.\n\nAre you sure you want to install ${appName}?`)) return;
+
+            handleAppInstall(app, domainId);
+        }
+
+        async function handleAppInstall(app, domainId) {
+            const fd = new FormData();
+            fd.append('ajax_action', 'install_app');
+            fd.append('app', app);
+            fd.append('domain_id', domainId);
+
+            alert("Installation started in background! This may take 30-60 seconds. Please check back later.");
+
+            try {
+                await fetch('', { method: 'POST', body: fd });
+                location.reload();
+            } catch (e) { }
         }
     </script>
 </body>
