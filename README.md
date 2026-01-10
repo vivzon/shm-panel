@@ -49,14 +49,14 @@
 
 ## 🌐 Accessing the Panel
 
-After installation, the following subdomains are configured (assuming `vivzon.cloud` is your domain):
+After installation, the following subdomains are configured (based on the domain you provided during installation, e.g., `example.com`):
 
 | Service | URL | Default Creds |
 | :--- | :--- | :--- |
-| **WHM Admin** | `http://admin.vivzon.cloud` | `admin` / `admin123` |
-| **CPanel** | `http://client.vivzon.cloud` | (Created via WHM) |
-| **Webmail** | `http://webmail.vivzon.cloud` | (Created via CPanel) |
-| **File Manager** | `http://filemanager.vivzon.cloud` | (Access via CPanel) |
+| **WHM Admin** | `http://admin.example.com` | `admin` / `admin123` |
+| **CPanel** | `http://client.example.com` | (Created via WHM) |
+| **Webmail** | `http://webmail.example.com` | (Created via CPanel) |
+| **File Manager** | `http://filemanager.example.com` | (Access via CPanel) |
 
 > **Important**: Check `/root/shm-credentials.txt` on your server for the generated MySQL root password and other secrets.
 
