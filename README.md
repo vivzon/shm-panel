@@ -43,6 +43,7 @@
     ```
 3.  **Wait for Completion**: The script will:
     *   Install Nginx, PHP (8.1-8.3), MariaDB, Bind9, Postfix, Dovecot, ProFTPD.
+    *   **Install Web Apps**: Automatically downloads/configures Roundcube (Webmail) & phpMyAdmin.
     *   Configure system firewalls (UFW).
     *   Deploy the SHM backend and frontend.
     *   Generate secure database credentials.

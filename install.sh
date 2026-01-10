@@ -115,6 +115,55 @@ cp -r cpanel/* /var/www/panel/cpanel/
 cp -r landing/* /var/www/panel/landing/ 2>/dev/null || echo "<h1>Welcome</h1>" > /var/www/panel/landing/index.html
 cp shared_config.php /var/www/panel/shared/config.php
 
+# --- 4a. Install Web Apps ---
+log "Installing Web Apps..."
+
+# 1. phpMyAdmin
+mkdir -p /var/www/apps/phpmyadmin
+wget https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.zip -O /tmp/pma.zip
+unzip -q /tmp/pma.zip -d /tmp/
+mv /tmp/phpMyAdmin-5.2.1-all-languages/* /var/www/apps/phpmyadmin/
+rm -rf /tmp/pma*
+# PMA Config
+cat > /var/www/apps/phpmyadmin/config.inc.php << PMA
+<?php
+\$i = 0;
+\$i++;
+\$cfg['Servers'][\$i]['auth_type'] = 'cookie';
+\$cfg['Servers'][\$i]['host'] = 'localhost';
+\$cfg['Servers'][\$i]['compress'] = false;
+\$cfg['Servers'][\$i]['AllowNoPassword'] = false;
+\$cfg['UploadDir'] = '';
+\$cfg['SaveDir'] = '';
+?>
+PMA
+
+# 2. Roundcube Webmail
+mkdir -p /var/www/apps/webmail
+wget https://github.com/roundcube/roundcubemail/releases/download/1.6.6/roundcubemail-1.6.6-complete.tar.gz -O /tmp/rc.tar.gz
+tar -xf /tmp/rc.tar.gz -C /tmp/
+mv /tmp/roundcubemail-1.6.6/* /var/www/apps/webmail/
+rm -rf /tmp/rc*
+# Roundcube Config (Auto-create RC DB)
+mysql -e "CREATE DATABASE IF NOT EXISTS roundcube;"
+mysql -e "GRANT ALL PRIVILEGES ON roundcube.* TO '$DB_USER'@'localhost';"
+mysql roundcube < /var/www/apps/webmail/SQL/mysql.initial.sql
+cat > /var/www/apps/webmail/config/config.inc.php << RC
+<?php
+\$config['db_dsnw'] = 'mysql://$DB_USER:$DB_PASS@localhost/roundcube';
+\$config['default_host'] = 'localhost';
+\$config['smtp_server'] = 'localhost';
+\$config['smtp_port'] = 25;
+\$config['smtp_user'] = '%u';
+\$config['smtp_pass'] = '%p';
+\$config['support_url'] = '';
+\$config['product_name'] = 'SHM Webmail';
+\$config['des_key'] = 'rc_secret_key_change_me';
+\$config['plugins'] = ['archive', 'zipdownload'];
+?>
+RC
+chown -R www-data:www-data /var/www/apps
+
 # Update Config with Real Password
 sed -i "s/SHMPanel_Secure_Pass_2025/$DB_PASS/" /var/www/panel/shared/config.php
 
@@ -169,6 +218,9 @@ declare -A SUBDOMAINS=(
     ["admin.$MAIN_DOMAIN"]="/var/www/panel/whm"
     ["client.$MAIN_DOMAIN"]="/var/www/panel/cpanel"
     ["$MAIN_DOMAIN"]="/var/www/panel/landing"
+    ["filemanager.$MAIN_DOMAIN"]="/var/www/apps/filemanager"
+    ["webmail.$MAIN_DOMAIN"]="/var/www/apps/webmail"
+    ["phpmyadmin.$MAIN_DOMAIN"]="/var/www/apps/phpmyadmin"
 )
 
 for sub in "${!SUBDOMAINS[@]}"; do
