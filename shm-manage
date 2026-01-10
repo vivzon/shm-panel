@@ -1,0 +1,235 @@
+#!/bin/bash
+
+# ==============================================================================
+# SHM PANEL - BACKEND ENGINE (shm-manage)
+# ==============================================================================
+# This script handles all privileged operations for WHM and CPanel.
+# It is called via sudo from the PHP frontend.
+# ==============================================================================
+
+source /etc/shm/config.sh
+
+# Helper: Log Action
+log_action() {
+    echo "[$(date)] $1" >> /var/log/shm-manage.log
+}
+
+case "$1" in
+
+    # --------------------------------------------------------------------------
+    # ACCOUNT MANAGEMENT
+    # --------------------------------------------------------------------------
+    create-account)
+        # $2: user, $3: domain, $4: email, $5: pass
+        USER=$2; DOM=$3; EMAIL=$4; PASS=$5
+        
+        if id "$USER" &>/dev/null; then echo "User exists"; exit 1; fi
+        
+        # 1. System User
+        useradd -m -d /var/www/clients/$USER -s /bin/bash $USER
+        chmod 711 /var/www/clients/$USER
+        mkdir -p /var/www/clients/$USER/{public_html,logs,tmp,mail}
+        chown -R $USER:$USER /var/www/clients/$USER
+        
+        # 2. PHP-FPM Pool
+        cat > /etc/php/8.2/fpm/pool.d/$USER.conf << PHP
+[$USER]
+user = $USER
+group = $USER
+listen = /run/php/php8.2-fpm-$USER.sock
+listen.owner = www-data
+listen.group = www-data
+pm = ondemand
+pm.max_children = 5
+php_admin_value[open_basedir] = /var/www/clients/$USER:/tmp
+php_admin_value[upload_max_filesize] = 64M
+php_admin_value[post_max_size] = 64M
+PHP
+        systemctl reload php8.2-fpm
+
+        # 3. Nginx VHost
+        cat > /etc/nginx/sites-available/$DOM << NGINX
+server {
+    listen 80;
+    server_name $DOM www.$DOM;
+    root /var/www/clients/$USER/public_html;
+    index index.php index.html;
+    
+    access_log /var/www/clients/$USER/logs/access.log;
+    error_log /var/www/clients/$USER/logs/error.log;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.2-fpm-$USER.sock;
+    }
+}
+NGINX
+        ln -s /etc/nginx/sites-available/$DOM /etc/nginx/sites-enabled/
+        systemctl reload nginx
+
+        # 4. Default Index
+        echo "<h1>Welcome to $DOM</h1><p>Hosted by SHM Panel</p>" > /var/www/clients/$USER/public_html/index.html
+        chown $USER:$USER /var/www/clients/$USER/public_html/index.html
+
+        # 5. FTP User (ProFTPD SQL is handled by DB insert in PHP, but we ensure homedir exists)
+        # (Nothing extra needed if ProFTPD is configured for SQL)
+
+        log_action "Created account: $USER ($DOM)"
+        ;;
+
+    delete-account)
+        # $2: user
+        USER=$2
+        
+        # Find domain to remove vhost
+        DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" $DB_NAME)
+        
+        if [ ! -z "$DOM" ]; then
+            rm -f /etc/nginx/sites-enabled/$DOM
+            rm -f /etc/nginx/sites-available/$DOM
+        fi
+        
+        rm -f /etc/php/8.2/fpm/pool.d/$USER.conf
+        
+        # Kill user processes
+        pkill -u $USER
+        
+        # Remove User & Files
+        userdel -r $USER
+        
+        systemctl reload nginx
+        systemctl reload php8.2-fpm
+        
+        log_action "Deleted account: $USER"
+        ;;
+
+    # --------------------------------------------------------------------------
+    # MYSQL TOOL
+    # --------------------------------------------------------------------------
+    mysql-tool)
+        SUB=$2
+        if [ "$SUB" == "create-db" ]; then
+            # $3: db_name
+            mysql -e "CREATE DATABASE IF NOT EXISTS $3;"
+            log_action "Created DB: $3"
+        elif [ "$SUB" == "create-user" ]; then
+            # $3: db_user, $4: db_pass, $5: target_db
+            mysql -e "CREATE USER '$3'@'localhost' IDENTIFIED BY '$4';"
+            mysql -e "GRANT ALL PRIVILEGES ON $5.* TO '$3'@'localhost';"
+            mysql -e "FLUSH PRIVILEGES;"
+            log_action "Created DB User: $3 for $5"
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # DNS TOOL
+    # --------------------------------------------------------------------------
+    dns-tool)
+        SUB=$2
+        if [ "$SUB" == "sync" ]; then
+            # $3: domain_id
+            DOM_INFO=$(mysql -N -s -e "SELECT domain FROM domains WHERE id=$3" $DB_NAME)
+            
+            # Start Zone File
+            ZONE_FILE="/etc/bind/zones/db.$DOM_INFO"
+            cat > $ZONE_FILE <<ZONE
+\$TTL 86400
+@ IN SOA ns1.vivzon.cloud. admin.vivzon.cloud. ( $(date +%Y%m%d)01 3600 900 604800 86400 )
+@ IN NS ns1.vivzon.cloud.
+@ IN NS ns2.vivzon.cloud.
+@ IN A $(hostname -I | awk '{print $1}')
+www IN CNAME @
+ZONE
+            
+            # Append Records from DB
+            mysql -N -s -e "SELECT host, type, value FROM dns_records WHERE domain_id=$3" $DB_NAME | while read host type value; do
+                echo "$host IN $type $value" >> $ZONE_FILE
+            done
+            
+            # Ensure Bind knows about it (simplistic check)
+            if ! grep -q "zone \"$DOM_INFO\"" /etc/bind/named.conf.local; then
+                echo "zone \"$DOM_INFO\" { type master; file \"$ZONE_FILE\"; };" >> /etc/bind/named.conf.local
+            fi
+            
+            systemctl reload bind9
+            log_action "Synced DNS for $DOM_INFO"
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # VHOST TOOL (PHP Version & SSL Switcher)
+    # --------------------------------------------------------------------------
+    vhost-tool)
+        SUB=$2
+        if [ "$SUB" == "sync" ]; then
+            # $3: domain_id
+            read DOM USER PHP_VER SSL <<< $(mysql -N -s -e "SELECT d.domain, c.username, d.php_version, d.ssl_active FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$3" $DB_NAME)
+            
+            VHOST="/etc/nginx/sites-available/$DOM"
+            
+            # PHP Sock
+            SOCK="php$PHP_VER-fpm-$USER.sock"
+            
+            cat > $VHOST <<CONF
+server {
+    listen 80;
+    server_name $DOM www.$DOM;
+    root /var/www/clients/$USER/public_html;
+    index index.php index.html;
+
+    location / { try_files \$uri \$uri/ /index.php?\$args; }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/$SOCK;
+    }
+}
+CONF
+            # SSL Handling (Simple Certbot trigger)
+            if [ "$SSL" == "1" ]; then
+                certbot --nginx -d $DOM -d www.$DOM --non-interactive --agree-tos --email admin@vivzon.cloud --redirect
+            fi
+            
+            # Memory Limit update
+            MEM=$(mysql -N -s -e "SELECT memory_limit FROM php_config WHERE domain_id=$3" $DB_NAME)
+            if [ ! -z "$MEM" ]; then
+                # Update pool config (simplified sed replace)
+                POOL="/etc/php/$PHP_VER/fpm/pool.d/$USER.conf"
+                if grep -q "php_admin_value\[memory_limit\]" $POOL; then
+                    sed -i "s/php_admin_value\[memory_limit\].*/php_admin_value[memory_limit] = $MEM/" $POOL
+                else
+                    echo "php_admin_value[memory_limit] = $MEM" >> $POOL
+                fi
+                systemctl reload php$PHP_VER-fpm
+            fi
+
+            systemctl reload nginx
+            log_action "Synced VHOST for $DOM (PHP $PHP_VER)"
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # SERVICE CONTROL
+    # --------------------------------------------------------------------------
+    service-status)
+        systemctl is-active $2
+        ;;
+        
+    service-control)
+        # $2: op, $3: service
+        systemctl $2 $3
+        ;;
+
+    get-stats)
+        CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
+        RAM=$(free -m | awk '/Mem:/ {print int($3/$2 * 100)}')
+        DISK=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
+        UPTIME=$(uptime -p | sed 's/up //')
+        echo "$CPU|$RAM|$DISK|$UPTIME"
+        ;;
+
+esac
