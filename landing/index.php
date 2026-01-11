@@ -1,3 +1,16 @@
+<?php
+$host = $_SERVER['HTTP_HOST'];
+// Handle IP Access vs Domain Access
+if (filter_var($host, FILTER_VALIDATE_IP)) {
+    $base = $host; // If accessing via IP
+    $scheme = "http://";
+} else {
+    // Strip www or subdomains if accessing root unexpectedly
+    $parts = explode('.', $host);
+    $base = implode('.', array_slice($parts, -2));
+    $scheme = "http://"; // Enforce HTTP for now, SSL handled by Nginx redirect
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -35,11 +48,11 @@
             VIVZON <span class="text-blue-500 underline decoration-blue-500/30">CLOUD</span>
         </div>
         <div class="hidden md:flex gap-8 text-sm font-medium text-slate-400">
-            <a href="http://client.vivzon.cloud" class="hover:text-white transition">Client Portal</a>
-            <a href="http://webmail.vivzon.cloud" class="hover:text-white transition">Webmail</a>
-            <a href="http://admin.vivzon.cloud" class="hover:text-white transition">Admin</a>
+            <a href="<?= $scheme ?>client.<?= $base ?>" class="hover:text-white transition">Client Portal</a>
+            <a href="<?= $scheme ?>webmail.<?= $base ?>" class="hover:text-white transition">Webmail</a>
+            <a href="<?= $scheme ?>admin.<?= $base ?>" class="hover:text-white transition">Admin</a>
         </div>
-        <a href="http://client.vivzon.cloud"
+        <a href="<?= $scheme ?>client.<?= $base ?>"
             class="bg-white text-black px-6 py-2.5 rounded-full font-bold text-sm hover:bg-blue-500 hover:text-white transition shadow-lg shadow-white/5">
             Get Started
         </a>
@@ -73,7 +86,7 @@
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
 
             <!-- Card: Client Panel -->
-            <a href="#" id="card_client"
+            <a href="<?= $scheme ?>client.<?= $base ?>"
                 class="glass p-8 rounded-[32px] group hover:bg-blue-600/10 hover:border-blue-500/50 transition-all duration-500">
                 <div
                     class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-blue-600/20 group-hover:scale-110 transition">
@@ -88,7 +101,7 @@
             </a>
 
             <!-- Card: Webmail -->
-            <a href="#" id="card_mail"
+            <a href="<?= $scheme ?>webmail.<?= $base ?>"
                 class="glass p-8 rounded-[32px] group hover:bg-purple-600/10 hover:border-purple-500/50 transition-all duration-500">
                 <div
                     class="w-14 h-14 bg-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-purple-600/20 group-hover:scale-110 transition">
@@ -103,7 +116,7 @@
             </a>
 
             <!-- Card: File Manager -->
-            <a href="#" id="card_fm"
+            <a href="<?= $scheme ?>filemanager.<?= $base ?>"
                 class="glass p-8 rounded-[32px] group hover:bg-emerald-600/10 hover:border-emerald-500/50 transition-all duration-500">
                 <div
                     class="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-emerald-600/20 group-hover:scale-110 transition">
@@ -123,11 +136,11 @@
     <!-- Secondary Links -->
     <section class="max-w-7xl mx-auto px-8 py-20">
         <div class="flex flex-wrap justify-center gap-4">
-            <a href="#" id="lnk_pma"
+            <a href="<?= $scheme ?>phpmyadmin.<?= $base ?>"
                 class="px-6 py-3 glass rounded-2xl hover:bg-slate-800 transition text-sm flex items-center gap-2">
                 <i data-lucide="database" class="w-4 h-4 text-blue-500"></i> phpMyAdmin
             </a>
-            <a href="#" id="lnk_whm"
+            <a href="<?= $scheme ?>admin.<?= $base ?>"
                 class="px-6 py-3 glass rounded-2xl hover:bg-slate-800 transition text-sm flex items-center gap-2">
                 <i data-lucide="shield-check" class="w-4 h-4 text-red-500"></i> WHM Admin
             </a>
@@ -135,12 +148,6 @@
     </section>
 
     <script>
-        document.getElementById('card_client').href = sub_client;
-        document.getElementById('card_mail').href = sub_webmail;
-        document.getElementById('card_fm').href = sub_fm;
-        document.getElementById('lnk_pma').href = 'http://phpmyadmin.' + base;
-        document.getElementById('lnk_whm').href = sub_admin;
-
         lucide.createIcons();
     </script>
 </body>

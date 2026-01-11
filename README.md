@@ -7,7 +7,6 @@
 ## 🚀 Features
 
 ### 🛡️ WHM (Admin Panel)
-### 🛡️ WHM (Admin Panel)
 - **Account Management**: Create, Suspend/Unsuspend, and Delete accounts.
 - **Impersonation**: "Login as Client" key to instantly access user cPanel without credentials.
 - **Account Reset**: "Nuclear Option" to wipe `public_html` and databases for a fresh start.
@@ -53,10 +52,15 @@ To upgrade safely while preserving client data:
     ./upgrade_latest.sh
     ```
 
+### 🌐 Professional Landing Page
+- **Dynamic Portal Hub**: A modern, glassmorphism-styled landing page on the *Main Domain*.
+- **Smart Linking**: Automatically directs users to Client, Admin, Webmail, and File Manager subdomains.
+
 ## 🌐 Accessing the Panel
 
 | Service | URL | Default Creds |
 | :--- | :--- | :--- |
+| **Main Portal** | `http://example.com` | (Landing Page) |
 | **WHM Admin** | `http://admin.example.com` | `admin` / `admin123` |
 | **CPanel** | `http://client.example.com` | (Created via WHM) |
 | **Webmail** | `http://webmail.example.com` | (SSO / Email Creds) |

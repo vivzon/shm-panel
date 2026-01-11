@@ -70,10 +70,16 @@ else
     DB_PASS_OLD=""
 fi
 
-mkdir -p /var/www/panel/{whm,cpanel,shared}
+mkdir -p /var/www/panel/{whm,cpanel,shared,landing}
 cp -r whm/* /var/www/panel/whm/
 cp -r cpanel/* /var/www/panel/cpanel/
+cp -r landing/* /var/www/panel/landing/
 cp shared_config.php /var/www/panel/shared/config.php
+
+# Remove old index.html if using PHP now
+if [ -f "/var/www/panel/landing/index.php" ]; then
+    rm -f /var/www/panel/landing/index.html
+fi
 
 # 5b. Restore Credentials
 if [ ! -z "$DB_PASS_OLD" ]; then
