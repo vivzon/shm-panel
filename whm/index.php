@@ -164,6 +164,17 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        /** LOG VIEWER **/
+        if ($action == 'get_logs') {
+            $type = $_POST['type'];
+            if (!in_array($type, ['auth', 'web', 'sys']))
+                throw new Exception("Invalid Log Type");
+
+            $output = cmd("shm-manage get-logs " . escapeshellarg($type) . " 50");
+            echo json_encode(['status' => 'success', 'data' => $output]);
+            exit;
+        }
+
         echo json_encode($res);
     } catch (Exception $e) {
         http_response_code(500);
@@ -282,6 +293,8 @@ $stats = explode('|', (string) cmd("get-stats"));
                     Service Node</button>
                 <button onclick="switchTab('hosting', this)" class="nav-link w-full"><i data-lucide="wrench"
                         class="w-4"></i> Tools</button>
+                <button onclick="switchTab('logs', this)" class="nav-link w-full"><i data-lucide="shield-alert"
+                        class="w-4"></i> Security Logs</button>
             </nav>
         </div>
 
@@ -641,7 +654,33 @@ $stats = explode('|', (string) cmd("get-stats"));
                         </form>
                     </div>
                 </div>
+                </div>
             </div>
+
+            <!-- LOG VIEWER -->
+            <div id="view-logs" class="view-pane hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-white font-heading">Security Monitor</h2>
+                    <div class="flex gap-2">
+                        <select id="log-type" onchange="fetchLogs()" class="bg-slate-800 text-white p-2 rounded-lg border border-slate-700 text-sm font-bold">
+                            <option value="auth">Auth Logs (SSH/Sudo)</option>
+                            <option value="web">Web Server Errors</option>
+                            <option value="sys">System Log (Syslog)</option>
+                        </select>
+                        <button onclick="fetchLogs()" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition shadow-lg"><i data-lucide="refresh-cw" class="w-4"></i></button>
+                    </div>
+                </div>
+                <div class="glass-panel p-0 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="bg-slate-950 p-3 flex gap-2 border-b border-slate-800">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <div class="ml-auto text-xs font-mono text-slate-500" id="log-time">Last updated: Never</div>
+                    </div>
+                    <pre id="log-terminal" class="p-6 text-xs font-mono text-emerald-400 bg-[#0a0f1c] h-[600px] overflow-auto whitespace-pre-wrap">Select a log source to view stream...</pre>
+                </div>
+            </div>
+
 
         </div>
     </main>
@@ -913,6 +952,50 @@ $stats = explode('|', (string) cmd("get-stats"));
 
         function loginAs(user, cid) {
             const fd = new FormData();
+            fd.append('ajax_action', 'login_as_client');
+            fd.append('user', user);
+            fd.append('cid', cid);
+            fetch('', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    if(d.status === 'success') location.href = d.redirect;
+                });
+        }
+
+        // --- SECURITY LOGS ---
+        let logInterval = null;
+
+        async function fetchLogs() {
+            const type = document.getElementById('log-type').value;
+            const term = document.getElementById('log-terminal');
+            const time = document.getElementById('log-time');
+            
+            const fd = new FormData();
+            fd.append('ajax_action', 'get_logs');
+            fd.append('type', type);
+            
+            try {
+                const res = await fetch('', {method:'POST', body:fd}).then(r=>r.json());
+                if(res.status === 'success') {
+                    term.innerText = res.data || 'No logs available or empty.';
+                    term.scrollTop = term.scrollHeight; // Auto-scroll
+                    time.innerText = 'Last updated: ' + new Date().toLocaleTimeString();
+                }
+            } catch(e) { console.error('Log fetch error'); }
+        }
+
+        // Override switchTab to handle logs
+        const oldSwitch = switchTab;
+        switchTab = function(id, btn) {
+            oldSwitch(id, btn);
+            if(id === 'logs') {
+                fetchLogs();
+                if(!logInterval) logInterval = setInterval(fetchLogs, 3000);
+            } else {
+                if(logInterval) clearInterval(logInterval);
+                logInterval = null;
+            }
+        }
             fd.append('ajax_action', 'login_as_client');
             fd.append('user', user);
             fd.append('cid', cid);

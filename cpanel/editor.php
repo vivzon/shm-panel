@@ -87,7 +87,10 @@ $content = file_get_contents($abs_path);
 
     <header class="h-[70px] glass-panel flex items-center justify-between px-6 z-50 relative">
         <div class="flex items-center gap-4">
-            <a href="files.php?domain_id=<?= $domain_id ?>&path=<?= dirname($cleaned_file) ?>"
+            <?php $parent_dir = dirname($cleaned_file);
+            if ($parent_dir == '.' || $parent_dir == '\\')
+                $parent_dir = '/'; ?>
+            <a href="files.php?domain_id=<?= $domain_id ?>&path=<?= $parent_dir ?>"
                 class="p-2 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition">
                 <i data-lucide="arrow-left" class="w-5"></i>
             </a>

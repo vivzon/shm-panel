@@ -443,6 +443,115 @@ CONF
         fi
         ;;
 
+    # --------------------------------------------------------------------------
+    # SSH KEY MANAGEMENT
+    # --------------------------------------------------------------------------
+    ssh-key)
+        SUB=$2
+        USER=$3
+        
+        SSH_DIR="/var/www/clients/$USER/.ssh"
+        AUTH_FILE="$SSH_DIR/authorized_keys"
+        
+        if [ ! -d "$SSH_DIR" ]; then
+            mkdir -p $SSH_DIR
+            chmod 700 $SSH_DIR
+            chown $USER:$USER $SSH_DIR
+        fi
+        
+        if [ "$SUB" == "add" ]; then
+            KEY=$4
+            echo "$KEY" >> $AUTH_FILE
+            chmod 600 $AUTH_FILE
+            chown $USER:$USER $AUTH_FILE
+            log_action "Added SSH Key for $USER"
+            
+        elif [ "$SUB" == "list" ]; then
+            if [ -f "$AUTH_FILE" ]; then
+                cat -n $AUTH_FILE
+            fi
+            
+        elif [ "$SUB" == "delete" ]; then
+            LINE=$4
+            if [ -f "$AUTH_FILE" ]; then
+                sed -i "${LINE}d" $AUTH_FILE
+                log_action "Deleted SSH Key line $LINE for $USER"
+            fi
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # BACKUP SYSTEM
+    # --------------------------------------------------------------------------
+    backup)
+        SUB=$2
+        USER=$3
+        BACKUP_DIR="/var/www/clients/$USER/backups"
+        
+        if [ ! -d "$BACKUP_DIR" ]; then
+            mkdir -p $BACKUP_DIR
+            chown $USER:$USER $BACKUP_DIR
+        fi
+        
+        if [ "$SUB" == "create" ]; then
+            TS=$(date +%Y%m%d_%H%M%S)
+            FILE="$BACKUP_DIR/backup_$TS.tar.gz"
+            
+            # 1. Dump DBs
+            CID=$(mysql -N -s -e "SELECT id FROM clients WHERE username='$USER'" $DB_NAME)
+            mkdir -p /tmp/db_dump_$USER
+            mysql -N -s -e "SELECT db_name FROM client_databases WHERE client_id=$CID" $DB_NAME | while read DB; do
+                mysqldump $DB > /tmp/db_dump_$USER/$DB.sql
+            done
+            
+            # 2. Tar Web + DBs
+            tar -czf $FILE -C /var/www/clients/$USER public_html -C /tmp db_dump_$USER
+            
+            # Cleanup
+            rm -rf /tmp/db_dump_$USER
+            chown $USER:$USER $FILE
+            
+            log_action "Created Backup for $USER: $FILE"
+            
+        elif [ "$SUB" == "list" ]; then
+            ls -lh $BACKUP_DIR | awk '{print $9, $5, $6, $7, $8}'
+            
+        elif [ "$SUB" == "restore" ]; then
+            FILE="$BACKUP_DIR/$4"
+            if [ -f "$FILE" ]; then
+                # Extract
+                tar -xzf $FILE -C /var/www/clients/$USER
+                
+                # Restore DBs
+                if [ -d "/var/www/clients/$USER/db_dump_$USER" ]; then
+                    for sql in /var/www/clients/$USER/db_dump_$USER/*.sql; do
+                        DB=$(basename $sql .sql)
+                        mysql $DB < $sql
+                    done
+                    rm -rf /var/www/clients/$USER/db_dump_$USER
+                fi
+                
+                log_action "Restored Backup for $USER: $4"
+            fi
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # LOG VIEWER (Security)
+    # --------------------------------------------------------------------------
+    get-logs)
+        TYPE=$2
+        LINES=${3:-50}
+        
+        if [ "$TYPE" == "auth" ]; then
+            tail -n $LINES /var/log/auth.log
+        elif [ "$TYPE" == "web" ]; then
+            tail -n $LINES /var/log/nginx/error.log
+        elif [ "$TYPE" == "sys" ]; then
+            tail -n $LINES /var/log/syslog
+        fi
+        ;;
+
     get-stats)
         CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
         RAM=$(free -m | awk '/Mem:/ {print int($3/$2 * 100)}')

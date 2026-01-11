@@ -228,6 +228,56 @@ if (isset($_POST['ajax_action'])) {
             cmd("app-tool $app " . escapeshellarg($d) . " > /dev/null 2>&1 &");
             exit;
         }
+
+        /** 5. SECURITY (SSH) LOGIC **/
+        if ($action == 'add_ssh') {
+            cmd("shm-manage ssh-key add " . escapeshellarg($username) . " " . escapeshellarg($_POST['key']));
+            sendResponse($res);
+            exit;
+        }
+        if ($action == 'del_ssh') {
+            cmd("shm-manage ssh-key delete " . escapeshellarg($username) . " " . (int) $_POST['line']);
+            sendResponse($res);
+            exit;
+        }
+        if ($action == 'list_ssh') {
+            $out = cmd("shm-manage ssh-key list " . escapeshellarg($username));
+            $lines = array_filter(explode("\n", $out));
+            echo json_encode(['status' => 'success', 'data' => array_values($lines)]);
+            exit;
+        }
+
+        /** 6. BACKUP LOGIC **/
+        if ($action == 'create_backup') {
+            // Run in background? Ideally yes, but for now synchronous or short wait
+            cmd("shm-manage backup create " . escapeshellarg($username));
+            sendResponse($res);
+            exit;
+        }
+        if ($action == 'list_backups') {
+            $out = cmd("shm-manage backup list " . escapeshellarg($username));
+            // Parse ls output: "size mon day time name"
+            $backups = [];
+            foreach (explode("\n", $out) as $line) {
+                if (!trim($line))
+                    continue;
+                $parts = preg_split('/\s+/', trim($line));
+                if (count($parts) >= 5) {
+                    $backups[] = [
+                        'name' => end($parts),
+                        'size' => $parts[0],
+                        'date' => $parts[1] . ' ' . $parts[2] . ' ' . $parts[3]
+                    ];
+                }
+            }
+            echo json_encode(['status' => 'success', 'data' => $backups]);
+            exit;
+        }
+        if ($action == 'restore_backup') {
+            cmd("shm-manage backup restore " . escapeshellarg($username) . " " . escapeshellarg($_POST['file']));
+            sendResponse($res);
+            exit;
+        }
     } catch (Exception $e) {
         sendResponse(['status' => 'error', 'msg' => $e->getMessage()]);
     }
@@ -360,6 +410,12 @@ $usage_disk = 0; // Disk usage calculation would go here
                     SSL & DNS</button>
                 <button onclick="tab('apps')" id="btn-apps" class="nav-btn w-full"><i data-lucide="box" class="w-5"></i>
                     App Installer</button>
+                <button onclick="tab('sec')" id="btn-sec" class="nav-btn w-full"><i data-lucide="shield"
+                        class="w-5"></i>
+                    Security</button>
+                <button onclick="tab('back')" id="btn-back" class="nav-btn w-full"><i data-lucide="archive"
+                        class="w-5"></i>
+                    Backups</button>
             </nav>
         </div>
 
@@ -591,330 +647,385 @@ $usage_disk = 0; // Disk usage calculation would go here
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- FILE MANAGER -->
-            <div id="pane-files" class="pane">
-                <div class="flex flex-col items-center justify-center h-[60vh] text-center">
-                    <div class="glass-card p-12 max-w-2xl w-full relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-12 opacity-5 pointer-events-none text-white">
-                            <i data-lucide="folder-open" class="w-64 h-64"></i>
-                        </div>
-                        <div
-                            class="w-20 h-20 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner ring-1 ring-blue-500/20">
-                            <i data-lucide="hard-drive" class="w-10 h-10"></i>
-                        </div>
-                        <h2 class="text-3xl font-extrabold text-white mb-4">File Manager</h2>
-                        <p class="text-slate-400 mb-8 font-medium">Access your files, upload content, and manage
-                            permissions using our advanced File Manager.</p>
+        <!-- SECURITY (SSH KEYS) -->
+        <div id="pane-sec" class="pane">
+            <h2 class="text-2xl font-bold mb-8 text-white">Security & Access</h2>
+            <div class="glass-card p-8 mb-8">
+                <h3 class="font-bold text-white mb-4">SSH Public Keys</h3>
+                <p class="text-slate-400 text-sm mb-6">Add your public key to access the server via SSH without a
+                    password.</p>
 
-                        <?php
-                        $host_parts = explode('.', $_SERVER['HTTP_HOST']);
-                        $base_domain = implode('.', array_slice($host_parts, -2));
-                        ?>
-
-                        <a href="http://filemanager.<?= $base_domain ?>" target="_blank"
-                            class="inline-flex items-center gap-3 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-600/30 group">
-                            Launch File Manager
-                            <i data-lucide="arrow-right" class="w-5 group-hover:translate-x-1 transition"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DATABASE USER & TABLE MANAGEMENT -->
-            <div id="pane-db" class="pane">
-                <h2 class="text-2xl font-bold mb-8 text-white">MySQL® Databases</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                    <div class="glass-card p-8 shadow-sm">
-                        <h3 class="font-bold mb-4 text-white">Create New Database</h3>
-                        <form onsubmit="handle(event, 'add_db')" class="flex flex-col gap-4">
-                            <div class="flex gap-2">
-                                <span
-                                    class="bg-slate-800 p-4 rounded-xl font-bold text-slate-500 border border-slate-700"><?= $username ?>_</span>
-                                <input name="db_name" required placeholder="Database Name"
-                                    class="flex-1 bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
-                            </div>
-                            <select name="domain_id"
-                                class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-300">
-                                <option value="">-- Associate with Domain (Optional) --</option>
-                                <?php foreach ($domains as $d): ?>
-                                    <option value="<?= $d['id'] ?>"><?= $d['domain'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <button
-                                class="bg-blue-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-600/20">Create
-                                Database</button>
-                        </form>
-                    </div>
-                    <div class="glass-card p-8 shadow-sm">
-                        <h3 class="font-bold mb-4 text-white">Add User to Database</h3>
-                        <form onsubmit="handle(event, 'add_db_user')" class="space-y-4">
-                            <div
-                                class="flex items-center bg-slate-900/50 border border-slate-700 rounded-xl overflow-hidden">
-                                <span class="pl-4 font-bold text-slate-500"><?= $username ?>_</span>
-                                <input name="db_user" required
-                                    class="flex-1 bg-transparent p-4 outline-none text-white placeholder-slate-600"
-                                    placeholder="username">
-                            </div>
-                            <input name="db_pass" type="password" required placeholder="User Password"
-                                class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
-                            <select name="target_db"
-                                class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-300">
-                                <?php foreach ($my_dbs as $db): ?>
-                                    <option value="<?= $db['db_name'] ?>">Access to: <?= $db['db_name'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <button
-                                class="w-full bg-slate-800 text-white p-4 rounded-xl font-bold hover:bg-slate-700 transition border border-slate-700">Create
-                                User</button>
-                        </form>
-                    </div>
-
-                    <!-- DB USERS LIST -->
-                    <div class="md:col-span-2">
-                        <h3 class="font-bold mb-4 mt-8 text-white">Database Users</h3>
-                        <div class="glass-card overflow-hidden mb-8">
-                            <table class="w-full text-left">
-                                <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
-                                    <tr>
-                                        <th class="p-6">User</th>
-                                        <th class="p-6 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $db_users = $pdo->query("SELECT * FROM client_db_users WHERE client_id = $cid")->fetchAll();
-                                    foreach ($db_users as $u): ?>
-                                        <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
-                                            <td class="p-6 font-bold text-slate-300"><?= $u['db_user'] ?></td>
-                                            <td class="p-6 text-right">
-                                                <button
-                                                    onclick="resetPassword('reset_db_pass', 'db_user', '<?= $u['db_user'] ?>')"
-                                                    class="text-orange-400 hover:bg-orange-500/10 p-2 rounded-lg transition mr-2"><i
-                                                        data-lucide="key" class="w-4 h-4"></i></button>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400 tracking-widest">
-                            <tr>
-                                <th class="p-6">Current Database Name</th>
-                                <th class="p-6 text-right">Login / Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($my_dbs as $db): ?>
-                                <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
-                                    <td class="p-6">
-                                        <div class="font-bold text-slate-200"><?= $db['db_name'] ?></div>
-                                        <?php if ($db['domain']): ?>
-                                            <div class="text-xs text-blue-400 flex items-center gap-1 mt-1"><i
-                                                    data-lucide="link" class="w-3"></i> <?= $db['domain'] ?></div>
-                                        <?php else: ?>
-                                            <div class="text-xs text-slate-500 italic mt-1">Global Database</div>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="p-6 text-right">
-                                        <a href="http://phpmyadmin.<?= $base_domain ?>" target="_blank"
-                                            class="text-blue-400 font-bold text-xs mr-4 uppercase hover:text-blue-300">phpMyAdmin</a>
-                                        <button onclick="deleteAction('delete_db', 'db_name', '<?= $db['db_name'] ?>')"
-                                            class="text-red-400 hover:bg-red-500/10 p-2 rounded-lg transition"><i
-                                                data-lucide="trash-2" class="w-4"></i></button>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- EMAIL MANAGEMENT -->
-            <div id="pane-mail" class="pane">
-                <h2 class="text-2xl font-bold mb-8 text-white">Email Mailboxes</h2>
-                <form onsubmit="handle(event, 'add_email')"
-                    class="glass-card p-10 grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
-                    <input name="user" required placeholder="mailbox name"
-                        class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
-                    <select name="domain"
-                        class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-300">
-                        <?php foreach ($domains as $d): ?>
-                            <option value="<?= $d['domain'] ?>">@<?= $d['domain'] ?></option><?php endforeach; ?>
-                    </select>
-                    <input name="pass" type="password" required placeholder="Password"
-                        class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
-                    <button
-                        class="bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition">Create
-                        Mailbox</button>
+                <form onsubmit="handle(event, 'add_ssh')" class="flex gap-4 mb-8">
+                    <input name="key" required placeholder="ssh-rsa AAAA..."
+                        class="flex-1 bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 font-mono text-xs outline-none focus:border-blue-500">
+                    <button class="bg-blue-600 text-white px-6 rounded-xl font-bold hover:bg-blue-500 transition">Add
+                        Key</button>
                 </form>
-                <div class="glass-card overflow-hidden">
+
+                <div id="ssh-list" class="space-y-2">
+                    <!-- Populated by JS -->
+                    <div class="text-center text-slate-500 italic py-4">Loading keys...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BACKUPS -->
+        <div id="pane-back" class="pane">
+            <h2 class="text-2xl font-bold mb-8 text-white">Backups & Restoration</h2>
+            <div class="glass-card p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h3 class="font-bold text-white">System Backups</h3>
+                        <p class="text-slate-400 text-sm">Create snapshots of your home directory and databases.</p>
+                    </div>
+                    <button onclick="handleGeneric('create_backup')"
+                        class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition shadow-lg shadow-emerald-900/20">
+                        <i data-lucide="save" class="w-4"></i> Create Backup
+                    </button>
+                </div>
+
+                <div class="overflow-hidden rounded-xl border border-slate-700/50">
                     <table class="w-full text-left">
                         <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
                             <tr>
-                                <th class="p-6">Active Email Account</th>
-                                <th class="p-6 text-right">Webmail / Action</th>
+                                <th class="p-4">Filename</th>
+                                <th class="p-4">Size</th>
+                                <th class="p-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <?php foreach ($my_emails as $mail): ?>
-                                <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
-                                    <td class="p-6 font-bold text-slate-300"><?= $mail['email'] ?></td>
-                                    <td class="p-6 text-right">
-                                        <a href="http://webmail.<?= $base_domain ?>" target="_blank"
-                                            class="text-blue-400 font-bold text-xs mr-4 uppercase tracking-tighter hover:text-blue-300">Login</a>
-                                        <button onclick="resetPassword('reset_mail_pass', 'email', '<?= $mail['email'] ?>')"
-                                            class="text-orange-400 hover:bg-orange-500/10 p-2 rounded-lg transition mr-2"><i
-                                                data-lucide="key" class="w-4 h-4"></i></button>
-                                        <button onclick="deleteAction('delete_email', 'email', '<?= $mail['email'] ?>')"
-                                            class="text-red-400 hover:bg-red-500/10 p-2 rounded-lg transition"><i
-                                                data-lucide="trash-2" class="w-4"></i></button>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
+                        <tbody id="backup-list" class="divide-y divide-slate-700/50">
+                            <!-- Populated by JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <!-- DNS & PHP CONFIG -->
-            <div id="pane-dom" class="pane">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                    <h2 class="text-2xl font-bold text-white">Domain Management</h2>
-                    <div class="flex gap-4">
-                        <!-- Standard Domain Form -->
-                        <form onsubmit="handle(event, 'add_domain')" class="flex gap-2" id="form-add-domain">
-                            <input name="domain" required placeholder="example.com"
-                                class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500 w-48 transition">
-                            <button
-                                class="bg-slate-800 text-white px-4 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-700 border border-slate-700 transition whitespace-nowrap">
-                                + Domain</button>
-                        </form>
+        <!-- FILE MANAGER -->
+        <div id="pane-files" class="pane">
+            <div class="flex flex-col items-center justify-center h-[60vh] text-center">
+                <div class="glass-card p-12 max-w-2xl w-full relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-12 opacity-5 pointer-events-none text-white">
+                        <i data-lucide="folder-open" class="w-64 h-64"></i>
+                    </div>
+                    <div
+                        class="w-20 h-20 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner ring-1 ring-blue-500/20">
+                        <i data-lucide="hard-drive" class="w-10 h-10"></i>
+                    </div>
+                    <h2 class="text-3xl font-extrabold text-white mb-4">File Manager</h2>
+                    <p class="text-slate-400 mb-8 font-medium">Access your files, upload content, and manage
+                        permissions using our advanced File Manager.</p>
 
-                        <!-- Subdomain Toggle/Form -->
-                        <form onsubmit="handleAddSubdomain(event)" class="flex gap-2 hidden" id="form-add-subdomain">
-                            <input name="sub" required placeholder="sub (e.g. blog)"
-                                class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500 w-32 transition text-right">
-                            <span class="self-center font-bold text-slate-500">.</span>
-                            <select name="parent_id"
-                                class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white w-40 transition">
-                                <?php foreach ($domains as $d): ?>
-                                    <option value="<?= $d['domain'] ?>"><?= $d['domain'] ?></option>
+                    <?php
+                    $host_parts = explode('.', $_SERVER['HTTP_HOST']);
+                    $base_domain = implode('.', array_slice($host_parts, -2));
+                    ?>
+
+                    <a href="http://filemanager.<?= $base_domain ?>" target="_blank"
+                        class="inline-flex items-center gap-3 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-600/30 group">
+                        Launch File Manager
+                        <i data-lucide="arrow-right" class="w-5 group-hover:translate-x-1 transition"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATABASE USER & TABLE MANAGEMENT -->
+        <div id="pane-db" class="pane">
+            <h2 class="text-2xl font-bold mb-8 text-white">MySQL® Databases</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                <div class="glass-card p-8 shadow-sm">
+                    <h3 class="font-bold mb-4 text-white">Create New Database</h3>
+                    <form onsubmit="handle(event, 'add_db')" class="flex flex-col gap-4">
+                        <div class="flex gap-2">
+                            <span
+                                class="bg-slate-800 p-4 rounded-xl font-bold text-slate-500 border border-slate-700"><?= $username ?>_</span>
+                            <input name="db_name" required placeholder="Database Name"
+                                class="flex-1 bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
+                        </div>
+                        <select name="domain_id"
+                            class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-300">
+                            <option value="">-- Associate with Domain (Optional) --</option>
+                            <?php foreach ($domains as $d): ?>
+                                <option value="<?= $d['id'] ?>"><?= $d['domain'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button
+                            class="bg-blue-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-600/20">Create
+                            Database</button>
+                    </form>
+                </div>
+                <div class="glass-card p-8 shadow-sm">
+                    <h3 class="font-bold mb-4 text-white">Add User to Database</h3>
+                    <form onsubmit="handle(event, 'add_db_user')" class="space-y-4">
+                        <div
+                            class="flex items-center bg-slate-900/50 border border-slate-700 rounded-xl overflow-hidden">
+                            <span class="pl-4 font-bold text-slate-500"><?= $username ?>_</span>
+                            <input name="db_user" required
+                                class="flex-1 bg-transparent p-4 outline-none text-white placeholder-slate-600"
+                                placeholder="username">
+                        </div>
+                        <input name="db_pass" type="password" required placeholder="User Password"
+                            class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
+                        <select name="target_db"
+                            class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-300">
+                            <?php foreach ($my_dbs as $db): ?>
+                                <option value="<?= $db['db_name'] ?>">Access to: <?= $db['db_name'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button
+                            class="w-full bg-slate-800 text-white p-4 rounded-xl font-bold hover:bg-slate-700 transition border border-slate-700">Create
+                            User</button>
+                    </form>
+                </div>
+
+                <!-- DB USERS LIST -->
+                <div class="md:col-span-2">
+                    <h3 class="font-bold mb-4 mt-8 text-white">Database Users</h3>
+                    <div class="glass-card overflow-hidden mb-8">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+                                <tr>
+                                    <th class="p-6">User</th>
+                                    <th class="p-6 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $db_users = $pdo->query("SELECT * FROM client_db_users WHERE client_id = $cid")->fetchAll();
+                                foreach ($db_users as $u): ?>
+                                    <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
+                                        <td class="p-6 font-bold text-slate-300"><?= $u['db_user'] ?></td>
+                                        <td class="p-6 text-right">
+                                            <button
+                                                onclick="resetPassword('reset_db_pass', 'db_user', '<?= $u['db_user'] ?>')"
+                                                class="text-orange-400 hover:bg-orange-500/10 p-2 rounded-lg transition mr-2"><i
+                                                    data-lucide="key" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
                                 <?php endforeach; ?>
-                            </select>
-                            <button
-                                class="bg-blue-600 text-white px-4 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 border border-blue-500 transition whitespace-nowrap">
-                                + Sub</button>
-                        </form>
-
-                        <button onclick="toggleDomainMode()"
-                            class="p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition"
-                            title="Toggle Subdomain Mode">
-                            <i data-lucide="shuffle" class="w-4 h-4"></i>
-                        </button>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <?php foreach ($domains as $d): ?>
-                    <div class="glass-card p-10 mb-8 shadow-sm group">
-                        <div class="flex justify-between items-center mb-10">
-                            <div>
-                                <h3 class="text-2xl font-black text-white"><?= $d['domain'] ?></h3>
-                                <p class="text-xs text-slate-500 font-mono mt-1">Root: /home/<?= $username ?>/public_html
-                                </p>
-                            </div>
-                            <div class="flex gap-2">
-                                <a href="http://filemanager.<?= $base_domain ?>/?domain_id=<?= $d['id'] ?>" target="_blank"
-                                    class="bg-blue-500/10 text-blue-400 -4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition flex items-center gap-2 border border-blue-500/20 px-4"><i
-                                        data-lucide="folder-open" class="w-4 h-4"></i> Manage Files</a>
-                                <button onclick="deleteAction('delete_domain', 'domain_id', <?= $d['id'] ?>)"
-                                    class="bg-red-500/10 text-red-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition border border-red-500/20">Delete</button>
-                            </div>
-                            <form onsubmit="handle(event, 'update_domain_config')"
-                                class="flex items-center gap-4 bg-slate-900/50 p-4 rounded-3xl border border-slate-700/50">
-                                <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
-                                <select name="php_version"
-                                    class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white">
-                                    <option value="8.1" <?= $d['php_version'] == '8.1' ? 'selected' : '' ?>>PHP 8.1</option>
-                                    <option value="8.2" <?= $d['php_version'] == '8.2' ? 'selected' : '' ?>>PHP 8.2</option>
-                                    <option value="8.3" <?= $d['php_version'] == '8.3' ? 'selected' : '' ?>>PHP 8.3</option>
-                                </select>
-                                <select name="mem"
-                                    class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white">
-                                    <option>128M</option>
-                                    <option>256M</option>
-                                    <option>512M</option>
-                                </select>
-                                <div class="flex items-center gap-2 px-2 border-l border-slate-700">
-                                    <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>
-                                        class="w-4 h-4 text-emerald-500 accent-emerald-500">
-                                    <span class="text-[10px] font-bold uppercase text-emerald-400">SSL</span>
-                                </div>
-                                <button class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-500 transition"><i
-                                        data-lucide="save" class="w-4"></i></button>
-                            </form>
-                        </div>
-                        <div class="border-t border-slate-700/50 pt-8">
-                            <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">DNS Zone Management
-                            </h4>
-                            <form onsubmit="handle(event, 'add_dns')" class="grid grid-cols-4 gap-3 mb-4">
-                                <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
-                                <input name="host" placeholder="Host (e.g. @)"
-                                    class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
-                                    required>
-                                <select name="type"
-                                    class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm font-bold text-slate-300 outline-none">
-                                    <option>A</option>
-                                    <option>CNAME</option>
-                                    <option>MX</option>
-                                    <option>TXT</option>
-                                </select>
-                                <input name="value" placeholder="Value (IP or Domain)"
-                                    class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
-                                    required>
-                                <button
-                                    class="bg-slate-800 text-white rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-700 border border-slate-700 transition">Add
-                                    Record</button>
-                            </form>
-
-                            <table class="w-full mt-6 text-left">
-                                <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
-                                    <tr>
-                                        <th class="p-3">Host</th>
-                                        <th class="p-3">Type</th>
-                                        <th class="p-3">Value</th>
-                                        <th class="p-3 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-700/50">
-                                    <?php
-                                    $recs = $pdo->prepare("SELECT * FROM dns_records WHERE domain_id = ?");
-                                    $recs->execute([$d['id']]);
-                                    while ($r = $recs->fetch()): ?>
-                                        <tr class="text-sm hover:bg-slate-800/30 transition">
-                                            <td class="p-3 font-bold text-slate-300"><?= $r['host'] ?></td>
-                                            <td class="p-3"><span
-                                                    class="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs font-bold text-slate-400"><?= $r['type'] ?></span>
-                                            </td>
-                                            <td class="p-3 font-mono text-slate-500 text-xs"><?= $r['value'] ?></td>
-                                            <td class="p-3 text-right">
-                                                <button
-                                                    onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
-                                                    class="text-red-400 hover:text-red-500"><i data-lucide="trash-2"
-                                                        class="w-4"></i></button>
-                                            </td>
-                                        </tr>
-                                    <?php endwhile; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
             </div>
+
+            <div class="glass-card overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400 tracking-widest">
+                        <tr>
+                            <th class="p-6">Current Database Name</th>
+                            <th class="p-6 text-right">Login / Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($my_dbs as $db): ?>
+                            <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
+                                <td class="p-6">
+                                    <div class="font-bold text-slate-200"><?= $db['db_name'] ?></div>
+                                    <?php if ($db['domain']): ?>
+                                        <div class="text-xs text-blue-400 flex items-center gap-1 mt-1"><i data-lucide="link"
+                                                class="w-3"></i> <?= $db['domain'] ?></div>
+                                    <?php else: ?>
+                                        <div class="text-xs text-slate-500 italic mt-1">Global Database</div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="p-6 text-right">
+                                    <a href="http://phpmyadmin.<?= $base_domain ?>" target="_blank"
+                                        class="text-blue-400 font-bold text-xs mr-4 uppercase hover:text-blue-300">phpMyAdmin</a>
+                                    <button onclick="deleteAction('delete_db', 'db_name', '<?= $db['db_name'] ?>')"
+                                        class="text-red-400 hover:bg-red-500/10 p-2 rounded-lg transition"><i
+                                            data-lucide="trash-2" class="w-4"></i></button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- EMAIL MANAGEMENT -->
+        <div id="pane-mail" class="pane">
+            <h2 class="text-2xl font-bold mb-8 text-white">Email Mailboxes</h2>
+            <form onsubmit="handle(event, 'add_email')"
+                class="glass-card p-10 grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+                <input name="user" required placeholder="mailbox name"
+                    class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
+                <select name="domain"
+                    class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-300">
+                    <?php foreach ($domains as $d): ?>
+                        <option value="<?= $d['domain'] ?>">@<?= $d['domain'] ?></option><?php endforeach; ?>
+                </select>
+                <input name="pass" type="password" required placeholder="Password"
+                    class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
+                <button
+                    class="bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition">Create
+                    Mailbox</button>
+            </form>
+            <div class="glass-card overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+                        <tr>
+                            <th class="p-6">Active Email Account</th>
+                            <th class="p-6 text-right">Webmail / Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($my_emails as $mail): ?>
+                            <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
+                                <td class="p-6 font-bold text-slate-300"><?= $mail['email'] ?></td>
+                                <td class="p-6 text-right">
+                                    <a href="http://webmail.<?= $base_domain ?>" target="_blank"
+                                        class="text-blue-400 font-bold text-xs mr-4 uppercase tracking-tighter hover:text-blue-300">Login</a>
+                                    <button onclick="resetPassword('reset_mail_pass', 'email', '<?= $mail['email'] ?>')"
+                                        class="text-orange-400 hover:bg-orange-500/10 p-2 rounded-lg transition mr-2"><i
+                                            data-lucide="key" class="w-4 h-4"></i></button>
+                                    <button onclick="deleteAction('delete_email', 'email', '<?= $mail['email'] ?>')"
+                                        class="text-red-400 hover:bg-red-500/10 p-2 rounded-lg transition"><i
+                                            data-lucide="trash-2" class="w-4"></i></button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- DNS & PHP CONFIG -->
+        <div id="pane-dom" class="pane">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h2 class="text-2xl font-bold text-white">Domain Management</h2>
+                <div class="flex gap-4">
+                    <!-- Standard Domain Form -->
+                    <form onsubmit="handle(event, 'add_domain')" class="flex gap-2" id="form-add-domain">
+                        <input name="domain" required placeholder="example.com"
+                            class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500 w-48 transition">
+                        <button
+                            class="bg-slate-800 text-white px-4 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-700 border border-slate-700 transition whitespace-nowrap">
+                            + Domain</button>
+                    </form>
+
+                    <!-- Subdomain Toggle/Form -->
+                    <form onsubmit="handleAddSubdomain(event)" class="flex gap-2 hidden" id="form-add-subdomain">
+                        <input name="sub" required placeholder="sub (e.g. blog)"
+                            class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500 w-32 transition text-right">
+                        <span class="self-center font-bold text-slate-500">.</span>
+                        <select name="parent_id"
+                            class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white w-40 transition">
+                            <?php foreach ($domains as $d): ?>
+                                <option value="<?= $d['domain'] ?>"><?= $d['domain'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button
+                            class="bg-blue-600 text-white px-4 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 border border-blue-500 transition whitespace-nowrap">
+                            + Sub</button>
+                    </form>
+
+                    <button onclick="toggleDomainMode()"
+                        class="p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition"
+                        title="Toggle Subdomain Mode">
+                        <i data-lucide="shuffle" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            <?php foreach ($domains as $d): ?>
+                <div class="glass-card p-10 mb-8 shadow-sm group">
+                    <div class="flex justify-between items-center mb-10">
+                        <div>
+                            <h3 class="text-2xl font-black text-white"><?= $d['domain'] ?></h3>
+                            <p class="text-xs text-slate-500 font-mono mt-1">Root: /home/<?= $username ?>/public_html
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="http://filemanager.<?= $base_domain ?>/?domain_id=<?= $d['id'] ?>" target="_blank"
+                                class="bg-blue-500/10 text-blue-400 -4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition flex items-center gap-2 border border-blue-500/20 px-4"><i
+                                    data-lucide="folder-open" class="w-4 h-4"></i> Manage Files</a>
+                            <button onclick="deleteAction('delete_domain', 'domain_id', <?= $d['id'] ?>)"
+                                class="bg-red-500/10 text-red-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition border border-red-500/20">Delete</button>
+                        </div>
+                        <form onsubmit="handle(event, 'update_domain_config')"
+                            class="flex items-center gap-4 bg-slate-900/50 p-4 rounded-3xl border border-slate-700/50">
+                            <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
+                            <select name="php_version"
+                                class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white">
+                                <option value="8.1" <?= $d['php_version'] == '8.1' ? 'selected' : '' ?>>PHP 8.1</option>
+                                <option value="8.2" <?= $d['php_version'] == '8.2' ? 'selected' : '' ?>>PHP 8.2</option>
+                                <option value="8.3" <?= $d['php_version'] == '8.3' ? 'selected' : '' ?>>PHP 8.3</option>
+                            </select>
+                            <select name="mem"
+                                class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white">
+                                <option>128M</option>
+                                <option>256M</option>
+                                <option>512M</option>
+                            </select>
+                            <div class="flex items-center gap-2 px-2 border-l border-slate-700">
+                                <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>
+                                    class="w-4 h-4 text-emerald-500 accent-emerald-500">
+                                <span class="text-[10px] font-bold uppercase text-emerald-400">SSL</span>
+                            </div>
+                            <button class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-500 transition"><i
+                                    data-lucide="save" class="w-4"></i></button>
+                        </form>
+                    </div>
+                    <div class="border-t border-slate-700/50 pt-8">
+                        <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">DNS Zone Management
+                        </h4>
+                        <form onsubmit="handle(event, 'add_dns')" class="grid grid-cols-4 gap-3 mb-4">
+                            <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
+                            <input name="host" placeholder="Host (e.g. @)"
+                                class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
+                                required>
+                            <select name="type"
+                                class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm font-bold text-slate-300 outline-none">
+                                <option>A</option>
+                                <option>CNAME</option>
+                                <option>MX</option>
+                                <option>TXT</option>
+                            </select>
+                            <input name="value" placeholder="Value (IP or Domain)"
+                                class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
+                                required>
+                            <button
+                                class="bg-slate-800 text-white rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-700 border border-slate-700 transition">Add
+                                Record</button>
+                        </form>
+
+                        <table class="w-full mt-6 text-left">
+                            <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+                                <tr>
+                                    <th class="p-3">Host</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Value</th>
+                                    <th class="p-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700/50">
+                                <?php
+                                $recs = $pdo->prepare("SELECT * FROM dns_records WHERE domain_id = ?");
+                                $recs->execute([$d['id']]);
+                                while ($r = $recs->fetch()): ?>
+                                    <tr class="text-sm hover:bg-slate-800/30 transition">
+                                        <td class="p-3 font-bold text-slate-300"><?= $r['host'] ?></td>
+                                        <td class="p-3"><span
+                                                class="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs font-bold text-slate-400"><?= $r['type'] ?></span>
+                                        </td>
+                                        <td class="p-3 font-mono text-slate-500 text-xs"><?= $r['value'] ?></td>
+                                        <td class="p-3 text-right">
+                                            <button
+                                                onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
+                                                class="text-red-400 hover:text-red-500"><i data-lucide="trash-2"
+                                                    class="w-4"></i></button>
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
 
     </main>
 
@@ -1100,12 +1211,97 @@ $usage_disk = 0; // Disk usage calculation would go here
             }
         }
 
+        // --- SECURITY & BACKUP HANDLERS ---
+        async function loadSSH() {
+            const list = document.getElementById('ssh-list');
+            const fd = new FormData(); fd.append('ajax_action', 'list_ssh');
+            try {
+                const res = await fetch('', {method:'POST', body:fd}).then(r=>r.json());
+                list.innerHTML = '';
+                if(res.data && res.data.length > 0) {
+                    res.data.forEach((line, i) => {
+                        list.innerHTML += `
+                            <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700/50 mb-2">
+                                <div class="font-mono text-xs text-slate-300 truncate w-3/4">${line}</div>
+                                <button onclick="handleGeneric('del_ssh', {line: ${parseInt(line)}})" class="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"><i data-lucide="trash-2" class="w-4"></i></button>
+                            </div>
+                        `;
+                    });
+                    lucide.createIcons();
+                } else {
+                    list.innerHTML = '<div class="text-center text-slate-500 py-4">No SSH keys found.</div>';
+                }
+            } catch(e) { list.innerHTML = '<div class="text-center text-red-400">Error loading keys.</div>'; }
+        }
+
+        async function loadBackups() {
+            const list = document.getElementById('backup-list');
+            const fd = new FormData(); fd.append('ajax_action', 'list_backups');
+            try {
+                const res = await fetch('', {method:'POST', body:fd}).then(r=>r.json());
+                list.innerHTML = '';
+                if(res.data && res.data.length > 0) {
+                    res.data.forEach(b => {
+                        list.innerHTML += `
+                            <tr class="hover:bg-slate-800/30 transition">
+                                <td class="p-4 font-bold text-slate-300">${b.name}</td>
+                                <td class="p-4 text-slate-400 text-xs">${b.size}</td>
+                                <td class="p-4 text-right">
+                                    <button onclick="handleGeneric('restore_backup', {file: '${b.name}'})" class="text-blue-400 font-bold text-xs uppercase hover:text-white mr-4 transition">Restore</button>
+                                    <a href="?download_backup=${b.name}" class="text-emerald-400 hover:bg-emerald-500/10 p-2 rounded-lg transition"><i data-lucide="download" class="w-4"></i></a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    lucide.createIcons();
+                } else {
+                    list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">No backups found.</td></tr>';
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        // Generic Handler Update
+        async function handleGeneric(action, data={}) {
+            if(action.includes('restore') && !confirm('Restoring will overwrite current files and DBs. Continue?')) return;
+            if((action.includes('delete') || action.includes('del')) && !confirm('Are you sure?')) return;
+            
+            const fd = new FormData();
+            fd.append('ajax_action', action);
+            for(let k in data) fd.append(k, data[k]);
+            
+            // UI Feedback (Generic)
+            showToast('info', 'Processing...', 'Please wait.');
+            
+            try {
+                const res = await fetch('', {method:'POST', body:fd}).then(r=>r.json());
+                if(res.status === 'success') {
+                    showToast('success', 'Success', res.msg);
+                    if(action === 'add_ssh' || action === 'del_ssh') loadSSH();
+                    if(action.includes('backup')) loadBackups();
+                } else {
+                    showToast('error', 'Error', res.msg);
+                }
+            } catch(e) { showToast('error', 'System Error', 'Operation failed.'); }
+        }
+
+        // Update tab function to load data
+        const oldTab = tab;
+        tab = function(id) {
+            oldTab(id);
+            if(id === 'sec') loadSSH();
+            if(id === 'back') loadBackups();
+        }
+        
+        // Initial load check
+        if(location.hash === '#sec') loadSSH();
+        if(location.hash === '#back') loadBackups();
+
         // --- SUBDOMAIN & UI HELPERS ---
 
         function toggleDomainMode() {
             const domForm = document.getElementById('form-add-domain');
             const subForm = document.getElementById('form-add-subdomain');
-            
+
             if (domForm.classList.contains('hidden')) {
                 domForm.classList.remove('hidden');
                 subForm.classList.add('hidden');
@@ -1120,7 +1316,7 @@ $usage_disk = 0; // Disk usage calculation would go here
             const form = e.target;
             const sub = form.sub.value.trim().toLowerCase();
             const parent = form.parent_id.value;
-            
+
             if (!sub || !parent) {
                 showToast('error', 'Validation Error', 'Please fill in all fields.');
                 return;
@@ -1128,7 +1324,7 @@ $usage_disk = 0; // Disk usage calculation would go here
 
             // Construct FQDN
             const fqdn = `${sub}.${parent}`;
-            
+
             // Piggyback on add_domain action
             const fd = new FormData();
             fd.append('ajax_action', 'add_domain');
@@ -1162,17 +1358,17 @@ $usage_disk = 0; // Disk usage calculation would go here
             // Save scroll position
             sessionStorage.setItem('scrollPos', window.scrollY);
             // Ensure hash is preserved (redundant usually, but safe)
-            if(window.location.hash) {
-                 window.location.reload(); 
+            if (window.location.hash) {
+                window.location.reload();
             } else {
-                 window.location.href = window.location.href; 
+                window.location.href = window.location.href;
             }
         }
 
         // Restore Scroll on Load
         window.addEventListener('load', () => {
             const pos = sessionStorage.getItem('scrollPos');
-            if(pos) {
+            if (pos) {
                 window.scrollTo(0, pos);
                 sessionStorage.removeItem('scrollPos');
             }
