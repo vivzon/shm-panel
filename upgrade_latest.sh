@@ -37,22 +37,32 @@ fi
 
 # --- 3. Schema Update ---
 log "Updating Database Schema..."
-mysql $DB_NAME <<EOF
--- Add 'status' to clients
-ALTER TABLE clients ADD COLUMN status ENUM('active','suspended') DEFAULT 'active';
 
--- Add 'ssl_active' and 'php_version' to domains
-ALTER TABLE domains ADD COLUMN php_version VARCHAR(5) DEFAULT '8.2';
-ALTER TABLE domains ADD COLUMN ssl_active BOOLEAN DEFAULT 0;
+# Helper to run SQL safely
+run_sql() {
+    if [ -f "/root/shm-credentials.txt" ]; then
+        PASS=$(grep "Root Password" /root/shm-credentials.txt | cut -d: -f2 | xargs)
+        mysql -u root -p"$PASS" $DB_NAME -e "$1" 2>/dev/null || echo "SQL Error (might be duplicate): $1"
+    else
+        mysql -u root $DB_NAME -e "$1" 2>/dev/null || echo "SQL Error (might be duplicate): $1"
+    fi
+}
 
--- Create Mail/FTP Tables if missing (from v4)
-CREATE TABLE IF NOT EXISTS mail_domains (id INT AUTO_INCREMENT PRIMARY KEY, domain VARCHAR(255) UNIQUE);
-CREATE TABLE IF NOT EXISTS mail_users (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, email VARCHAR(255) UNIQUE, password VARCHAR(255));
-CREATE TABLE IF NOT EXISTS client_databases (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, db_name VARCHAR(64) UNIQUE);
-CREATE TABLE IF NOT EXISTS client_db_users (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, db_user VARCHAR(32));
-CREATE TABLE IF NOT EXISTS dns_records (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, type VARCHAR(10), host VARCHAR(255), value VARCHAR(255));
-CREATE TABLE IF NOT EXISTS php_config (domain_id INT PRIMARY KEY, memory_limit VARCHAR(10) DEFAULT '128M');
-EOF
+# 3a. Add Columns Idempotently
+run_sql "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='clients' AND COLUMN_NAME='status' INTO @cnt; SET @s=IF(@cnt=0, 'ALTER TABLE clients ADD COLUMN status ENUM(\"active\",\"suspended\") DEFAULT \"active\"', 'DO 0'); PREPARE stmt FROM @s; EXECUTE stmt;"
+run_sql "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='domains' AND COLUMN_NAME='php_version' INTO @cnt; SET @s=IF(@cnt=0, 'ALTER TABLE domains ADD COLUMN php_version VARCHAR(5) DEFAULT \"8.2\"', 'DO 0'); PREPARE stmt FROM @s; EXECUTE stmt;"
+run_sql "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='domains' AND COLUMN_NAME='ssl_active' INTO @cnt; SET @s=IF(@cnt=0, 'ALTER TABLE domains ADD COLUMN ssl_active BOOLEAN DEFAULT 0', 'DO 0'); PREPARE stmt FROM @s; EXECUTE stmt;"
+
+# 3b. Create Tables
+run_sql "CREATE TABLE IF NOT EXISTS mail_domains (id INT AUTO_INCREMENT PRIMARY KEY, domain VARCHAR(255) UNIQUE);"
+run_sql "CREATE TABLE IF NOT EXISTS mail_users (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, email VARCHAR(255) UNIQUE, password VARCHAR(255));"
+run_sql "CREATE TABLE IF NOT EXISTS client_databases (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain_id INT DEFAULT NULL, db_name VARCHAR(64) UNIQUE);"
+run_sql "CREATE TABLE IF NOT EXISTS client_db_users (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, db_user VARCHAR(32));"
+run_sql "CREATE TABLE IF NOT EXISTS dns_records (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, type VARCHAR(10), host VARCHAR(255), value VARCHAR(255));"
+run_sql "CREATE TABLE IF NOT EXISTS php_config (domain_id INT PRIMARY KEY, memory_limit VARCHAR(10) DEFAULT '128M');"
+
+# 3c. Update client_databases header if missing domain_id (Post-Creation Update)
+run_sql "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='client_databases' AND COLUMN_NAME='domain_id' INTO @cnt; SET @s=IF(@cnt=0, 'ALTER TABLE client_databases ADD COLUMN domain_id INT DEFAULT NULL AFTER client_id', 'DO 0'); PREPARE stmt FROM @s; EXECUTE stmt;"
 
 # --- 4. Deploy Core Engine ---
 log "Updating Core Engine..."
@@ -75,8 +85,7 @@ cp -r whm/* /var/www/panel/whm/
 cp -r cpanel/* /var/www/panel/cpanel/
 cp -r landing/* /var/www/panel/landing/
 cp shared_config.php /var/www/panel/shared/config.php
-# Ensure client_databases has domain_id
-mysql -u root -p$(cat /root/shm-credentials.txt | grep "Root Password" | cut -d: -f2 | xargs) -e "USE shm; ALTER TABLE client_databases ADD COLUMN domain_id INT DEFAULT NULL AFTER client_id;" 2>/dev/null
+cp shared_config.php /var/www/panel/shared/config.php
 
 # Make shared config readable
 chmod 644 /var/www/panel/shared/shared_config.php
