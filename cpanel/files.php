@@ -256,6 +256,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+    // 9. PREVIEW
+    if (isset($_POST['preview_item'])) {
+        $file = shm_build_path($base_path, $_POST['item']);
+        if (is_file($file)) {
+            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            if (in_array($ext, ['php', 'html', 'css', 'js', 'json', 'txt', 'md', 'xml', 'sql', 'conf', 'sh', 'env'])) {
+                // Read first 10KB
+                $content = file_get_contents($file, false, NULL, 0, 10240);
+                echo json_encode(['status' => 'success', 'type' => 'code', 'content' => htmlspecialchars($content)]);
+            } else {
+                echo json_encode(['status' => 'error', 'msg' => 'Preview not supported for this file type.']);
+            }
+        } else {
+            echo json_encode(['status' => 'error', 'msg' => 'File not found.']);
+        }
+        exit;
+    }
 }
 
 // -------- READ DIRECTORY --------
@@ -381,6 +398,68 @@ if (is_dir($full_path)) {
             height: 16px;
             background: #1e293b;
             border-color: #475569;
+            accent-color: #3b82f6;
+            width: 16px;
+            height: 16px;
+            background: #1e293b;
+            border-color: #475569;
+        }
+
+        /* VIEW MODES */
+        .view-list .list-header {
+            display: grid;
+        }
+
+        .view-list #file-list {
+            display: block;
+        }
+
+        .view-list .file-row {
+            display: block;
+        }
+
+        .view-list .file-row:hover {
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        .view-list .list-layout {
+            display: grid;
+        }
+
+        .view-list .grid-layout {
+            display: none;
+        }
+
+        .view-grid .list-header {
+            display: none;
+        }
+
+        .view-grid #file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .view-grid .file-row {
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+        }
+
+        .view-grid .list-layout {
+            display: none;
+        }
+
+        .view-grid .grid-layout {
+            display: flex;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background: rgba(30, 41, 59, 0.3);
+        }
+
+        .view-grid .grid-layout:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
     </style>
 </head>
@@ -414,6 +493,21 @@ if (is_dir($full_path)) {
                 <?php endforeach; ?>
             </div>
         </div>
+        <div class="flex items-center gap-3 bg-slate-800/50 p-1 rounded-xl border border-slate-700/50">
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-3"></i>
+                <input id="file-search" placeholder="Search files..." onkeyup="filterFiles()"
+                    class="bg-transparent pl-9 pr-4 py-2 text-sm text-white placeholder-slate-600 outline-none w-48 focus:w-64 transition-all">
+            </div>
+            <div class="h-6 w-px bg-slate-700"></div>
+            <button onclick="setView('list')" id="btn-list"
+                class="p-2 rounded-lg text-white bg-slate-700 shadow-sm transition"><i data-lucide="list"
+                    class="w-4"></i></button>
+            <button onclick="setView('grid')" id="btn-grid"
+                class="p-2 rounded-lg text-slate-400 hover:text-white transition"><i data-lucide="layout-grid"
+                    class="w-4"></i></button>
+        </div>
+
         <div class="flex gap-3">
             <button onclick="openModal('upload')"
                 class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold flex gap-2 hover:bg-blue-500 transition shadow-lg shadow-blue-600/20 text-sm border border-transparent"><i
@@ -445,50 +539,81 @@ if (is_dir($full_path)) {
 
         <!-- File List -->
         <main class="flex-1 overflow-y-auto p-8" oncontextmenu="return false;">
-            <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
-                <table class="w-full text-left border-collapse">
-                    <thead
-                        class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-500 tracking-widest border-b border-slate-700/50">
-                        <tr>
-                            <th class="p-4 w-12 text-center"><input type="checkbox" id="master-check"
-                                    class="cursor-pointer"></th>
-                            <th class="p-4">Name</th>
-                            <th class="p-4">Size</th>
-                            <th class="p-4">Permissions</th>
-                            <th class="p-4">Modified</th>
-                        </tr>
-                    </thead>
-                    <tbody id="file-body" class="divide-y divide-slate-700/30">
-                        <?php if ($current_path != '/'): ?>
-                            <tr class="file-row"
-                                onclick="window.location='?domain_id=<?= $domain_id ?>&path=<?= dirname($current_path) ?>'">
-                                <td class="p-4"></td>
-                                <td class="p-4 flex items-center gap-3 text-slate-400 hover:text-white transition"><i
-                                        data-lucide="corner-left-up" class="w-4"></i> ..</td>
-                                <td colspan="3"></td>
-                            </tr>
-                        <?php endif; ?>
+            <div id="file-container" class="glass-card rounded-2xl overflow-hidden shadow-2xl p-2 view-list">
+                <!-- Grid/List Header (Visible only in List Mode) -->
+                <div
+                    class="grid grid-cols-12 gap-4 px-4 py-3 bg-slate-900/50 text-[10px] font-bold uppercase text-slate-500 tracking-widest border-b border-slate-700/50 list-header">
+                    <div class="col-span-6 flex items-center gap-3">
+                        <input type="checkbox" id="master-check" class="cursor-pointer">
+                        <span>Name</span>
+                    </div>
+                    <div class="col-span-2">Size</div>
+                    <div class="col-span-2">Permissions</div>
+                    <div class="col-span-2">Modified</div>
+                </div>
 
-                        <?php foreach ($items as $i): ?>
-                            <tr class="file-row group transition duration-150" data-path="<?= $i['rel'] ?>"
-                                data-type="<?= $i['is_dir'] ? 'dir' : 'file' ?>"
-                                ondblclick="location.href='<?= $i['is_dir'] ? "?domain_id=$domain_id&path=" . $i['rel'] : "editor.php?domain_id=$domain_id&file=" . $i['rel'] ?>'">
-                                <td class="p-4 text-center"><input type="checkbox" class="file-check cursor-pointer"
-                                        value="<?= $i['rel'] ?>"></td>
-                                <td class="p-4 flex items-center gap-3 font-medium text-slate-300 group-hover:text-white">
+                <div id="file-list" class="overflow-y-auto max-h-[calc(100vh-250px)] p-2">
+                    <?php if ($current_path != '/'): ?>
+                        <div class="file-row p-3 rounded-xl flex items-center gap-3 text-slate-400 hover:text-white hover:bg-slate-800/50 transition cursor-pointer mb-1"
+                            onclick="window.location='?domain_id=<?= $domain_id ?>&path=<?= dirname($current_path) ?>'">
+                            <div class="w-8 flex justify-center"><i data-lucide="corner-left-up" class="w-5"></i></div>
+                            <span class="font-bold">..</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php foreach ($items as $i):
+                        $icon = $i['is_dir'] ? 'folder' : 'file-text';
+                        if (!$i['is_dir']) {
+                            $ext = strtolower(pathinfo($i['name'], PATHINFO_EXTENSION));
+                            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                                $icon = 'image';
+                            if (in_array($ext, ['mp4', 'webm']))
+                                $icon = 'film';
+                            if (in_array($ext, ['mp3', 'wav']))
+                                $icon = 'music';
+                            if (in_array($ext, ['zip', 'tar', 'gz', 'rar']))
+                                $icon = 'archive';
+                            if (in_array($ext, ['php', 'js', 'css', 'html', 'json']))
+                                $icon = 'code-2';
+                        }
+                        ?>
+                        <div class="file-row group transition duration-150 relative" data-path="<?= $i['rel'] ?>"
+                            data-name="<?= strtolower($i['name']) ?>" data-type="<?= $i['is_dir'] ? 'dir' : 'file' ?>"
+                            ondblclick="location.href='<?= $i['is_dir'] ? "?domain_id=$domain_id&path=" . $i['rel'] : "editor.php?domain_id=$domain_id&file=" . $i['rel'] ?>'">
+
+                            <!-- List View Structure -->
+                            <div class="list-layout grid grid-cols-12 gap-4 items-center w-full">
+                                <div class="col-span-6 flex items-center gap-3 overflow-hidden">
+                                    <input type="checkbox" class="file-check cursor-pointer" value="<?= $i['rel'] ?>">
                                     <div
-                                        class="p-2 rounded-lg <?= $i['is_dir'] ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500' ?>">
-                                        <i data-lucide="<?= $i['is_dir'] ? 'folder' : 'file-text' ?>" class="w-4 h-4"></i>
+                                        class="p-2 rounded-lg shrink-0 <?= $i['is_dir'] ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500' ?>">
+                                        <i data-lucide="<?= $icon ?>" class="w-5 h-5"></i>
                                     </div>
-                                    <?= $i['name'] ?>
-                                </td>
-                                <td class="p-4 text-slate-500 text-sm font-mono"><?= $i['size'] ?></td>
-                                <td class="p-4 text-slate-500 font-mono text-xs"><?= $i['perm'] ?></td>
-                                <td class="p-4 text-slate-500 text-xs font-mono"><?= $i['date'] ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                                    <span
+                                        class="font-medium text-slate-300 group-hover:text-white truncate"><?= $i['name'] ?></span>
+                                </div>
+                                <div class="col-span-2 text-slate-500 text-sm font-mono"><?= $i['size'] ?></div>
+                                <div class="col-span-2 text-slate-500 font-mono text-xs"><?= $i['perm'] ?></div>
+                                <div class="col-span-2 text-slate-500 text-xs font-mono"><?= $i['date'] ?></div>
+                            </div>
+
+                            <!-- Grid View Structure (Hidden by default CSS) -->
+                            <div
+                                class="grid-layout flex-col items-center justify-center text-center w-full h-full p-4 rounded-xl hover:bg-slate-800/50 hidden">
+                                <div class="absolute top-3 left-3">
+                                    <input type="checkbox" class="file-check cursor-pointer" value="<?= $i['rel'] ?>">
+                                </div>
+                                <div
+                                    class="w-16 h-16 mb-3 mx-auto flex items-center justify-center rounded-2xl <?= $i['is_dir'] ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500' ?>">
+                                    <i data-lucide="<?= $icon ?>" class="w-10 h-10"></i>
+                                </div>
+                                <span
+                                    class="text-sm font-medium text-slate-300 group-hover:text-white line-clamp-2 break-all"><?= $i['name'] ?></span>
+                                <span class="text-[10px] text-slate-500 mt-1"><?= $i['size'] ?></span>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </main>
     </div>
@@ -659,6 +784,35 @@ if (is_dir($full_path)) {
         </form>
     </div>
 
+    <!-- Status Bar -->
+    <footer
+        class="bg-slate-900 border-t border-slate-700/50 px-6 py-2 flex items-center justify-between text-xs text-slate-500 z-20">
+        <div class="flex gap-4">
+            <span><?= count($items) ?> items</span>
+            <span id="select-stats">0 selected</span>
+        </div>
+        <div class="font-mono">
+            Disk Usage: <?= $DISK ?? 'N/A' ?>
+        </div>
+    </footer>
+
+    <!-- Preview Modal -->
+    <div id="modal-preview"
+        class="fixed inset-0 bg-black/90 backdrop-blur-md hidden flex items-center justify-center z-[60]">
+        <button onclick="closeModal('preview')" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i
+                data-lucide="x" class="w-8 h-8"></i></button>
+        <div class="w-full max-w-5xl h-[80vh] flex items-center justify-center p-4">
+            <img id="preview-img" class="max-w-full max-h-full rounded-lg shadow-2xl hidden">
+            <pre id="preview-code"
+                class="w-full h-full bg-slate-900 text-slate-300 p-8 rounded-xl overflow-auto font-mono text-sm border border-slate-700 hidden"></pre>
+            <div id="preview-msg" class="text-white text-xl font-bold hidden">Preview not available</div>
+        </div>
+        <div class="absolute bottom-6 text-center w-full">
+            <h3 id="preview-title" class="text-white font-bold text-lg">Filename.jpg</h3>
+            <p class="text-slate-400 text-sm">Preview Mode</p>
+        </div>
+    </div>
+
     <form id="bulk-form" method="POST" class="hidden">
         <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
         <div id="bulk-inputs"></div>
@@ -790,6 +944,158 @@ if (is_dir($full_path)) {
         dropZone.onclick = () => fileInput.click();
         fileInput.onchange = (e) => handleFiles(e.target.files);
 
+        // VIEW MODES
+        function setView(mode) {
+            const container = document.getElementById('file-container');
+            const btnList = document.getElementById('btn-list');
+            const btnGrid = document.getElementById('btn-grid');
+
+            if (mode === 'grid') {
+                container.classList.remove('view-list');
+                container.classList.add('view-grid');
+                btnGrid.classList.add('bg-slate-700', 'text-white', 'shadow-sm');
+                btnGrid.classList.remove('text-slate-400', 'hover:text-white');
+                btnList.classList.remove('bg-slate-700', 'text-white', 'shadow-sm');
+                btnList.classList.add('text-slate-400', 'hover:text-white');
+            } else {
+                container.classList.remove('view-grid');
+                container.classList.add('view-list');
+                btnList.classList.add('bg-slate-700', 'text-white', 'shadow-sm');
+                btnList.classList.remove('text-slate-400', 'hover:text-white');
+                btnGrid.classList.remove('bg-slate-700', 'text-white', 'shadow-sm');
+                btnGrid.classList.add('text-slate-400', 'hover:text-white');
+            }
+            localStorage.setItem('fm_view', mode);
+        }
+
+        // Initialize View from Storage
+        if (localStorage.getItem('fm_view') === 'grid') setView('grid');
+
+        // SEARCH FILTER
+        function filterFiles() {
+            const query = document.getElementById('file-search').value.toLowerCase();
+            document.querySelectorAll('.file-row').forEach(row => {
+                if (row.dataset.name) {
+                    const match = row.dataset.name.includes(query);
+                    row.classList.toggle('hidden', !match);
+                }
+            });
+        }
+
+        // PREVIEW
+        async function openPreview(path) {
+            const ext = path.split('.').pop().toLowerCase();
+            const modal = document.getElementById('modal-preview');
+            const img = document.getElementById('preview-img');
+            const code = document.getElementById('preview-code');
+            const msg = document.getElementById('preview-msg');
+            const title = document.getElementById('preview-title');
+
+            title.innerText = path.split('/').pop();
+            img.classList.add('hidden');
+            code.classList.add('hidden');
+            msg.classList.add('hidden');
+            modal.classList.remove('hidden');
+
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+                // Image Preview (Direct URL if public, but better via base64 proxy if strict permissions? 
+                // Since this is same domain, relative path usage might fail if outside webroot or restricted.
+                // WE rely on `download_items` trick or standard web access. 
+                // Let's try direct access assuming public_html)
+
+                // Actually, for security and correct path resolution, let's use a blob fetch or just valid URL.
+                // Since we are in cPanel, the file might just be in the webroot.
+                // Simple trick: We will fail image preview if not web accessible easily, or we can use the Download handler to stream it.
+                // Let's use the download handler as src! Smart.
+
+                // Construct download URL
+                // We need to fetch it as blob to set src
+
+                try {
+                    const fd = new FormData();
+                    fd.append('download_items', '1');
+                    fd.append('paths[]', path);
+                    fd.append('domain_id', '<?= $domain_id ?>');
+
+                    const res = await fetch('', { method: 'POST', body: fd });
+                    const blob = await res.blob();
+                    img.src = URL.createObjectURL(blob);
+                    img.classList.remove('hidden');
+                } catch (e) {
+                    msg.innerText = "Failed to load image";
+                    msg.classList.remove('hidden');
+                }
+
+            } else {
+                // Code / Text Preview
+                const fd = new FormData();
+                fd.append('preview_item', '1');
+                fd.append('item', path);
+                fd.append('domain_id', '<?= $domain_id ?>');
+
+                try {
+                    const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+                    if (res.status === 'success') {
+                        code.innerText = res.content; // It's already htmlspecialchar'd by PHP
+                        code.classList.remove('hidden');
+                    } else {
+                        msg.innerText = res.msg;
+                        msg.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    msg.innerText = "Error fetching preview";
+                    msg.classList.remove('hidden');
+                }
+            }
+        }
+
+        // CONTEXT MENU UPDATE
+        // Update context menu to include "Preview"
+        const ctxPreview = document.createElement('button');
+        ctxPreview.className = "text-left px-4 py-2.5 flex items-center gap-3 text-sm font-medium";
+        ctxPreview.innerHTML = `<i data-lucide="eye" class="w-4"></i> Preview`;
+        ctxPreview.onclick = () => ctxAction('preview');
+        // Insert as first item
+        const ctxFirst = document.querySelector('#context-menu button');
+        ctxPreview.classList.add('border-b', 'border-slate-700', 'mb-1', 'pb-1'); // Styling separation
+        document.getElementById('context-menu').insertBefore(ctxPreview, ctxFirst);
+
+        // Handle context action
+        const oldCtxAction = ctxAction;
+        ctxAction = function (action) {
+            if (action === 'preview') {
+                openPreview(currentCtxItem);
+                return;
+            }
+            oldCtxAction(action);
+        }
+
+        // UPDATE STATS ON SELECTION
+        const oldChange = document.onchange; // No, it was addEventListener.
+        // We need to hook into the selection logic.
+        const statsLabel = document.getElementById('select-stats');
+
+        // Helper to update stats
+        function updateStats() {
+            const checks = document.querySelectorAll('.file-check:checked');
+            let totalSize = 0; // Complexity: we don't have size in value.
+            // We'd need to parse it from DOM or data attribute. 
+            // Let's just show count for now.
+            statsLabel.innerText = checks.length + " selected";
+        }
+
+        // Add listener to all checks
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('file-check') || e.target.id === 'master-check') {
+                setTimeout(updateStats, 10);
+            }
+        });
+
+        // Initialize icons for dynamic content
+        window.addEventListener('load', () => {
+            lucide.createIcons();
+        });
+
         async function handleFiles(files) {
             const formData = new FormData();
             formData.append('upload_files', '1');
@@ -797,17 +1103,30 @@ if (is_dir($full_path)) {
             for (let f of files) formData.append('files[]', f);
 
             document.getElementById('upload-progress').classList.remove('hidden');
+            document.getElementById('progress-text').innerText = "0%";
+            document.getElementById('progress-bar').style.width = "0%";
+
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', '', true);
-            xhr.upload.onprogress = (e) => {
-                const pc = (e.loaded / e.total) * 100;
-                document.getElementById('progress-bar').style.width = pc + '%';
-                document.getElementById('progress-text').innerText = Math.round(pc) + '%';
+            xhr.upload.addEventListener("progress", (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    document.getElementById('progress-text').innerText = percent + "%";
+                    document.getElementById('progress-bar').style.width = percent + "%";
+                }
+            });
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    location.reload();
+                } else {
+                    alert("Upload Failed");
+                }
             };
-            xhr.onload = () => location.reload();
-            xhr.onerror = () => alert('Upload Failed');
+
+            xhr.open("POST", "");
             xhr.send(formData);
         }
+
     </script>
 </body>
 

@@ -784,15 +784,40 @@ $usage_disk = 0; // Disk usage calculation would go here
 
             <!-- DNS & PHP CONFIG -->
             <div id="pane-dom" class="pane">
-                <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-2xl font-bold text-white">Domain Hosting Configuration</h2>
-                    <form onsubmit="handle(event, 'add_domain')" class="flex gap-2">
-                        <input name="domain" required placeholder="example.com"
-                            class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500">
-                        <button
-                            class="bg-slate-800 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-xl hover:bg-slate-700 border border-slate-700 transition">+
-                            Add Website</button>
-                    </form>
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                    <h2 class="text-2xl font-bold text-white">Domain Management</h2>
+                    <div class="flex gap-4">
+                        <!-- Standard Domain Form -->
+                        <form onsubmit="handle(event, 'add_domain')" class="flex gap-2" id="form-add-domain">
+                            <input name="domain" required placeholder="example.com"
+                                class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500 w-48 transition">
+                            <button
+                                class="bg-slate-800 text-white px-4 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-700 border border-slate-700 transition whitespace-nowrap">
+                                + Domain</button>
+                        </form>
+
+                        <!-- Subdomain Toggle/Form -->
+                        <form onsubmit="handleAddSubdomain(event)" class="flex gap-2 hidden" id="form-add-subdomain">
+                            <input name="sub" required placeholder="sub (e.g. blog)"
+                                class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500 w-32 transition text-right">
+                            <span class="self-center font-bold text-slate-500">.</span>
+                            <select name="parent_id"
+                                class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white w-40 transition">
+                                <?php foreach ($domains as $d): ?>
+                                    <option value="<?= $d['domain'] ?>"><?= $d['domain'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button
+                                class="bg-blue-600 text-white px-4 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 border border-blue-500 transition whitespace-nowrap">
+                                + Sub</button>
+                        </form>
+
+                        <button onclick="toggleDomainMode()"
+                            class="p-3 bg-slate-800 text-slate-400 rounded-xl hover:text-white transition"
+                            title="Toggle Subdomain Mode">
+                            <i data-lucide="shuffle" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
                 <?php foreach ($domains as $d): ?>
                     <div class="glass-card p-10 mb-8 shadow-sm group">
@@ -994,7 +1019,7 @@ $usage_disk = 0; // Disk usage calculation would go here
                 if (res.status === 'success') {
                     showToast('success', 'Operation Successful', 'The requested action was completed successfully.');
                     btn.innerHTML = "Success!";
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => forceReload(), 1000);
                 } else {
                     showToast('error', 'Operation Failed', res.msg || 'An unknown error occurred.');
                     btn.disabled = false;
@@ -1017,7 +1042,7 @@ $usage_disk = 0; // Disk usage calculation would go here
                 const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                 if (res.status === 'success') {
                     showToast('success', 'Deleted', 'Item deleted successfully.');
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => forceReload(), 1000);
                 } else {
                     showToast('error', 'Delete Failed', res.msg || 'Could not delete item.');
                 }
@@ -1039,7 +1064,7 @@ $usage_disk = 0; // Disk usage calculation would go here
                 const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                 if (res.status === 'success') {
                     showToast('success', 'Password Updated', 'The password has been changed successfully.');
-                    setTimeout(() => location.reload(), 1000);
+                    setTimeout(() => forceReload(), 1000);
                 } else {
                     showToast('error', 'Update Failed', res.msg);
                 }
@@ -1069,11 +1094,89 @@ $usage_disk = 0; // Disk usage calculation would go here
             try {
                 await fetch('', { method: 'POST', body: fd });
                 showToast('success', 'Installation Complete', 'The application has been installed.');
-                setTimeout(() => location.reload(), 1500);
+                forceReload();
             } catch (e) {
                 showToast('warning', 'Check Status', 'Installation request sent, but check logs if it doesn\'t appear.');
             }
         }
+
+        // --- SUBDOMAIN & UI HELPERS ---
+
+        function toggleDomainMode() {
+            const domForm = document.getElementById('form-add-domain');
+            const subForm = document.getElementById('form-add-subdomain');
+            
+            if (domForm.classList.contains('hidden')) {
+                domForm.classList.remove('hidden');
+                subForm.classList.add('hidden');
+            } else {
+                domForm.classList.add('hidden');
+                subForm.classList.remove('hidden');
+            }
+        }
+
+        async function handleAddSubdomain(e) {
+            e.preventDefault();
+            const form = e.target;
+            const sub = form.sub.value.trim().toLowerCase();
+            const parent = form.parent_id.value;
+            
+            if (!sub || !parent) {
+                showToast('error', 'Validation Error', 'Please fill in all fields.');
+                return;
+            }
+
+            // Construct FQDN
+            const fqdn = `${sub}.${parent}`;
+            
+            // Piggyback on add_domain action
+            const fd = new FormData();
+            fd.append('ajax_action', 'add_domain');
+            fd.append('domain', fqdn);
+
+            const btn = form.querySelector('button');
+            const oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-pulse">...</span>`;
+
+            try {
+                const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+                if (res.status === 'success') {
+                    showToast('success', 'Subdomain Created', `Subdomain ${fqdn} created successfully.`);
+                    btn.innerHTML = "Success!";
+                    setTimeout(() => forceReload(), 1000);
+                } else {
+                    showToast('error', 'Operation Failed', res.msg);
+                    btn.disabled = false;
+                    btn.innerHTML = oldHtml;
+                }
+            } catch (err) {
+                showToast('error', 'System Error', 'Failed to create subdomain.');
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
+            }
+        }
+
+        // Smart Reload that preserves hash and scroll
+        function forceReload() {
+            // Save scroll position
+            sessionStorage.setItem('scrollPos', window.scrollY);
+            // Ensure hash is preserved (redundant usually, but safe)
+            if(window.location.hash) {
+                 window.location.reload(); 
+            } else {
+                 window.location.href = window.location.href; 
+            }
+        }
+
+        // Restore Scroll on Load
+        window.addEventListener('load', () => {
+            const pos = sessionStorage.getItem('scrollPos');
+            if(pos) {
+                window.scrollTo(0, pos);
+                sessionStorage.removeItem('scrollPos');
+            }
+        });
     </script>
 </body>
 

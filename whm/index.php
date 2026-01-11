@@ -97,7 +97,13 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'login_as_client') {
             $_SESSION['client'] = $_POST['user'];
             $_SESSION['cid'] = $_POST['cid'];
-            echo json_encode(['status' => 'success', 'redirect' => '../cpanel/']);
+
+            // Dynamic Subdomain Switching (admin. -> client.)
+            $host = $_SERVER['HTTP_HOST'];
+            $target = str_replace('admin.', 'client.', $host);
+            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+
+            echo json_encode(['status' => 'success', 'redirect' => $protocol . $target]);
             exit;
         }
 
