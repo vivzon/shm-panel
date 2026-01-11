@@ -15,8 +15,10 @@ if (!isset($_SESSION['cid'])) {
 $user_id = $_SESSION['cid'];
 
 // Increase execution limits for large uploads/zips
-ini_set('upload_max_filesize', '2000M');
-ini_set('post_max_size', '2000M');
+// Increase execution limits for large uploads/zips (1GB+)
+ini_set('upload_max_filesize', '1024M');
+ini_set('post_max_size', '1024M');
+ini_set('memory_limit', '1024M');
 ini_set('max_execution_time', '3600');
 
 /**
@@ -67,6 +69,22 @@ function shm_rrmdir($path)
             return false;
     }
     return @rmdir($path);
+}
+
+function shm_rcopy($src, $dst)
+{
+    if (file_exists($dst))
+        shm_rrmdir($dst);
+    if (is_dir($src)) {
+        mkdir($dst);
+        $files = scandir($src);
+        foreach ($files as $file) {
+            if ($file != "." && $file != "..")
+                shm_rcopy("$src/$file", "$dst/$file");
+        }
+    } else if (file_exists($src)) {
+        copy($src, $dst);
+    }
 }
 
 // ------------- INPUTS -------------
@@ -145,7 +163,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: ?domain_id=$domain_id&path=$current_path");
         exit;
     }
-}
+    }
+
+    // 5. RENAME
+    if (isset($_POST['rename_item'])) {
+        $old = shm_build_path($base_path, $_POST['old_name']);
+        $new = shm_build_path($base_path, $_POST['new_name']);
+        if ($old && $new)
+            rename($old, $new);
+        header("Location: ?domain_id=$domain_id&path=$current_path");
+        exit;
+    }
+
+    // 6. COPY/MOVE
+    if (isset($_POST['copy_move_items'])) {
+        $action = $_POST['action']; // 'copy' or 'move'
+        $dest_folder = shm_build_path($base_path, $_POST['destination']);
+        
+        foreach ($_POST['paths'] as $p) {
+            $src = shm_build_path($base_path, $p);
+            $name = basename($src);
+            $dest = $dest_folder . '/' . $name;
+            
+            if ($src && $dest_folder) {
+                if ($action == 'move')
+                    rename($src, $dest);
+                else
+                    shm_rcopy($src, $dest);
+            }
+        }
+        header("Location: ?domain_id=$domain_id&path=$current_path");
+        exit;
+    }
+
+    // 7. UNZIP
+    if (isset($_POST['unzip_item'])) {
+        $zip_file = shm_build_path($base_path, $_POST['item']);
+        $zip = new ZipArchive;
+        if ($zip->open($zip_file) === TRUE) {
+            $zip->extractTo(dirname($zip_file));
+            $zip->close();
+        }
+        header("Location: ?domain_id=$domain_id&path=$current_path");
+        exit;
+    }
+
+    // 8. DOWNLOAD
+    if (isset($_POST['download_items'])) {
+        $paths = $_POST['paths'];
+        
+        if (count($paths) === 1 && is_file(shm_build_path($base_path, $paths[0]))) {
+            // Single File Download
+            $file = shm_build_path($base_path, $paths[0]);
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($file));
+            readfile($file);
+            exit;
+        } else {
+            // Multi-File/Folder Zip Download
+            $zip_name = 'download_' . date('Ymd_His') . '.zip';
+            $tmp_zip = sys_get_temp_dir() . '/' . $zip_name;
+            $zip = new ZipArchive();
+            
+            if ($zip->open($tmp_zip, ZipArchive::CREATE)) {
+                foreach ($paths as $p) {
+                    $abs = shm_build_path($base_path, $p);
+                    if (is_dir($abs)) {
+                        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($abs), RecursiveIteratorIterator::LEAVES_ONLY);
+                        foreach ($files as $name => $file) {
+                            if (!$file->isDir()) {
+                                $filePath = $file->getRealPath();
+                                $relativePath = substr($filePath, strlen($abs) + 1);
+                                $zip->addFile($filePath, basename($abs) . '/' . $relativePath);
+                            }
+                        }
+                    } else {
+                        $zip->addFile($abs, basename($abs));
+                    }
+                }
+                $zip->close();
+                
+                header('Content-Type: application/zip');
+                header('Content-disposition: attachment; filename=' . $zip_name);
+                header('Content-Length: ' . filesize($tmp_zip));
+                readfile($tmp_zip);
+                unlink($tmp_zip);
+                exit;
+            }
+        }
+    }
 
 // -------- READ DIRECTORY --------
 $items = [];
@@ -319,6 +430,12 @@ if (is_dir($full_path)) {
         <span id="select-count" class="font-bold">0 Selected</span>
         <div class="w-px h-6 bg-slate-700"></div>
         <div class="flex gap-4">
+            <button onclick="bulkAction('download')" class="flex gap-2 text-emerald-400 hover:text-emerald-300"><i
+                    data-lucide="download"></i> Download</button>
+            <button onclick="bulkAction('copy')" class="flex gap-2 text-slate-300 hover:text-white"><i
+                    data-lucide="copy"></i> Copy</button>
+            <button onclick="bulkAction('move')" class="flex gap-2 text-slate-300 hover:text-white"><i
+                    data-lucide="move"></i> Move</button>
             <button onclick="bulkAction('delete')" class="flex gap-2 text-red-400 hover:text-red-300"><i
                     data-lucide="trash-2"></i> Delete</button>
             <button onclick="bulkAction('zip')" class="flex gap-2 text-blue-400 hover:text-blue-300"><i
@@ -326,10 +443,22 @@ if (is_dir($full_path)) {
         </div>
     </div>
 
+    <!-- Context Menu -->
+    <div id="context-menu" class="context-menu flex flex-col py-2">
+        <button onclick="ctxAction('open')" class="text-left px-4 py-2 hover:bg-slate-100 flex items-center gap-2"><i data-lucide="folder-open" class="w-4"></i> Open</button>
+        <button onclick="ctxAction('download')" class="text-left px-4 py-2 hover:bg-slate-100 flex items-center gap-2"><i data-lucide="download" class="w-4"></i> Download</button>
+        <button onclick="ctxAction('rename')" class="text-left px-4 py-2 hover:bg-slate-100 flex items-center gap-2"><i data-lucide="edit-3" class="w-4"></i> Rename</button>
+        <button onclick="ctxAction('copy')" class="text-left px-4 py-2 hover:bg-slate-100 flex items-center gap-2"><i data-lucide="copy" class="w-4"></i> Copy</button>
+        <button onclick="ctxAction('move')" class="text-left px-4 py-2 hover:bg-slate-100 flex items-center gap-2"><i data-lucide="move" class="w-4"></i> Move</button>
+        <button onclick="ctxAction('unzip')" id="ctx-unzip" class="text-left px-4 py-2 hover:bg-slate-100 flex items-center gap-2 hidden"><i data-lucide="file-archive" class="w-4"></i> Extract</button>
+        <div class="h-px bg-slate-200 my-1"></div>
+        <button onclick="ctxAction('delete')" class="text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2"><i data-lucide="trash-2" class="w-4"></i> Delete</button>
+    </div>
+
     <!-- Modals -->
     <div id="modal-upload" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
         <div class="bg-white p-10 rounded-3xl w-full max-w-md">
-            <h3 class="text-xl font-bold mb-6">Upload Files</h3>
+            <h3 class="text-xl font-bold mb-6">Upload Files (Max 1GB)</h3>
             <div id="drop-zone"
                 class="border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center hover:border-blue-500 transition">
                 <i data-lucide="cloud-upload" class="w-12 h-12 text-blue-600 mx-auto mb-4"></i>
@@ -344,6 +473,64 @@ if (is_dir($full_path)) {
             <button onclick="closeModal('upload')"
                 class="w-full mt-6 py-3 bg-slate-100 rounded-xl font-bold">Cancel</button>
         </div>
+    </div>
+
+    <!-- Rename Modal -->
+    <div id="modal-rename" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
+        <form method="POST" class="bg-white p-8 rounded-3xl w-full max-w-sm">
+            <h3 class="text-lg font-bold mb-4">Rename Item</h3>
+            <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
+            <input type="hidden" name="rename_item" value="1">
+            <input type="hidden" name="old_name" id="rename-old">
+            <input name="new_name" id="rename-new" required class="w-full p-3 bg-slate-50 border rounded-xl mb-4 outline-none focus:border-blue-500">
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal('rename')" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold">Cancel</button>
+                <button type="submit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">Rename</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Copy/Move Modal -->
+    <div id="modal-copymove" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
+        <form method="POST" class="bg-white p-8 rounded-3xl w-full max-w-md">
+            <h3 class="text-lg font-bold mb-4" id="cm-title">Move Items</h3>
+            <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
+            <input type="hidden" name="copy_move_items" value="1">
+            <input type="hidden" name="action" id="cm-action">
+            <div id="cm-inputs"></div>
+            
+            <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Destination Folder</label>
+            <input name="destination" value="<?= $current_path ?>" required class="w-full p-3 bg-slate-50 border rounded-xl mb-6 outline-none focus:border-blue-500">
+            
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal('copymove')" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold">Cancel</button>
+                <button type="submit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">Confirm</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Create Modal -->
+    <div id="modal-create" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50">
+        <form method="POST" class="bg-white p-8 rounded-3xl w-full max-w-sm">
+            <h3 class="text-lg font-bold mb-4">Create New</h3>
+            <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
+            <input type="hidden" name="create_item" value="1">
+            
+            <div class="flex gap-4 mb-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="type" value="file" checked class="w-4 h-4 text-blue-600"> <span>File</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="type" value="folder" class="w-4 h-4 text-blue-600"> <span>Folder</span>
+                </label>
+            </div>
+
+            <input name="name" placeholder="Name" required class="w-full p-3 bg-slate-50 border rounded-xl mb-4 outline-none focus:border-blue-500">
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal('create')" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold">Cancel</button>
+                <button type="submit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">Create</button>
+            </div>
+        </form>
     </div>
 
     <form id="bulk-form" method="POST" class="hidden">
@@ -384,16 +571,107 @@ if (is_dir($full_path)) {
         // Bulk Actions
         function bulkAction(type) {
             const checks = document.querySelectorAll('.file-check:checked');
+            if (checks.length === 0) return;
+
+            if (type === 'download') {
+                const form = document.getElementById('bulk-form');
+                const inputs = document.getElementById('bulk-inputs');
+                inputs.innerHTML = `<input type="hidden" name="download_items" value="1">`;
+                checks.forEach(c => inputs.innerHTML += `<input type="hidden" name="paths[]" value="${c.value}">`);
+                form.submit();
+                return;
+            }
+
+            if (type === 'copy' || type === 'move') {
+                const paths = Array.from(checks).map(c => c.value);
+                openCopyMove(type, paths);
+                return;
+            }
+
             if (type === 'delete' && !confirm('Delete selected items?')) return;
+            if (type === 'zip') { /* handled below */ }
 
             const form = document.getElementById('bulk-form');
             const inputs = document.getElementById('bulk-inputs');
             inputs.innerHTML = `<input type="hidden" name="${type}_paths" value="1">`;
-
-            checks.forEach(c => {
-                inputs.innerHTML += `<input type="hidden" name="paths[]" value="${c.value}">`;
-            });
+            checks.forEach(c => inputs.innerHTML += `<input type="hidden" name="paths[]" value="${c.value}">`);
             form.submit();
+        }
+
+        // Copy/Move Modal Logic
+        function openCopyMove(type, paths) {
+            document.getElementById('cm-title').innerText = (type === 'copy' ? 'Copy' : 'Move') + ' Items';
+            document.getElementById('cm-action').value = type;
+            const inputs = document.getElementById('cm-inputs');
+            inputs.innerHTML = '';
+            paths.forEach(p => inputs.innerHTML += `<input type="hidden" name="paths[]" value="${p}">`);
+            openModal('copymove');
+        }
+
+        // Context Menu Logic
+        const ctxMenu = document.getElementById('context-menu');
+        let currentCtxItem = null;
+        let currentCtxType = null;
+
+        document.addEventListener('contextmenu', (e) => {
+            const row = e.target.closest('.file-row');
+            if (row && row.dataset.path) {
+                e.preventDefault();
+                currentCtxItem = row.dataset.path;
+                currentCtxType = row.dataset.type;
+                
+                // Show/Hide Unzip
+                const isZip = currentCtxItem.endsWith('.zip');
+                document.getElementById('ctx-unzip').classList.toggle('hidden', !isZip);
+
+                ctxMenu.style.top = e.clientY + 'px';
+                ctxMenu.style.left = e.clientX + 'px';
+                ctxMenu.style.display = 'flex';
+            } else {
+                ctxMenu.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', () => ctxMenu.style.display = 'none');
+
+        function ctxAction(action) {
+            if (!currentCtxItem) return;
+
+            if (action === 'open') {
+                if (currentCtxType === 'dir') location.href = `?domain_id=<?= $domain_id ?>&path=${currentCtxItem}`;
+                else location.href = `editor.php?domain_id=<?= $domain_id ?>&file=${currentCtxItem}`;
+            }
+            if (action === 'download') {
+                const form = document.getElementById('bulk-form');
+                form.innerHTML = `<input type="hidden" name="domain_id" value="<?= $domain_id ?>">
+                    <input type="hidden" name="download_items" value="1">
+                    <input type="hidden" name="paths[]" value="${currentCtxItem}">`;
+                form.submit();
+            }
+            if (action === 'rename') {
+                document.getElementById('rename-old').value = currentCtxItem;
+                document.getElementById('rename-new').value = currentCtxItem.split('/').pop();
+                openModal('rename');
+            }
+            if (action === 'copy' || action === 'move') {
+                openCopyMove(action, [currentCtxItem]);
+            }
+            if (action === 'delete') {
+                if (confirm('Delete ' + currentCtxItem + '?')) {
+                    const form = document.getElementById('bulk-form');
+                    form.innerHTML = `<input type="hidden" name="domain_id" value="<?= $domain_id ?>">
+                        <input type="hidden" name="delete_paths" value="1">
+                        <input type="hidden" name="paths[]" value="${currentCtxItem}">`;
+                    form.submit();
+                }
+            }
+            if (action === 'unzip') {
+                const form = document.getElementById('bulk-form');
+                form.innerHTML = `<input type="hidden" name="domain_id" value="<?= $domain_id ?>">
+                    <input type="hidden" name="unzip_item" value="1">
+                    <input type="hidden" name="item" value="${currentCtxItem}">`;
+                form.submit();
+            }
         }
 
         // AJAX Upload

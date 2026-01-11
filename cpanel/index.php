@@ -28,8 +28,11 @@ if (isset($_POST['ajax_action'])) {
             $curr = $pdo->query("SELECT COUNT(*) FROM client_databases WHERE client_id = $cid")->fetchColumn();
             if ($curr >= $limits['max_databases'])
                 throw new Exception("Plan database limit reached.");
+
             $db_name = $username . "_" . preg_replace('/[^a-z0-9_]/', '', $_POST['db_name']);
-            $pdo->prepare("INSERT INTO client_databases (client_id, db_name) VALUES (?, ?)")->execute([$cid, $db_name]);
+            $domain_id = !empty($_POST['domain_id']) ? (int) $_POST['domain_id'] : "NULL";
+
+            $pdo->prepare("INSERT INTO client_databases (client_id, domain_id, db_name) VALUES (?, ?, ?)")->execute([$cid, $domain_id == "NULL" ? null : $domain_id, $db_name]);
             sendResponse($res);
             cmd("mysql-tool create-db " . escapeshellarg($db_name));
             exit;
@@ -234,7 +237,7 @@ if (isset($_POST['ajax_action'])) {
 // DATA FOR DASHBOARD
 $client = $pdo->query("SELECT c.*, p.name as pkg_name, p.max_emails, p.max_databases, p.max_domains, p.disk_mb FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = $cid")->fetch();
 $domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
-$my_dbs = $pdo->query("SELECT * FROM client_databases WHERE client_id = $cid")->fetchAll();
+$my_dbs = $pdo->query("SELECT cd.*, d.domain FROM client_databases cd LEFT JOIN domains d ON cd.domain_id = d.id WHERE cd.client_id = $cid ORDER BY d.domain DESC")->fetchAll();
 $my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = $cid)")->fetchAll();
 
 // Usage Calculation
@@ -616,11 +619,23 @@ $usage_disk = 0; // Disk usage calculation would go here
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                     <div class="bg-white p-8 rounded-[2rem] border shadow-sm">
                         <h3 class="font-bold mb-4">Create New Database</h3>
-                        <form onsubmit="handle(event, 'add_db')" class="flex gap-2">
-                            <span class="bg-slate-100 p-4 rounded-xl font-bold text-slate-400"><?= $username ?>_</span>
-                            <input name="db_name" required
-                                class="flex-1 bg-slate-50 border p-4 rounded-xl outline-none focus:border-blue-500">
-                            <button class="bg-blue-600 text-white px-6 rounded-xl font-bold">Create</button>
+                        <form onsubmit="handle(event, 'add_db')" class="flex flex-col gap-4">
+                            <div class="flex gap-2">
+                                <span
+                                    class="bg-slate-100 p-4 rounded-xl font-bold text-slate-400"><?= $username ?>_</span>
+                                <input name="db_name" required placeholder="Database Name"
+                                    class="flex-1 bg-slate-50 border p-4 rounded-xl outline-none focus:border-blue-500">
+                            </div>
+                            <select name="domain_id"
+                                class="w-full bg-slate-50 border p-4 rounded-xl outline-none focus:border-blue-500">
+                                <option value="">-- Associate with Domain (Optional) --</option>
+                                <?php foreach ($domains as $d): ?>
+                                    <option value="<?= $d['id'] ?>"><?= $d['domain'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button
+                                class="bg-blue-600 text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-700 transition">Create
+                                Database</button>
                         </form>
                     </div>
                     <div class="bg-white p-8 rounded-[2rem] border shadow-sm">
@@ -678,14 +693,22 @@ $usage_disk = 0; // Disk usage calculation would go here
                         </thead>
                         <tbody>
                             <?php foreach ($my_dbs as $db): ?>
-                                <tr class="border-t border-slate-100">
-                                    <td class="p-6 font-mono text-blue-600"><?= $db['db_name'] ?></td>
+                                <tr class="border-t border-slate-100/50 hover:bg-slate-50 transition">
+                                    <td class="p-6">
+                                        <div class="font-bold text-slate-700"><?= $db['db_name'] ?></div>
+                                        <?php if ($db['domain']): ?>
+                                            <div class="text-xs text-blue-500 flex items-center gap-1 mt-1"><i
+                                                    data-lucide="link" class="w-3"></i> <?= $db['domain'] ?></div>
+                                        <?php else: ?>
+                                            <div class="text-xs text-slate-400 italic mt-1">Global Database</div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="p-6 text-right">
                                         <a href="http://phpmyadmin.<?= $base_domain ?>" target="_blank"
-                                            class="text-blue-500 font-bold text-xs mr-4 uppercase">phpMyAdmin</a>
+                                            class="text-blue-500 font-bold text-xs mr-4 uppercase hover:underline">phpMyAdmin</a>
                                         <button onclick="deleteAction('delete_db', 'db_name', '<?= $db['db_name'] ?>')"
                                             class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition"><i
-                                                data-lucide="trash-2"></i></button>
+                                                data-lucide="trash-2" class="w-4"></i></button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

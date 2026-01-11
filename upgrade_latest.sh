@@ -75,6 +75,11 @@ cp -r whm/* /var/www/panel/whm/
 cp -r cpanel/* /var/www/panel/cpanel/
 cp -r landing/* /var/www/panel/landing/
 cp shared_config.php /var/www/panel/shared/config.php
+# Ensure client_databases has domain_id
+mysql -u root -p$(cat /root/shm-credentials.txt | grep "Root Password" | cut -d: -f2 | xargs) -e "USE shm; ALTER TABLE client_databases ADD COLUMN domain_id INT DEFAULT NULL AFTER client_id;" 2>/dev/null
+
+# Make shared config readable
+chmod 644 /var/www/panel/shared/shared_config.php
 
 # Remove old index.html if using PHP now
 if [ -f "/var/www/panel/landing/index.php" ]; then
@@ -106,6 +111,7 @@ mkdir -p /var/www/apps/filemanager
 cp cpanel/files.php /var/www/apps/filemanager/index.php
 cp cpanel/login.php /var/www/apps/filemanager/login.php
 cp cpanel/logout.php /var/www/apps/filemanager/logout.php
+cp cpanel/editor.php /var/www/apps/filemanager/editor.php
 
 # PHPMyAdmin Basic Setup (if not present)
 if [ ! -d "/var/www/apps/phpmyadmin" ]; then
