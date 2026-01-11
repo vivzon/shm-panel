@@ -1,6 +1,6 @@
 <?php
 /**
- * VIVZON CPANEL - Login Page (Production v1.1)
+ * VIVZON CPANEL - Login Page (Production v5.0)
  */
 
 // 1. Load config

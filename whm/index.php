@@ -1,6 +1,6 @@
 <?php
 /**
- * VIVZON WHM - Production v27.0
+ * VIVZON WHM - Production v5.0
  * Fixed: 502 Bad Gateway & JSON Syntax Error Resilience
  * Features: Full CRUD for Accounts, Packages, Services, FTP, and Mail.
  */
@@ -296,7 +296,7 @@ $stats = explode('|', (string) cmd("get-stats"));
                 <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></span>
                 <span class="text-xs font-bold text-slate-400 font-mono">SYSTEM ONLINE</span>
             </div>
-            <div class="text-xs font-bold text-slate-500">v4.5-STABLE</div>
+            <div class="text-xs font-bold text-slate-500">v5.0-STABLE</div>
         </header>
 
         <div class="flex-1 overflow-y-auto p-10 pb-24">
@@ -796,7 +796,7 @@ $stats = explode('|', (string) cmd("get-stats"));
             toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i> <span class="font-bold">${msg}</span>`;
             document.body.appendChild(toast);
             lucide.createIcons();
-            
+
             requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
             setTimeout(() => {
                 toast.classList.add('translate-y-10', 'opacity-0');
@@ -816,7 +816,7 @@ $stats = explode('|', (string) cmd("get-stats"));
 
             try {
                 const res = await fetch('', { method: 'POST', body: fd });
-                
+
                 // Handle 502/504 Service Reloads
                 if ([502, 504].includes(res.status)) {
                     btn.innerHTML = "Reloading Node...";
@@ -826,10 +826,10 @@ $stats = explode('|', (string) cmd("get-stats"));
                 }
 
                 const data = await res.json();
-                
+
                 if (data.status === 'success') {
                     showToast('success', 'Operation Successful');
-                    if(data.redirect) setTimeout(() => location.href = data.redirect, 1000);
+                    if (data.redirect) setTimeout(() => location.href = data.redirect, 1000);
                     else setTimeout(() => location.reload(), 1000);
                 } else {
                     showToast('error', data.msg || 'Action Failed');
@@ -843,25 +843,25 @@ $stats = explode('|', (string) cmd("get-stats"));
         }
 
         async function toggleSuspend(user, suspend) {
-             if(!confirm('Are you sure you want to ' + (suspend ? 'suspend' : 'unsuspend') + ' this account?')) return;
-             
-             const fd = new FormData();
-             fd.append('ajax_action', 'suspend_account');
-             fd.append('user', user);
-             fd.append('suspend', suspend);
-             
-             try {
+            if (!confirm('Are you sure you want to ' + (suspend ? 'suspend' : 'unsuspend') + ' this account?')) return;
+
+            const fd = new FormData();
+            fd.append('ajax_action', 'suspend_account');
+            fd.append('user', user);
+            fd.append('suspend', suspend);
+
+            try {
                 const res = await fetch('', { method: 'POST', body: fd });
                 const d = await res.json();
-                if(d.status === 'success') {
+                if (d.status === 'success') {
                     showToast('success', 'Account Status Updated');
                     setTimeout(() => location.reload(), 1000);
                 } else showToast('error', d.msg);
-             } catch(e) { showToast('error', 'Network Error'); }
+            } catch (e) { showToast('error', 'Network Error'); }
         }
-        
+
         async function resetAccount(user) {
-            if(!confirm('DANGER: Reset entire account for ' + user + '? This mimicks a fresh install.')) return;
+            if (!confirm('DANGER: Reset entire account for ' + user + '? This mimicks a fresh install.')) return;
             const fd = new FormData();
             fd.append('ajax_action', 'reset_account');
             fd.append('user', user);
@@ -871,180 +871,6 @@ $stats = explode('|', (string) cmd("get-stats"));
         }
 
         async function delAcc(id, user, dom) {
-            if(!confirm('PERMANENTLY DELETE ' + dom + '? Data cannot be recovered.')) return;
-            const fd = new FormData();
-            fd.append('ajax_action', 'delete_account');
-            fd.append('id', id);
-            fd.append('user', user);
-            fd.append('dom', dom);
-            
-            fetch('', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(d => {
-                    if(d.status === 'success') {
-                        showToast('success', 'Account Deleted');
-                        setTimeout(() => location.reload(), 1000);
-                    }
-                });
-        }
-
-        async function delPkg(id) {
-            if(!confirm('Delete this package?')) return;
-            const fd = new FormData();
-            fd.append('ajax_action', 'delete_package');
-            fd.append('id', id);
-            fetch('', { method: 'POST', body: fd }).then(() => location.reload());
-        }
-
-        function servAction(srv, op) {
-             showToast('success', 'Service command sent: ' + op);
-             const fd = new FormData();
-             fd.append('ajax_action', 'service_action');
-             fd.append('service', srv);
-             fd.append('op', op);
-             fetch('', { method: 'POST', body: fd }); 
-        }
-        
-        function loginAs(user, cid) {
-            const fd = new FormData();
-            fd.append('ajax_action', 'login_as_client');
-            fd.append('user', user);
-            fd.append('cid', cid);
-            fetch('', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(d => {
-                    if(d.status === 'success') location.href = d.redirect;
-                });
-        }
-    </script>
-</body>
-
-</html>
-            document.querySelectorAll('.view-pane').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            document.getElementById('view-' + id).classList.add('active');
-            btn.classList.add('active');
-        }
-
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        function openAccModal(data = null) {
-            const f = document.getElementById('form-acc'); f.reset();
-            const title = document.getElementById('acc-title');
-
-            if (data) {
-                document.getElementById('acc-id').value = data.id;
-                document.getElementById('acc-user').value = data.username;
-                document.getElementById('acc-user').readOnly = true;
-                document.getElementById('acc-dom').value = data.domain;
-                document.getElementById('acc-email').value = data.email;
-                document.getElementById('acc-pkg').value = data.package_id;
-                title.innerText = "Edit Account";
-            } else {
-                document.getElementById('acc-id').value = "";
-                document.getElementById('acc-user').readOnly = false;
-                title.innerText = "Provision Account";
-            }
-            document.getElementById('modal-acc').classList.remove('hidden');
-        }
-
-        function openPkgModal(data = null) {
-            const f = document.getElementById('form-pkg'); f.reset();
-            const title = document.getElementById('pkg-title');
-            if (data) {
-                document.getElementById('pkg-id').value = data.id;
-                document.getElementById('pkg-name').value = data.name;
-                document.getElementById('pkg-disk').value = data.disk_mb;
-                document.getElementById('pkg-doms').value = data.max_domains;
-                document.getElementById('pkg-mails').value = data.max_emails;
-            } else {
-                document.getElementById('pkg-id').value = "";
-            }
-            document.getElementById('modal-pkg').classList.remove('hidden');
-        }
-
-        async function handleGeneric(e, action) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<span class="animate-pulse">Processing...</span>`;
-
-            fd.append('ajax_action', action);
-
-            try {
-                const res = await fetch('', {
-                    method: 'POST',
-                    body: fd
-                });
-                const data = await res.json();
-
-                if (data.status === 'success') {
-                    showToast('success', 'Operation Successful');
-                    if (data.redirect) setTimeout(() => location.href = data.redirect, 1000);
-                    else setTimeout(() => location.reload(), 1000);
-                } else {
-                    showToast('error', data.msg || 'Action Failed');
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }
-            } catch (err) {
-                showToast('error', 'Server Error: ' + err.message);
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        }
-
-        // --- TOAST SYSTEM ---
-        function showToast(type, msg) {
-            const toast = document.createElement('div');
-            toast.className = `fixed bottom-5 right-5 z-[100] px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300 ${type === 'success' ? 'bg-emerald-600 text-white shadow-emerald-900/50' : 'bg-red-600 text-white shadow-red-900/50'}`;
-            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i> <span class="font-bold">${msg}</span>`;
-            document.body.appendChild(toast);
-            lucide.createIcons();
-
-            // Animate In
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-10', 'opacity-0');
-            });
-
-            // Remove
-            setTimeout(() => {
-                toast.classList.add('translate-y-10', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function toggleSuspend(user, suspend) {
-            if (!confirm('Are you sure you want to ' + (suspend ? 'suspend' : 'unsuspend') + ' this account?')) return;
-
-            // Create a fake form data to reuse handleGeneric logic or just fetch manually
-            const fd = new FormData();
-            fd.append('ajax_action', 'suspend_account');
-            fd.append('user', user);
-            fd.append('suspend', suspend);
-
-            fetch('', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.status === 'success') {
-                        showToast('success', 'Account Status Updated');
-                        setTimeout(() => location.reload(), 1000);
-                    } else showToast('error', d.msg);
-                });
-        }
-
-        function resetAccount(user) {
-            if (!confirm('Reset entire account for ' + user + '? This mimics a fresh install.')) return;
-            const fd = new FormData();
-            fd.append('ajax_action', 'reset_account');
-            fd.append('user', user);
-            fetch('', { method: 'POST', body: fd })
-                .then(r => r.json())
-                .then(d => showToast('success', 'Account Reset Initiated'));
-        }
-
-        function delAcc(id, user, dom) {
             if (!confirm('PERMANENTLY DELETE ' + dom + '? Data cannot be recovered.')) return;
             const fd = new FormData();
             fd.append('ajax_action', 'delete_account');
@@ -1062,7 +888,7 @@ $stats = explode('|', (string) cmd("get-stats"));
                 });
         }
 
-        function delPkg(id) {
+        async function delPkg(id) {
             if (!confirm('Delete this package?')) return;
             const fd = new FormData();
             fd.append('ajax_action', 'delete_package');
@@ -1077,7 +903,6 @@ $stats = explode('|', (string) cmd("get-stats"));
             fd.append('service', srv);
             fd.append('op', op);
             fetch('', { method: 'POST', body: fd });
-            // Don't reload immediately, let it run in bg
         }
 
         function loginAs(user, cid) {
@@ -1091,81 +916,7 @@ $stats = explode('|', (string) cmd("get-stats"));
                     if (d.status === 'success') location.href = d.redirect;
                 });
         }
-
     </script>
-</body>
-
-</html>
-
-try {
-const response = await fetch('', { method: 'POST', body: fd });
-
-// Handling Nginx Reloads (502/504)
-if ([502, 504].includes(response.status)) {
-btn.innerHTML = "Reloading Node...";
-setTimeout(() => location.reload(), 2000);
-return;
-}
-
-const data = await response.json();
-if (data.status === 'success') location.reload();
-else {
-alert(data.msg);
-btn.disabled = false;
-btn.innerHTML = originalText;
-}
-} catch (err) {
-// If JSON fails, it's likely a service reload interruption, which is good.
-location.reload();
-}
-}
-
-async function delAcc(id, user, dom) {
-if (!confirm(`Warning: This will permanently delete ${user} and all associated data. Continue?`)) return;
-postDat('delete_account', { id, user, dom });
-}
-
-async function delPkg(id) {
-if (!confirm('Delete this service package?')) return;
-postDat('delete_package', { id });
-}
-
-async function toggleSuspend(user, suspend) {
-const action = suspend ? "SUSPEND" : "UNSUSPEND";
-if (!confirm(`Are you sure you want to ${action} account ${user}?`)) return;
-postDat('suspend_account', { user, suspend });
-}
-
-async function loginAs(user, cid) {
-const fd = new FormData();
-fd.append('ajax_action', 'login_as_client');
-fd.append('user', user);
-fd.append('cid', cid);
-const res = await fetch('', { method: 'POST', body: fd });
-const data = await res.json();
-if (data.status === 'success') window.open(data.redirect, '_blank');
-}
-
-async function resetAccount(user) {
-if (!confirm(`DANGER: Are you sure you want to RESET account ${user}?\n\nThis will DELETE ALL FILES in public_html and
-DROP ALL DATABASES.\n\nThis action cannot be undone.`)) return;
-if (!confirm(`DOUBLE CHECK: Really reset ${user}?`)) return;
-postDat('reset_account', { user });
-}
-
-async function servAction(service, op) {
-postDat('service_action', { service, op });
-}
-
-async function postDat(action, data) {
-const fd = new FormData();
-fd.append('ajax_action', action);
-for (let k in data) fd.append(k, data[k]);
-
-try { await fetch('', { method: 'POST', body: fd }); } catch (e) { }
-setTimeout(() => location.reload(), 1500);
-}
-</script>
 </body>
 
 </html>

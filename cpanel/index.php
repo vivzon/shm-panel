@@ -1,6 +1,6 @@
 <?php
 /** 
- * VIVZON CPANEL - MASTER PRODUCTION v4.5
+ * VIVZON CPANEL - MASTER PRODUCTION v5.0
  * Comprehensive: DB Users, Email Isolation, DNS, PHP Config, SSL, Usage Metrics
  */
 require_once '../shared/config.php';
@@ -237,7 +237,7 @@ if (isset($_POST['ajax_action'])) {
 // DATA FOR DASHBOARD
 $client = $pdo->query("SELECT c.*, p.name as pkg_name, p.max_emails, p.max_databases, p.max_domains, p.disk_mb FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = $cid")->fetch();
 $domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
-$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
+
 try {
     $my_dbs = $pdo->query("SELECT cd.*, d.domain FROM client_databases cd LEFT JOIN domains d ON cd.domain_id = d.id WHERE cd.client_id = $cid ORDER BY d.domain DESC")->fetchAll();
 } catch (PDOException $e) {
@@ -902,11 +902,11 @@ $usage_disk = 0; // Disk usage calculation would go here
         // Toast Notification System
         function showToast(type, title, message) {
             const container = document.getElementById('toast-container');
-            
+
             // Create toast element
             const toast = document.createElement('div');
             toast.className = `pointer-events-auto w-96 glass-card p-4 rounded-xl shadow-2xl flex items-start gap-4 transform transition-all duration-500 translate-x-full opacity-0 border-l-4 ${type === 'success' ? 'border-l-emerald-500' : (type === 'error' ? 'border-l-red-500' : 'border-l-blue-500')}`;
-            
+
             // Icon
             let iconHtml = '';
             if (type === 'success') iconHtml = `<div class="bg-emerald-500/20 text-emerald-400 p-2 rounded-lg"><i data-lucide="check-circle" class="w-5 h-5"></i></div>`;
@@ -1009,10 +1009,10 @@ $usage_disk = 0; // Disk usage calculation would go here
 
         async function deleteAction(action, ...args) {
             if (!confirm("Permanent Action: Are you sure?")) return;
-            const fd = new FormData(); 
+            const fd = new FormData();
             fd.append('ajax_action', action);
             for (let i = 0; i < args.length; i += 2) fd.append(args[i], args[i + 1]);
-            
+
             try {
                 const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                 if (res.status === 'success') {
@@ -1049,7 +1049,8 @@ $usage_disk = 0; // Disk usage calculation would go here
         }
 
         async function openAppModal(app, appName) {
-            const domainId = prompt(`Install ${appName} to which domain? (Enter Domain ID)\n\nAvailable IDs:\n<?php foreach ($domains as $d) echo $d['id'] . ": " . $d['domain'] . "\n"; ?>`);
+            const domainId = prompt(`Install ${appName} to which domain? (Enter Domain ID)\n\nAvailable IDs:\n<?php foreach ($domains as $d)
+                echo $d['id'] . ": " . $d['domain'] . "\n"; ?>`);
             if (!domainId) return;
 
             if (!confirm(`WARNING: This will OVERWRITE existing content in the public_html folder for this domain.\n\nAre you sure you want to install ${appName}?`)) return;

@@ -15,7 +15,7 @@ if (!isset($_SESSION['cid'])) {
 $user_id = $_SESSION['cid'];
 
 // Increase execution limits for large uploads/zips
-// Increase execution limits for large uploads/zips (1GB+)
+
 ini_set('upload_max_filesize', '1024M');
 ini_set('post_max_size', '1024M');
 ini_set('memory_limit', '1024M');
