@@ -7,7 +7,6 @@
 ## 🚀 Features
 
 ### 🛡️ WHM (Admin Panel)
-### 🛡️ WHM (Admin Panel)
 - **Account Management**: Create, Suspend/Unsuspend, and Delete accounts.
 - **Impersonation**: "Login as Client" key to instantly access user cPanel without credentials.
 - **Account Reset**: "Nuclear Option" to wipe `public_html` and databases for a fresh start.
