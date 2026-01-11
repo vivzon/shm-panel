@@ -237,7 +237,13 @@ if (isset($_POST['ajax_action'])) {
 // DATA FOR DASHBOARD
 $client = $pdo->query("SELECT c.*, p.name as pkg_name, p.max_emails, p.max_databases, p.max_domains, p.disk_mb FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = $cid")->fetch();
 $domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
-$my_dbs = $pdo->query("SELECT cd.*, d.domain FROM client_databases cd LEFT JOIN domains d ON cd.domain_id = d.id WHERE cd.client_id = $cid ORDER BY d.domain DESC")->fetchAll();
+$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
+try {
+    $my_dbs = $pdo->query("SELECT cd.*, d.domain FROM client_databases cd LEFT JOIN domains d ON cd.domain_id = d.id WHERE cd.client_id = $cid ORDER BY d.domain DESC")->fetchAll();
+} catch (PDOException $e) {
+    // Fallback for pre-migration schema
+    $my_dbs = $pdo->query("SELECT *, NULL as domain FROM client_databases WHERE client_id = $cid")->fetchAll();
+}
 $my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = $cid)")->fetchAll();
 
 // Usage Calculation
