@@ -61,43 +61,51 @@ $content = file_get_contents($abs_path);
 
 <head>
     <meta charset="UTF-8">
-    <title>Edit
-        <?= basename($cleaned_file) ?>
-    </title>
+    <title>Edit <?= basename($cleaned_file) ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style type="text/css" media="screen">
         #editor {
             position: absolute;
-            top: 60px;
+            top: 70px;
             right: 0;
             bottom: 0;
             left: 0;
         }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
     </style>
 </head>
 
-<body class="bg-slate-900 text-white overflow-hidden">
+<body class="bg-[#0f172a] text-slate-300 overflow-hidden font-sans">
 
-    <header class="h-[60px] bg-slate-950 flex items-center justify-between px-6 border-b border-slate-800">
+    <header class="h-[70px] glass-panel flex items-center justify-between px-6 z-50 relative">
         <div class="flex items-center gap-4">
             <a href="files.php?domain_id=<?= $domain_id ?>&path=<?= dirname($cleaned_file) ?>"
-                class="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition">
+                class="p-2 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition">
                 <i data-lucide="arrow-left" class="w-5"></i>
             </a>
-            <span class="font-mono text-sm text-slate-400">
-                <?= $cleaned_file ?>
-            </span>
+            <div class="flex flex-col">
+                <span class="font-bold text-white text-sm"><?= basename($cleaned_file) ?></span>
+                <span class="font-mono text-xs text-slate-500"><?= $cleaned_file ?></span>
+            </div>
+
             <?php if ($msg): ?>
-                <span class="text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full animate-pulse">
-                    <?= $msg ?>
+                <span
+                    class="ml-4 text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full animate-pulse border border-emerald-500/30">
+                    <i data-lucide="check" class="w-3 inline mr-1"></i> <?= $msg ?>
                 </span>
             <?php endif; ?>
         </div>
         <button onclick="saveFile()"
-            class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 transition">
-            <i data-lucide="save" class="w-4"></i> Save
+            class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition shadow-lg shadow-blue-600/20 text-sm">
+            <i data-lucide="save" class="w-4"></i> Save Changes
         </button>
     </header>
 
@@ -112,12 +120,27 @@ $content = file_get_contents($abs_path);
     <script>
         lucide.createIcons();
         var editor = ace.edit("editor");
-        editor.setTheme("ace/theme/one_dark");
-        editor.session.setMode("ace/mode/php"); // Auto-detect later?
+        editor.setTheme("ace/theme/one_dark"); // This matches the dark aesthetics well
+
+        // Auto-detect mode based on extension
+        var modelist = ace.require("ace/ext/modelist");
+        var filePath = "<?= $cleaned_file ?>";
+        // Simple fallback mapping if modelist isn't loaded (CDN issue risk, but usually fine)
+        var mode = "ace/mode/php";
+        if (filePath.endsWith('.js')) mode = "ace/mode/javascript";
+        if (filePath.endsWith('.css')) mode = "ace/mode/css";
+        if (filePath.endsWith('.html')) mode = "ace/mode/html";
+        if (filePath.endsWith('.json')) mode = "ace/mode/json";
+
+        editor.session.setMode(mode);
+
         editor.setShowPrintMargin(false);
         editor.setOptions({
             fontSize: "14px",
-            fontFamily: "'JetBrains Mono', 'Fira Code', monospace"
+            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+            showGutter: true,
+            highlightActiveLine: true,
+            wrap: true
         });
 
         function saveFile() {
