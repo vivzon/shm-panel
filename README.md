@@ -30,32 +30,57 @@
 ## 📋 Requirements
 
 - **OS**: Ubuntu 22.04 LTS or 24.04 LTS
-- **User**: Root access required for installation
+- **User**: Root access required for full installation
 - **Architecture**: x86_64
+- **Web Server**: Nginx (managed by installer)
+- **Database**: MariaDB (managed by installer)
 
-## 🛠️ Installation
+## 🛠️ Installation & Deployment
 
-1.  **Clone or Upload** the repository to your server.
-2.  **Run the Installer**:
+### Option A: Local Development (Windows/Linux)
+You can run the panel locally to test the UI and Database interactions.
+
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/your-repo/shm-panel.git
+    cd shm-panel
+    ```
+2.  **Start Web Server**: Point your local web server (XAMPP, Laragon, or builtin PHP) to the project root.
+    ```bash
+    php -S localhost:8000
+    ```
+3.  **Run Web Installer**:
+    Open `http://localhost:8000/install.php` in your browser.
+    - Enter your local database credentials (e.g., root/empty).
+    - The installer will create the database, tables, and admin user.
+    - It will generate `shared/config.local.php`.
+
+### Option B: Production Server (Ubuntu)
+This installs the full stack (Nginx, PHP, MySQL, Mail Server, etc.).
+
+1.  **Upload to Server**:
+    Upload the files to your server (e.g., `/root/shm-panel`).
+2.  **Run the Provisioning Script**:
     ```bash
     chmod +x install.sh
     ./install.sh
     ```
-3.  **Completion**: The script installs Nginx, PHP, MariaDB, Bind9, Postfix, Dovecot, FTP, and Web Apps.
+    *This script handles system-level dependencies and executes the Web Installer logic automatically.*
 
-## ⬆️ Upgrading from v4
+## 📂 Project Structure
 
-To upgrade safely while preserving client data:
-1.  Upload `upgrade_latest.sh`.
-2.  Run:
-    ```bash
-    chmod +x upgrade_latest.sh
-    ./upgrade_latest.sh
-    ```
-
-### 🌐 Professional Landing Page
-- **Dynamic Portal Hub**: A modern, glassmorphism-styled landing page on the *Main Domain*.
-- **Smart Linking**: Automatically directs users to Client, Admin, Webmail, and File Manager subdomains.
+```
+shm-panel/
+├── whm/               # Admin Interface (PHP)
+├── cpanel/            # Client Interface (PHP)
+├── landing/           # Main Landing Page
+├── shared/            # Shared Configuration & Assets
+│   ├── config.php     # Main Config Loader
+│   └── config.local.php # Local Overrides (GitIgnored)
+├── install.php        # Web Installer (Single-File Setup)
+├── shm-manage         # Backend Engine (Bash)
+└── install.sh         # Production Server Provisioner
+```
 
 ## 🌐 Accessing the Panel
 
@@ -68,19 +93,7 @@ To upgrade safely while preserving client data:
 | **File Manager** | `http://filemanager.example.com` | (SSO / cPanel Creds) |
 | **phpMyAdmin** | `http://phpmyadmin.example.com` | (DB User Creds) |
 
-> **Important**: Check `/root/shm-credentials.txt` on your server for the generated MySQL root password and other secrets.
-
-## 📂 Project Structure
-
-```
-shm-panel/
-├── whm/               # Admin Interface (PHP)
-├── cpanel/            # Client Interface (PHP)
-├── landing/           # Main Landing Page
-├── shm-manage         # Backend Engine (Bash)
-├── install.sh         # Master Installer
-└── shared_config.php  # PHP-Shell Bridge
-```
+> **Important**: On local setup, access via `http://localhost/shm-panel/whm` or `http://localhost/shm-panel/cpanel`.
 
 ## 🔒 Security
 
