@@ -71,6 +71,47 @@ if (isset($_POST['ajax_action'])) {
             $pdo->prepare("INSERT INTO php_config (domain_id, memory_limit) VALUES (?, ?) ON DUPLICATE KEY UPDATE memory_limit=VALUES(memory_limit)")->execute([$_POST['domain_id'], $_POST['mem']]);
             sendResponse($res);
             cmd("vhost-tool sync " . (int) $_POST['domain_id']);
+            cmd("vhost-tool sync " . (int) $_POST['domain_id']);
+            exit;
+        }
+
+        if ($action == 'add_domain') {
+            $dom = strtolower(trim($_POST['domain']));
+            if (!filter_var($dom, FILTER_VALIDATE_DOMAIN))
+                throw new Exception("Invalid Domain Name");
+
+            // Check Limits
+            $curr = $pdo->query("SELECT COUNT(*) FROM domains WHERE client_id = $cid")->fetchColumn();
+            if ($curr >= $limits['max_domains'])
+                throw new Exception("Domain limit reached ({$limits['max_domains']})");
+
+            // Insert & Execute
+            $pdo->prepare("INSERT INTO domains (client_id, domain, document_root) VALUES (?, ?, ?)")
+                ->execute([$cid, $dom, "/var/www/clients/$username/domains/$dom/public_html"]);
+            $dom_id = $pdo->lastInsertId();
+
+            // --- Auto DNS Configuration ---
+            $server_ip = $_SERVER['SERVER_ADDR'];
+            $host_parts = explode('.', $_SERVER['HTTP_HOST']);
+            $base_domain = implode('.', array_slice($host_parts, -2));
+            $mail_host = "mail." . $base_domain;
+
+            // 1. A Record (@ -> IP)
+            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', '@', ?)")->execute([$dom_id, $server_ip]);
+
+            // 2. CNAME Record (www -> @)
+            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'CNAME', 'www', '@')")->execute([$dom_id]);
+
+            // 3. MX Record (@ -> mail.server)
+            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'MX', '@', ?)")->execute([$dom_id, $mail_host]);
+
+            // 4. SPF Record
+            $spf = "v=spf1 mx a ip4:$server_ip -all";
+            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '@', ?)")->execute([$dom_id, $spf]);
+
+            sendResponse($res);
+            cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
+            cmd("dns-tool sync $dom_id"); // Sync immediately
             exit;
         }
 
@@ -353,6 +394,39 @@ $usage_disk = 0; // Disk usage calculation would go here
                     </div>
                 </div>
 
+                <!-- Server Details Card (New) -->
+                <div
+                    class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-10 flex items-center justify-between group hover:border-blue-200 transition">
+                    <div class="flex items-center gap-6">
+                        <div class="p-4 bg-slate-50 rounded-2xl text-blue-600">
+                            <i data-lucide="server" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900 mb-1">Hosting Environment Details</h3>
+                            <?php
+                            $md = str_replace('cpanel.', '', $_SERVER['SERVER_NAME']);
+                            // Fallback if accessing via IP or unexpected alias
+                            if ($md == $_SERVER['SERVER_NAME'])
+                                $md = 'vivzon.cloud';
+                            ?>
+                            <div class="flex flex-wrap gap-6 text-sm text-slate-500 font-mono mt-1">
+                                <span
+                                    class="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100"><i
+                                        data-lucide="network" class="w-4"></i> IP: <?= $_SERVER['SERVER_ADDR'] ?></span>
+                                <span
+                                    class="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100"><i
+                                        data-lucide="globe" class="w-4"></i> NS1: ns1.<?= $md ?></span>
+                                <span
+                                    class="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100"><i
+                                        data-lucide="globe" class="w-4"></i> NS2: ns2.<?= $md ?></span>
+                                <span
+                                    class="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100"><i
+                                        data-lucide="mail" class="w-4"></i> MX: mail.<?= $md ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <h3 class="text-lg font-bold text-slate-900 mb-6">Quick Shortcuts</h3>
                 <?php
                 $host_parts = explode('.', $_SERVER['HTTP_HOST']);
@@ -583,7 +657,16 @@ $usage_disk = 0; // Disk usage calculation would go here
 
             <!-- DNS & PHP CONFIG -->
             <div id="pane-dom" class="pane">
-                <h2 class="text-2xl font-bold mb-8">Domain Hosting Configuration</h2>
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold">Domain Hosting Configuration</h2>
+                    <form onsubmit="handle(event, 'add_domain')" class="flex gap-2">
+                        <input name="domain" required placeholder="example.com"
+                            class="bg-white border p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500">
+                        <button
+                            class="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-xl hover:bg-slate-800 transition">+
+                            Add Website</button>
+                    </form>
+                </div>
                 <?php foreach ($domains as $d): ?>
                     <div class="bg-white p-10 rounded-[2.5rem] border mb-8 shadow-sm">
                         <div class="flex justify-between items-center mb-10">

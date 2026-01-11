@@ -7,24 +7,25 @@
 ## 🚀 Features
 
 ### 🛡️ WHM (Admin Panel)
-- **Account Provisioning**: Create/Suspend/Delete shared hosting accounts.
-- **Package Management**: Define hosting plans with Disk, Domain, and Email limits.
-- **Service Monitoring**: Real-time status of Nginx, PHP-FPM, MariaDB, Postfix, etc.
-- **System Health**: CPU, RAM, and Disk usage metrics.
+### 🛡️ WHM (Admin Panel)
+- **Account Management**: Create, Suspend/Unsuspend, and Delete accounts.
+- **Impersonation**: "Login as Client" key to instantly access user cPanel without credentials.
+- **Account Reset**: "Nuclear Option" to wipe `public_html` and databases for a fresh start.
+- **Server Insights**: Dashboard card for IP, Nameservers, and Mail Hostname.
+- **Package Management**: Define limits for Disk ID, Domains, and Emails.
 
 ### 👤 CPanel (User Portal)
-- **Domain Management**: Add subdomains, manage DNS records (A, MX, CNAME), and toggle SSL.
-- **PHP Selector**: Switch between PHP 8.1, 8.2, and 8.3 per domain.
-- **Database Tools**: Create MariaDB databases and users instantly.
-- **Email Suite**: Create email accounts with automatic Postfix/Dovecot configuration.
-- **File Manager**: Built-in native file manager for uploads, editing, and zipping.
-- **One-Click Apps**: Access Roundcube Webmail and phpMyAdmin.
+- **One-Click App Installer**: Install **WordPress, Laravel, CodeIgniter 4, and React (Vite)** instantly.
+- **Auto-DNS**: Adding a domain automatically configures A, CNAME, MX, and SPF records.
+- **Single Sign-On (SSO)**: Seamless authentication between cPanel and File Manager.
+- **Domain Management**: PHP Version Selector (8.1-8.3) and SSL Toggling.
+- **Email Suite**: Create email accounts with automatic Postfix/Dovecot SQL configuration.
+- **Database Tools**: Manage MariaDB databases and users.
 
 ### ⚙️ Backend Engine (`shm-manage`)
 - **Zero-Latency**: Direct PHP-to-Bash execution via sudo bridge.
-- **Nginx VHosts**: Automated virtual host generation and reloading.
-- **Bind9 DNS**: Dynamic zone file generation from database records.
-- **Security**: Isolated users via Linux permissions and PHP `open_basedir`.
+- **Asynchronous Processing**: Prevents PHP timeouts during heavy tasks (like installs).
+- **Security**: Isolated PHP-FPM pools and Linux permissions.
 
 ## 📋 Requirements
 
@@ -34,30 +35,33 @@
 
 ## 🛠️ Installation
 
-1.  **Clone or Upload** the repository to your server (e.g., `/root/shm-panel`).
+1.  **Clone or Upload** the repository to your server.
 2.  **Run the Installer**:
     ```bash
-    cd shm-panel
     chmod +x install.sh
     ./install.sh
     ```
-3.  **Wait for Completion**: The script will:
-    *   Install Nginx, PHP (8.1-8.3), MariaDB, Bind9, Postfix, Dovecot, ProFTPD.
-    *   **Install Web Apps**: Automatically downloads/configures Roundcube (Webmail) & phpMyAdmin.
-    *   Configure system firewalls (UFW).
-    *   Deploy the SHM backend and frontend.
-    *   Generate secure database credentials.
+3.  **Completion**: The script installs Nginx, PHP, MariaDB, Bind9, Postfix, Dovecot, FTP, and Web Apps.
+
+## ⬆️ Upgrading from v4
+
+To upgrade safely while preserving client data:
+1.  Upload `upgrade_latest.sh`.
+2.  Run:
+    ```bash
+    chmod +x upgrade_latest.sh
+    ./upgrade_latest.sh
+    ```
 
 ## 🌐 Accessing the Panel
-
-After installation, the following subdomains are configured (based on the domain you provided during installation, e.g., `example.com`):
 
 | Service | URL | Default Creds |
 | :--- | :--- | :--- |
 | **WHM Admin** | `http://admin.example.com` | `admin` / `admin123` |
 | **CPanel** | `http://client.example.com` | (Created via WHM) |
-| **Webmail** | `http://webmail.example.com` | (Created via CPanel) |
-| **File Manager** | `http://filemanager.example.com` | (Access via CPanel) |
+| **Webmail** | `http://webmail.example.com` | (SSO / Email Creds) |
+| **File Manager** | `http://filemanager.example.com` | (SSO / cPanel Creds) |
+| **phpMyAdmin** | `http://phpmyadmin.example.com` | (DB User Creds) |
 
 > **Important**: Check `/root/shm-credentials.txt` on your server for the generated MySQL root password and other secrets.
 

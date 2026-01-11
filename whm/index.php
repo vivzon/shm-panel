@@ -69,6 +69,38 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        if ($action == 'suspend_account') {
+            $user = $_POST['user'];
+            $suspend = $_POST['suspend'] === 'true';
+            $status = $suspend ? 'suspended' : 'active';
+
+            $pdo->prepare("UPDATE clients SET status = ? WHERE username = ?")->execute([$status, $user]);
+
+            echo json_encode($res);
+            if (function_exists('fastcgi_finish_request'))
+                fastcgi_finish_request();
+
+            $cmd = $suspend ? 'suspend-account' : 'unsuspend-account';
+            cmd("$cmd " . escapeshellarg($user));
+            exit;
+        }
+
+        if ($action == 'login_as_client') {
+            $_SESSION['client'] = $_POST['user'];
+            $_SESSION['cid'] = $_POST['cid'];
+            echo json_encode(['status' => 'success', 'redirect' => '../cpanel/']);
+            exit;
+        }
+
+        if ($action == 'reset_account') {
+            $user = $_POST['user'];
+            echo json_encode($res);
+            if (function_exists('fastcgi_finish_request'))
+                fastcgi_finish_request();
+            cmd("reset-account " . escapeshellarg($user));
+            exit;
+        }
+
         /** SERVICE PACKAGES **/
         if ($action == 'save_package') {
             $id = $_POST['id'] ?? null;
@@ -280,9 +312,32 @@ $stats = explode('|', (string) cmd("get-stats"));
                                     class="text-[11px] font-bold text-slate-400 uppercase tracking-widest"><?= $m[0] ?></span>
                             </div>
                             <p class="text-3xl font-bold text-white tracking-tight">
-                                <?= $stats[$i] ?? '0' ?>    <?= $i < 3 ? '%' : '' ?></p>
+                                <?= $stats[$i] ?? '0' ?>     <?= $i < 3 ? '%' : '' ?>
+                            </p>
                         </div>
                     <?php endforeach; ?>
+                </div>
+
+                <!-- Network Config Card -->
+                <div
+                    class="mt-6 glass-panel p-6 rounded-2xl relative overflow-hidden group flex items-center justify-between">
+                    <div class="flex items-center gap-6">
+                        <div class="p-4 bg-slate-800 rounded-xl text-blue-400">
+                            <i data-lucide="network" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white mb-1">Server Network Configuration</h3>
+                            <?php $md = str_replace('whm.', '', $_SERVER['SERVER_NAME']); ?>
+                            <div class="flex gap-6 text-sm text-slate-400 font-mono">
+                                <span class="flex items-center gap-2"><i data-lucide="server" class="w-4"></i> IP:
+                                    <?= $_SERVER['SERVER_ADDR'] ?></span>
+                                <span class="flex items-center gap-2"><i data-lucide="globe" class="w-4"></i> NS:
+                                    ns1.<?= $md ?></span>
+                                <span class="flex items-center gap-2"><i data-lucide="mail" class="w-4"></i> MX:
+                                    mail.<?= $md ?></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -302,6 +357,7 @@ $stats = explode('|', (string) cmd("get-stats"));
                             <tr>
                                 <th class="p-5">Client / Domain</th>
                                 <th class="p-5">Plan</th>
+                                <th class="p-5">Status</th>
                                 <th class="p-5 text-right">Management</th>
                             </tr>
                         </thead>
@@ -322,11 +378,47 @@ $stats = explode('|', (string) cmd("get-stats"));
                                             <?= $c['pkg_name'] ?>
                                         </span>
                                     </td>
+                                    <td class="p-5">
+                                        <?php if ($c['status'] == 'suspended'): ?>
+                                            <span
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Suspended
+                                            </span>
+                                        <?php else: ?>
+                                            <span
+                                                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                            </span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="p-5 text-right flex justify-end gap-2">
+                                        <button onclick="loginAs('<?= $c['username'] ?>', <?= $c['id'] ?>)"
+                                            class="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition"
+                                            title="Access Account">
+                                            <i data-lucide="key" class="w-4"></i>
+                                        </button>
+                                        <?php if ($c['status'] == 'active'): ?>
+                                            <button onclick="toggleSuspend('<?= $c['username'] ?>', true)"
+                                                class="p-2 hover:bg-orange-500/10 text-slate-400 hover:text-orange-400 rounded-lg transition"
+                                                title="Suspend">
+                                                <i data-lucide="pause-circle" class="w-4"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button onclick="toggleSuspend('<?= $c['username'] ?>', false)"
+                                                class="p-2 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-400 rounded-lg transition"
+                                                title="Unsuspend">
+                                                <i data-lucide="play-circle" class="w-4"></i>
+                                            </button>
+                                        <?php endif; ?>
                                         <button onclick='openAccModal(<?= json_encode($c) ?>)'
                                             class="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition border border-transparent hover:border-blue-500/20"
                                             title="Edit">
                                             <i data-lucide="edit-3" class="w-4"></i>
+                                        </button>
+                                        <button onclick="resetAccount('<?= $c['username'] ?>')"
+                                            class="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition"
+                                            title="Reset Account">
+                                            <i data-lucide="rotate-ccw" class="w-4"></i>
                                         </button>
                                         <button
                                             onclick="delAcc(<?= $c['id'] ?>, '<?= $c['username'] ?>', '<?= $c['domain'] ?>')"
@@ -406,7 +498,8 @@ $stats = explode('|', (string) cmd("get-stats"));
                                 </div>
                                 <div>
                                     <p class="font-bold text-lg text-white group-hover:text-blue-400 transition">
-                                        <?= $name ?></p>
+                                        <?= $name ?>
+                                    </p>
                                     <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest"><?= $id ?></p>
                                 </div>
                             </div>
@@ -432,7 +525,8 @@ $stats = explode('|', (string) cmd("get-stats"));
                         <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-600/10 rounded-full blur-3xl"></div>
                         <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
                             <div class="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20 text-emerald-500">
-                                <i data-lucide="folder-key" class="w-5 h-5"></i></div>
+                                <i data-lucide="folder-key" class="w-5 h-5"></i>
+                            </div>
                             FTP Provisioning
                         </h3>
                         <form onsubmit="handleGeneric(event, 'add_ftp')" class="space-y-4 relative z-10">
@@ -478,33 +572,83 @@ $stats = explode('|', (string) cmd("get-stats"));
                         </form>
                     </div>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+                    <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-600/10 rounded-full blur-3xl"></div>
+                        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
+                            <div class="p-2 bg-purple-500/10 rounded-lg border border-purple-500/20 text-purple-500">
+                                <i data-lucide="code" class="w-5 h-5"></i>
+                            </div>
+                            PHP Handlers
+                        </h3>
+                        <form onsubmit="handleGeneric(event, 'set_php_handler')" class="space-y-4 relative z-10">
+                            <select name="php_version" required
+                                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-purple-500 focus:bg-slate-900 transition">
+                                <?php foreach ($php_versions as $v): ?>
+                                    <option value="<?= $v ?>"><?= $v ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <select name="sys_user" required
+                                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-purple-500 focus:bg-slate-900 transition">
+                                <?php foreach ($clients as $c): ?>
+                                    <option value="<?= $c['username'] ?>">Root: <?= $c['username'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button
+                                class="w-full bg-purple-600 hover:bg-purple-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-purple-600/20 text-white transition border border-purple-500/50">Set
+                                PHP Handler</button>
+                        </form>
+                    </div>
+                    <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-600/10 rounded-full blur-3xl"></div>
+                        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
+                            <div class="p-2 bg-orange-500/10 rounded-lg border border-orange-500/20 text-orange-500">
+                                <i data-lucide="network" class="w-5 h-5"></i>
+                            </div>
+                            Network Card
+                        </h3>
+                        <form onsubmit="handleGeneric(event, 'set_network_card')" class="space-y-4 relative z-10">
+                            <input name="ip_address" required placeholder="IP Address (e.g., 192.168.1.100)"
+                                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-orange-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                            <input name="netmask" required placeholder="Netmask (e.g., 255.255.255.0)"
+                                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-orange-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                            <input name="gateway" required placeholder="Gateway (e.g., 192.168.1.1)"
+                                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-orange-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                            <button
+                                class="w-full bg-orange-600 hover:bg-orange-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-orange-600/20 text-white transition border border-orange-500/50">Configure
+                                Network</button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
         </div>
     </main>
 
     <!-- ACCOUNT MODAL -->
-    <div id="modal-acc" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
+    <div id="modal-acc"
+        class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
         <form id="form-acc" onsubmit="handleGeneric(event, 'save_account')"
             class="glass-panel p-10 rounded-3xl w-full max-w-lg relative">
             <h3 id="acc-title" class="text-2xl font-bold mb-8 text-white font-heading">Provision Account</h3>
             <input type="hidden" name="id" id="acc-id">
-            
+
             <div class="space-y-5">
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Client ID</label>
                     <input name="user" id="acc-user" placeholder="Username" required
                         class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
                 </div>
-                
+
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Primary Domain</label>
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Primary
+                        Domain</label>
                     <input name="dom" id="acc-dom" placeholder="example.com" required
                         class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
                 </div>
 
                 <div class="space-y-2">
-                     <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Contact</label>
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Contact</label>
                     <input name="email" id="acc-email" placeholder="client@email.com" required
                         class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
                 </div>
@@ -524,7 +668,8 @@ $stats = explode('|', (string) cmd("get-stats"));
                                 <option value="<?= $p['id'] ?>"><?= $p['name'] ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <i data-lucide="chevron-down" class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"></i>
+                        <i data-lucide="chevron-down"
+                            class="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"></i>
                     </div>
                 </div>
 
@@ -541,29 +686,30 @@ $stats = explode('|', (string) cmd("get-stats"));
     </div>
 
     <!-- PACKAGE MODAL -->
-    <div id="modal-pkg" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
+    <div id="modal-pkg"
+        class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
         <form id="form-pkg" onsubmit="handleGeneric(event, 'save_package')"
             class="glass-panel p-10 rounded-3xl w-full max-w-md relative">
             <h3 id="pkg-title" class="text-2xl font-bold mb-8 text-white font-heading">Plan Configuration</h3>
             <input type="hidden" name="id" id="pkg-id">
-            
+
             <div class="space-y-5">
                 <input name="name" id="pkg-name" placeholder="Package Name" required
                     class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
-                
+
                 <div class="grid grid-cols-3 gap-4">
                     <div class="space-y-2">
-                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Disk</label>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Disk</label>
                         <input name="disk" id="pkg-disk" type="number" placeholder="MB" required
                             class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white focus:bg-slate-900 transition text-center">
                     </div>
                     <div class="space-y-2">
-                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Doms</label>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Doms</label>
                         <input name="doms" id="pkg-doms" type="number" placeholder="#" required
                             class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white focus:bg-slate-900 transition text-center">
                     </div>
                     <div class="space-y-2">
-                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Mail</label>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Mail</label>
                         <input name="mails" id="pkg-mails" type="number" placeholder="#" required
                             class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-white focus:bg-slate-900 transition text-center">
                     </div>
@@ -573,7 +719,8 @@ $stats = explode('|', (string) cmd("get-stats"));
                     <button type="button" onclick="closeModal('modal-pkg')"
                         class="flex-1 p-4 rounded-xl font-bold text-slate-400 hover:bg-slate-800 transition">Cancel</button>
                     <button type="submit"
-                        class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-4 rounded-xl font-bold text-white shadow-lg shadow-emerald-600/20 transition">Save Plan</button>
+                        class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-4 rounded-xl font-bold text-white shadow-lg shadow-emerald-600/20 transition">Save
+                        Plan</button>
                 </div>
             </div>
         </form>
@@ -595,7 +742,7 @@ $stats = explode('|', (string) cmd("get-stats"));
         function openAccModal(data = null) {
             const f = document.getElementById('form-acc'); f.reset();
             const title = document.getElementById('acc-title');
-            
+
             if (data) {
                 document.getElementById('acc-id').value = data.id;
                 document.getElementById('acc-user').value = data.username;
@@ -631,7 +778,7 @@ $stats = explode('|', (string) cmd("get-stats"));
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            btn.disabled = true; 
+            btn.disabled = true;
             btn.innerHTML = `<span class="animate-pulse">Processing...</span>`;
 
             const fd = new FormData(e.target);
@@ -639,7 +786,7 @@ $stats = explode('|', (string) cmd("get-stats"));
 
             try {
                 const response = await fetch('', { method: 'POST', body: fd });
-                
+
                 // Handling Nginx Reloads (502/504)
                 if ([502, 504].includes(response.status)) {
                     btn.innerHTML = "Reloading Node...";
@@ -649,10 +796,10 @@ $stats = explode('|', (string) cmd("get-stats"));
 
                 const data = await response.json();
                 if (data.status === 'success') location.reload();
-                else { 
-                    alert(data.msg); 
-                    btn.disabled = false; 
-                    btn.innerHTML = originalText; 
+                else {
+                    alert(data.msg);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
                 }
             } catch (err) {
                 // If JSON fails, it's likely a service reload interruption, which is good.
@@ -670,6 +817,28 @@ $stats = explode('|', (string) cmd("get-stats"));
             postDat('delete_package', { id });
         }
 
+        async function toggleSuspend(user, suspend) {
+            const action = suspend ? "SUSPEND" : "UNSUSPEND";
+            if (!confirm(`Are you sure you want to ${action} account ${user}?`)) return;
+            postDat('suspend_account', { user, suspend });
+        }
+
+        async function loginAs(user, cid) {
+            const fd = new FormData();
+            fd.append('ajax_action', 'login_as_client');
+            fd.append('user', user);
+            fd.append('cid', cid);
+            const res = await fetch('', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.status === 'success') window.open(data.redirect, '_blank');
+        }
+
+        async function resetAccount(user) {
+            if (!confirm(`DANGER: Are you sure you want to RESET account ${user}?\n\nThis will DELETE ALL FILES in public_html and DROP ALL DATABASES.\n\nThis action cannot be undone.`)) return;
+            if (!confirm(`DOUBLE CHECK: Really reset ${user}?`)) return;
+            postDat('reset_account', { user });
+        }
+
         async function servAction(service, op) {
             postDat('service_action', { service, op });
         }
@@ -678,10 +847,11 @@ $stats = explode('|', (string) cmd("get-stats"));
             const fd = new FormData();
             fd.append('ajax_action', action);
             for (let k in data) fd.append(k, data[k]);
-            
-            try { await fetch('', { method: 'POST', body: fd }); } catch(e) {}
+
+            try { await fetch('', { method: 'POST', body: fd }); } catch (e) { }
             setTimeout(() => location.reload(), 1500);
         }
     </script>
 </body>
+
 </html>

@@ -118,9 +118,27 @@ ln -sf /var/www/panel/shared /var/www/apps/shared
 # File Manager (Native Vivzon FM)
 mkdir -p /var/www/apps/filemanager
 cp cpanel/files.php /var/www/apps/filemanager/index.php
+cp cpanel/login.php /var/www/apps/filemanager/login.php
 
 cp -r whm/* /var/www/panel/whm/
 cp -r cpanel/* /var/www/panel/cpanel/
+    
+# ... (rest of copy commands) ...
+
+# Postfix/Dovecot SQL Config
+cat > /etc/dovecot/dovecot-sql.conf.ext << EOF
+driver = mysql
+connect = host=localhost dbname=$DB_NAME user=$DB_USER password=$DB_PASS
+default_pass_scheme = BLF-CRYPT
+password_query = SELECT email as user, password FROM mail_users WHERE email='%u';
+user_query = SELECT 5000 as uid, 5000 as gid, '/var/mail/vhosts/%d/%n' as home;
+EOF
+
+# Enable SQL Auth in Dovecot (Disable System Auth)
+sed -i 's/!include auth-system.conf.ext/#!include auth-system.conf.ext/' /etc/dovecot/conf.d/10-auth.conf
+sed -i 's/#!include auth-sql.conf.ext/!include auth-sql.conf.ext/' /etc/dovecot/conf.d/10-auth.conf
+
+cat > /etc/postfix/mysql-virtual-mailbox-domains.cf << EOF
 cp -r landing/* /var/www/panel/landing/ 2>/dev/null || echo "<h1>Welcome</h1>" > /var/www/panel/landing/index.html
 cp shared_config.php /var/www/panel/shared/config.php
 

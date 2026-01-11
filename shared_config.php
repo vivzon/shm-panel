@@ -19,7 +19,8 @@ try {
 }
 
 // Shell Command Bridge
-function cmd($command) {
+function cmd($command)
+{
     // Only allow specific characters to prevent injection (basic filter)
     // The strict logic is in shm-manage.
     $output = shell_exec("sudo /usr/local/bin/shm-manage " . $command);
@@ -27,13 +28,23 @@ function cmd($command) {
 }
 
 // Helper: JSON Response
-function sendResponse($data) {
+function sendResponse($data)
+{
     header('Content-Type: application/json');
     echo json_encode($data);
     exit;
 }
 
 if (session_status() === PHP_SESSION_NONE) {
+    // Enable Cross-Subdomain Session (SSO)
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    if (!filter_var($host, FILTER_VALIDATE_IP) && $host !== 'localhost') {
+        $parts = explode('.', $host);
+        if (count($parts) >= 2) {
+            $base_domain = '.' . implode('.', array_slice($parts, -2));
+            session_set_cookie_params(0, '/', $base_domain);
+        }
+    }
     session_start();
 }
 ?>
