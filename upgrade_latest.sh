@@ -84,8 +84,7 @@ mkdir -p /var/www/panel/{whm,cpanel,shared,landing}
 cp -r whm/* /var/www/panel/whm/
 cp -r cpanel/* /var/www/panel/cpanel/
 cp -r landing/* /var/www/panel/landing/
-cp shared_config.php /var/www/panel/shared/config.php
-cp shared_config.php /var/www/panel/shared/config.php
+cp shared/config.php /var/www/panel/shared/config.php
 
 # Make shared config readable
 chmod 644 /var/www/panel/shared/shared_config.php

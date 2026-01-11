@@ -101,6 +101,23 @@ shm-panel/
 - **System**: PHP runs as specific system users (pool isolation).
 - **Network**: UFW firewall configured to allow only essential ports (80, 443, 22, 21, 25, etc.).
 
+## 🔄 Deploying Updates
+
+To update the panel manually (e.g., applying fixes):
+1.  Upload the modified files (e.g., `cpanel/`, `shared/`) to your server.
+2.  **Important**: If you overwrite `shared/config.php` on a live server, it may reset your database password. Run `repair_config.sh` to fix this.
+
+## 🔧 Troubleshooting
+
+### Database Connection Failed / HTTP 500
+If your site goes down after an update, it's likely the configuration was reset.
+1.  Upload `repair_config.sh` to your server.
+2.  Run the script to restore your password:
+    ```bash
+    chmod +x repair_config.sh
+    ./repair_config.sh
+    ```
+
 ## 📜 License
 
 This project is open-source and available under the [MIT License](LICENSE).

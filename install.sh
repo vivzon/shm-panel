@@ -140,7 +140,7 @@ sed -i 's/#!include auth-sql.conf.ext/!include auth-sql.conf.ext/' /etc/dovecot/
 
 cat > /etc/postfix/mysql-virtual-mailbox-domains.cf << EOF
 cp -r landing/* /var/www/panel/landing/ 2>/dev/null || echo "<h1>Welcome</h1>" > /var/www/panel/landing/index.html
-cp shared_config.php /var/www/panel/shared/config.php
+cp shared/config.php /var/www/panel/shared/config.php
 
 # --- 4a. Install Web Apps ---
 log "Installing Web Apps..."
