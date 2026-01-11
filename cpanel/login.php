@@ -77,17 +77,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             backdrop-filter: blur(20px);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
+
+        @keyframes blob {
+            0% {
+                transform: translate(0px, 0px) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -50px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+
+            100% {
+                transform: translate(0px, 0px) scale(1);
+            }
+        }
+
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
     </style>
 </head>
 
 <body class="bg-[#0f172a] flex items-center justify-center min-h-screen p-4 overflow-hidden relative">
 
     <!-- Background Glow -->
+    <!-- Background Glow -->
     <div
-        class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none">
+        class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none animate-blob">
     </div>
     <div
-        class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none">
+        class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none animate-blob animation-delay-2000">
+    </div>
+    <div
+        class="absolute bottom-[20%] left-[20%] w-[30%] h-[30%] bg-emerald-600/10 blur-[120px] rounded-full pointer-events-none animate-blob animation-delay-4000">
     </div>
 
     <div class="w-full max-w-md relative z-10">
@@ -125,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
             <?php endif; ?>
 
-            <form method="POST" class="space-y-6">
+            <form method="POST" class="space-y-6" onsubmit="handleLogin(event)">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Username
                         or Email</label>
@@ -165,8 +199,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
 
                 <div class="pt-4">
-                    <button type="submit"
-                        class="w-full p-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-blue-400">
+                    <button type="submit" id="btn-login"
+                        class="w-full p-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] border border-transparent hover:border-blue-400 flex items-center justify-center gap-2">
                         Sign In to Dashboard
                     </button>
                     <div class="text-center mt-6">
@@ -181,6 +215,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </p>
     </div>
 
+    <script>
+        function handleLogin(e) {
+            const btn = document.getElementById('btn-login');
+            // Change button state
+            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> <span>Verify Credentials...</span>`;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            // Allow form to submit normally
+        }
+    </script>
 </body>
 
 </html>

@@ -346,7 +346,7 @@ $usage_disk = 0; // Disk usage calculation would go here
             transition: all 0.2s;
             color: #94a3b8;
             margin-bottom: 4px;
-            border: 1px solid transparent;
+            border-left: 3px solid transparent;
         }
 
         .nav-btn:hover {
@@ -375,10 +375,39 @@ $usage_disk = 0; // Disk usage calculation would go here
             border-radius: 1.5rem;
         }
 
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.03);
+        background: rgba(30, 41, 59, 0.4);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.15), transparent);
+            color: #60a5fa;
+            border-left: 3px solid #3b82f6;
+            box-shadow: none;
+        }
+
+        .progress-bar-fill {
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+            /* Start at 0 for animation */
         }
     </style>
 </head>
@@ -465,8 +494,8 @@ $usage_disk = 0; // Disk usage calculation would go here
                         <h3 class="text-3xl font-extrabold text-white mb-2"><?= $usage_disk ?> <span
                                 class="text-sm text-slate-500 font-medium">/ <?= $client['disk_mb'] ?> MB</span></h3>
                         <div class="w-full bg-slate-700/50 h-2 rounded-full overflow-hidden">
-                            <div class="bg-blue-500 h-full rounded-full shadow-lg shadow-blue-500/50"
-                                style="width: <?= ($usage_disk / $client['disk_mb']) * 100 ?>%"></div>
+                            <div class="bg-blue-500 h-full rounded-full shadow-lg shadow-blue-500/50 progress-bar-fill"
+                                data-width="<?= ($usage_disk / $client['disk_mb']) * 100 ?>%"></div>
                         </div>
                     </div>
 
@@ -480,8 +509,8 @@ $usage_disk = 0; // Disk usage calculation would go here
                         <h3 class="text-3xl font-extrabold text-white mb-2"><?= $usage_dom ?> <span
                                 class="text-sm text-slate-500 font-medium">/ <?= $client['max_domains'] ?></span></h3>
                         <div class="w-full bg-slate-700/50 h-2 rounded-full overflow-hidden">
-                            <div class="bg-emerald-500 h-full rounded-full shadow-lg shadow-emerald-500/50"
-                                style="width: <?= ($usage_dom / $client['max_domains']) * 100 ?>%"></div>
+                            <div class="bg-emerald-500 h-full rounded-full shadow-lg shadow-emerald-500/50 progress-bar-fill"
+                                data-width="<?= ($usage_dom / $client['max_domains']) * 100 ?>%"></div>
                         </div>
                     </div>
 
@@ -495,8 +524,8 @@ $usage_disk = 0; // Disk usage calculation would go here
                         <h3 class="text-3xl font-extrabold text-white mb-2"><?= $usage_mail ?> <span
                                 class="text-sm text-slate-500 font-medium">/ <?= $client['max_emails'] ?></span></h3>
                         <div class="w-full bg-slate-700/50 h-2 rounded-full overflow-hidden">
-                            <div class="bg-purple-500 h-full rounded-full shadow-lg shadow-purple-500/50"
-                                style="width: <?= ($usage_mail / $client['max_emails']) * 100 ?>%"></div>
+                            <div class="bg-purple-500 h-full rounded-full shadow-lg shadow-purple-500/50 progress-bar-fill"
+                                data-width="<?= ($usage_mail / $client['max_emails']) * 100 ?>%"></div>
                         </div>
                     </div>
 
@@ -510,8 +539,8 @@ $usage_disk = 0; // Disk usage calculation would go here
                         <h3 class="text-3xl font-extrabold text-white mb-2"><?= $usage_db ?> <span
                                 class="text-sm text-slate-500 font-medium">/ <?= $client['max_databases'] ?></span></h3>
                         <div class="w-full bg-slate-700/50 h-2 rounded-full overflow-hidden">
-                            <div class="bg-orange-500 h-full rounded-full shadow-lg shadow-orange-500/50"
-                                style="width: <?= ($usage_db / $client['max_databases']) * 100 ?>%"></div>
+                            <div class="bg-orange-500 h-full rounded-full shadow-lg shadow-orange-500/50 progress-bar-fill"
+                                data-width="<?= ($usage_db / $client['max_databases']) * 100 ?>%"></div>
                         </div>
                     </div>
                 </div>
@@ -1099,6 +1128,32 @@ $usage_disk = 0; // Disk usage calculation would go here
             if (location.hash !== '#' + id) {
                 location.hash = id;
             }
+
+            // Re-trigger animations
+            if (pane) {
+                pane.classList.remove('animate-fade-in-up');
+                void pane.offsetWidth; // trigger reflow
+                pane.classList.add('animate-fade-in-up');
+            }
+
+            // Animate Progress Bars if Dash
+            if (id === 'dash') {
+                setTimeout(() => {
+                    document.querySelectorAll('.progress-bar-fill').forEach(el => {
+                        el.style.width = el.dataset.width;
+                    });
+                }, 100);
+            }
+        }
+
+        // Initial Progress Bar Animation
+        if (!location.hash || location.hash === '#dash') {
+            setTimeout(() => {
+                document.querySelectorAll('.progress-bar-fill').forEach(el => {
+                    el.style.width = el.dataset.width;
+                });
+            }, 300);
+        }
         }
 
         window.addEventListener('load', () => {
@@ -1216,9 +1271,9 @@ $usage_disk = 0; // Disk usage calculation would go here
             const list = document.getElementById('ssh-list');
             const fd = new FormData(); fd.append('ajax_action', 'list_ssh');
             try {
-                const res = await fetch('', {method:'POST', body:fd}).then(r=>r.json());
+                const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                 list.innerHTML = '';
-                if(res.data && res.data.length > 0) {
+                if (res.data && res.data.length > 0) {
                     res.data.forEach((line, i) => {
                         list.innerHTML += `
                             <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700/50 mb-2">
@@ -1231,16 +1286,16 @@ $usage_disk = 0; // Disk usage calculation would go here
                 } else {
                     list.innerHTML = '<div class="text-center text-slate-500 py-4">No SSH keys found.</div>';
                 }
-            } catch(e) { list.innerHTML = '<div class="text-center text-red-400">Error loading keys.</div>'; }
+            } catch (e) { list.innerHTML = '<div class="text-center text-red-400">Error loading keys.</div>'; }
         }
 
         async function loadBackups() {
             const list = document.getElementById('backup-list');
             const fd = new FormData(); fd.append('ajax_action', 'list_backups');
             try {
-                const res = await fetch('', {method:'POST', body:fd}).then(r=>r.json());
+                const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                 list.innerHTML = '';
-                if(res.data && res.data.length > 0) {
+                if (res.data && res.data.length > 0) {
                     res.data.forEach(b => {
                         list.innerHTML += `
                             <tr class="hover:bg-slate-800/30 transition">
@@ -1257,44 +1312,44 @@ $usage_disk = 0; // Disk usage calculation would go here
                 } else {
                     list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">No backups found.</td></tr>';
                 }
-            } catch(e) { console.error(e); }
+            } catch (e) { console.error(e); }
         }
 
         // Generic Handler Update
-        async function handleGeneric(action, data={}) {
-            if(action.includes('restore') && !confirm('Restoring will overwrite current files and DBs. Continue?')) return;
-            if((action.includes('delete') || action.includes('del')) && !confirm('Are you sure?')) return;
-            
+        async function handleGeneric(action, data = {}) {
+            if (action.includes('restore') && !confirm('Restoring will overwrite current files and DBs. Continue?')) return;
+            if ((action.includes('delete') || action.includes('del')) && !confirm('Are you sure?')) return;
+
             const fd = new FormData();
             fd.append('ajax_action', action);
-            for(let k in data) fd.append(k, data[k]);
-            
+            for (let k in data) fd.append(k, data[k]);
+
             // UI Feedback (Generic)
             showToast('info', 'Processing...', 'Please wait.');
-            
+
             try {
-                const res = await fetch('', {method:'POST', body:fd}).then(r=>r.json());
-                if(res.status === 'success') {
+                const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+                if (res.status === 'success') {
                     showToast('success', 'Success', res.msg);
-                    if(action === 'add_ssh' || action === 'del_ssh') loadSSH();
-                    if(action.includes('backup')) loadBackups();
+                    if (action === 'add_ssh' || action === 'del_ssh') loadSSH();
+                    if (action.includes('backup')) loadBackups();
                 } else {
                     showToast('error', 'Error', res.msg);
                 }
-            } catch(e) { showToast('error', 'System Error', 'Operation failed.'); }
+            } catch (e) { showToast('error', 'System Error', 'Operation failed.'); }
         }
 
         // Update tab function to load data
         const oldTab = tab;
-        tab = function(id) {
+        tab = function (id) {
             oldTab(id);
-            if(id === 'sec') loadSSH();
-            if(id === 'back') loadBackups();
+            if (id === 'sec') loadSSH();
+            if (id === 'back') loadBackups();
         }
-        
+
         // Initial load check
-        if(location.hash === '#sec') loadSSH();
-        if(location.hash === '#back') loadBackups();
+        if (location.hash === '#sec') loadSSH();
+        if (location.hash === '#back') loadBackups();
 
         // --- SUBDOMAIN & UI HELPERS ---
 

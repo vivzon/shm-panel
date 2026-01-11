@@ -623,7 +623,8 @@ if (is_dir($full_path)) {
                                 </div>
                                 <div class="w-full">
                                     <div class="truncate font-medium text-sm text-slate-300 group-hover:text-white">
-                                        <?= $i['name'] ?></div>
+                                        <?= $i['name'] ?>
+                                    </div>
                                     <div class="text-xs text-slate-500 mt-1"><?= $i['size'] ?></div>
                                 </div>
                             </div>
@@ -715,6 +716,27 @@ if (is_dir($full_path)) {
         </div>
     </div>
 
+    <!-- COPY/MOVE MODAL -->
+    <div id="modal-copymove"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-white/10 shadow-2xl">
+            <h3 class="font-bold text-xl text-white mb-6" id="cm-title">Move Items</h3>
+            <div class="mb-4 text-xs text-slate-400 font-bold uppercase">Destination Folder</div>
+            <div class="flex bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 mb-6 items-center gap-3">
+                <i data-lucide="folder" class="w-4 text-slate-500"></i>
+                <input id="cm-dest" type="text" class="bg-transparent outline-none flex-1 text-white text-sm"
+                    placeholder="/path/to/folder">
+            </div>
+            <input type="hidden" id="cm-action">
+            <div class="flex gap-3">
+                <button onclick="FM.closeModals()"
+                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-400 hover:bg-white/5 transition">Cancel</button>
+                <button onclick="FM.doCopyMove()"
+                    class="flex-1 py-2.5 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20 transition">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <!-- PREVIEW MODAL -->
     <div id="modal-preview"
         class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
@@ -741,6 +763,16 @@ if (is_dir($full_path)) {
     <div id="toast"
         class="fixed bottom-6 right-6 z-[100] transition-all duration-300 transform translate-y-20 opacity-0 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold">
         <span></span>
+    </div>
+
+    <!-- DRAG OVERLAY -->
+    <div id="drag-overlay"
+        class="hidden fixed inset-0 z-[200] bg-blue-600/90 backdrop-blur-md flex flex-col items-center justify-center text-white">
+        <div class="animate-bounce mb-8">
+            <i data-lucide="upload-cloud" class="w-32 h-32"></i>
+        </div>
+        <h2 class="text-4xl font-black mb-4 animate-pulse">Drop Files to Upload</h2>
+        <p class="text-xl text-blue-100 font-medium">Release anywhere to start uploading</p>
     </div>
 
     <!-- HIDDEN FORMS FOR DOWNLOADS -->
@@ -798,10 +830,23 @@ if (is_dir($full_path)) {
             }
 
             openCtxMenu(e, row) {
-                this.ctxItem = row.dataset.path;
+                const path = row.dataset.path;
+                // Auto-select if not selected
+                if (!this.selected.has(path)) {
+                    this.clearSelection();
+                    this.selected.add(path);
+                    row.classList.add('selected');
+                    row.querySelector('.file-check').checked = true;
+                    // For grid view opacity
+                    const chk = row.querySelector('.file-check');
+                    if (chk) chk.classList.add('opacity-100');
+                    this.updateActionBar();
+                }
+
+                this.ctxItem = path;
                 this.ctxType = row.dataset.type;
                 const menu = document.getElementById('ctx-menu');
-                // Adjust position to not go offscreen
+                // Adjust position
                 let x = e.clientX;
                 let y = e.clientY;
                 if (x + 200 > window.innerWidth) x -= 200;
@@ -951,10 +996,24 @@ if (is_dir($full_path)) {
                 } else if (action === 'zip') {
                     this.request('zip_paths', { paths: paths });
                 } else if (action === 'copy' || action === 'move') {
-                    // Todo: Implement Copy/Move Modal logic (skipped for brevity in this replace, utilizing simplified placeholders)
-                    // For now just error or alert
-                    alert('Copy/Move UI to be implemented in modal extension. (Use legacy if needed)');
+                    this.openCopyMove(action);
                 }
+            }
+
+            openCopyMove(action) {
+                if (this.selected.size === 0) return;
+                const paths = Array.from(this.selected);
+                document.getElementById('cm-title').innerText = (action === 'copy' ? 'Copy' : 'Move') + ' ' + paths.length + ' Items';
+                document.getElementById('cm-action').value = action;
+                document.getElementById('cm-dest').value = CONFIG.currentPath; // Pre-fill current
+                document.getElementById('modal-copymove').classList.remove('hidden');
+            }
+
+            doCopyMove() {
+                const action = document.getElementById('cm-action').value;
+                const dest = document.getElementById('cm-dest').value;
+                const paths = Array.from(this.selected);
+                this.request('copy_move_items', { action: action, destination: dest, paths: paths });
             }
 
             // PREVIEW
