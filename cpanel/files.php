@@ -4,7 +4,8 @@
  * Optimized for CPanel Integration
  */
 // Config Path (Deployed as index.php in subfolder, so we use absolute to be safe)
-require_once '/var/www/panel/shared/config.php';
+// Config Path
+require_once __DIR__ . '/../shared/config.php';
 
 // Authentication Check
 if (!isset($_SESSION['cid'])) {

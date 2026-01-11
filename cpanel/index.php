@@ -3,7 +3,7 @@
  * VIVZON CPANEL - MASTER PRODUCTION v5.0
  * Comprehensive: DB Users, Email Isolation, DNS, PHP Config, SSL, Usage Metrics
  */
-require_once '../shared/config.php';
+require_once __DIR__ . '/../shared/config.php';
 
 if (!isset($_SESSION['client'])) {
     header("Location: login.php");
