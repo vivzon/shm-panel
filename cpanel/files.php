@@ -89,7 +89,7 @@ function shm_rcopy($src, $dst)
 
 // ------------- INPUTS -------------
 $domain_id = isset($_REQUEST['domain_id']) ? (int) $_REQUEST['domain_id'] : 0;
-$current_path = isset($_GET['path']) ? shm_normalize_relative($_GET['path']) : '/';
+$current_path = isset($_REQUEST['path']) ? shm_normalize_relative($_REQUEST['path']) : '/';
 
 // Verify Domain ownership & Get Root
 $stmt = $pdo->prepare("SELECT * FROM domains WHERE id = ? AND client_id = ?");
@@ -112,7 +112,15 @@ $base_path = rtrim($domain['document_root'] ?? "/var/www/clients/" . $_SESSION['
 $full_path = shm_build_path($base_path, $current_path);
 
 // -------- POST ACTIONS --------
+$is_writable = is_writable($full_path);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$is_writable) {
+        // Try to chmod if owner? Unlikely to work if not owner.
+        // fallback: Just allow passing through, maybe it works via ACLs we don't see.
+        // But logging it is useful.
+        error_log("SHM-FM: Directory $full_path is NOT writable by " . get_current_user());
+    }
+
     $res = ['status' => 'error', 'msg' => 'Operation Failed'];
 
     // 1. AJAX UPLOAD
@@ -477,6 +485,12 @@ if (is_dir($full_path)) {
                 File Manager
             </h1>
             <div class="h-6 w-px bg-slate-700"></div>
+            <?php if (!$is_writable): ?>
+                <div
+                    class="bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-2">
+                    <i data-lucide="lock" class="w-3 h-3"></i> Read Only
+                </div>
+            <?php endif; ?>
             <div class="flex items-center text-sm font-mono text-slate-400">
                 <a href="?domain_id=<?= $domain_id ?>&path=/"
                     class="hover:text-blue-400 transition bg-slate-800/50 px-2 py-1 rounded">Root</a>
@@ -700,6 +714,7 @@ if (is_dir($full_path)) {
             <h3 class="text-xl font-bold mb-6 text-white text-center">Rename Item</h3>
             <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
             <input type="hidden" name="rename_item" value="1">
+            <input type="hidden" name="path" value="<?= $current_path ?>">
             <input type="hidden" name="old_name" id="rename-old">
 
             <div class="mb-6">
@@ -724,6 +739,7 @@ if (is_dir($full_path)) {
             <h3 class="text-xl font-bold mb-6 text-white text-center" id="cm-title">Move Items</h3>
             <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
             <input type="hidden" name="copy_move_items" value="1">
+            <input type="hidden" name="path" value="<?= $current_path ?>">
             <input type="hidden" name="action" id="cm-action">
             <div id="cm-inputs"></div>
 
@@ -753,6 +769,7 @@ if (is_dir($full_path)) {
             <h3 class="text-xl font-bold mb-6 text-white text-center">Create New Item</h3>
             <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
             <input type="hidden" name="create_item" value="1">
+            <input type="hidden" name="path" value="<?= $current_path ?>">
 
             <div class="flex bg-slate-900/50 p-1 rounded-xl mb-6 border border-slate-700">
                 <label class="flex-1 cursor-pointer">
@@ -1100,6 +1117,9 @@ if (is_dir($full_path)) {
             const formData = new FormData();
             formData.append('upload_files', '1');
             formData.append('domain_id', '<?= $domain_id ?>');
+            // Explicitly pass path to ensure it goes to the right folder
+            formData.append('path', '<?= $current_path ?>');
+
             for (let f of files) formData.append('files[]', f);
 
             document.getElementById('upload-progress').classList.remove('hidden');
@@ -1117,13 +1137,25 @@ if (is_dir($full_path)) {
 
             xhr.onload = () => {
                 if (xhr.status === 200) {
-                    location.reload();
+                    // Check if response is JSON (success) or HTML (reload) 
+                    // Our PHP echoes JSON for upload: echo json_encode(['success' => true]);
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        if (res.success) location.reload();
+                        else alert("Upload Failed");
+                    } catch (e) {
+                        // Fallback if PHP echoed something else
+                        location.reload();
+                    }
                 } else {
-                    alert("Upload Failed");
+                    alert("Upload Failed: Server Error");
                 }
             };
 
-            xhr.open("POST", "");
+            xhr.onerror = () => alert('Upload Failed: Network Error');
+
+            // Post to current URL to preserve query params like path
+            xhr.open("POST", window.location.href);
             xhr.send(formData);
         }
 
