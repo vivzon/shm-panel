@@ -15,15 +15,16 @@
 
 ### 👤 CPanel (User Portal)
 - **One-Click App Installer**: Install **WordPress, Laravel, CodeIgniter 4, and React (Vite)** instantly.
+- **Account Control**: **Delete Websites** and **Reset Database/Mail Passwords** directly from UI.
+- **Contextual File Manager**: "Manage Files" button launches File Manager in the correct website root.
 - **Auto-DNS**: Adding a domain automatically configures A, CNAME, MX, and SPF records.
-- **Single Sign-On (SSO)**: Seamless authentication between cPanel and File Manager.
 - **Domain Management**: PHP Version Selector (8.1-8.3) and SSL Toggling.
 - **Email Suite**: Create email accounts with automatic Postfix/Dovecot SQL configuration.
 - **Database Tools**: Manage MariaDB databases and users.
 
 ### ⚙️ Backend Engine (`shm-manage`)
 - **Zero-Latency**: Direct PHP-to-Bash execution via sudo bridge.
-- **Asynchronous Processing**: Prevents PHP timeouts during heavy tasks (like installs).
+- **Safe Service Reloads**: Asynchronous, delayed reloads prevent **502 Bad Gateway** errors.
 - **Security**: Isolated PHP-FPM pools and Linux permissions.
 
 ## 📋 Requirements
