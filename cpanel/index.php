@@ -77,13 +77,21 @@ if (isset($_POST['ajax_action'])) {
 
         if ($action == 'add_domain') {
             $dom = strtolower(trim($_POST['domain']));
-            if (!filter_var($dom, FILTER_VALIDATE_DOMAIN))
-                throw new Exception("Invalid Domain Name");
+
+            // Strict Domain Validation (Regex)
+            if (!preg_match('/^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/', $dom))
+                throw new Exception("Invalid Domain Name Format (e.g. example.com)");
 
             // Check Limits
             $curr = $pdo->query("SELECT COUNT(*) FROM domains WHERE client_id = $cid")->fetchColumn();
             if ($curr >= $limits['max_domains'])
                 throw new Exception("Domain limit reached ({$limits['max_domains']})");
+
+            // Check Uniqueness Globally (prevent takeover)
+            $exists = $pdo->prepare("SELECT id FROM domains WHERE domain = ?");
+            $exists->execute([$dom]);
+            if ($exists->fetch())
+                throw new Exception("Domain already exists on server");
 
             // Insert & Execute
             $pdo->prepare("INSERT INTO domains (client_id, domain, document_root) VALUES (?, ?, ?)")
@@ -115,18 +123,49 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        if ($action == 'delete_domain') {
+            $dom_id = (int) $_POST['domain_id'];
+            $d = $pdo->prepare("SELECT domain FROM domains WHERE id=? AND client_id=?");
+            $d->execute([$dom_id, $cid]);
+            $domain_name = $d->fetchColumn();
+            if (!$domain_name)
+                throw new Exception("Invalid Domain");
+
+            // Delete Related
+            $pdo->prepare("DELETE FROM dns_records WHERE domain_id=?")->execute([$dom_id]);
+            $pdo->prepare("DELETE FROM php_config WHERE domain_id=?")->execute([$dom_id]);
+            $pdo->prepare("DELETE FROM domains WHERE id=?")->execute([$dom_id]);
+
+            sendResponse($res);
+            cmd("shm-manage delete-domain " . escapeshellarg($username) . " " . escapeshellarg($domain_name));
+            exit;
+        }
+
         if ($action == 'delete_db') {
             $db_name = $_POST['db_name'];
-            // Verify ownership
             $check = $pdo->prepare("SELECT id FROM client_databases WHERE db_name = ? AND client_id = ?");
             $check->execute([$db_name, $cid]);
             if (!$check->fetch())
                 throw new Exception("Access Denied");
 
             $pdo->prepare("DELETE FROM client_databases WHERE db_name = ?")->execute([$db_name]);
-            // Also delete users associated? For now, just drop DB.
             sendResponse($res);
             cmd("mysql-tool delete-db " . escapeshellarg($db_name));
+            exit;
+        }
+
+        if ($action == 'reset_db_pass') {
+            $db_user = $_POST['db_user'];
+            $pass = $_POST['new_pass'];
+
+            // Check ownership
+            $check = $pdo->prepare("SELECT id FROM client_db_users WHERE db_user = ? AND client_id = ?");
+            $check->execute([$db_user, $cid]);
+            if (!$check->fetch())
+                throw new Exception("Access Denied");
+
+            sendResponse($res);
+            cmd("mysql-tool reset-pass " . escapeshellarg($db_user) . " " . escapeshellarg($pass));
             exit;
         }
 
@@ -152,7 +191,21 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Access Denied");
 
             $pdo->prepare("DELETE FROM mail_users WHERE email = ?")->execute([$email]);
-            // Postfix uses DB directly.
+            sendResponse($res);
+            exit;
+        }
+
+        if ($action == 'reset_mail_pass') {
+            $email = $_POST['email'];
+            $pass = $_POST['new_pass'];
+
+            // Check ownership
+            $check = $pdo->prepare("SELECT m.id FROM mail_users m JOIN mail_domains md ON m.domain_id = md.id JOIN domains d ON md.domain = d.domain WHERE m.email = ? AND d.client_id = ?");
+            $check->execute([$email, $cid]);
+            if (!$check->fetch())
+                throw new Exception("Access Denied");
+
+            $pdo->prepare("UPDATE mail_users SET password = ? WHERE email = ?")->execute([password_hash($pass, PASSWORD_BCRYPT), $email]);
             sendResponse($res);
             exit;
         }
@@ -271,7 +324,7 @@ $usage_disk = 0; // Disk usage calculation would go here
             <div class="flex items-center gap-3 text-xl font-extrabold tracking-tighter text-slate-900 mb-10">
                 <div
                     class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                    <i data-lucide="cloud" class="w-5 h-5"></i>
+                    <i data-lucide="cloud" class="w-5"></i>
                 </div>
                 SHM <span class="text-blue-600">PANEL</span>
             </div>
@@ -586,6 +639,34 @@ $usage_disk = 0; // Disk usage calculation would go here
                             <button class="w-full bg-slate-900 text-white p-4 rounded-xl font-bold">Create User</button>
                         </form>
                     </div>
+
+                    <!-- DB USERS LIST -->
+                    <h3 class="font-bold mb-4 mt-8">Database Users</h3>
+                    <div class="bg-white rounded-3xl border overflow-hidden mb-8">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-400">
+                                <tr>
+                                    <th class="p-6">User</th>
+                                    <th class="p-6 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $db_users = $pdo->query("SELECT * FROM client_db_users WHERE client_id = $cid")->fetchAll();
+                                foreach ($db_users as $u): ?>
+                                    <tr class="border-t border-slate-100">
+                                        <td class="p-6 font-bold text-slate-700"><?= $u['db_user'] ?></td>
+                                        <td class="p-6 text-right">
+                                            <button
+                                                onclick="resetPassword('reset_db_pass', 'db_user', '<?= $u['db_user'] ?>')"
+                                                class="text-orange-500 hover:bg-orange-50 p-2 rounded-lg transition mr-2"><i
+                                                    data-lucide="key" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="bg-white rounded-3xl border overflow-hidden">
                     <table class="w-full text-left">
@@ -644,6 +725,9 @@ $usage_disk = 0; // Disk usage calculation would go here
                                     <td class="p-6 text-right">
                                         <a href="http://webmail.<?= $base_domain ?>" target="_blank"
                                             class="text-blue-500 font-bold text-xs mr-4 uppercase tracking-tighter">Login</a>
+                                        <button onclick="resetPassword('reset_mail_pass', 'email', '<?= $mail['email'] ?>')"
+                                            class="text-orange-500 hover:bg-orange-50 p-2 rounded-lg transition mr-2"><i
+                                                data-lucide="key" class="w-4 h-4"></i></button>
                                         <button onclick="deleteAction('delete_email', 'email', '<?= $mail['email'] ?>')"
                                             class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition"><i
                                                 data-lucide="trash-2" class="w-4"></i></button>
@@ -674,6 +758,13 @@ $usage_disk = 0; // Disk usage calculation would go here
                                 <h3 class="text-2xl font-black text-slate-900"><?= $d['domain'] ?></h3>
                                 <p class="text-xs text-slate-400 font-mono mt-1">Root: /home/<?= $username ?>/public_html
                                 </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="http://filemanager.<?= $base_domain ?>/?domain_id=<?= $d['id'] ?>" target="_blank"
+                                    class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition flex items-center gap-2"><i
+                                        data-lucide="folder-open" class="w-4 h-4"></i> Manage Files</a>
+                                <button onclick="deleteAction('delete_domain', 'domain_id', <?= $d['id'] ?>)"
+                                    class="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition">Delete</button>
                             </div>
                             <form onsubmit="handle(event, 'update_domain_config')"
                                 class="flex items-center gap-4 bg-slate-50 p-4 rounded-3xl border">
@@ -836,7 +927,32 @@ $usage_disk = 0; // Disk usage calculation would go here
         }
 
         // App Modal Logic
-        function openAppModal(app, appName) {
+        async function resetPassword(action, keyName, keyValue) {
+            const newPass = prompt("Enter new password for " + keyValue + ":");
+            if (!newPass) return;
+
+            const formData = new FormData();
+            formData.append('ajax_action', action);
+            formData.append(keyName, keyValue);
+            formData.append('new_pass', newPass);
+
+            try {
+                const res = await fetch('', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.msg);
+                }
+            } catch (e) {
+                alert('System Error');
+            }
+        }
+
+        async function openAppModal(app, appName) {
             const domainId = prompt(`Install ${appName} to which domain? (Enter Domain ID)\n\nAvailable IDs:\n<?php foreach ($domains as $d)
                 echo $d['id'] . ": " . $d['domain'] . "\n"; ?>`);
             if (!domainId) return;

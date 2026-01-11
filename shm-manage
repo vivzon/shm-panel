@@ -1,0 +1,454 @@
+#!/bin/bash
+
+# ==============================================================================
+# SHM PANEL - BACKEND ENGINE (shm-manage)
+# ==============================================================================
+# This script handles all privileged operations for WHM and CPanel.
+# It is called via sudo from the PHP frontend.
+# ==============================================================================
+
+source /etc/shm/config.sh
+
+# Helper: Log Action
+log_action() {    echo "[$(date)] $1" >> /var/log/shm-manage.log
+}
+
+# Helper: Safe PHP Reload (Prevents 502)
+safe_reload_php() {
+    # Sleep 5s to allow PHP script to finish request and close connection
+    nohup bash -c "sleep 5; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
+}
+
+case "$1" in
+
+    # --------------------------------------------------------------------------
+    # ACCOUNT MANAGEMENT
+    # --------------------------------------------------------------------------
+    create-account)
+        # $2: user, $3: domain, $4: email, $5: pass
+        USER=$2; DOM=$3; EMAIL=$4; PASS=$5
+        
+        if id "$USER" &>/dev/null; then echo "User exists"; exit 1; fi
+        
+        # 1. System User
+        useradd -m -d /var/www/clients/$USER -s /bin/bash $USER
+        chmod 711 /var/www/clients/$USER
+        mkdir -p /var/www/clients/$USER/{public_html,logs,tmp,mail}
+        chown -R $USER:$USER /var/www/clients/$USER
+        
+        # 2. PHP-FPM Pool
+        cat > /etc/php/8.2/fpm/pool.d/$USER.conf << PHP
+[$USER]
+user = $USER
+group = $USER
+listen = /run/php/php8.2-fpm-$USER.sock
+listen.owner = www-data
+listen.group = www-data
+pm = ondemand
+pm.max_children = 5
+php_admin_value[open_basedir] = /var/www/clients/$USER:/tmp
+php_admin_value[upload_max_filesize] = 64M
+php_admin_value[post_max_size] = 64M
+PHP
+PHP
+
+        # 3. Nginx VHost
+        cat > /etc/nginx/sites-available/$DOM << NGINX
+server {
+    listen 80;
+    server_name $DOM www.$DOM;
+    root /var/www/clients/$USER/public_html;
+    index index.php index.html;
+    
+    access_log /var/www/clients/$USER/logs/access.log;
+    error_log /var/www/clients/$USER/logs/error.log;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.2-fpm-$USER.sock;
+    }
+}
+NGINX
+        ln -s /etc/nginx/sites-available/$DOM /etc/nginx/sites-enabled/
+        systemctl reload nginx
+
+        # 4. Default Index
+        echo "<h1>Welcome to $DOM</h1><p>Hosted by SHM Panel</p>" > /var/www/clients/$USER/public_html/index.html
+        chown $USER:$USER /var/www/clients/$USER/public_html/index.html
+
+        log_action "Created account: $USER ($DOM)"
+        
+        # Trigger Reload at the END
+        safe_reload_php
+        ;;
+
+    delete-account)
+        # $2: user
+        USER=$2
+        
+        # Find domain to remove vhost
+        DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" $DB_NAME)
+        
+        if [ ! -z "$DOM" ]; then
+            rm -f /etc/nginx/sites-enabled/$DOM
+            rm -f /etc/nginx/sites-available/$DOM
+        fi
+        
+        rm -f /etc/php/8.2/fpm/pool.d/$USER.conf
+        
+        # Kill user processes
+        pkill -u $USER
+        
+        # Remove User & Files
+        userdel -r $USER
+        
+        systemctl reload nginx
+        systemctl reload nginx
+        safe_reload_php
+        
+        log_action "Deleted account: $USER"
+        ;;
+
+    add-domain)
+        # $2: user, $3: domain
+        USER=$2; DOM=$3
+        
+        DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
+        mkdir -p $DOCROOT
+        echo "<h1>$DOM</h1><p>Additional Domain</p>" > $DOCROOT/index.html
+        chown -R $USER:$USER /var/www/clients/$USER/domains
+        
+        cat > /etc/nginx/sites-available/$DOM << NGINX
+server {
+    listen 80;
+    server_name $DOM www.$DOM;
+    root $DOCROOT;
+    index index.php index.html;
+    
+    access_log /var/www/clients/$USER/logs/access.log;
+    error_log /var/www/clients/$USER/logs/error.log;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.2-fpm-$USER.sock;
+    }
+}
+NGINX
+        ln -s /etc/nginx/sites-available/$DOM /etc/nginx/sites-enabled/
+        systemctl reload nginx
+        
+        log_action "Added Domain: $DOM for $USER"
+        ;;
+
+    delete-domain)
+        # $2: user, $3: domain
+        USER=$2; DOM=$3
+        
+        # Remove Nginx Config
+        rm -f /etc/nginx/sites-enabled/$DOM
+        rm -f /etc/nginx/sites-available/$DOM
+        
+        # Remove Files (Remove the specific domain directory)
+        DOCROOT="/var/www/clients/$USER/domains/$DOM"
+        if [ -d "$DOCROOT" ]; then
+            rm -rf $DOCROOT
+        fi
+        
+        systemctl reload nginx
+        log_action "Deleted Domain: $DOM for $USER"
+        ;;
+
+    suspend-account)
+        # $2: user
+        USER=$2
+        # Find domain
+        DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" $DB_NAME)
+        
+        if [ ! -z "$DOM" ]; then
+            rm -f /etc/nginx/sites-enabled/$DOM
+        fi
+        
+        # Disable PHP Pool
+        if [ -f "/etc/php/8.2/fpm/pool.d/$USER.conf" ]; then
+            mv /etc/php/8.2/fpm/pool.d/$USER.conf /etc/php/8.2/fpm/pool.d/$USER.conf.disabled
+        fi
+        
+        # Kill processes
+        pkill -u $USER
+        
+        systemctl reload nginx
+        nohup bash -c "sleep 1; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
+        
+        log_action "Suspended account: $USER"
+        ;;
+
+    unsuspend-account)
+        # $2: user
+        USER=$2
+        # Find domain
+        DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" $DB_NAME)
+        
+        if [ ! -z "$DOM" ]; then
+            ln -sf /etc/nginx/sites-available/$DOM /etc/nginx/sites-enabled/
+        fi
+        
+        # Enable PHP Pool
+        if [ -f "/etc/php/8.2/fpm/pool.d/$USER.conf.disabled" ]; then
+            mv /etc/php/8.2/fpm/pool.d/$USER.conf.disabled /etc/php/8.2/fpm/pool.d/$USER.conf
+        fi
+        
+        systemctl reload nginx
+        nohup bash -c "sleep 1; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
+        
+        log_action "Unsuspended account: $USER"
+        ;;
+
+    reset-account)
+        # $2: user
+        USER=$2
+        
+        # 1. Get Client ID
+        CID=$(mysql -N -s -e "SELECT id FROM clients WHERE username='$USER'" $DB_NAME)
+        
+        # 2. Drop Databases
+        mysql -N -s -e "SELECT db_name FROM client_databases WHERE client_id=$CID" $DB_NAME | while read DB; do
+            mysql -e "DROP DATABASE IF EXISTS $DB;"
+            log_action "Dropped DB (Reset): $DB"
+        done
+        
+        # 3. Wipe Web Content
+        DOCROOT="/var/www/clients/$USER/public_html"
+        if [ -d "$DOCROOT" ]; then
+            rm -rf $DOCROOT/*
+            # Restore Default
+            echo "<h1>Welcome to $USER</h1><p>Account has been reset.</p>" > $DOCROOT/index.html
+            chown $USER:$USER $DOCROOT/index.html
+        fi
+        
+        log_action "Reset Account: $USER"
+        ;;
+
+    # --------------------------------------------------------------------------
+    # MYSQL TOOL
+    # --------------------------------------------------------------------------
+    mysql-tool)
+        SUB=$2
+        if [ "$SUB" == "create-db" ]; then
+            # $3: db_name
+            mysql -e "CREATE DATABASE IF NOT EXISTS $3;"
+            log_action "Created DB: $3"
+        elif [ "$SUB" == "create-user" ]; then
+            # $3: db_user, $4: db_pass, $5: target_db
+            mysql -e "CREATE USER '$3'@'localhost' IDENTIFIED BY '$4';"
+            mysql -e "GRANT ALL PRIVILEGES ON $5.* TO '$3'@'localhost';"
+            mysql -e "FLUSH PRIVILEGES;"
+            log_action "Created DB User: $3 for $5"
+        elif [ "$SUB" == "delete-db" ]; then
+            # $3: db_name
+            mysql -e "DROP DATABASE IF EXISTS $3;"
+            log_action "Dropped DB: $3"
+        elif [ "$SUB" == "reset-pass" ]; then
+            # $3: db_user, $4: new_pass
+            mysql -e "ALTER USER '$3'@'localhost' IDENTIFIED BY '$4';"
+            mysql -e "FLUSH PRIVILEGES;"
+            log_action "Reset Pass DB User: $3"
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # DNS TOOL
+    # --------------------------------------------------------------------------
+    dns-tool)
+        SUB=$2
+        if [ "$SUB" == "sync" ]; then
+            # $3: domain_id
+            DOM_INFO=$(mysql -N -s -e "SELECT domain FROM domains WHERE id=$3" $DB_NAME)
+            
+            # Start Zone File
+            ZONE_FILE="/etc/bind/zones/db.$DOM_INFO"
+            cat > $ZONE_FILE <<ZONE
+\$TTL 86400
+@ IN SOA ns1.$MAIN_DOMAIN. $ADMIN_EMAIL. ( $(date +%Y%m%d)01 3600 900 604800 86400 )
+@ IN NS ns1.$MAIN_DOMAIN.
+@ IN NS ns2.$MAIN_DOMAIN.
+@ IN A $(hostname -I | awk '{print $1}')
+www IN CNAME @
+ZONE
+            
+            # Append Records from DB
+            mysql -N -s -e "SELECT host, type, value FROM dns_records WHERE domain_id=$3" $DB_NAME | while read host type value; do
+                echo "$host IN $type $value" >> $ZONE_FILE
+            done
+            
+            # Ensure Bind knows about it (simplistic check)
+            if ! grep -q "zone \"$DOM_INFO\"" /etc/bind/named.conf.local; then
+                echo "zone \"$DOM_INFO\" { type master; file \"$ZONE_FILE\"; };" >> /etc/bind/named.conf.local
+            fi
+            
+            systemctl reload bind9
+            log_action "Synced DNS for $DOM_INFO"
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # VHOST TOOL (PHP Version & SSL Switcher)
+    # --------------------------------------------------------------------------
+    vhost-tool)
+        SUB=$2
+        if [ "$SUB" == "sync" ]; then
+            # $3: domain_id
+            read DOM USER PHP_VER SSL <<< $(mysql -N -s -e "SELECT d.domain, c.username, d.php_version, d.ssl_active FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$3" $DB_NAME)
+            
+            VHOST="/etc/nginx/sites-available/$DOM"
+            
+            # PHP Sock
+            SOCK="php$PHP_VER-fpm-$USER.sock"
+            
+            cat > $VHOST <<CONF
+server {
+    listen 80;
+    server_name $DOM www.$DOM;
+    root /var/www/clients/$USER/public_html;
+    index index.php index.html;
+
+    location / { try_files \$uri \$uri/ /index.php?\$args; }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/$SOCK;
+    }
+}
+CONF
+            # SSL Handling (Simple Certbot trigger)
+            if [ "$SSL" == "1" ]; then
+                certbot --nginx -d $DOM -d www.$DOM --non-interactive --agree-tos --email $ADMIN_EMAIL --redirect
+            fi
+            
+            # Memory Limit update
+            MEM=$(mysql -N -s -e "SELECT memory_limit FROM php_config WHERE domain_id=$3" $DB_NAME)
+            if [ ! -z "$MEM" ]; then
+                # Update pool config (simplified sed replace)
+                POOL="/etc/php/$PHP_VER/fpm/pool.d/$USER.conf"
+                if grep -q "php_admin_value\[memory_limit\]" $POOL; then
+                    sed -i "s/php_admin_value\[memory_limit\].*/php_admin_value[memory_limit] = $MEM/" $POOL
+                else
+                    echo "php_admin_value[memory_limit] = $MEM" >> $POOL
+                fi
+                systemctl reload php$PHP_VER-fpm
+            fi
+
+            systemctl reload nginx
+            log_action "Synced VHOST for $DOM (PHP $PHP_VER)"
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # SERVICE CONTROL
+    # --------------------------------------------------------------------------
+    service-status)
+        systemctl is-active $2
+        ;;
+        
+    service-control)
+        # $2: op, $3: service
+        if [ "$3" == "php8.2-fpm" ] && [ "$2" == "reload" ]; then
+            safe_reload_php
+        else
+            systemctl $2 $3
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # APP INSTALLER TOOL
+    # --------------------------------------------------------------------------
+    app-tool)
+        CMD=$2
+        DOM=$3
+        
+        # Get User Info for Domain
+        read USER PHP_VER <<< $(mysql -N -s -e "SELECT c.username, d.php_version FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" $DB_NAME)
+        
+        DOCROOT="/var/www/clients/$USER/public_html"
+        TMP="/tmp/install_$USER"
+        mkdir -p $TMP
+        
+        log_action "Starting App Install: $CMD for $DOM ($USER)"
+        
+        if [ "$CMD" == "wordpress" ]; then
+            # WordPress Install
+            wget https://wordpress.org/latest.tar.gz -O $TMP/wp.tar.gz
+            tar -xzf $TMP/wp.tar.gz -C $TMP
+            cp -r $TMP/wordpress/* $DOCROOT/
+            chown -R $USER:$USER $DOCROOT
+            # Clean up
+            rm -rf $TMP
+            log_action "Installed WordPress for $DOM"
+            
+        elif [ "$CMD" == "laravel" ]; then
+            # Laravel Install (via Composer)
+            cd /var/www/clients/$USER
+            rm -rf public_html_bak
+            mv public_html public_html_bak
+            
+            # Create Project
+            # Run as user to ensure permissions
+            sudo -u $USER composer create-project laravel/laravel public_html
+            
+            # Fix Permissions
+            chmod -R 775 $DOCROOT/storage $DOCROOT/bootstrap/cache
+            
+            # Update Nginx Root to /public
+            sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
+            systemctl reload nginx
+            log_action "Installed Laravel for $DOM"
+
+        elif [ "$CMD" == "codeigniter" ]; then
+            # CI4 Install
+            wget https://github.com/codeigniter4/framework/archive/refs/tags/v4.4.4.zip -O $TMP/ci.zip
+            unzip -q $TMP/ci.zip -d $TMP
+            cp -r $TMP/framework-4.4.4/* $DOCROOT/
+            chown -R $USER:$USER $DOCROOT
+            
+            # Update Nginx Root to /public
+            sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
+            systemctl reload nginx
+            log_action "Installed CodeIgniter for $DOM"
+
+        elif [ "$CMD" == "react" ]; then
+            # React (Vite) Install
+            cd /var/www/clients/$USER
+            rm -rf public_html_bak
+            mv public_html public_html_bak
+            mkdir public_html
+            
+            # We scaffold into a temp dir then move to public_html to keep structure
+            sudo -u $USER npm create vite@latest public_html -- --template react
+            
+            cd public_html
+            sudo -u $USER npm install
+            sudo -u $USER npm run build
+            
+            # Update Nginx Root to /dist
+            sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/dist;|" /etc/nginx/sites-available/$DOM
+            systemctl reload nginx
+            log_action "Installed React for $DOM"
+        fi
+        ;;
+
+    get-stats)
+        CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
+        RAM=$(free -m | awk '/Mem:/ {print int($3/$2 * 100)}')
+        DISK=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
+        UPTIME=$(uptime -p | sed 's/up //')
+        echo "$CPU|$RAM|$DISK|$UPTIME"
+        ;;
+
+esac

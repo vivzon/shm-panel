@@ -45,6 +45,9 @@ if (isset($_POST['ajax_action'])) {
 
                 // IMPORTANT: Send response BEFORE the long-running shell command to prevent 502
                 echo json_encode($res);
+                if (ob_get_level() > 0)
+                    ob_end_flush();
+                flush();
                 if (function_exists('fastcgi_finish_request'))
                     fastcgi_finish_request();
 
@@ -63,6 +66,9 @@ if (isset($_POST['ajax_action'])) {
             $pdo->prepare("DELETE FROM clients WHERE id = ?")->execute([$id]);
 
             echo json_encode($res);
+            if (ob_get_level() > 0)
+                ob_end_flush();
+            flush();
             if (function_exists('fastcgi_finish_request'))
                 fastcgi_finish_request();
             cmd("delete-account " . escapeshellarg($user));
@@ -77,6 +83,9 @@ if (isset($_POST['ajax_action'])) {
             $pdo->prepare("UPDATE clients SET status = ? WHERE username = ?")->execute([$status, $user]);
 
             echo json_encode($res);
+            if (ob_get_level() > 0)
+                ob_end_flush();
+            flush();
             if (function_exists('fastcgi_finish_request'))
                 fastcgi_finish_request();
 
@@ -95,6 +104,9 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'reset_account') {
             $user = $_POST['user'];
             echo json_encode($res);
+            if (ob_get_level() > 0)
+                ob_end_flush();
+            flush();
             if (function_exists('fastcgi_finish_request'))
                 fastcgi_finish_request();
             cmd("reset-account " . escapeshellarg($user));
@@ -137,6 +149,9 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Invalid Operation");
 
             echo json_encode($res);
+            if (ob_get_level() > 0)
+                ob_end_flush();
+            flush();
             if (function_exists('fastcgi_finish_request'))
                 fastcgi_finish_request();
             cmd("service-control " . $op . " " . escapeshellarg($_POST['service']));

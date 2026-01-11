@@ -100,7 +100,14 @@ chown -R www-data:www-data /var/www/panel /var/www/apps
 chmod -R 755 /var/www/panel
 
 # --- 6. Configure Apps (Webmail/PMA) ---
-# If they don't exist, install them.
+# File Manager
+log "Deploying File Manager..."
+mkdir -p /var/www/apps/filemanager
+cp cpanel/files.php /var/www/apps/filemanager/index.php
+cp cpanel/login.php /var/www/apps/filemanager/login.php
+cp cpanel/logout.php /var/www/apps/filemanager/logout.php
+
+# PHPMyAdmin Basic Setup (if not present)
 if [ ! -d "/var/www/apps/phpmyadmin" ]; then
     log "Installing phpMyAdmin..."
     mkdir -p /var/www/apps/phpmyadmin
