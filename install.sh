@@ -1,25 +1,62 @@
 #!/bin/bash
 
 # ==============================================================================
-# SHM PANEL - PRODUCTION INSTALLER
+# SHM PANEL - PRODUCTION INSTALLER (v5.1 Stable)
 # ==============================================================================
-# This script deploys the local SHM Panel project to your server.
+# This script deploys the SHM Panel project to your server.
 # Run this script as root from the directory containing the project files.
 # ==============================================================================
 
 export DEBIAN_FRONTEND=noninteractive
 
+# --- Colors & Logging ---
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+log() { echo -e "${GREEN}[INSTALLER] $1${NC}"; }
+warn() { echo -e "${YELLOW}[WARNING] $1${NC}"; }
+error() { echo -e "${RED}[ERROR] $1${NC}"; exit 1; }
+
+# --- 0. Pre-Flight Checks ---
+if [ "$EUID" -ne 0 ]; then error "Please run as root (sudo ./install.sh)"; fi
+
+if [ ! -f "shm-manage" ]; then
+    error "File 'shm-manage' not found in current directory. Please ensure you are in the project root."
+fi
+
+# Detect OS
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$NAME
+    VER=$VERSION_ID
+    if [[ "$OS" != *"Ubuntu"* && "$OS" != *"Debian"* ]]; then
+        warn "Detected OS: $OS. This installer is optimized for Ubuntu 20.04+/Debian 11+."
+        read -p "Continue anyway? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
+    fi
+fi
+
 # --- Configuration ---
-# --- Configuration ---
+clear
+echo -e "${BLUE}"
+echo "  _____________________________________"
+echo " / SHM Panel - Installation Wizard    \\"
+echo " \____________________________________/"
+echo -e "${NC}"
+
 if [ -z "$MAIN_DOMAIN" ]; then
-    read -p "Enter Main Domain (e.g. example.com): " MAIN_DOMAIN
+    read -p "Enter Main Domain (e.g. vivzon.cloud): " MAIN_DOMAIN
 fi
 
 if [ -z "$ADMIN_EMAIL" ]; then
-    read -p "Enter Admin Email: " ADMIN_EMAIL
+    read -p "Enter Admin Email (e.g. admin@vivzon.cloud): " ADMIN_EMAIL
 fi
 
-# Fallback defaults if empty
+# Fallback defaults
 MAIN_DOMAIN=${MAIN_DOMAIN:-vivzon.cloud}
 ADMIN_EMAIL=${ADMIN_EMAIL:-admin@$MAIN_DOMAIN}
 DB_NAME="shm_panel"
@@ -27,41 +64,55 @@ DB_USER="shm_admin"
 DB_PASS=$(openssl rand -base64 16)
 MYSQL_ROOT_PASS=$(openssl rand -base64 18)
 
-# Colors
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-NC='\033[0m'
-
-log() { echo -e "${GREEN}[$(date +'%H:%M:%S')] $1${NC}"; }
-error() { echo -e "${RED}[ERROR] $1${NC}"; }
-
-if [ "$EUID" -ne 0 ]; then error "Please run as root"; exit 1; fi
+cat <<INFO
+-----------------------------------------------
+Target Domain:  $MAIN_DOMAIN
+Admin Email:    $ADMIN_EMAIL
+Database Name:  $DB_NAME
+Database User:  $DB_USER
+-----------------------------------------------
+INFO
 
 # --- 1. System Prep ---
 log "Updating System & Installing Dependencies..."
-apt update && apt upgrade -y
-apt install -y software-properties-common curl wget git zip unzip ufw fail2ban certbot python3-certbot-nginx acl quota bind9 dovecot-core dovecot-imapd dovecot-pop3d dovecot-mysql postfix postfix-mysql proftpd-basic proftpd-mod-mysql mariadb-server mariadb-client
+apt-get update
+apt-get upgrade -y
+# Install essential core packages
+apt-get install -y software-properties-common curl wget git zip unzip ufw fail2ban acl quota jq
 
+# Install Web Stack & Mail Stack
+apt-get install -y certbot python3-certbot-nginx bind9
+apt-get install -y dovecot-core dovecot-imapd dovecot-pop3d dovecot-mysql postfix postfix-mysql
+apt-get install -y proftpd-basic proftpd-mod-mysql 
+apt-get install -y mariadb-server mariadb-client
+
+# Add PHP Repo
 add-apt-repository ppa:ondrej/php -y
-apt update
+apt-get update
 
-# Install PHP Versions
+# Install PHP Versions (8.1, 8.2, 8.3) - 8.2 is Default
+log "Installing PHP Versions..."
 for v in 8.1 8.2 8.3; do
-    apt install -y php$v-fpm php$v-mysql php$v-common php$v-gd php$v-mbstring php$v-xml php$v-zip php$v-curl php$v-bcmath php$v-intl php$v-imagick php$v-cli
+    apt-get install -y php$v-fpm php$v-mysql php$v-common php$v-gd php$v-mbstring php$v-xml php$v-zip php$v-curl php$v-bcmath php$v-intl php$v-imagick php$v-cli
 done
 
-# Install Composer (Global)
-log "Installing Composer..."
-curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Install Composer
+if ! command -v composer &> /dev/null; then
+    log "Installing Composer..."
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+fi
 
 # Install Node.js & NPM (LTS v20)
-log "Installing Node.js..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt install -y nodejs
+if ! command -v node &> /dev/null; then
+    log "Installing Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y nodejs
+fi
 
 # --- 2. Database Setup ---
-log "Configuring Database..."
+log "Configuring Database (MariaDB)..."
+
+# Secure MariaDB
 mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';"
 cat > /root/.my.cnf << EOF
 [client]
@@ -70,6 +121,7 @@ password=$MYSQL_ROOT_PASS
 EOF
 chmod 600 /root/.my.cnf
 
+# Create App DB
 mysql -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
 mysql -e "CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';"
 mysql -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
@@ -77,8 +129,7 @@ mysql -e "FLUSH PRIVILEGES;"
 
 # Import Schema
 log "Importing Schema..."
-# (Consolidated Schema from Analysis)
-mysql $DB_NAME << EOF
+mysql $DB_NAME << SQL
 CREATE TABLE IF NOT EXISTS clients (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(32) UNIQUE, email VARCHAR(255), password VARCHAR(255), status ENUM('active','suspended') DEFAULT 'active', package_id INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS domains (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain VARCHAR(255) UNIQUE, document_root VARCHAR(255), php_version VARCHAR(5) DEFAULT '8.2', ssl_active BOOLEAN DEFAULT 0, FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS packages (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), disk_mb INT, max_domains INT, max_emails INT, max_databases INT DEFAULT 5);
@@ -93,66 +144,63 @@ CREATE TABLE IF NOT EXISTS php_config (domain_id INT PRIMARY KEY, memory_limit V
 
 -- Default Data
 INSERT IGNORE INTO packages VALUES (1, 'Starter', 2000, 1, 5, 2), (2, 'Business', 10000, 10, 50, 10);
-INSERT IGNORE INTO admins (username, password) VALUES ('admin', '\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'); -- admin / admin123
-EOF
+-- Admin: admin / admin123 (bcrypt hash)
+INSERT IGNORE INTO admins (username, password) VALUES ('admin', '\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+SQL
 
 # --- 3. Backend Deployment ---
-log "Deploying Backend Engine..."
+log "Deploying Backend Engine (shm-manage)..."
 cp shm-manage /usr/local/bin/shm-manage
 chmod +x /usr/local/bin/shm-manage
-mkdir -p /etc/shm
-echo "DB_NAME='$DB_NAME'" > /etc/shm/config.sh
-echo "MAIN_DOMAIN='$MAIN_DOMAIN'" >> /etc/shm/config.sh
-echo "ADMIN_EMAIL='$ADMIN_EMAIL'" >> /etc/shm/config.sh
 
-# Sudoers
+mkdir -p /etc/shm
+cat > /etc/shm/config.sh << CONFIG
+DB_NAME='$DB_NAME'
+MAIN_DOMAIN='$MAIN_DOMAIN'
+ADMIN_EMAIL='$ADMIN_EMAIL'
+CONFIG
+
+# Allow Web Server to run shm-manage via sudo
 echo "www-data ALL=(root) NOPASSWD: /usr/local/bin/shm-manage" > /etc/sudoers.d/shm
+chmod 0440 /etc/sudoers.d/shm
 
 # --- 4. Frontend Deployment ---
 log "Deploying Frontend Files..."
+# Create Directories
 mkdir -p /var/www/panel/{whm,cpanel,shared,landing}
 mkdir -p /var/www/clients
 mkdir -p /var/www/apps
+# Link Shared for auto-updates if needed
 ln -sf /var/www/panel/shared /var/www/apps/shared
 
-# File Manager (Native Vivzon FM)
+# Copy Files
+# Ensure the source directories exist locally
+if [ -d "whm" ]; then cp -r whm/* /var/www/panel/whm/; fi
+if [ -d "cpanel" ]; then cp -r cpanel/* /var/www/panel/cpanel/; fi
+if [ -d "landing" ]; then cp -r landing/* /var/www/panel/landing/ 2>/dev/null || echo "<h1>Welcome to SHM</h1>" > /var/www/panel/landing/index.html; fi
+if [ -d "shared" ]; then cp shared/config.php /var/www/panel/shared/config.php; fi
+
+# File Manager Setup
 mkdir -p /var/www/apps/filemanager
-cp cpanel/files.php /var/www/apps/filemanager/index.php
-cp cpanel/login.php /var/www/apps/filemanager/login.php
+if [ -f "cpanel/files.php" ]; then cp cpanel/files.php /var/www/apps/filemanager/index.php; fi
+if [ -f "cpanel/login.php" ]; then cp cpanel/login.php /var/www/apps/filemanager/login.php; fi
 
-cp -r whm/* /var/www/panel/whm/
-cp -r cpanel/* /var/www/panel/cpanel/
-    
-# ... (rest of copy commands) ...
+# Update Config with Real Password
+sed -i "s/SHMPanel_Secure_Pass_2025/$DB_PASS/" /var/www/panel/shared/config.php
 
-# Postfix/Dovecot SQL Config
-cat > /etc/dovecot/dovecot-sql.conf.ext << EOF
-driver = mysql
-connect = host=localhost dbname=$DB_NAME user=$DB_USER password=$DB_PASS
-default_pass_scheme = BLF-CRYPT
-password_query = SELECT email as user, password FROM mail_users WHERE email='%u';
-user_query = SELECT 5000 as uid, 5000 as gid, '/var/mail/vhosts/%d/%n' as home;
-EOF
-
-# Enable SQL Auth in Dovecot (Disable System Auth)
-sed -i 's/!include auth-system.conf.ext/#!include auth-system.conf.ext/' /etc/dovecot/conf.d/10-auth.conf
-sed -i 's/#!include auth-sql.conf.ext/!include auth-sql.conf.ext/' /etc/dovecot/conf.d/10-auth.conf
-
-cat > /etc/postfix/mysql-virtual-mailbox-domains.cf << EOF
-cp -r landing/* /var/www/panel/landing/ 2>/dev/null || echo "<h1>Welcome</h1>" > /var/www/panel/landing/index.html
-cp shared/config.php /var/www/panel/shared/config.php
-
-# --- 4a. Install Web Apps ---
-log "Installing Web Apps..."
+# --- 4a. Install Web Apps (PMA, Roundcube) ---
+log "Installing Web Apps (phpMyAdmin, Roundcube)..."
 
 # 1. phpMyAdmin
-mkdir -p /var/www/apps/phpmyadmin
-wget https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.zip -O /tmp/pma.zip
-unzip -q /tmp/pma.zip -d /tmp/
-mv /tmp/phpMyAdmin-5.2.1-all-languages/* /var/www/apps/phpmyadmin/
-rm -rf /tmp/pma*
-# PMA Config
-cat > /var/www/apps/phpmyadmin/config.inc.php << PMA
+if [ ! -d "/var/www/apps/phpmyadmin" ]; then
+    mkdir -p /var/www/apps/phpmyadmin
+    wget -q https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.zip -O /tmp/pma.zip
+    unzip -q /tmp/pma.zip -d /tmp/
+    mv /tmp/phpMyAdmin-5.2.1-all-languages/* /var/www/apps/phpmyadmin/
+    rm -rf /tmp/pma*
+    
+    # PMA Config
+    cat > /var/www/apps/phpmyadmin/config.inc.php << PMA
 <?php
 \$i = 0;
 \$i++;
@@ -164,18 +212,22 @@ cat > /var/www/apps/phpmyadmin/config.inc.php << PMA
 \$cfg['SaveDir'] = '';
 ?>
 PMA
+fi
 
 # 2. Roundcube Webmail
-mkdir -p /var/www/apps/webmail
-wget https://github.com/roundcube/roundcubemail/releases/download/1.6.6/roundcubemail-1.6.6-complete.tar.gz -O /tmp/rc.tar.gz
-tar -xf /tmp/rc.tar.gz -C /tmp/
-mv /tmp/roundcubemail-1.6.6/* /var/www/apps/webmail/
-rm -rf /tmp/rc*
-# Roundcube Config (Auto-create RC DB)
-mysql -e "CREATE DATABASE IF NOT EXISTS roundcube;"
-mysql -e "GRANT ALL PRIVILEGES ON roundcube.* TO '$DB_USER'@'localhost';"
-mysql roundcube < /var/www/apps/webmail/SQL/mysql.initial.sql
-cat > /var/www/apps/webmail/config/config.inc.php << RC
+if [ ! -d "/var/www/apps/webmail" ]; then
+    mkdir -p /var/www/apps/webmail
+    wget -q https://github.com/roundcube/roundcubemail/releases/download/1.6.6/roundcubemail-1.6.6-complete.tar.gz -O /tmp/rc.tar.gz
+    tar -xf /tmp/rc.tar.gz -C /tmp/
+    mv /tmp/roundcubemail-1.6.6/* /var/www/apps/webmail/
+    rm -rf /tmp/rc*
+    
+    # DB for Roundcube
+    mysql -e "CREATE DATABASE IF NOT EXISTS roundcube;"
+    mysql -e "GRANT ALL PRIVILEGES ON roundcube.* TO '$DB_USER'@'localhost';"
+    mysql roundcube < /var/www/apps/webmail/SQL/mysql.initial.sql
+    
+    cat > /var/www/apps/webmail/config/config.inc.php << RC
 <?php
 \$config['db_dsnw'] = 'mysql://$DB_USER:$DB_PASS@localhost/roundcube';
 \$config['default_host'] = 'localhost';
@@ -185,23 +237,18 @@ cat > /var/www/apps/webmail/config/config.inc.php << RC
 \$config['smtp_pass'] = '%p';
 \$config['support_url'] = '';
 \$config['product_name'] = 'SHM Webmail';
-\$config['des_key'] = 'rc_secret_key_change_me';
+\$config['des_key'] = '$(openssl rand -hex 12)';
 \$config['plugins'] = ['archive', 'zipdownload'];
 ?>
 RC
-chown -R www-data:www-data /var/www/apps
+fi
 
-# Update Config with Real Password
-sed -i "s/SHMPanel_Secure_Pass_2025/$DB_PASS/" /var/www/panel/shared/config.php
-
-# Permissions
-chown -R www-data:www-data /var/www/panel
+# Set Permissions
+chown -R www-data:www-data /var/www/panel /var/www/apps
 chmod -R 755 /var/www/panel
 
-# --- 4b. Service Configuration (SQL Auth) ---
-log "Configuring Services for SQL..."
-
-# ProFTPD SQL Config
+# --- 5. Service Configuration (SQL Auth) ---
+# ProFTPD
 cat > /etc/proftpd/sql.conf << EOF
 <IfModule mod_sql.c>
     SQLBackend mysql
@@ -212,9 +259,11 @@ cat > /etc/proftpd/sql.conf << EOF
     SQLUserInfo ftp_users userid passwd uid gid homedir shell
 </IfModule>
 EOF
-sed -i 's|#Include /etc/proftpd/sql.conf|Include /etc/proftpd/sql.conf|' /etc/proftpd/proftpd.conf
+if ! grep -q "Include /etc/proftpd/sql.conf" /etc/proftpd/proftpd.conf; then
+    echo "Include /etc/proftpd/sql.conf" >> /etc/proftpd/proftpd.conf
+fi
 
-# Postfix/Dovecot SQL Config
+# Postfix/Dovecot
 cat > /etc/dovecot/dovecot-sql.conf.ext << EOF
 driver = mysql
 connect = host=localhost dbname=$DB_NAME user=$DB_USER password=$DB_PASS
@@ -223,6 +272,11 @@ password_query = SELECT email as user, password FROM mail_users WHERE email='%u'
 user_query = SELECT 5000 as uid, 5000 as gid, '/var/mail/vhosts/%d/%n' as home;
 EOF
 
+# Fix Dovecot Auth
+sed -i 's/!include auth-system.conf.ext/#!include auth-system.conf.ext/' /etc/dovecot/conf.d/10-auth.conf
+sed -i 's/#!include auth-sql.conf.ext/!include auth-sql.conf.ext/' /etc/dovecot/conf.d/10-auth.conf
+
+# Postfix SQL Maps
 cat > /etc/postfix/mysql-virtual-mailbox-domains.cf << EOF
 user = $DB_USER
 password = $DB_PASS
@@ -239,7 +293,12 @@ dbname = $DB_NAME
 query = SELECT 1 FROM mail_users WHERE email='%s'
 EOF
 
-# --- 5. Nginx VHost Setup ---
+# Configure Postfix Main.cf (Basic)
+postconf -e "virtual_mailbox_domains = mysql:/etc/postfix/mysql-virtual-mailbox-domains.cf"
+postconf -e "virtual_mailbox_maps = mysql:/etc/postfix/mysql-virtual-mailbox-maps.cf"
+
+# --- 6. Nginx VHost Setup ---
+log "Configuring Web Server..."
 
 declare -A SUBDOMAINS=(
     ["admin.$MAIN_DOMAIN"]="/var/www/panel/whm"
@@ -250,6 +309,9 @@ declare -A SUBDOMAINS=(
     ["phpmyadmin.$MAIN_DOMAIN"]="/var/www/apps/phpmyadmin"
 )
 
+# Remove Default
+rm -f /etc/nginx/sites-enabled/default
+
 for sub in "${!SUBDOMAINS[@]}"; do
     cat > /etc/nginx/sites-available/$sub << CONF
 server {
@@ -257,23 +319,48 @@ server {
     server_name $sub;
     root ${SUBDOMAINS[$sub]};
     index index.php index.html;
-    location / { try_files \$uri \$uri/ /index.php?\$args; }
-    location ~ \.php$ { include snippets/fastcgi-php.conf; fastcgi_pass unix:/run/php/php8.2-fpm.sock; }
+    
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+    
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    # Deny dotfiles
+    location ~ /\. { deny all; }
 }
 CONF
     ln -sf /etc/nginx/sites-available/$sub /etc/nginx/sites-enabled/
 done
 
-# Restart Services
-systemctl restart nginx mysql php8.2-fpm
+# --- 7. Finalize ---
+log "Restarting Services..."
+systemctl restart nginx mysql php8.2-fpm proftpd postfix dovecot
 
-log "INSTALLATION COMPLETE"
+if systemctl is-active --quiet nginx; then
+    log "Nginx is RUNNING."
+else
+    error "Nginx failed to start. Check /var/log/nginx/error.log"
+fi
+
+echo -e "${GREEN}"
+echo "================================================"
+echo "   SHM PANEL INSTALLED SUCCESSFULLY"
+echo "================================================"
+echo "Admin Panel:   http://admin.$MAIN_DOMAIN"
+echo "Client Panel:  http://client.$MAIN_DOMAIN"
+echo "Webmail:       http://webmail.$MAIN_DOMAIN"
 echo "------------------------------------------------"
-echo "Admin Panel: http://admin.$MAIN_DOMAIN"
-echo "User Panel:  http://client.$MAIN_DOMAIN"
+echo "Admin Cloud User: admin"
+echo "Admin Cloud Pass: admin123"
 echo "------------------------------------------------"
-echo "Admin Cloud Credentials:"
-echo "User: admin"
-echo "Pass: admin123"
-echo "DB Pass: $DB_PASS"
+echo "DB Password:      $DB_PASS"
+echo "Root SQL Pass:    $MYSQL_ROOT_PASS"
 echo "------------------------------------------------"
+echo "SAVE THESE CREDENTIALS!"
+echo -e "${NC}"
