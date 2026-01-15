@@ -24,6 +24,20 @@ echo -e "\033[0;34m[SSL] Installing Certbot...\033[0m"
 apt-get update
 apt-get install -y certbot python3-certbot-nginx
 
+# 1. ensure 'www' Nginx block exists (Certbot needs it)
+if [ ! -f "/etc/nginx/sites-available/www.$MAIN_DOMAIN" ]; then
+    echo -e "\033[0;34m[SSL] Creating missing Nginx block for www.$MAIN_DOMAIN...\033[0m"
+    cat > /etc/nginx/sites-available/www.$MAIN_DOMAIN << CONF
+server {
+    listen 80;
+    server_name www.$MAIN_DOMAIN;
+    return 301 http://$MAIN_DOMAIN\$request_uri;
+}
+CONF
+    ln -sf /etc/nginx/sites-available/www.$MAIN_DOMAIN /etc/nginx/sites-enabled/
+    systemctl restart nginx
+fi
+
 echo -e "\033[0;34m[SSL] Obtaining Certificates for: $MAIN_DOMAIN ...\033[0m"
 
 # We request a SINGLE cert for all 4 subdomains if possible, or separate.
