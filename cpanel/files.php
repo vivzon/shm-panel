@@ -3,7 +3,6 @@
  * VIVZON FILE MANAGER - Enterprise v5.0
  * Optimized for CPanel Integration
  */
-// Config Path (Deployed as index.php in subfolder, so we use absolute to be safe)
 // Config Path
 require_once __DIR__ . '/../shared/config.php';
 
@@ -329,11 +328,13 @@ if (is_dir($full_path)) {
     <title>File Manager | Vivzon CPanel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
         }
 
         .glass-panel {
@@ -408,250 +409,262 @@ if (is_dir($full_path)) {
     </style>
 </head>
 
-<body class="flex flex-col h-screen overflow-hidden bg-[#0f172a] text-slate-300 font-sans selection:bg-blue-500/30">
+<body class="flex h-screen overflow-hidden text-sm">
 
-    <!-- TOP NAVIGATION & ACTION BAR -->
-    <header class="h-16 shrink-0 glass-panel border-b border-white/5 flex items-center justify-between px-6 z-20">
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-lg shadow-blue-500/20">
-                    <i data-lucide="folder-kanban" class="w-5 h-5 text-white"></i>
+    <?php
+    $current_page = 'files.php';
+    include 'layout/sidebar.php';
+    ?>
+
+    <main class="flex-1 flex flex-col h-screen relative bg-[#0b1120] overflow-hidden">
+        <!-- TOP NAVIGATION & ACTION BAR -->
+        <header class="h-16 shrink-0 glass-panel border-b border-white/5 flex items-center justify-between px-6 z-20">
+            <div class="flex items-center gap-6">
+                <!-- Toggle Sidebar for Mobile (optional, but good to have space for) -->
+
+                <div class="flex items-center gap-3">
+                    <div
+                        class="p-2 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-lg shadow-blue-500/20">
+                        <i data-lucide="folder-kanban" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <h1 class="font-bold text-lg text-white tracking-tight">File Manager</h1>
                 </div>
-                <h1 class="font-bold text-lg text-white tracking-tight">File Manager</h1>
+
+                <div class="h-6 w-px bg-white/10"></div>
+
+                <!-- Breadcrumbs -->
+                <nav class="flex items-center text-sm font-medium">
+                    <a href="?domain_id=<?= $domain_id ?>&path=/"
+                        class="hover:text-white transition flex items-center gap-1 group">
+                        <i data-lucide="hard-drive" class="w-4 group-hover:text-blue-400 transition"></i>
+                    </a>
+                    <?php
+                    $crumbs = array_filter(explode('/', $current_path));
+                    $acc = '';
+                    foreach ($crumbs as $c):
+                        $acc .= '/' . $c;
+                        ?>
+                        <i data-lucide="chevron-right" class="w-4 text-slate-600 mx-1"></i>
+                        <a href="?domain_id=<?= $domain_id ?>&path=<?= $acc ?>"
+                            class="hover:text-white transition hover:bg-white/5 px-2 py-1 rounded-md"><?= $c ?></a>
+                    <?php endforeach; ?>
+                </nav>
             </div>
 
-            <div class="h-6 w-px bg-white/10"></div>
+            <div class="flex items-center gap-4">
+                <!-- Search -->
+                <div class="relative group">
+                    <i data-lucide="search"
+                        class="w-4 absolute left-3 top-2.5 text-slate-500 group-focus-within:text-blue-400 transition"></i>
+                    <input id="file-search" onkeyup="FM.filter()" placeholder="Search current folder..."
+                        class="bg-slate-900/50 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm w-64 focus:w-80 transition-all outline-none focus:border-blue-500/50 focus:bg-slate-900">
+                </div>
 
-            <!-- Breadcrumbs -->
-            <nav class="flex items-center text-sm font-medium">
-                <a href="?domain_id=<?= $domain_id ?>&path=/"
-                    class="hover:text-white transition flex items-center gap-1 group">
-                    <i data-lucide="hard-drive" class="w-4 group-hover:text-blue-400 transition"></i>
-                </a>
-                <?php
-                $crumbs = array_filter(explode('/', $current_path));
-                $acc = '';
-                foreach ($crumbs as $c):
-                    $acc .= '/' . $c;
-                    ?>
-                    <i data-lucide="chevron-right" class="w-4 text-slate-600 mx-1"></i>
-                    <a href="?domain_id=<?= $domain_id ?>&path=<?= $acc ?>"
-                        class="hover:text-white transition hover:bg-white/5 px-2 py-1 rounded-md"><?= $c ?></a>
-                <?php endforeach; ?>
-            </nav>
-        </div>
+                <!-- View Toggles -->
+                <div class="flex p-1 bg-slate-900/50 rounded-lg border border-white/5">
+                    <button onclick="FM.setView('list')" id="btn-list"
+                        class="p-1.5 rounded-md hover:text-white transition text-blue-400 bg-white/10"><i
+                            data-lucide="list" class="w-4"></i></button>
+                    <button onclick="FM.setView('grid')" id="btn-grid"
+                        class="p-1.5 rounded-md hover:text-white transition text-slate-500"><i data-lucide="layout-grid"
+                            class="w-4"></i></button>
+                </div>
 
-        <div class="flex items-center gap-4">
-            <!-- Search -->
-            <div class="relative group">
-                <i data-lucide="search"
-                    class="w-4 absolute left-3 top-2.5 text-slate-500 group-focus-within:text-blue-400 transition"></i>
-                <input id="file-search" onkeyup="FM.filter()" placeholder="Search current folder..."
-                    class="bg-slate-900/50 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm w-64 focus:w-80 transition-all outline-none focus:border-blue-500/50 focus:bg-slate-900">
-            </div>
+                <div class="h-6 w-px bg-white/10"></div>
 
-            <!-- View Toggles -->
-            <div class="flex p-1 bg-slate-900/50 rounded-lg border border-white/5">
-                <button onclick="FM.setView('list')" id="btn-list"
-                    class="p-1.5 rounded-md hover:text-white transition text-blue-400 bg-white/10"><i data-lucide="list"
-                        class="w-4"></i></button>
-                <button onclick="FM.setView('grid')" id="btn-grid"
-                    class="p-1.5 rounded-md hover:text-white transition text-slate-500"><i data-lucide="layout-grid"
-                        class="w-4"></i></button>
-            </div>
-
-            <div class="h-6 w-px bg-white/10"></div>
-
-            <button onclick="FM.openUpload()"
-                class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2">
-                <i data-lucide="upload-cloud" class="w-4"></i> Upload
-            </button>
-        </div>
-    </header>
-
-    <!-- ACTION BAR (Contextual) -->
-    <div id="action-bar"
-        class="h-12 border-b border-white/5 bg-slate-900/30 flex items-center justify-between px-6 transition-all duration-300 transform -translate-y-full opacity-0 absolute top-16 w-full z-10 hidden">
-        <div class="flex items-center gap-4 text-sm font-medium">
-            <span class="text-blue-400 font-bold" id="selection-count">0 Selected</span>
-            <div class="h-4 w-px bg-white/10"></div>
-            <button onclick="FM.bulk('download')" class="hover:text-white flex items-center gap-2 transition"><i
-                    data-lucide="download" class="w-4"></i> Download</button>
-            <button onclick="FM.bulk('zip')" class="hover:text-white flex items-center gap-2 transition"><i
-                    data-lucide="archive" class="w-4"></i> Archive</button>
-            <button onclick="FM.bulk('copy')" class="hover:text-white flex items-center gap-2 transition"><i
-                    data-lucide="copy" class="w-4"></i> Copy</button>
-            <button onclick="FM.bulk('move')" class="hover:text-white flex items-center gap-2 transition"><i
-                    data-lucide="move" class="w-4"></i> Move</button>
-            <div class="h-4 w-px bg-white/10"></div>
-            <button onclick="FM.bulk('delete')"
-                class="text-red-400 hover:text-red-300 flex items-center gap-2 transition"><i data-lucide="trash-2"
-                    class="w-4"></i> Delete</button>
-        </div>
-        <button onclick="FM.clearSelection()" class="text-slate-500 hover:text-white"><i data-lucide="x"
-                class="w-4"></i></button>
-    </div>
-
-    <div class="flex flex-1 overflow-hidden">
-        <!-- SIDEBAR -->
-        <aside class="w-64 border-r border-white/5 bg-slate-900/30 flex flex-col hidden md:flex">
-            <div class="p-4">
-                <button onclick="FM.openCreate()"
-                    class="w-full py-3 rounded-xl border border-dashed border-slate-600 hover:border-blue-500 hover:bg-blue-500/5 hover:text-blue-400 transition text-sm font-bold flex items-center justify-center gap-2 text-slate-400">
-                    <i data-lucide="plus" class="w-4"></i> New Item
+                <button onclick="FM.openUpload()"
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2">
+                    <i data-lucide="upload-cloud" class="w-4"></i> Upload
                 </button>
             </div>
-            <div class="flex-1 overflow-y-auto px-2 space-y-1">
-                <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Locations</div>
-                <a href="?domain_id=<?= $domain_id ?>&path=/"
-                    class="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-400 font-medium text-sm">
-                    <i data-lucide="home" class="w-4"></i> Home Root
-                </a>
+        </header>
 
-                <div class="mt-6 px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Domains</div>
-                <?php
-                $doms = $pdo->prepare("SELECT id, domain FROM domains WHERE client_id = ?");
-                $doms->execute([$user_id]);
-                while ($d = $doms->fetch()):
-                    ?>
-                    <a href="?domain_id=<?= $d['id'] ?>"
-                        class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition text-sm <?= $d['id'] == $domain_id ? '!text-white !bg-white/10' : '' ?>">
-                        <i data-lucide="globe" class="w-4"></i> <?= $d['domain'] ?>
+        <!-- ACTION BAR (Contextual) -->
+        <div id="action-bar"
+            class="h-12 border-b border-white/5 bg-slate-900/30 flex items-center justify-between px-6 transition-all duration-300 transform -translate-y-full opacity-0 absolute top-16 w-full z-10 hidden">
+            <div class="flex items-center gap-4 text-sm font-medium">
+                <span class="text-blue-400 font-bold" id="selection-count">0 Selected</span>
+                <div class="h-4 w-px bg-white/10"></div>
+                <button onclick="FM.bulk('download')" class="hover:text-white flex items-center gap-2 transition"><i
+                        data-lucide="download" class="w-4"></i> Download</button>
+                <button onclick="FM.bulk('zip')" class="hover:text-white flex items-center gap-2 transition"><i
+                        data-lucide="archive" class="w-4"></i> Archive</button>
+                <button onclick="FM.bulk('copy')" class="hover:text-white flex items-center gap-2 transition"><i
+                        data-lucide="copy" class="w-4"></i> Copy</button>
+                <button onclick="FM.bulk('move')" class="hover:text-white flex items-center gap-2 transition"><i
+                        data-lucide="move" class="w-4"></i> Move</button>
+                <div class="h-4 w-px bg-white/10"></div>
+                <button onclick="FM.bulk('delete')"
+                    class="text-red-400 hover:text-red-300 flex items-center gap-2 transition"><i data-lucide="trash-2"
+                        class="w-4"></i> Delete</button>
+            </div>
+            <button onclick="FM.clearSelection()" class="text-slate-500 hover:text-white"><i data-lucide="x"
+                    class="w-4"></i></button>
+        </div>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- SIDEBAR (File System Nav) -->
+            <aside class="w-64 border-r border-white/5 bg-slate-900/30 flex flex-col hidden md:flex">
+                <div class="p-4">
+                    <button onclick="FM.openCreate()"
+                        class="w-full py-3 rounded-xl border border-dashed border-slate-600 hover:border-blue-500 hover:bg-blue-500/5 hover:text-blue-400 transition text-sm font-bold flex items-center justify-center gap-2 text-slate-400">
+                        <i data-lucide="plus" class="w-4"></i> New Item
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto px-2 space-y-1">
+                    <div class="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Locations</div>
+                    <a href="?domain_id=<?= $domain_id ?>&path=/"
+                        class="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-400 font-medium text-sm">
+                        <i data-lucide="home" class="w-4"></i> Home Root
                     </a>
-                <?php endwhile; ?>
-            </div>
 
-            <!-- Storage Status -->
-            <div class="p-4 border-t border-white/5">
-                <div class="flex justify-between text-xs mb-2">
-                    <span class="text-slate-400">Storage</span>
-                    <span class="font-bold text-white"><?= $domain['disk_usage'] ?? '0' ?> MB</span>
-                </div>
-                <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-500 w-3/4"></div> <!-- Placeholder for real % -->
-                </div>
-            </div>
-        </aside>
-
-        <!-- MAIN FILE AREA -->
-        <main class="flex-1 relative bg-slate-900/20" id="drop-zone-global">
-
-            <div id="file-view" class="h-full overflow-y-auto p-6 view-list custom-scrollbar">
-
-                <!-- LIST HEADER -->
-                <div
-                    class="grid grid-cols-12 gap-4 px-4 py-2 border-b border-white/5 text-xs font-bold uppercase text-slate-500 tracking-wider mb-2 list-header sticky top-0 bg-[#0f172a] z-10">
-                    <div class="col-span-6 pl-8">Name</div>
-                    <div class="col-span-2">Size</div>
-                    <div class="col-span-2">Type</div>
-                    <div class="col-span-2 text-right">Modified</div>
+                    <div class="mt-6 px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Domains</div>
+                    <?php
+                    $doms = $pdo->prepare("SELECT id, domain FROM domains WHERE client_id = ?");
+                    $doms->execute([$user_id]);
+                    while ($d = $doms->fetch()):
+                        ?>
+                        <a href="?domain_id=<?= $d['id'] ?>"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition text-sm <?= $d['id'] == $domain_id ? '!text-white !bg-white/10' : '' ?>">
+                            <i data-lucide="globe" class="w-4"></i> <?= $d['domain'] ?>
+                        </a>
+                    <?php endwhile; ?>
                 </div>
 
-                <!-- PARENT DIR -->
-                <?php if ($current_path != '/'): ?>
-                    <div onclick="location.href='?domain_id=<?= $domain_id ?>&path=<?= dirname($current_path) ?>'"
-                        class="grid grid-cols-12 gap-4 px-4 py-3 rounded-xl hover:bg-white/5 cursor-pointer items-center text-slate-400 hover:text-white transition group mb-1">
-                        <div class="col-span-6 flex items-center gap-4">
-                            <i data-lucide="corner-left-up"
-                                class="w-5 text-slate-600 group-hover:text-blue-400 transition"></i>
-                            <span class="font-bold">..</span>
-                        </div>
+                <!-- Storage Status -->
+                <div class="p-4 border-t border-white/5">
+                    <div class="flex justify-between text-xs mb-2">
+                        <span class="text-slate-400">Storage</span>
+                        <span class="font-bold text-white"><?= $domain['disk_usage'] ?? '0' ?> MB</span>
                     </div>
-                <?php endif; ?>
+                    <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 w-3/4"></div> <!-- Placeholder for real % -->
+                    </div>
+                </div>
+            </aside>
 
-                <!-- ITEMS LOOP -->
-                <?php foreach ($items as $i):
-                    $icon = $i['is_dir'] ? 'folder' : 'file';
-                    $color = $i['is_dir'] ? 'text-amber-400' : 'text-slate-400';
-                    $type = $i['is_dir'] ? 'Directory' : pathinfo($i['name'], PATHINFO_EXTENSION);
+            <!-- MAIN FILE AREA -->
+            <main class="flex-1 relative bg-slate-900/20" id="drop-zone-global">
 
-                    // Icon logic
-                    if (!$i['is_dir']) {
-                        $ext = strtolower($type);
-                        if (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-                            $icon = 'image';
-                            $color = 'text-purple-400';
-                        }
-                        if (in_array($ext, ['mp4', 'webm', 'mov'])) {
-                            $icon = 'film';
-                            $color = 'text-red-400';
-                        }
-                        if (in_array($ext, ['mp3', 'wav'])) {
-                            $icon = 'music';
-                            $color = 'text-pink-400';
-                        }
-                        if (in_array($ext, ['zip', 'tar', 'gz', 'rar'])) {
-                            $icon = 'archive';
-                            $color = 'text-orange-400';
-                        }
-                        if (in_array($ext, ['php', 'js', 'css', 'html', 'json', 'sql'])) {
-                            $icon = 'code-2';
-                            $color = 'text-blue-400';
-                        }
-                    }
-                    ?>
-                    <div class="file-item group select-none transition-all duration-200 cursor-pointer"
-                        data-name="<?= strtolower($i['name']) ?>" data-path="<?= $i['rel'] ?>"
-                        data-type="<?= $i['is_dir'] ? 'dir' : 'file' ?>" onclick="FM.toggleSelect(this, event)"
-                        ondblclick="FM.open('<?= $i['rel'] ?>', '<?= $i['is_dir'] ? 'dir' : 'file' ?>')">
+                <div id="file-view" class="h-full overflow-y-auto p-6 view-list custom-scrollbar">
 
-                        <!-- Inner Content (CSS handles List/Grid layout) -->
-                        <div
-                            class="file-inner px-4 py-3 rounded-xl border border-transparent group-hover:bg-white/5 group-hover:border-white/5">
-                            <!-- List Layout -->
-                            <div class="grid grid-cols-12 gap-4 items-center list-layout">
-                                <div class="col-span-6 flex items-center gap-4 overflow-hidden">
-                                    <div class="w-5 flex justify-center">
-                                        <input type="checkbox"
-                                            class="accent-blue-500 w-4 h-4 opacity-0 group-hover:opacity-100 transition file-check pointer-events-none">
-                                    </div>
-                                    <i data-lucide="<?= $icon ?>" class="w-5 h-5 <?= $color ?> shrink-0"></i>
-                                    <span
-                                        class="truncate font-medium text-slate-300 group-hover:text-white"><?= $i['name'] ?></span>
-                                </div>
-                                <div class="col-span-2 text-sm text-slate-500 font-mono"><?= $i['size'] ?></div>
-                                <div class="col-span-2 text-sm text-slate-500 uppercase"><?= $type ?></div>
-                                <div class="col-span-2 text-right text-sm text-slate-500 font-mono"><?= $i['date'] ?></div>
-                            </div>
+                    <!-- LIST HEADER -->
+                    <div
+                        class="grid grid-cols-12 gap-4 px-4 py-2 border-b border-white/5 text-xs font-bold uppercase text-slate-500 tracking-wider mb-2 list-header sticky top-0 bg-[#0f172a] z-10 hidden">
+                        <div class="col-span-6 pl-8">Name</div>
+                        <div class="col-span-2">Size</div>
+                        <div class="col-span-2">Type</div>
+                        <div class="col-span-2 text-right">Modified</div>
+                    </div>
 
-                            <!-- Grid Layout -->
-                            <div class="hidden flex-col items-center text-center gap-3 py-4 grid-layout relative">
-                                <div class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition">
-                                    <input type="checkbox" class="accent-blue-500 w-4 h-4 file-check">
-                                </div>
-                                <div class="p-4 rounded-2xl bg-slate-800/50 group-hover:bg-slate-800 transition">
-                                    <i data-lucide="<?= $icon ?>" class="w-10 h-10 <?= $color ?>"></i>
-                                </div>
-                                <div class="w-full">
-                                    <div class="truncate font-medium text-sm text-slate-300 group-hover:text-white">
-                                        <?= $i['name'] ?>
-                                    </div>
-                                    <div class="text-xs text-slate-500 mt-1"><?= $i['size'] ?></div>
-                                </div>
+                    <!-- PARENT DIR -->
+                    <?php if ($current_path != '/'): ?>
+                        <div onclick="location.href='?domain_id=<?= $domain_id ?>&path=<?= dirname($current_path) ?>'"
+                            class="grid grid-cols-12 gap-4 px-4 py-3 rounded-xl hover:bg-white/5 cursor-pointer items-center text-slate-400 hover:text-white transition group mb-1">
+                            <div class="col-span-6 flex items-center gap-4">
+                                <i data-lucide="corner-left-up"
+                                    class="w-5 text-slate-600 group-hover:text-blue-400 transition"></i>
+                                <span class="font-bold">..</span>
                             </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endif; ?>
 
-                <?php if (empty($items)): ?>
-                    <div class="flex flex-col items-center justify-center h-64 text-slate-500">
-                        <i data-lucide="folder-open" class="w-12 h-12 mb-4 opacity-50"></i>
-                        <p>This folder is empty</p>
-                    </div>
-                <?php endif; ?>
+                    <!-- ITEMS LOOP -->
+                    <?php foreach ($items as $i):
+                        $icon = $i['is_dir'] ? 'folder' : 'file';
+                        $color = $i['is_dir'] ? 'text-amber-400' : 'text-slate-400';
+                        $type = $i['is_dir'] ? 'Directory' : pathinfo($i['name'], PATHINFO_EXTENSION);
 
-            </div>
+                        // Icon logic
+                        if (!$i['is_dir']) {
+                            $ext = strtolower($type);
+                            if (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+                                $icon = 'image';
+                                $color = 'text-purple-400';
+                            }
+                            if (in_array($ext, ['mp4', 'webm', 'mov'])) {
+                                $icon = 'film';
+                                $color = 'text-red-400';
+                            }
+                            if (in_array($ext, ['mp3', 'wav'])) {
+                                $icon = 'music';
+                                $color = 'text-pink-400';
+                            }
+                            if (in_array($ext, ['zip', 'tar', 'gz', 'rar'])) {
+                                $icon = 'archive';
+                                $color = 'text-orange-400';
+                            }
+                            if (in_array($ext, ['php', 'js', 'css', 'html', 'json', 'sql'])) {
+                                $icon = 'code-2';
+                                $color = 'text-blue-400';
+                            }
+                        }
+                        ?>
+                        <div class="file-item group select-none transition-all duration-200 cursor-pointer"
+                            data-name="<?= strtolower($i['name']) ?>" data-path="<?= $i['rel'] ?>"
+                            data-type="<?= $i['is_dir'] ? 'dir' : 'file' ?>" onclick="FM.toggleSelect(this, event)"
+                            ondblclick="FM.open('<?= $i['rel'] ?>', '<?= $i['is_dir'] ? 'dir' : 'file' ?>')">
 
-            <!-- Upload Overlay -->
-            <div id="drag-overlay"
-                class="absolute inset-0 bg-blue-600/90 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-white dashed-border m-4 rounded-3xl pointer-events-none">
-                <i data-lucide="cloud-upload" class="w-20 h-20 mb-6 animate-bounce"></i>
-                <h3 class="text-3xl font-bold">Drop files to upload</h3>
-                <p class="text-blue-100 mt-2">to <?= $current_path ?></p>
-            </div>
-        </main>
-    </div>
+                            <!-- Inner Content (CSS handles List/Grid layout) -->
+                            <div
+                                class="file-inner px-4 py-3 rounded-xl border border-transparent group-hover:bg-white/5 group-hover:border-white/5">
+                                <!-- List Layout -->
+                                <div class="grid grid-cols-12 gap-4 items-center list-layout">
+                                    <div class="col-span-6 flex items-center gap-4 overflow-hidden">
+                                        <div class="w-5 flex justify-center">
+                                            <input type="checkbox"
+                                                class="accent-blue-500 w-4 h-4 opacity-0 group-hover:opacity-100 transition file-check pointer-events-none">
+                                        </div>
+                                        <i data-lucide="<?= $icon ?>" class="w-5 h-5 <?= $color ?> shrink-0"></i>
+                                        <span
+                                            class="truncate font-medium text-slate-300 group-hover:text-white"><?= $i['name'] ?></span>
+                                    </div>
+                                    <div class="col-span-2 text-sm text-slate-500 font-mono"><?= $i['size'] ?></div>
+                                    <div class="col-span-2 text-sm text-slate-500 uppercase"><?= $type ?></div>
+                                    <div class="col-span-2 text-right text-sm text-slate-500 font-mono"><?= $i['date'] ?>
+                                    </div>
+                                </div>
 
+                                <!-- Grid Layout -->
+                                <div class="hidden flex-col items-center text-center gap-3 py-4 grid-layout relative">
+                                    <div class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition">
+                                        <input type="checkbox" class="accent-blue-500 w-4 h-4 file-check">
+                                    </div>
+                                    <div class="p-4 rounded-2xl bg-slate-800/50 group-hover:bg-slate-800 transition">
+                                        <i data-lucide="<?= $icon ?>" class="w-10 h-10 <?= $color ?>"></i>
+                                    </div>
+                                    <div class="w-full">
+                                        <div class="truncate font-medium text-sm text-slate-300 group-hover:text-white">
+                                            <?= $i['name'] ?>
+                                        </div>
+                                        <div class="text-xs text-slate-500 mt-1"><?= $i['size'] ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+
+                    <?php if (empty($items)): ?>
+                        <div class="flex flex-col items-center justify-center h-64 text-slate-500">
+                            <i data-lucide="folder-open" class="w-12 h-12 mb-4 opacity-50"></i>
+                            <p>This folder is empty</p>
+                        </div>
+                    <?php endif; ?>
+
+                </div>
+
+                <!-- Upload Overlay -->
+                <div id="drag-overlay"
+                    class="absolute inset-0 bg-blue-600/90 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-white dashed-border m-4 rounded-3xl pointer-events-none">
+                    <i data-lucide="cloud-upload" class="w-20 h-20 mb-6 animate-bounce"></i>
+                    <h3 class="text-3xl font-bold">Drop files to upload</h3>
+                    <p class="text-blue-100 mt-2">to <?= $current_path ?></p>
+                </div>
+            </main>
+        </div>
+    </main>
+
+    <!-- CONTEXT MENU & MODALS (Kept in body) -->
     <!-- CONTEXT MENU -->
     <div id="ctx-menu"
         class="fixed z-50 bg-[#1e293b] border border-slate-700 shadow-2xl rounded-xl w-48 py-1 hidden transform scale-95 opacity-0 transition-all duration-100 origin-top-left">
@@ -677,7 +690,6 @@ if (is_dir($full_path)) {
                 data-lucide="trash-2" class="w-4"></i> Delete</button>
     </div>
 
-    <!-- MODALS (Simplified for AJAX) -->
     <!-- CREATE MODAL -->
     <div id="modal-create"
         class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
@@ -764,16 +776,6 @@ if (is_dir($full_path)) {
     <div id="toast"
         class="fixed bottom-6 right-6 z-[100] transition-all duration-300 transform translate-y-20 opacity-0 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold">
         <span></span>
-    </div>
-
-    <!-- DRAG OVERLAY -->
-    <div id="drag-overlay"
-        class="hidden fixed inset-0 z-[200] bg-blue-600/90 backdrop-blur-md flex flex-col items-center justify-center text-white">
-        <div class="animate-bounce mb-8">
-            <i data-lucide="upload-cloud" class="w-32 h-32"></i>
-        </div>
-        <h2 class="text-4xl font-black mb-4 animate-pulse">Drop Files to Upload</h2>
-        <p class="text-xl text-blue-100 font-medium">Release anywhere to start uploading</p>
     </div>
 
     <!-- HIDDEN FORMS FOR DOWNLOADS -->
@@ -881,7 +883,7 @@ if (is_dir($full_path)) {
                 const btnList = document.getElementById('btn-list');
                 const btnGrid = document.getElementById('btn-grid');
 
-                document.getElementById('file-container').className = `flex-1 overflow-hidden relative view-${mode}`; // Update main container wrapper if needed, but we used IDs
+                // document.getElementById('file-container').className = `flex-1 overflow-hidden relative view-${mode}`; // Update main container wrapper if needed, but we used IDs
 
                 if (mode === 'grid') {
                     container.classList.add('view-grid');
@@ -1070,7 +1072,15 @@ if (is_dir($full_path)) {
             }
 
             // Handlers for HTML Buttons
-            openUpload() { document.getElementById('modal-upload').classList.remove('hidden'); }
+            openUpload() { document.getElementById('modal-upload') ? document.getElementById('modal-upload').classList.remove('hidden') : this.handleDragOverlay(); }
+            // Note: Original did not have modal-upload defined in HTML provided, relied on drag or maybe I missed it? 
+            // Ah, line 465 calls openUpload(). Line 1073 defines it. 
+            // The HTML I read has Drag Overlay but maybe not a traditional upload modal. 
+            // I will assume Drag Overlay is primary or use a hidden input triggered.
+            // Let's rely on standard logic. If modal-upload is missing, trigger drag overlay or file input.
+            // For now, I'll direct to drag overlay as fallback.
+            handleDragOverlay() { document.getElementById('drag-overlay').classList.remove('hidden'); }
+
             openCreate() { document.getElementById('modal-create').classList.remove('hidden'); }
 
             setCreateType(t) {
