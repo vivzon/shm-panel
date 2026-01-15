@@ -20,6 +20,12 @@ if [ -d "whm" ]; then
     cp -r whm/* /var/www/panel/whm/
 fi
 
+# 1b. Update Landing Page
+echo "[+] Updating Landing Page..."
+if [ -d "landing" ]; then
+    cp -r landing/* /var/www/panel/landing/
+fi
+
 # 2. Update CPanel
 echo "[+] Updating CPanel (Client Panel)..."
 if [ -d "cpanel" ]; then

@@ -132,7 +132,8 @@ log "Importing Schema..."
 mysql $DB_NAME << SQL
 CREATE TABLE IF NOT EXISTS clients (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(32) UNIQUE, email VARCHAR(255), password VARCHAR(255), status ENUM('active','suspended') DEFAULT 'active', package_id INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS domains (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain VARCHAR(255) UNIQUE, document_root VARCHAR(255), php_version VARCHAR(5) DEFAULT '8.2', ssl_active BOOLEAN DEFAULT 0, FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE);
-CREATE TABLE IF NOT EXISTS packages (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), disk_mb INT, max_domains INT, max_emails INT, max_databases INT DEFAULT 5);
+CREATE TABLE IF NOT EXISTS packages (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), price DECIMAL(10,2) DEFAULT 0.00, disk_mb INT, max_domains INT, max_emails INT, max_databases INT DEFAULT 5);
+CREATE TABLE IF NOT EXISTS transactions (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, amount DECIMAL(10,2), currency VARCHAR(10), payment_gateway VARCHAR(20), transaction_id VARCHAR(100), status VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS admins (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) UNIQUE, password VARCHAR(255));
 CREATE TABLE IF NOT EXISTS mail_domains (id INT AUTO_INCREMENT PRIMARY KEY, domain VARCHAR(255) UNIQUE);
 CREATE TABLE IF NOT EXISTS mail_users (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, email VARCHAR(255) UNIQUE, password VARCHAR(255));
@@ -143,7 +144,7 @@ CREATE TABLE IF NOT EXISTS dns_records (id INT AUTO_INCREMENT PRIMARY KEY, domai
 CREATE TABLE IF NOT EXISTS php_config (domain_id INT PRIMARY KEY, memory_limit VARCHAR(10) DEFAULT '128M');
 
 -- Default Data
-INSERT IGNORE INTO packages VALUES (1, 'Starter', 2000, 1, 5, 2), (2, 'Business', 10000, 10, 50, 10);
+INSERT IGNORE INTO packages VALUES (1, 'Starter', 0.00, 2000, 1, 5, 2), (2, 'Business', 9.99, 10000, 10, 50, 10);
 -- Admin: admin / admin123 (bcrypt hash)
 INSERT IGNORE INTO admins (username, password) VALUES ('admin', '\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 SQL
