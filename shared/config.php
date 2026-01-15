@@ -11,10 +11,14 @@ if (file_exists(__DIR__ . '/config.local.php')) {
 }
 
 // 2. Default Configuration (Fallback)
-if (!isset($db_host)) $db_host = 'localhost';
-if (!isset($db_name)) $db_name = 'shm_panel';
-if (!isset($db_user)) $db_user = 'shm_admin';
-if (!isset($db_pass)) $db_pass = 'SHMPanel_Secure_Pass_2025';
+if (!isset($db_host))
+    $db_host = 'localhost';
+if (!isset($db_name))
+    $db_name = 'shm_panel';
+if (!isset($db_user))
+    $db_user = 'shm_admin';
+if (!isset($db_pass))
+    $db_pass = 'SHMPanel_Secure_Pass_2025';
 
 // 3. Database Connection
 try {
@@ -50,8 +54,10 @@ function cmd($command)
     // Windows Safety Check
     if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
         // Mock responses for development
-        if (strpos($command, 'list_ssh') !== false) return "mock-key-rsa AAAA...";
-        if (strpos($command, 'list_backups') !== false) return "1024K Jan 01 12:00 backup_test.tar.gz";
+        if (strpos($command, 'list_ssh') !== false)
+            return "mock-key-rsa AAAA...";
+        if (strpos($command, 'list_backups') !== false)
+            return "1024K Jan 01 12:00 backup_test.tar.gz";
         return "Command '$command' simulated on Windows.";
     }
 
@@ -64,7 +70,8 @@ function cmd($command)
 if (!function_exists('sendResponse')) {
     function sendResponse($data)
     {
-        if (!headers_sent()) header('Content-Type: application/json');
+        if (!headers_sent())
+            header('Content-Type: application/json');
         echo json_encode($data);
         exit;
     }
@@ -76,9 +83,15 @@ if (session_status() === PHP_SESSION_NONE) {
     if (!filter_var($host, FILTER_VALIDATE_IP) && $host !== 'localhost') {
         $parts = explode('.', $host);
         if (count($parts) >= 2) {
+            // Support for domains like vivzon.in or vivzon.cloud -> .vivzon.cloud
             $base_domain = '.' . implode('.', array_slice($parts, -2));
-            // Only set if cookie params allow
-            // session_set_cookie_params(0, '/', $base_domain);
+            session_set_cookie_params([
+                'lifetime' => 0,
+                'path' => '/',
+                'domain' => $base_domain,
+                'secure' => true,
+                'httponly' => true
+            ]);
         }
     }
     session_start();

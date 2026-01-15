@@ -49,6 +49,19 @@ echo "[+] Fixing Permissions..."
 chown -R www-data:www-data /var/www/panel /var/www/apps
 chmod -R 755 /var/www/panel
 
+# 4a. Fix Client Permissions for File Manager (Recursive)
+echo "[+] Fixing Client Permissions..."
+# For each directory in /var/www/clients
+for D in /var/www/clients/*; do
+    if [ -d "$D" ]; then
+        USER_NAME=$(basename "$D")
+        echo " -> Fixing $USER_NAME..."
+        usermod -a -G $USER_NAME www-data
+        chown -R $USER_NAME:$USER_NAME "$D"
+        chmod -R 775 "$D"
+    fi
+done
+
 # 5. Clear Caches (Optional but recommended)
 echo "[+] Restarting Nginx to clear any FastCGI caches..."
 systemctl restart nginx

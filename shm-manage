@@ -32,9 +32,14 @@ case "$1" in
         
         # 1. System User
         useradd -m -d /var/www/clients/$USER -s /bin/bash $USER
-        chmod 711 /var/www/clients/$USER
         mkdir -p /var/www/clients/$USER/{public_html,logs,tmp,mail}
         chown -R $USER:$USER /var/www/clients/$USER
+        
+        # PERMISSION FIX: Allow www-data (File Manager) to write
+        # Add www-data to user group
+        usermod -a -G $USER www-data
+        # Set permissions so group can write
+        chmod -R 775 /var/www/clients/$USER
         
         # 2. PHP-FPM Pool
         cat > /etc/php/8.2/fpm/pool.d/$USER.conf << PHP
