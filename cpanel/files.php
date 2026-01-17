@@ -139,12 +139,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1. UPLOAD
     if (isset($_POST['upload_files'])) {
         $count = 0;
+        $errors = [];
+        if (!isset($_FILES['files']['name'])) {
+            fm_return('error', 'No files received');
+        }
         foreach ($_FILES['files']['name'] as $key => $name) {
             $target = $full_path . '/' . basename($name);
-            if (move_uploaded_file($_FILES['files']['tmp_name'][$key], $target))
+            if ($_FILES['files']['error'][$key] !== UPLOAD_ERR_OK) {
+                $errors[] = "$name: Error Code " . $_FILES['files']['error'][$key];
+                continue;
+            }
+            if (move_uploaded_file($_FILES['files']['tmp_name'][$key], $target)) {
                 $count++;
+            } else {
+                $errors[] = "$name: Move failed (Check Permissions)";
+                error_log("SHM-FM Upload Error: Could not move " . $_FILES['files']['tmp_name'][$key] . " to $target");
+            }
         }
-        fm_return('success', "$count files uploaded");
+        if ($count > 0) {
+            fm_return('success', "$count files uploaded");
+        } else {
+            fm_return('error', 'Upload failed: ' . implode(', ', $errors));
+        }
     }
 
     // 2. CREATE
