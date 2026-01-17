@@ -121,29 +121,44 @@ if (DIRECTORY_SEPARATOR === '\\') {
 }
 
 // FIX: Ensure Base Path Exists & Is Writable
+$setup_error = null;
 if (!file_exists($base_path)) {
-    if (!@mkdir($base_path, 0777, true)) {
+    // Attempt creation without suppression to log warnings
+    $created = mkdir($base_path, 0777, true);
+    if (!$created) {
         $error = error_get_last();
         // Fallback for Windows Local Dev if not already handled
-        if (DIRECTORY_SEPARATOR === '\\') { 
-             $base_path = __DIR__ . '/../../storage/default'; 
-             @mkdir($base_path, 0777, true);
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $base_path = __DIR__ . '/../../storage/default';
+            mkdir($base_path, 0777, true);
         } else {
-             error_log("SHM-FM Critical: Failed to create $base_path. " . $error['message']);
+            $setup_error = "Failed to create directory (mkdir returned false): " . ($error['message'] ?? 'Unknown error');
+            error_log("SHM-FM Critical: $setup_error");
+        }
+    } else {
+        // Mkdir returned true, verify existence
+        if (!is_dir($base_path)) {
+            $setup_error = "Ghost Directory: mkdir returned true but directory does not exist. Check Filesystem/Mounts.";
+            error_log("SHM-FM Critical: $setup_error");
         }
     }
 }
 
 // Try to Fix Permissions
-if (file_exists($base_path) && !is_writable($base_path)) {
-    @chmod($base_path, 0777);
+if (is_dir($base_path) && !is_writable($base_path)) {
+    chmod($base_path, 0755);
 }
 
 $full_path = shm_build_path($base_path, $current_path);
 
 // Auto-create subfolders if missing
 if (!file_exists($full_path)) {
-   @mkdir($full_path, 0777, true);
+    $created = mkdir($full_path, 0777, true);
+    if (!$created) {
+        $err = error_get_last();
+        if (!$setup_error)
+            $setup_error = "Failed to create subfolder: " . ($err['message'] ?? 'Unknown');
+    }
 }
 
 // Re-Check
@@ -159,13 +174,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $process_user = function_exists('posix_getpwuid') ? posix_getpwuid(posix_geteuid())['name'] : get_current_user();
         $path_owner = file_exists($full_path) ? fileowner($full_path) : 'N/A';
         $perms = file_exists($full_path) ? substr(sprintf('%o', fileperms($full_path)), -4) : 'N/A';
-        
-        $debug = "Path: $full_path | Process: $process_user | Owner: $path_owner | Perms: $perms | Exists: " . (file_exists($full_path)?'Y':'N');
-        
-        error_log("SHM-FM Error: $debug");
-        
+
+        $debug = "Path: $full_path | Process: $process_user | User: " . get_current_user() . " | Owner: $path_owner | Perms: $perms | Exists: " . (file_exists($full_path) ? 'Y' : 'N');
+
+        $msg = $setup_error ? "System Error: $setup_error" : "Permission Denied. $debug";
+
+        error_log("SHM-FM Error: $msg");
+
         if ($is_ajax) {
-            echo json_encode(['status' => 'error', 'msg' => "Permission Denied. $debug"]);
+            echo json_encode(['status' => 'error', 'msg' => $msg]);
             exit;
         }
     }
