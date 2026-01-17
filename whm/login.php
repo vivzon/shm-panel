@@ -34,16 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         rel="stylesheet">
     <style>
         :root {
-            --theme-color: #f59e0b;
-            /* Amber for Admin Distinction? Or just Blue? Let's stick to Blue but maybe darker/different accent if needed, but User requested "unified". I will use Blue but maybe with a more "System" feel. Actually, unified means similar. I will stick to Blue/Indigo. */
             --theme-color: #4f46e5;
-            /* Indigo for Admin */
         }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: #000000;
-            /* Darker purely black bg for Admin */
             overflow: hidden;
         }
 
@@ -75,14 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .input-group label {
-            pointer-events: none;
-            transition: all 0.2s ease;
-        }
-
-        .input-field:focus~label,
-        .input-field:not(:placeholder-shown)~label {
-            transform: translateY(-26px) translateX(-4px) scale(0.85);
-            color: var(--theme-color);
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #94a3b8;
+            font-size: 0.875rem;
             font-weight: 600;
         }
 
@@ -144,22 +136,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 onsubmit="this.querySelector('button[type=submit]').classList.add('loading')">
 
                 <div class="input-group">
-                    <input id="u" name="u" type="text" required placeholder=" "
-                        class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-white outline-none">
-                    <label for="u"
-                        class="absolute left-4 top-3.5 text-slate-500 text-sm transition-all duration-200">Username</label>
+                    <label for="u">Username</label>
+                    <input id="u" name="u" type="text" required placeholder="Enter admin username"
+                        class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50">
                 </div>
 
                 <div class="input-group">
-                    <input id="p" name="p" type="password" required placeholder=" "
-                        class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-white outline-none">
-                    <label for="p"
-                        class="absolute left-4 top-3.5 text-slate-500 text-sm transition-all duration-200">Password</label>
+                    <label for="p">Password</label>
+                    <input id="p" name="p" type="password" required placeholder="Enter admin password"
+                        class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50">
                 </div>
 
                 <button type="submit"
                     class="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-3.5 rounded-xl shadow-lg shadow-white/10 hover:shadow-white/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                    <span>Authenticates</span>
+                    <span>Authenticate</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
