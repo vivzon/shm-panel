@@ -154,14 +154,21 @@ $full_path = shm_build_path($base_path, $current_path);
 // Auto-create subfolders if missing
 if (!file_exists($full_path)) {
     $created = mkdir($full_path, 0777, true);
+    clearstatcache(true, $full_path); // Clear cache to ensure next check is real
+
     if (!$created) {
         $err = error_get_last();
         if (!$setup_error)
             $setup_error = "Failed to create subfolder: " . ($err['message'] ?? 'Unknown');
+    } elseif (!is_dir($full_path)) {
+        // It said true, but it's not there?
+        if (!$setup_error)
+            $setup_error = "Ghost Directory (Subfolder): mkdir said success but dir is missing.";
     }
 }
 
 // Re-Check
+clearstatcache(true, $full_path);
 $is_writable = is_writable($full_path);
 
 // -------- POST ACTIONS --------
