@@ -664,29 +664,54 @@ if (is_dir($full_path)) {
         </div>
     </main>
 
+    <!-- UPLOAD MODAL -->
+    <div id="modal-upload"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-lg border border-white/10 shadow-2xl">
+            <h3 class="font-bold text-xl text-white mb-6">Upload Files</h3>
+            <div class="border-2 border-dashed border-slate-600 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-500 hover:bg-slate-800/50 transition mb-6"
+                onclick="document.getElementById('inp-upload-files').click()"
+                ondrop="FM.handleDrop(event.dataTransfer.files); FM.closeModals();" ondragover="event.preventDefault()">
+                <i data-lucide="cloud-upload" class="w-12 h-12 text-slate-400 mb-3"></i>
+                <p class="text-slate-300 font-medium">Click to browse or drag files here</p>
+                <input type="file" id="inp-upload-files" multiple class="hidden" onchange="FM.doUploadInput(this)">
+            </div>
+            <div class="flex justify-end">
+                <button onclick="FM.closeModals()"
+                    class="px-6 py-2 rounded-xl font-bold text-slate-400 hover:bg-white/5 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- CONTEXT MENU & MODALS (Kept in body) -->
     <!-- CONTEXT MENU -->
     <div id="ctx-menu"
         class="fixed z-50 bg-[#1e293b] border border-slate-700 shadow-2xl rounded-xl w-48 py-1 hidden transform scale-95 opacity-0 transition-all duration-100 origin-top-left">
         <button onclick="FM.openCtx()"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2"><i
-                data-lucide="folder-open" class="w-4"></i> Open</button>
+            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 font-medium text-white"><i
+                data-lucide="folder-open" class="w-4 text-blue-400"></i> Open</button>
+        <button onclick="FM.editCtx()" id="ctx-btn-edit"
+            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 font-medium text-white"><i
+                data-lucide="file-code" class="w-4 text-emerald-400"></i> Edit</button>
         <button onclick="FM.renameCtx()"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2"><i data-lucide="edit-3"
-                class="w-4"></i> Rename</button>
+            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-300"><i
+                data-lucide="edit-3" class="w-4"></i> Rename</button>
         <div class="h-px bg-white/10 my-1"></div>
+        <button onclick="FM.extractCtx()" id="ctx-btn-extract"
+            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-300"><i
+                data-lucide="package-open" class="w-4 text-orange-400"></i> Extract</button>
         <button onclick="FM.bulk('copy')"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2"><i data-lucide="copy"
-                class="w-4"></i> Copy</button>
+            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-300"><i
+                data-lucide="copy" class="w-4"></i> Copy</button>
         <button onclick="FM.bulk('move')"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2"><i data-lucide="move"
-                class="w-4"></i> Move</button>
+            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-300"><i
+                data-lucide="move" class="w-4"></i> Move</button>
         <button onclick="FM.bulk('zip')"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2"><i data-lucide="archive"
-                class="w-4"></i> Archive</button>
+            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-300"><i
+                data-lucide="archive" class="w-4"></i> Archive</button>
         <div class="h-px bg-white/10 my-1"></div>
         <button onclick="FM.bulk('delete')"
-            class="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-400 hover:text-red-300 text-sm flex items-center gap-2"><i
+            class="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-400 hover:text-red-300 text-sm flex items-center gap-2 font-medium"><i
                 data-lucide="trash-2" class="w-4"></i> Delete</button>
     </div>
 
@@ -849,11 +874,25 @@ if (is_dir($full_path)) {
                 this.ctxItem = path;
                 this.ctxType = row.dataset.type;
                 const menu = document.getElementById('ctx-menu');
+
+                // Show/Hide context buttons based on type
+                const isDir = this.ctxType === 'dir';
+                const ext = path.split('.').pop().toLowerCase();
+                const isZip = ext === 'zip';
+
+                // Toggle Edit button
+                const btnEdit = document.getElementById('ctx-btn-edit');
+                if (btnEdit) btnEdit.style.display = isDir ? 'none' : 'flex';
+
+                // Toggle Extract button
+                const btnExtract = document.getElementById('ctx-btn-extract');
+                if (btnExtract) btnExtract.style.display = isZip ? 'flex' : 'none';
+
                 // Adjust position
                 let x = e.clientX;
                 let y = e.clientY;
                 if (x + 200 > window.innerWidth) x -= 200;
-                if (y + 200 > window.innerHeight) y -= 200;
+                if (y + 300 > window.innerHeight) y -= 300; // Increased height safety
 
                 menu.style.top = y + 'px';
                 menu.style.left = x + 'px';
@@ -862,6 +901,16 @@ if (is_dir($full_path)) {
 
             // Context Menu Actions
             openCtx() { this.open(this.ctxItem, this.ctxType); }
+
+            editCtx() {
+                if (this.ctxType === 'file') {
+                    location.href = `editor.php?domain_id=${CONFIG.domainId}&file=${this.ctxItem}`;
+                }
+            }
+
+            extractCtx() {
+                this.request('unzip_item', { item: this.ctxItem });
+            }
 
             renameCtx() {
                 document.getElementById('input-rename').value = this.ctxItem.split('/').pop();
@@ -947,8 +996,15 @@ if (is_dir($full_path)) {
                 if (type === 'dir') {
                     location.href = `?domain_id=${CONFIG.domainId}&path=${path}`;
                 } else {
-                    // Start Preview
-                    this.preview(path);
+                    const ext = path.split('.').pop().toLowerCase();
+                    const editable = ['php', 'html', 'css', 'js', 'json', 'xml', 'txt', 'md', 'sql', 'htaccess', 'env', 'ini', 'conf'];
+
+                    if (editable.includes(ext)) {
+                        location.href = `editor.php?domain_id=${CONFIG.domainId}&file=${path}`;
+                    } else {
+                        // Start Preview
+                        this.preview(path);
+                    }
                 }
             }
 
@@ -1128,6 +1184,13 @@ if (is_dir($full_path)) {
                 const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                 if (res.status === 'success') setTimeout(() => location.reload(), 500);
                 else this.toast('error', 'Upload failed');
+            }
+
+            doUploadInput(input) {
+                if (input.files.length > 0) {
+                    this.handleDrop(input.files);
+                    this.closeModals();
+                }
             }
         }
 
