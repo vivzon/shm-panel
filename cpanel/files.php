@@ -120,24 +120,52 @@ if (DIRECTORY_SEPARATOR === '\\') {
     }
 }
 
-// Ensure directory exists
+// FIX: Ensure Base Path Exists & Is Writable
 if (!file_exists($base_path)) {
-    mkdir($base_path, 0777, true);
+    if (!@mkdir($base_path, 0777, true)) {
+        $error = error_get_last();
+        // Fallback for Windows Local Dev if not already handled
+        if (DIRECTORY_SEPARATOR === '\\') { 
+             $base_path = __DIR__ . '/../../storage/default'; 
+             @mkdir($base_path, 0777, true);
+        } else {
+             error_log("SHM-FM Critical: Failed to create $base_path. " . $error['message']);
+        }
+    }
+}
+
+// Try to Fix Permissions
+if (file_exists($base_path) && !is_writable($base_path)) {
+    @chmod($base_path, 0777);
 }
 
 $full_path = shm_build_path($base_path, $current_path);
 
-// -------- POST ACTIONS --------
+// Auto-create subfolders if missing
+if (!file_exists($full_path)) {
+   @mkdir($full_path, 0777, true);
+}
+
+// Re-Check
 $is_writable = is_writable($full_path);
+
+// -------- POST ACTIONS --------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $response = ['status' => 'error', 'msg' => 'Operation Failed'];
     $is_ajax = isset($_POST['ajax']) || isset($_POST['ajax_action']);
 
     if (!$is_writable) {
-        $debug_info = "Path: $full_path | Exists: " . (file_exists($full_path) ? 'Yes' : 'No') . " | Writable: " . (is_writable($full_path) ? 'Yes' : 'No') . " | User: " . get_current_user();
-        error_log("SHM-FM: Directory $full_path is NOT writable. Info: $debug_info");
+        // Diagnostic Info
+        $process_user = function_exists('posix_getpwuid') ? posix_getpwuid(posix_geteuid())['name'] : get_current_user();
+        $path_owner = file_exists($full_path) ? fileowner($full_path) : 'N/A';
+        $perms = file_exists($full_path) ? substr(sprintf('%o', fileperms($full_path)), -4) : 'N/A';
+        
+        $debug = "Path: $full_path | Process: $process_user | Owner: $path_owner | Perms: $perms | Exists: " . (file_exists($full_path)?'Y':'N');
+        
+        error_log("SHM-FM Error: $debug");
+        
         if ($is_ajax) {
-            echo json_encode(['status' => 'error', 'msg' => "Directory verification failed (ReadOnly). Debug: $debug_info"]);
+            echo json_encode(['status' => 'error', 'msg' => "Permission Denied. $debug"]);
             exit;
         }
     }
