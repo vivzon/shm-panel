@@ -317,12 +317,56 @@ ZONE
             # PHP Sock
             SOCK="php$PHP_VER-fpm-$USER.sock"
             
-            cat > $VHOST <<CONF
+            # SSL Paths
+            CERT="/etc/letsencrypt/live/$DOM/fullchain.pem"
+            KEY="/etc/letsencrypt/live/$DOM/privkey.pem"
+            
+            # Check if SSL is requested and Certs exist
+            if [ "$SSL" == "1" ] && [ -f "$CERT" ]; then
+                # Generate SSL VHost directly
+                cat > $VHOST <<CONF
+server {
+    listen 80;
+    server_name $DOM www.$DOM;
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name $DOM www.$DOM;
+    root /var/www/clients/$USER/public_html;
+    index index.php index.html;
+
+    ssl_certificate $CERT;
+    ssl_certificate_key $KEY;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    access_log /var/www/clients/$USER/logs/access.log;
+    error_log /var/www/clients/$USER/logs/error.log;
+
+    location / { try_files \$uri \$uri/ /index.php?\$args; }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/$SOCK;
+        fastcgi_param PHP_VALUE "memory_limit=\$limit";
+    }
+}
+CONF
+                # Inject memory limit placeholder if needed (handled below) -> actually better to just reload
+            
+            else
+                # Generate Standard HTTP VHost
+                cat > $VHOST <<CONF
 server {
     listen 80;
     server_name $DOM www.$DOM;
     root /var/www/clients/$USER/public_html;
     index index.php index.html;
+
+    access_log /var/www/clients/$USER/logs/access.log;
+    error_log /var/www/clients/$USER/logs/error.log;
 
     location / { try_files \$uri \$uri/ /index.php?\$args; }
 
@@ -332,9 +376,10 @@ server {
     }
 }
 CONF
-            # SSL Handling (Simple Certbot trigger)
-            if [ "$SSL" == "1" ]; then
-                certbot --nginx -d $DOM -d www.$DOM --non-interactive --agree-tos --email $ADMIN_EMAIL --redirect
+                # If SSL requested but no cert, run certbot
+                if [ "$SSL" == "1" ]; then
+                    certbot --nginx -d $DOM -d www.$DOM --non-interactive --agree-tos --email $ADMIN_EMAIL --redirect
+                fi
             fi
             
             # Memory Limit update

@@ -1,4 +1,5 @@
-<aside class="w-72 bg-[#060b14] border-r border-[#1e293b] flex flex-col z-20 shadow-2xl">
+<aside
+    class="w-72 bg-[#060b14] border-r border-[#1e293b] flex flex-col z-20 shadow-2xl h-screen overflow-y-auto custom-scrollbar">
     <div class="p-8 pb-6">
         <div class="flex items-center gap-3 mb-10">
             <div

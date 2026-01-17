@@ -122,7 +122,15 @@ include 'layout/header.php';
 ?>
 
 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-    <h2 class="text-2xl font-bold text-white">Domain Management</h2>
+    <div class="flex items-center gap-4">
+        <h2 class="text-2xl font-bold text-white">Domain Management</h2>
+        <div class="relative group">
+            <i data-lucide="search"
+                class="w-4 absolute left-3 top-3 text-slate-500 group-focus-within:text-blue-400 transition"></i>
+            <input id="dom-search" onkeyup="filterDomains(this.value)" placeholder="Search domains..."
+                class="bg-slate-900/50 border border-slate-700 p-3 pl-10 rounded-xl text-sm w-48 focus:w-64 outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500 transition-all">
+        </div>
+    </div>
     <div class="flex gap-4">
         <!-- Add Domain -->
         <form onsubmit="handleGeneric(event, 'add_domain')" class="flex gap-2" id="form-add-domain">
@@ -158,110 +166,113 @@ include 'layout/header.php';
         </button>
     </div>
 </div>
+<div id="domain-list">
 
-<?php foreach ($domains as $d): ?>
-    <div class="glass-card p-10 mb-8 shadow-sm group">
-        <div class="flex justify-between items-center mb-10">
-            <div>
-                <h3 class="text-2xl font-black text-white">
-                    <?= $d['domain'] ?>
-                </h3>
-                <p class="text-xs text-slate-500 font-mono mt-1">Root: /home/
-                    <?= $username ?>/public_html
-                </p>
-            </div>
-            <div class="flex gap-2">
-                <a href="http://filemanager.<?= $base_domain ?>/?domain_id=<?= $d['id'] ?>" target="_blank"
-                    class="bg-blue-500/10 text-blue-400 -4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition flex items-center gap-2 border border-blue-500/20 px-4"><i
-                        data-lucide="folder-open" class="w-4 h-4"></i> Manage Files</a>
-                <button onclick="deleteAction('delete_domain', 'domain_id', <?= $d['id'] ?>)"
-                    class="bg-red-500/10 text-red-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition border border-red-500/20">Delete</button>
-            </div>
-            <form onsubmit="handleGeneric(event, 'update_domain_config')"
-                class="flex items-center gap-4 bg-slate-900/50 p-4 rounded-3xl border border-slate-700/50">
-                <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
-                <select name="php_version"
-                    class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white">
-                    <option value="8.1" <?= $d['php_version'] == '8.1' ? 'selected' : '' ?>>PHP 8.1</option>
-                    <option value="8.2" <?= $d['php_version'] == '8.2' ? 'selected' : '' ?>>PHP 8.2</option>
-                    <option value="8.3" <?= $d['php_version'] == '8.3' ? 'selected' : '' ?>>PHP 8.3</option>
-                </select>
-                <select name="mem" class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white">
-                    <option>128M</option>
-                    <option>256M</option>
-                    <option>512M</option>
-                </select>
-                <div class="flex items-center gap-2 px-2 border-l border-slate-700">
-                    <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>
-                    class="w-4 h-4 text-emerald-500 accent-emerald-500">
-                    <span class="text-[10px] font-bold uppercase text-emerald-400">SSL</span>
+    <?php foreach ($domains as $d): ?>
+        <div class="glass-card p-10 mb-8 shadow-sm group">
+            <div class="flex justify-between items-center mb-10">
+                <div>
+                    <h3 class="text-2xl font-black text-white">
+                        <?= $d['domain'] ?>
+                    </h3>
+                    <p class="text-xs text-slate-500 font-mono mt-1">Root: /home/
+                        <?= $username ?>/public_html
+                    </p>
                 </div>
-                <button class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-500 transition"><i data-lucide="save"
-                        class="w-4"></i></button>
-            </form>
-        </div>
-        <div class="border-t border-slate-700/50 pt-8">
-            <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">DNS Zone Management
-            </h4>
-            <form onsubmit="handleGeneric(event, 'add_dns')" class="grid grid-cols-4 gap-3 mb-4">
-                <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
-                <input name="host" placeholder="Host (e.g. @)"
-                    class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
-                    required>
-                <select name="type"
-                    class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm font-bold text-slate-300 outline-none">
-                    <option>A</option>
-                    <option>CNAME</option>
-                    <option>MX</option>
-                    <option>TXT</option>
-                </select>
-                <input name="value" placeholder="Value (IP or Domain)"
-                    class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
-                    required>
-                <button
-                    class="bg-slate-800 text-white rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-700 border border-slate-700 transition">Add
-                    Record</button>
-            </form>
+                <div class="flex gap-2">
+                    <a href="files.php?domain_id=<?= $d['id'] ?>&path=/" target="_blank"
+                        class="bg-blue-500/10 text-blue-400 -4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 hover:text-white transition flex items-center gap-2 border border-blue-500/20 px-4"><i
+                            data-lucide="folder-open" class="w-4 h-4"></i> Manage Files</a>
+                    <button onclick="deleteAction('delete_domain', 'domain_id', <?= $d['id'] ?>)"
+                        class="bg-red-500/10 text-red-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition border border-red-500/20">Delete</button>
+                </div>
+                <form onsubmit="handleGeneric(event, 'update_domain_config')"
+                    class="flex items-center gap-4 bg-slate-900/50 p-4 rounded-3xl border border-slate-700/50">
+                    <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
+                    <select name="php_version"
+                        class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white">
+                        <option value="8.1" <?= $d['php_version'] == '8.1' ? 'selected' : '' ?>>PHP 8.1</option>
+                        <option value="8.2" <?= $d['php_version'] == '8.2' ? 'selected' : '' ?>>PHP 8.2</option>
+                        <option value="8.3" <?= $d['php_version'] == '8.3' ? 'selected' : '' ?>>PHP 8.3</option>
+                    </select>
+                    <select name="mem"
+                        class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white">
+                        <option>128M</option>
+                        <option>256M</option>
+                        <option>512M</option>
+                    </select>
+                    <div class="flex items-center gap-2 px-2 border-l border-slate-700">
+                        <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>
+                            class="w-4 h-4 text-emerald-500 accent-emerald-500">
+                        <span class="text-[10px] font-bold uppercase text-emerald-400">SSL</span>
+                    </div>
+                    <button class="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-500 transition"><i data-lucide="save"
+                            class="w-4"></i></button>
+                </form>
+            </div>
+            <div class="border-t border-slate-700/50 pt-8">
+                <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">DNS Zone Management
+                </h4>
+                <form onsubmit="handleGeneric(event, 'add_dns')" class="grid grid-cols-4 gap-3 mb-4">
+                    <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
+                    <input name="host" placeholder="Host (e.g. @)"
+                        class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
+                        required>
+                    <select name="type"
+                        class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm font-bold text-slate-300 outline-none">
+                        <option>A</option>
+                        <option>CNAME</option>
+                        <option>MX</option>
+                        <option>TXT</option>
+                    </select>
+                    <input name="value" placeholder="Value (IP or Domain)"
+                        class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
+                        required>
+                    <button
+                        class="bg-slate-800 text-white rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-700 border border-slate-700 transition">Add
+                        Record</button>
+                </form>
 
-            <table class="w-full mt-6 text-left">
-                <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
-                    <tr>
-                        <th class="p-3">Host</th>
-                        <th class="p-3">Type</th>
-                        <th class="p-3">Value</th>
-                        <th class="p-3 text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-700/50">
-                    <?php
-                    $recs = $pdo->prepare("SELECT * FROM dns_records WHERE domain_id = ?");
-                    $recs->execute([$d['id']]);
-                    while ($r = $recs->fetch()): ?>
-                        <tr class="text-sm hover:bg-slate-800/30 transition">
-                            <td class="p-3 font-bold text-slate-300">
-                                <?= $r['host'] ?>
-                            </td>
-                            <td class="p-3"><span
-                                    class="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs font-bold text-slate-400">
-                                    <?= $r['type'] ?>
-                                </span>
-                            </td>
-                            <td class="p-3 font-mono text-slate-500 text-xs">
-                                <?= $r['value'] ?>
-                            </td>
-                            <td class="p-3 text-right">
-                                <button
-                                    onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
-                                    class="text-red-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4"></i></button>
-                            </td>
+                <table class="w-full mt-6 text-left">
+                    <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+                        <tr>
+                            <th class="p-3">Host</th>
+                            <th class="p-3">Type</th>
+                            <th class="p-3">Value</th>
+                            <th class="p-3 text-right">Action</th>
                         </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/50">
+                        <?php
+                        $recs = $pdo->prepare("SELECT * FROM dns_records WHERE domain_id = ?");
+                        $recs->execute([$d['id']]);
+                        while ($r = $recs->fetch()): ?>
+                            <tr class="text-sm hover:bg-slate-800/30 transition">
+                                <td class="p-3 font-bold text-slate-300">
+                                    <?= $r['host'] ?>
+                                </td>
+                                <td class="p-3"><span
+                                        class="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs font-bold text-slate-400">
+                                        <?= $r['type'] ?>
+                                    </span>
+                                </td>
+                                <td class="p-3 font-mono text-slate-500 text-xs">
+                                    <?= $r['value'] ?>
+                                </td>
+                                <td class="p-3 text-right">
+                                    <button
+                                        onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
+                                        class="text-red-400 hover:text-red-500"><i data-lucide="trash-2"
+                                            class="w-4"></i></button>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-<?php endforeach; ?>
-
+    <?php endforeach; ?>
+</div>
 <?php include 'layout/footer.php'; ?>
 
 <script>
@@ -337,5 +348,14 @@ include 'layout/header.php';
         } catch (e) {
             showToast('error', 'Error', 'System error during deletion.');
         }
+    }
+
+    function filterDomains(query) {
+        const lower = query.toLowerCase();
+        const items = document.querySelectorAll('#domain-list > .glass-card');
+        items.forEach(item => {
+            const text = item.innerText.toLowerCase();
+            item.style.display = text.includes(lower) ? '' : 'none';
+        });
     }
 </script>

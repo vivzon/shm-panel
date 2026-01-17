@@ -29,24 +29,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WHM Administration | Secure Access</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #020617;
+            font-family: 'Space Grotesk', sans-serif;
+            background: #000;
             overflow: hidden;
         }
 
-        /* Animated Background */
-        .bg-glow {
+        .aurora-bg {
             position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
-            border-radius: 50%;
-            animation: float 10s infinite ease-in-out;
+            inset: 0;
             z-index: 0;
+            background: radial-gradient(circle at 0% 0%, #1e1b4b 0%, #000000 50%), radial-gradient(circle at 100% 100%, #312e81 0%, #000000 50%);
+        }
+
+        .aurora-blob {
+            position: absolute;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out;
         }
 
         @keyframes float {
@@ -57,103 +60,83 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             50% {
-                transform: translate(30px, -30px);
+                transform: translate(20px, -20px);
             }
         }
 
         .glass-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
         }
 
-        .input-dark {
-            background: rgba(2, 6, 23, 0.5);
-            border: 1px solid rgba(51, 65, 85, 0.5);
-            color: #f8fafc;
-        }
-
-        .input-dark:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-        }
-
-        .fade-in {
-            animation: fadeIn 0.6s ease-out forwards;
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .input-group input:focus~label,
+        .input-group input:not(:placeholder-shown)~label {
+            top: -10px;
+            left: 10px;
+            font-size: 10px;
+            color: #60a5fa;
+            background: #000;
+            padding: 0 5px;
         }
     </style>
 </head>
 
-<body class="flex items-center justify-center min-h-screen relative">
+<body class="flex items-center justify-center min-h-screen relative text-white">
 
-    <!-- Background Elements -->
-    <div class="bg-glow top-[-100px] left-[-100px]"></div>
-    <div class="bg-glow bottom-[-100px] right-[-100px]"
-        style="background: radial-gradient(circle, rgba(124, 58, 237, 0.1) 0%, rgba(0,0,0,0) 70%); animation-delay: 2s;">
+    <div class="aurora-bg">
+        <div class="aurora-blob bg-blue-900/40 w-96 h-96 top-0 left-0"></div>
+        <div class="aurora-blob bg-indigo-900/40 w-96 h-96 bottom-0 right-0" style="animation-delay: -2s"></div>
     </div>
 
-    <div class="w-full max-w-sm relative z-10 p-6">
-
-        <!-- Header -->
-        <div class="text-center mb-10 fade-in" style="animation-delay: 0.1s">
-            <div
-                class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-2xl shadow-blue-900/50 mb-6 border border-white/10">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-                </svg>
+    <div class="relative z-10 w-full max-w-md p-6">
+        <div class="glass-panel p-10 rounded-3xl">
+            <div class="text-center mb-10">
+                <div
+                    class="w-16 h-16 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/30 mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tight mb-2">Admin Portal</h1>
+                <p class="text-slate-500 text-sm">Valid credentials required for access</p>
             </div>
-            <h1 class="text-3xl font-bold text-white tracking-tight mb-2">WHM Admin</h1>
-            <p class="text-slate-400 text-sm">Server & Account Management</p>
-        </div>
 
-        <!-- Login Card -->
-        <div class="glass-panel p-8 rounded-[2rem] fade-in" style="animation-delay: 0.2s">
             <?php if (isset($error)): ?>
                 <div
-                    class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 text-xs font-bold text-center flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="8" x2="12" y2="12" />
-                        <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
-                    <?php echo htmlspecialchars($error); ?>
+                    class="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-xl mb-6 text-xs font-bold text-center">
+                    <?= htmlspecialchars($error) ?>
                 </div>
             <?php endif; ?>
 
-            <form method="POST" class="space-y-5">
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-2">Username</label>
-                    <input name="u" required placeholder="admin" autocomplete="off"
-                        class="input-dark w-full p-4 rounded-2xl outline-none transition duration-300 placeholder:text-slate-600 text-sm">
+            <form method="POST" class="space-y-6">
+                <div class="relative input-group">
+                    <input name="u" required
+                        class="w-full bg-transparent border border-slate-700 rounded-xl p-4 text-sm outline-none focus:border-blue-500 transition-colors placeholder-transparent"
+                        placeholder="Username">
+                    <label
+                        class="absolute left-4 top-4 text-slate-500 text-sm transition-all pointer-events-none">Username</label>
                 </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-2">Password</label>
-                    <input name="p" type="password" required placeholder="••••••••"
-                        class="input-dark w-full p-4 rounded-2xl outline-none transition duration-300 placeholder:text-slate-600 text-sm">
+
+                <div class="relative input-group">
+                    <input name="p" type="password" required
+                        class="w-full bg-transparent border border-slate-700 rounded-xl p-4 text-sm outline-none focus:border-blue-500 transition-colors placeholder-transparent"
+                        placeholder="Password">
+                    <label
+                        class="absolute left-4 top-4 text-slate-500 text-sm transition-all pointer-events-none">Password</label>
                 </div>
 
                 <button
-                    class="w-full py-4 mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-600/20 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]">
-                    Authenticate
+                    class="w-full py-4 bg-white text-black font-bold rounded-xl hover:bg-slate-200 transition transform hover:scale-[1.01] active:scale-[0.99] shadow-xl">
+                    Secure Login
                 </button>
             </form>
         </div>
-
-        <p class="text-center mt-8 text-slate-600 text-xs font-mono fade-in" style="animation-delay: 0.3s">
-            SECURE ENVIRONMENT v2.0
-        </p>
+        <div class="text-center mt-8 text-slate-600 text-xs uppercase tracking-widest font-bold">
+            SHM Panel v5.0
+        </div>
     </div>
 
 </body>
