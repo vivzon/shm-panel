@@ -107,7 +107,24 @@ if (!$domain) {
     die("No domains found. Please add a domain first.");
 }
 
-$base_path = rtrim($domain['document_root'] ?? "/var/www/clients/" . $_SESSION['client'] . "/public_html", '/');
+// Fix for local Windows development if DB path is missing or unix-style
+$default_root = "/var/www/clients/" . ($_SESSION['client'] ?? 'default') . "/public_html";
+$base_path = rtrim($domain['document_root'] ?? $default_root, '/');
+
+// On Windows local dev, map /var/www to a local folder
+if (DIRECTORY_SEPARATOR === '\\') {
+    // If path starts with /var, re-map it to a local 'storage' folder for testing
+    if (strpos($base_path, '/var') === 0 || strpos($base_path, '/') === 0) {
+        $base_path = __DIR__ . '/../../storage/' . ($_SESSION['client'] ?? 'guest');
+        $base_path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $base_path);
+    }
+}
+
+// Ensure directory exists
+if (!file_exists($base_path)) {
+    mkdir($base_path, 0777, true);
+}
+
 $full_path = shm_build_path($base_path, $current_path);
 
 // -------- POST ACTIONS --------
@@ -117,9 +134,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_ajax = isset($_POST['ajax']) || isset($_POST['ajax_action']);
 
     if (!$is_writable) {
-        error_log("SHM-FM: Directory $full_path is NOT writable by " . get_current_user());
+        $debug_info = "Path: $full_path | Exists: " . (file_exists($full_path) ? 'Yes' : 'No') . " | Writable: " . (is_writable($full_path) ? 'Yes' : 'No') . " | User: " . get_current_user();
+        error_log("SHM-FM: Directory $full_path is NOT writable. Info: $debug_info");
         if ($is_ajax) {
-            echo json_encode(['status' => 'error', 'msg' => 'Directory verification failed (ReadOnly)']);
+            echo json_encode(['status' => 'error', 'msg' => "Directory verification failed (ReadOnly). Debug: $debug_info"]);
             exit;
         }
     }
