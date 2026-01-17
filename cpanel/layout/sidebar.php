@@ -1,5 +1,5 @@
 <aside
-    class="w-72 bg-slate-950 border-r border-slate-900 flex flex-col z-20 shadow-2xl h-screen overflow-y-auto custom-scrollbar">
+    class="w-72 bg-slate-950 border-r border-slate-900 flex flex-col z-20 shadow-2xl h-screen overflow-y-auto custom-scrollbar <?= isset($collapse_sidebar) && $collapse_sidebar ? 'hidden' : '' ?>">
     <div class="p-8 pb-6">
         <div class="flex items-center gap-4 mb-10">
             <div

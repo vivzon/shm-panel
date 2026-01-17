@@ -429,6 +429,7 @@ if (is_dir($full_path)) {
 
     <?php
     $current_page = 'files.php';
+    $collapse_sidebar = true;
     include 'layout/sidebar.php';
     ?>
 
@@ -1197,9 +1198,19 @@ if (is_dir($full_path)) {
                 for (let i = 0; i < files.length; i++) fd.append('files[]', files[i]);
 
                 this.toast('success', 'Uploading...');
-                const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-                if (res.status === 'success') setTimeout(() => location.reload(), 500);
-                else this.toast('error', 'Upload failed');
+                try {
+                    const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+                    if (res.status === 'success') {
+                        this.toast('success', res.msg || 'Uploaded successfully');
+                        setTimeout(() => location.reload(), 500);
+                    } else {
+                        console.error('Upload Error:', res);
+                        this.toast('error', res.msg || 'Upload failed');
+                    }
+                } catch (e) {
+                    console.error('Fetch Error:', e);
+                    this.toast('error', 'Network or Server Error');
+                }
             }
 
             doUploadInput(input) {
