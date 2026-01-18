@@ -24,12 +24,50 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Invalid Domain");
 
             // Background command
-            // Note: In real env, use full path or ensure path is in env
-            $cmd = "app-tool $app " . escapeshellarg($d); // Simplified for demo
+            $cmd = "app-tool $app " . escapeshellarg($d);
             if (function_exists('cmd'))
                 cmd("$cmd > /dev/null 2>&1 &");
 
             sendResponse($res);
+            exit;
+        }
+
+        // --- FTP HANDLERS ---
+        if ($action == 'add_ftp') {
+            if ($_POST['pass'] !== $_POST['pass2'])
+                throw new Exception("Passwords do not match");
+            $ftp_user = $_POST['ftp_user'] . '@' . $username; // Enforce user@client format
+            $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
+            $home = "/home/$username/public_html" . ($_POST['dir'] ? '/' . trim($_POST['dir'], '/') : '');
+
+            // Check if exists (Mock DB check or real)
+            // Ideally we check if 'ftp_users' table exists. Assuming it matches ProFTPD/PureFTPD structure
+            // For now, we'll try to insert and catch duplicate error or query first
+            $check = $pdo->prepare("SELECT count(*) FROM ftp_users WHERE userid = ?");
+            $check->execute([$ftp_user]);
+            if ($check->fetchColumn() > 0)
+                throw new Exception("FTP User already exists");
+
+            $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir) VALUES (?,?,?)")->execute([$ftp_user, $pass, $home]);
+            sendResponse($res);
+            exit;
+        }
+
+        if ($action == 'del_ftp') {
+            $userToDelete = $_POST['user'];
+            if (!str_ends_with($userToDelete, "@$username"))
+                throw new Exception("Permission Denied");
+
+            $pdo->prepare("DELETE FROM ftp_users WHERE userid = ?")->execute([$userToDelete]);
+            sendResponse($res);
+            exit;
+        }
+
+        if ($action == 'list_ftp') {
+            $suffix = "@$username";
+            $stmt = $pdo->prepare("SELECT userid, homedir FROM ftp_users WHERE userid LIKE ?");
+            $stmt->execute(["%$suffix"]);
+            echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
             exit;
         }
 
@@ -101,17 +139,21 @@ include 'layout/header.php';
 </div>
 
 <!-- TABS -->
-<div class="flex border-b border-slate-800 mb-8">
+<div class="flex border-b border-slate-800 mb-8 overflow-x-auto">
     <a href="?tab=apps"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition <?= $active_tab == 'apps' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'apps' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
         App Installer
     </a>
+    <a href="?tab=ftp"
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'ftp' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        FTP Manager
+    </a>
     <a href="?tab=security"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition <?= $active_tab == 'security' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'security' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
         Security (SSH)
     </a>
     <a href="?tab=backups"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition <?= $active_tab == 'backups' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'backups' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
         Backups
     </a>
 </div>
@@ -131,18 +173,74 @@ include 'layout/header.php';
                 <div
                     class="absolute -right-6 -top-6 w-32 h-32 <?= $info[2] ?>/20 rounded-full blur-3xl group-hover:bg-opacity-40 transition">
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2 relative z-10">
-                    <?= $info[0] ?>
-                </h3>
-                <p class="text-slate-400 text-sm mb-6 relative z-10 h-10">
-                    <?= $info[1] ?>
-                </p>
+                <h3 class="text-xl font-bold text-white mb-2 relative z-10"><?= $info[0] ?></h3>
+                <p class="text-slate-400 text-sm mb-6 relative z-10 h-10"><?= $info[1] ?></p>
                 <button onclick="openAppModal('<?= $key ?>', '<?= $info[0] ?>')"
                     class="w-full py-3 <?= $info[2] ?> hover:opacity-90 text-white font-bold rounded-xl shadow-lg transition relative z-10">
                     Install
                 </button>
             </div>
         <?php endforeach; ?>
+    </div>
+</div>
+
+<!-- CONTENT: FTP -->
+<div id="tab-ftp" class="<?= $active_tab == 'ftp' ? '' : 'hidden' ?>">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- CREATE FTP -->
+        <div class="glass-card p-8">
+            <h3 class="font-bold mb-4 text-white">Create FTP Account</h3>
+            <!-- Use dedicated handler to avoid generic errors -->
+            <form onsubmit="handleFTPCreate(event)">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Username</label>
+                        <div
+                            class="flex items-center bg-slate-900/50 rounded-xl border border-slate-700 overflow-hidden">
+                            <input name="ftp_user" required placeholder="user"
+                                class="w-full bg-transparent p-3 outline-none text-white text-sm text-right">
+                            <span
+                                class="bg-slate-800 p-3 text-slate-400 text-sm border-l border-slate-700">@<?= $username ?></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Directory</label>
+                        <input name="dir" placeholder="/public_html"
+                            class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white text-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <input name="pass" type="password" required placeholder="Password"
+                        class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white text-sm">
+                    <input name="pass2" type="password" required placeholder="Confirm"
+                        class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 outline-none focus:border-blue-500 text-white text-sm">
+                </div>
+                <button type="submit"
+                    class="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-500 transition">Create
+                    Account</button>
+            </form>
+        </div>
+
+        <!-- LIST FTP -->
+        <div class="glass-card p-8">
+            <h3 class="font-bold mb-6 text-white text-lg">Active FTP Accounts</h3>
+            <div class="overflow-y-auto max-h-[300px] custom-scrollbar">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+                        <tr>
+                            <th class="p-3">User</th>
+                            <th class="p-3">Path</th>
+                            <th class="p-3 text-right"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="ftp-list" class="divide-y divide-slate-700/50">
+                        <tr>
+                            <td colspan="3" class="p-4 text-center text-slate-500">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -203,7 +301,6 @@ include 'layout/header.php';
         let domList = "Available IDs:\n";
         <?php foreach ($domains as $d)
             echo "domList += \"{$d['id']}: {$d['domain']}\\n\";\n"; ?>
-        
         const domainId = prompt(`Install ${appName} to which domain? (Enter Domain ID)\n\n${domList}`);
         if (!domainId) return;
 
@@ -221,6 +318,70 @@ include 'layout/header.php';
         } catch (e) {
             showToast('warning', 'Check Logs', 'Request sent but check status.');
         }
+    }
+
+    // --- FTP LOGIC ---
+    // Defined explicitly to handle form submission cleanly
+    async function handleFTPCreate(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        const oldHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '...';
+
+        const fd = new FormData(e.target);
+        fd.append('ajax_action', 'add_ftp');
+
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success') {
+                showToast('success', 'Created', 'FTP Account created.');
+                e.target.reset(); // Clear form
+                loadFTP();
+            } else {
+                showToast('error', 'Failed', res.msg);
+            }
+        } catch (e) {
+            showToast('error', 'Error', 'Server Error');
+        }
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+    }
+
+    async function loadFTP() {
+        const list = document.getElementById('ftp-list');
+        if (!list) return;
+        const fd = new FormData(); fd.append('ajax_action', 'list_ftp');
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            list.innerHTML = '';
+            if (res.data && res.data.length > 0) {
+                res.data.forEach(u => {
+                    list.innerHTML += `
+                        <tr class="hover:bg-slate-800/30 transition group">
+                            <td class="p-3 font-mono text-xs text-blue-300">${u.userid}</td>
+                            <td class="p-3 text-slate-500 text-xs truncate max-w-[150px]">${u.homedir}</td>
+                            <td class="p-3 text-right">
+                                <button onclick="delFTP('${u.userid}')" class="text-red-400 opacity-50 group-hover:opacity-100 hover:text-red-300 transition"><i data-lucide="trash-2" class="w-4"></i></button>
+                            </td>
+                        </tr>
+                     `;
+                });
+                lucide.createIcons();
+            } else {
+                list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">No FTP accounts found.</td></tr>';
+            }
+        } catch (e) { list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-red-400">Error loading.</td></tr>'; }
+    }
+
+    async function delFTP(user) {
+        if (!confirm('Delete FTP user ' + user + '?')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'del_ftp');
+        fd.append('user', user);
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'Deleted');
+        loadFTP();
     }
 
     // --- SECURITY LOGIC ---
@@ -311,10 +472,11 @@ include 'layout/header.php';
 
     // Init based on active tab
     <?php if ($active_tab == 'security'): ?>
-            loadSSH();
+        loadSSH();
     <?php elseif ($active_tab == 'backups'): ?>
-            loadBackups();
+        loadBackups();
+    <?php elseif ($active_tab == 'ftp'): ?>
+        loadFTP();
     <?php endif; ?>
 
-    // Global listener for tab switching cleanup/init if needed (simple page reload handles it now)
 </script>

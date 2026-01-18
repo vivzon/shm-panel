@@ -12,15 +12,42 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Action processed'];
 
     try {
+        // --- FTP HANDLERS ---
         if ($action == 'add_ftp') {
             if ($_POST['pass'] !== $_POST['pass2'])
                 throw new Exception("Passwords do not match");
+
+            $sys_user = $_POST['sys_user'];
+            $ftp_user = $_POST['ftp_user'] . '@' . $sys_user; // Enforce user@client
             $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
-            // Derive home from system user
-            $home = "/home/" . $_POST['sys_user'] . "/public_html";
-            $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir) VALUES (?,?,?)")->execute([$_POST['ftp_user'], $pass, $home]);
+
+            // Default home to /home/user/public_html
+            // Admin can override logic if needed, but keeping it simple/standard
+            $home = "/var/www/clients/$sys_user/public_html";
+
+            $check = $pdo->prepare("SELECT count(*) FROM ftp_users WHERE userid = ?");
+            $check->execute([$ftp_user]);
+            if ($check->fetchColumn() > 0)
+                throw new Exception("FTP User already exists");
+
+            $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir) VALUES (?,?,?)")->execute([$ftp_user, $pass, $home]);
+            sendResponse($res);
+            exit;
         }
 
+        if ($action == 'list_ftp') {
+            $stmt = $pdo->query("SELECT userid, homedir FROM ftp_users ORDER BY userid ASC");
+            echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+            exit;
+        }
+
+        if ($action == 'del_ftp') {
+            $pdo->prepare("DELETE FROM ftp_users WHERE userid = ?")->execute([$_POST['user']]);
+            sendResponse($res);
+            exit;
+        }
+
+        // --- MAIL HANDLERS ---
         if ($action == 'add_mail') {
             $full = $_POST['prefix'] . "@" . $_POST['domain'];
             $pass = password_hash($_POST['mail_pass'], PASSWORD_BCRYPT);
@@ -28,21 +55,22 @@ if (isset($_POST['ajax_action'])) {
             if (!$did)
                 throw new Exception("Domain not found for mail");
             $pdo->prepare("INSERT INTO mail_users (domain_id, email, password) VALUES (?,?,?)")->execute([$did, $full, $pass]);
+            sendResponse($res);
+            exit;
         }
 
         if ($action == 'set_php_handler') {
-            // Stub implementation
+            // Stub logic
             echo json_encode(['status' => 'success', 'msg' => 'PHP Handler Updated (Stub)']);
             exit;
         }
 
         if ($action == 'set_network_card') {
-            // Stub implementation
+            // Stub logic
             echo json_encode(['status' => 'success', 'msg' => 'Network Config Updated (Stub)']);
             exit;
         }
 
-        echo json_encode($res);
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
@@ -87,33 +115,61 @@ include 'layout/header.php';
 
 <!-- CONTENT: FTP -->
 <div class="<?= $active_tab == 'ftp' ? '' : 'hidden' ?>">
-    <div class="glass-panel p-8 rounded-3xl relative overflow-hidden max-w-2xl">
-        <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl"></div>
-        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
-            <div class="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20 text-blue-500">
-                <i data-lucide="folder-up" class="w-5 h-5"></i>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- CREATE FTP -->
+        <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl"></div>
+            <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
+                <div class="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20 text-blue-500">
+                    <i data-lucide="folder-up" class="w-5 h-5"></i>
+                </div>
+                Create FTP Account
+            </h3>
+            <form onsubmit="handleFTPCreate(event)" class="space-y-4 relative z-10">
+                <div class="grid grid-cols-2 gap-4">
+                    <input name="ftp_user" required placeholder="Pre-fix (e.g. dev)"
+                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                    <select name="sys_user" required
+                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-indigo-500 focus:bg-slate-900 transition">
+                        <?php foreach ($clients as $c): ?>
+                            <option value="<?= $c['username'] ?>">@<?= $c['username'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <input name="pass" required type="password" placeholder="Password"
+                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                    <input name="pass2" required type="password" placeholder="Confirm"
+                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                </div>
+                <button type="submit"
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-indigo-600/20 text-white transition border border-indigo-500/50">
+                    Create FTP User
+                </button>
+            </form>
+        </div>
+
+        <!-- LIST FTP -->
+        <div class="glass-panel p-8 rounded-3xl relative overflow-hidden flex flex-col h-full">
+            <h3 class="text-xl font-bold mb-6 text-white font-heading">Existing Accounts</h3>
+            <div class="overflow-y-auto flex-1 custom-scrollbar max-h-[400px]">
+                <table class="w-full text-left">
+                    <thead
+                        class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400 sticky top-0 backdrop-blur-md">
+                        <tr>
+                            <th class="p-3">User</th>
+                            <th class="p-3">Home</th>
+                            <th class="p-3 text-right"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="ftp-list" class="divide-y divide-slate-700/50">
+                        <tr>
+                            <td colspan="3" class="p-4 text-center text-slate-500">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            Create FTP Account
-        </h3>
-        <form onsubmit="handleGeneric(event, 'add_ftp')" class="space-y-4 relative z-10">
-            <input name="ftp_user" required placeholder="Username"
-                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
-            <select name="sys_user" required
-                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-indigo-500 focus:bg-slate-900 transition">
-                <?php foreach ($clients as $c): ?>
-                    <option value="<?= $c['username'] ?>">System User: <?= $c['username'] ?></option>
-                <?php endforeach; ?>
-            </select>
-            <div class="grid grid-cols-2 gap-4">
-                <input name="pass" required type="password" placeholder="Password"
-                    class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
-                <input name="pass2" required type="password" placeholder="Confirm"
-                    class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
-            </div>
-            <button
-                class="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-indigo-600/20 text-white transition border border-indigo-500/50">Create
-                FTP User</button>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -141,7 +197,7 @@ include 'layout/header.php';
             </div>
             <input name="mail_pass" required type="password" placeholder="Password"
                 class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition mb-2">
-            <button
+            <button type="submit"
                 class="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-indigo-600/20 text-white transition border border-indigo-500/50">Create
                 Mailbox</button>
         </form>
@@ -171,7 +227,7 @@ include 'layout/header.php';
                     <option value="<?= $c['username'] ?>">Root: <?= $c['username'] ?></option>
                 <?php endforeach; ?>
             </select>
-            <button
+            <button type="submit"
                 class="w-full bg-purple-600 hover:bg-purple-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-purple-600/20 text-white transition border border-purple-500/50">Set
                 PHP Handler</button>
         </form>
@@ -200,7 +256,7 @@ include 'layout/header.php';
                 <option value="eth0">eth0 (Default)</option>
                 <option value="eth1">eth1</option>
             </select>
-            <button
+            <button type="submit"
                 class="w-full bg-orange-600 hover:bg-orange-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-orange-600/20 text-white transition border border-orange-500/50">Update
                 Interface</button>
         </form>
@@ -208,3 +264,73 @@ include 'layout/header.php';
 </div>
 
 <?php include 'layout/footer.php'; ?>
+<script>
+    // FTP Specific Logic
+    async function loadFTP() {
+        const list = document.getElementById('ftp-list');
+        if (!list) return;
+        const fd = new FormData(); fd.append('ajax_action', 'list_ftp');
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            list.innerHTML = '';
+            if (res.data && res.data.length > 0) {
+                res.data.forEach(u => {
+                    list.innerHTML += `
+                        <tr class="hover:bg-slate-800/30 transition group">
+                            <td class="p-3 font-mono text-xs text-blue-300">${u.userid}</td>
+                            <td class="p-3 text-slate-500 text-xs truncate max-w-[150px]">${u.homedir}</td>
+                            <td class="p-3 text-right">
+                                <button onclick="delFTP('${u.userid}')" class="text-red-400 opacity-50 group-hover:opacity-100 hover:text-red-300 transition"><i data-lucide="trash-2" class="w-4"></i></button>
+                            </td>
+                        </tr>
+                     `;
+                });
+                lucide.createIcons();
+            } else {
+                list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">No FTP accounts found.</td></tr>';
+            }
+        } catch (e) { list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-red-400">Error loading.</td></tr>'; }
+    }
+
+    async function handleFTPCreate(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        const oldHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '...';
+
+        const fd = new FormData(e.target);
+        fd.append('ajax_action', 'add_ftp');
+
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success') {
+                showToast('success', 'FTP Account Created');
+                e.target.reset(); // Clear form
+                loadFTP();
+            } else {
+                showToast('error', res.msg);
+            }
+        } catch (e) {
+            showToast('error', 'Server Error');
+        }
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+    }
+
+    async function delFTP(user) {
+        if (!confirm('Delete FTP user ' + user + '?')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'del_ftp');
+        fd.append('user', user);
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'Deleted');
+        loadFTP();
+    }
+
+    // Init
+    <?php if ($active_tab == 'ftp'): ?>
+        loadFTP();
+    <?php endif; ?>
+
+</script>
