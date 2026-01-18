@@ -41,9 +41,12 @@ if (isset($_POST['ajax_action'])) {
 
             $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', '@', ?)")->execute([$dom_id, $server_ip]);
             $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'CNAME', 'www', '@')")->execute([$dom_id]);
+            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', 'mail', ?)")->execute([$dom_id, $server_ip]);
             $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'MX', '@', ?)")->execute([$dom_id, $mail_host]);
-            $spf = "v=spf1 mx a ip4:$server_ip -all";
+
+            $spf = "v=spf1 a mx ip4:$server_ip -all";
             $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '@', ?)")->execute([$dom_id, $spf]);
+            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '_dmarc', 'v=DMARC1; p=none')")->execute([$dom_id]);
 
             cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
             cmd("dns-tool sync $dom_id");
