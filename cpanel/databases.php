@@ -25,16 +25,38 @@ if (isset($_POST['ajax_action'])) {
             $domain_id = !empty($_POST['domain_id']) ? (int) $_POST['domain_id'] : "NULL";
 
             $pdo->prepare("INSERT INTO client_databases (client_id, domain_id, db_name) VALUES (?, ?, ?)")->execute([$cid, $domain_id == "NULL" ? null : $domain_id, $db_name]);
+
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db_name`");
+            } else {
+                $out = cmd("mysql-tool create-db " . escapeshellarg($db_name));
+                if ($out)
+                    throw new Exception("Backend Error: " . $out);
+            }
             sendResponse($res);
-            cmd("mysql-tool create-db " . escapeshellarg($db_name));
             exit;
         }
 
         if ($action == 'add_db_user') {
             $db_user = $username . "_" . preg_replace('/[^a-z0-9_]/', '', $_POST['db_user']);
             $pdo->prepare("INSERT INTO client_db_users (client_id, db_user) VALUES (?, ?)")->execute([$cid, $db_user]);
+
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                $pass = $_POST['db_pass'];
+                // Create User
+                $stmt = $pdo->prepare("CREATE USER IF NOT EXISTS ?@'localhost' IDENTIFIED BY ?");
+                $stmt->execute([$db_user, $pass]);
+                // Grant - using pure SQL construction for table name as it can't be bound in GRANT
+                $target_db = preg_replace('/[^a-z0-9_]/', '', $_POST['target_db']);
+                $stmt = $pdo->prepare("GRANT ALL PRIVILEGES ON `$target_db`.* TO ?@'localhost'");
+                $stmt->execute([$db_user]);
+                $pdo->exec("FLUSH PRIVILEGES");
+            } else {
+                $out = cmd("mysql-tool create-user " . escapeshellarg($db_user) . " " . escapeshellarg($_POST['db_pass']) . " " . escapeshellarg($_POST['target_db']));
+                if ($out)
+                    throw new Exception("Backend Error: " . $out);
+            }
             sendResponse($res);
-            cmd("mysql-tool create-user " . escapeshellarg($db_user) . " " . escapeshellarg($_POST['db_pass']) . " " . escapeshellarg($_POST['target_db']));
             exit;
         }
 
@@ -46,8 +68,15 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Access Denied");
 
             $pdo->prepare("DELETE FROM client_databases WHERE db_name = ?")->execute([$db_name]);
+
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                $pdo->exec("DROP DATABASE IF EXISTS `$db_name`");
+            } else {
+                $out = cmd("mysql-tool delete-db " . escapeshellarg($db_name));
+                if ($out)
+                    throw new Exception("Backend Error: " . $out);
+            }
             sendResponse($res);
-            cmd("mysql-tool delete-db " . escapeshellarg($db_name));
             exit;
         }
 
@@ -61,8 +90,17 @@ if (isset($_POST['ajax_action'])) {
             if (!$check->fetch())
                 throw new Exception("Access Denied");
 
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                // Reset Pass
+                $stmt = $pdo->prepare("ALTER USER ?@'localhost' IDENTIFIED BY ?");
+                $stmt->execute([$db_user, $pass]);
+                $pdo->exec("FLUSH PRIVILEGES");
+            } else {
+                $out = cmd("mysql-tool reset-pass " . escapeshellarg($db_user) . " " . escapeshellarg($pass));
+                if ($out)
+                    throw new Exception("Backend Error: " . $out);
+            }
             sendResponse($res);
-            cmd("mysql-tool reset-pass " . escapeshellarg($db_user) . " " . escapeshellarg($pass));
             exit;
         }
 
