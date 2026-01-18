@@ -94,6 +94,11 @@ apt-get update
 log "Installing PHP Versions..."
 for v in 8.1 8.2 8.3; do
     apt-get install -y php$v-fpm php$v-mysql php$v-common php$v-gd php$v-mbstring php$v-xml php$v-zip php$v-curl php$v-bcmath php$v-intl php$v-imagick php$v-cli
+    
+    # Configure PHP Limits (Global)
+    sed -i "s/upload_max_filesize = .*/upload_max_filesize = 1024M/" /etc/php/$v/fpm/php.ini
+    sed -i "s/post_max_size = .*/post_max_size = 1024M/" /etc/php/$v/fpm/php.ini
+    sed -i "s/memory_limit = .*/memory_limit = 1024M/" /etc/php/$v/fpm/php.ini
 done
 
 # Install Composer
@@ -107,6 +112,21 @@ if ! command -v node &> /dev/null; then
     log "Installing Node.js..."
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
     apt-get install -y nodejs
+fi
+
+# --- 1a. Optimization & Swap ---
+# Create 2GB Swap if none exists (Prevents OOM Kills)
+if [ $(swapon --show | wc -l) -eq 0 ]; then
+    log "Allocating 2GB Swap File..."
+    fallocate -l 2G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo '/swapfile none swap sw 0 0' | tee -a /etc/fstab
+    
+    # Tuning Swap
+    sysctl vm.swappiness=10
+    echo 'vm.swappiness=10' >> /etc/sysctl.conf
 fi
 
 # --- 2. Database Setup ---
@@ -148,6 +168,13 @@ INSERT IGNORE INTO packages VALUES (1, 'Starter', 0.00, 2000, 1, 5, 2), (2, 'Bus
 -- Admin: admin / admin123 (bcrypt hash)
 INSERT IGNORE INTO admins (username, password) VALUES ('admin', '\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 SQL
+
+# Hardening MariaDB
+mysql -e "DELETE FROM mysql.user WHERE User='';"
+mysql -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"
+mysql -e "DROP DATABASE IF EXISTS test;"
+mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';"
+mysql -e "FLUSH PRIVILEGES;"
 
 # --- 3. Backend Deployment ---
 log "Deploying Backend Engine (shm-manage)..."
@@ -321,6 +348,8 @@ server {
     root ${SUBDOMAINS[$sub]};
     index index.php index.html;
     
+    client_max_body_size 1024M;
+    
     location / {
         try_files \$uri \$uri/ /index.php?\$args;
     }
@@ -337,9 +366,46 @@ server {
 }
 CONF
     ln -sf /etc/nginx/sites-available/$sub /etc/nginx/sites-enabled/
+    ln -sf /etc/nginx/sites-available/$sub /etc/nginx/sites-enabled/
 done
 
-# --- 7. Finalize ---
+# --- 7. Security & Firewall (UFW) ---
+log "Configuring Firewall (UFW)..."
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp         # SSH
+ufw allow 80/tcp         # HTTP
+ufw allow 443/tcp        # HTTPS
+ufw allow 53             # DNS
+ufw allow 21/tcp         # FTP
+ufw allow 25/tcp         # SMTP
+ufw allow 587/tcp        # SMTP Submission
+ufw allow 465/tcp        # SMTPS
+ufw allow 110/tcp        # POP3
+ufw allow 143/tcp        # IMAP
+ufw allow 993/tcp        # IMAPS
+ufw allow 995/tcp        # POP3S
+# ProFTPD Passive Ports (Match config if set, usually defaults need range)
+# Assuming non-passive or existing config handles it, but opening range is safe:
+ufw allow 49152:65534/tcp
+
+# Enable Non-Interactive
+echo "y" | ufw enable
+
+# --- 8. Auto Backup Cron ---
+log "Setting up Daily Backups..."
+cat > /etc/cron.daily/shm-backup << CRON
+#!/bin/bash
+# Backup all clients
+mysql -N -s -e "SELECT username FROM clients" $DB_NAME | while read USER; do
+  /usr/local/bin/shm-manage backup create \$USER
+  # Delete backups older than 7 days
+  find /var/www/clients/\$USER/backups -type f -name "*.tar.gz" -mtime +7 -delete
+done
+CRON
+chmod +x /etc/cron.daily/shm-backup
+
+# --- 9. Finalize ---
 log "Restarting Services..."
 systemctl restart nginx mysql php8.2-fpm proftpd postfix dovecot
 

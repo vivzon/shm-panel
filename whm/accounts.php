@@ -34,6 +34,35 @@ if (isset($_POST['ajax_action'])) {
                 $cid = $pdo->lastInsertId();
                 $pdo->prepare("INSERT INTO domains (client_id, domain) VALUES (?,?)")->execute([$cid, $d]);
                 $pdo->prepare("INSERT INTO mail_domains (domain) VALUES (?)")->execute([$d]);
+
+                // Auto-Generate DNS Records
+                $server_ip = $_SERVER['SERVER_ADDR'] ?? '127.0.0.1'; // Fallback if internal
+                // If behind NAT, you might want to fetch public IP, but SERVER_ADDR is standard for now.
+
+                $dom_id = $pdo->prepare("SELECT id FROM domains WHERE domain = ?");
+                $dom_id->execute([$d]);
+                $dom_id = $dom_id->fetchColumn();
+
+                $host_parts = explode('.', $_SERVER['HTTP_HOST']);
+                $base_domain = implode('.', array_slice($host_parts, -2));
+                $mail_host = "mail." . $d; // Point MX to mail.clientdomain.com
+
+                // A Records
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', '@', ?)")->execute([$dom_id, $server_ip]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', 'mail', ?)")->execute([$dom_id, $server_ip]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', 'ftp', ?)")->execute([$dom_id, $server_ip]);
+
+                // CNAME
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'CNAME', 'www', '@')")->execute([$dom_id]);
+
+                // MX
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'MX', '@', ?)")->execute([$dom_id, $mail_host]);
+
+                // SPF & DMARC
+                $spf = "v=spf1 a mx ip4:$server_ip -all";
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '@', ?)")->execute([$dom_id, $spf]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '_dmarc', 'v=DMARC1; p=none')")->execute([$dom_id]);
+
                 $pdo->commit();
 
                 // Send response BEFORE shell command

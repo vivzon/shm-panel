@@ -57,8 +57,8 @@ listen.group = www-data
 pm = ondemand
 pm.max_children = 5
 php_admin_value[open_basedir] = /var/www/clients/$USER:/tmp
-php_admin_value[upload_max_filesize] = 64M
-php_admin_value[post_max_size] = 64M
+php_admin_value[upload_max_filesize] = 1024M
+php_admin_value[post_max_size] = 1024M
 PHP
 PHP
 
@@ -70,6 +70,8 @@ server {
     root /var/www/clients/$USER/public_html;
     index index.php index.html;
     
+    client_max_body_size 512M;
+
     access_log /var/www/clients/$USER/logs/access.log;
     error_log /var/www/clients/$USER/logs/error.log;
 
@@ -89,6 +91,12 @@ NGINX
         # 4. Default Index
         echo "<h1>Welcome to $DOM</h1><p>Hosted by SHM Panel</p>" > /var/www/clients/$USER/public_html/index.html
         chown $USER:$USER /var/www/clients/$USER/public_html/index.html
+
+        # 5. Sync DNS (Generate Zone File)
+        DOM_ID=$(mysql -N -s -e "SELECT id FROM domains WHERE domain='$DOM'" $DB_NAME)
+        if [ ! -z "$DOM_ID" ]; then
+             $0 dns-tool sync $DOM_ID
+        fi
 
         log_action "Created account: $USER ($DOM)"
         
@@ -140,7 +148,9 @@ server {
     server_name $DOM www.$DOM;
     root $DOCROOT;
     index index.php index.html;
-    
+
+    client_max_body_size 1024M;
+
     access_log /var/www/clients/$USER/logs/access.log;
     error_log /var/www/clients/$USER/logs/error.log;
 
@@ -319,6 +329,15 @@ NGINX
 @ IN A $(hostname -I | awk '{print $1}')
 www IN CNAME @
 ZONE
+
+            # Glue Records for Nameservers (Only for Main Domain)
+            if [ "$DOM_INFO" == "$MAIN_DOMAIN" ]; then
+                # Use public IP if possible, fallback to local
+                IP=$(hostname -I | awk '{print $1}')
+                echo "ns1 IN A $IP" >> $ZONE_FILE
+                echo "ns2 IN A $IP" >> $ZONE_FILE
+                log_action "Added Nameserver Glue Records for $DOM_INFO"
+            fi
             
             # Append Records from DB
             mysql -N -s -e "SELECT host, type, value FROM dns_records WHERE domain_id=$3" $DB_NAME | while read host type value; do
@@ -369,6 +388,8 @@ server {
     root /var/www/clients/$USER/public_html;
     index index.php index.html;
 
+    client_max_body_size 512M;
+
     ssl_certificate $CERT;
     ssl_certificate_key $KEY;
     include /etc/letsencrypt/options-ssl-nginx.conf;
@@ -396,6 +417,8 @@ server {
     server_name $DOM www.$DOM;
     root /var/www/clients/$USER/public_html;
     index index.php index.html;
+
+    client_max_body_size 512M;
 
     access_log /var/www/clients/$USER/logs/access.log;
     error_log /var/www/clients/$USER/logs/error.log;
