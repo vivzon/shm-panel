@@ -37,18 +37,28 @@ if (isset($_POST['ajax_action'])) {
             if ($_POST['pass'] !== $_POST['pass2'])
                 throw new Exception("Passwords do not match");
             $ftp_user = $_POST['ftp_user'] . '@' . $username; // Enforce user@client format
-            $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
-            $home = "/home/$username/public_html" . ($_POST['dir'] ? '/' . trim($_POST['dir'], '/') : '');
 
-            // Check if exists (Mock DB check or real)
-            // Ideally we check if 'ftp_users' table exists. Assuming it matches ProFTPD/PureFTPD structure
-            // For now, we'll try to insert and catch duplicate error or query first
+            // Password: Use generic hash. 
+            // Note: If server expects MD5, use md5($_POST['pass']). 
+            // We'll stick to standard password_hash. If 530 persists, check server config.
+            $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
+
+            $home = "/var/www/clients/$username/public_html" . ($_POST['dir'] ? '/' . trim($_POST['dir'], '/') : '');
+
+            // Get System User UID/GID to ensure file permissions work
+            $sys_user_info = posix_getpwnam($username);
+            if (!$sys_user_info)
+                throw new Exception("System user not found");
+            $uid = $sys_user_info['uid'];
+            $gid = $sys_user_info['gid'];
+
             $check = $pdo->prepare("SELECT count(*) FROM ftp_users WHERE userid = ?");
             $check->execute([$ftp_user]);
             if ($check->fetchColumn() > 0)
                 throw new Exception("FTP User already exists");
 
-            $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir) VALUES (?,?,?)")->execute([$ftp_user, $pass, $home]);
+            // Assuming table has uid/gid columns. If not, this might error, but it's standard.
+            $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir, uid, gid) VALUES (?,?,?,?,?)")->execute([$ftp_user, $pass, $home, $uid, $gid]);
             sendResponse($res);
             exit;
         }

@@ -21,16 +21,22 @@ if (isset($_POST['ajax_action'])) {
             $ftp_user = $_POST['ftp_user'] . '@' . $sys_user; // Enforce user@client
             $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
 
-            // Default home to /home/user/public_html
-            // Admin can override logic if needed, but keeping it simple/standard
+            // Default home to /var/www/clients/user/public_html
             $home = "/var/www/clients/$sys_user/public_html";
+
+            // Get System User UID/GID
+            $sys_user_info = posix_getpwnam($sys_user);
+            if (!$sys_user_info)
+                throw new Exception("System user not found on server");
+            $uid = $sys_user_info['uid'];
+            $gid = $sys_user_info['gid'];
 
             $check = $pdo->prepare("SELECT count(*) FROM ftp_users WHERE userid = ?");
             $check->execute([$ftp_user]);
             if ($check->fetchColumn() > 0)
                 throw new Exception("FTP User already exists");
 
-            $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir) VALUES (?,?,?)")->execute([$ftp_user, $pass, $home]);
+            $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir, uid, gid) VALUES (?,?,?,?,?)")->execute([$ftp_user, $pass, $home, $uid, $gid]);
             sendResponse($res);
             exit;
         }
