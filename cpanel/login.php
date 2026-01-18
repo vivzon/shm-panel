@@ -172,7 +172,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             class="w-3.5 h-3.5 rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-offset-0 focus:ring-blue-500/50 transition-colors">
                         <span class="text-slate-400 group-hover:text-slate-300 transition-colors">Remember me</span>
                     </label>
-                    <a href="#" class="text-blue-500 hover:text-blue-400 font-medium transition-colors">Forgot
+                    <a href="forgot_password.php"
+                        class="text-blue-500 hover:text-blue-400 font-medium transition-colors">Forgot
                         password?</a>
                 </div>
 
