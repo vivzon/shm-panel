@@ -9,6 +9,11 @@
 
 source /etc/shm/config.sh
 
+# Fallback Configuration
+if [ -z "$ADMIN_EMAIL" ]; then
+    ADMIN_EMAIL="admin@$(hostname -f)"
+fi
+
 # Helper: Log Action
 log_action() {    echo "[$(date)] $1" >> /var/log/shm-manage.log
 }

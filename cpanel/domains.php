@@ -45,9 +45,9 @@ if (isset($_POST['ajax_action'])) {
             $spf = "v=spf1 mx a ip4:$server_ip -all";
             $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '@', ?)")->execute([$dom_id, $spf]);
 
-            sendResponse($res);
             cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
             cmd("dns-tool sync $dom_id");
+            sendResponse($res);
             exit;
         }
 
@@ -63,16 +63,18 @@ if (isset($_POST['ajax_action'])) {
             $pdo->prepare("DELETE FROM php_config WHERE domain_id=?")->execute([$dom_id]);
             $pdo->prepare("DELETE FROM domains WHERE id=?")->execute([$dom_id]);
 
-            sendResponse($res);
             cmd("shm-manage delete-domain " . escapeshellarg($username) . " " . escapeshellarg($domain_name));
+            sendResponse($res);
             exit;
         }
 
         if ($action == 'update_domain_config') {
             $pdo->prepare("UPDATE domains SET php_version = ?, ssl_active = ? WHERE id = ? AND client_id = ?")->execute([$_POST['php_version'], isset($_POST['ssl']) ? 1 : 0, $_POST['domain_id'], $cid]);
             $pdo->prepare("INSERT INTO php_config (domain_id, memory_limit) VALUES (?, ?) ON DUPLICATE KEY UPDATE memory_limit=VALUES(memory_limit)")->execute([$_POST['domain_id'], $_POST['mem']]);
-            sendResponse($res);
+
+            // Sync Vhost (Triggers SSL Install if needed)
             cmd("vhost-tool sync " . (int) $_POST['domain_id']);
+            sendResponse($res);
             exit;
         }
 
@@ -84,8 +86,9 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Access Denied");
 
             $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, ?, ?, ?)")->execute([$dom_id, $_POST['type'], $_POST['host'], $_POST['value']]);
-            sendResponse($res);
+
             cmd("dns-tool sync " . (int) $dom_id);
+            sendResponse($res);
             exit;
         }
 
@@ -98,9 +101,10 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Access Denied");
 
             $pdo->prepare("DELETE FROM dns_records WHERE id = ? AND domain_id = ?")->execute([$did, $dom_id]);
-            sendResponse($res);
+
             cmd("dns-tool sync " . $dom_id);
-            exit;
+            sendResponse($res);
+            exit; // Added explicit exit for consistency, though sendResponse exits.
         }
 
     } catch (Exception $e) {
