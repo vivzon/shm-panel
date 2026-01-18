@@ -1,0 +1,320 @@
+<?php
+require_once __DIR__ . '/../shared/config.php';
+
+if (!isset($_SESSION['client'])) {
+    header("Location: login.php");
+    exit;
+}
+$username = $_SESSION['client'];
+$cid = $_SESSION['cid'];
+
+// -------- BACKEND HANDLERS --------
+if (isset($_POST['ajax_action'])) {
+    header('Content-Type: application/json');
+    $action = $_POST['ajax_action'];
+    $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
+
+    try {
+        // --- APPS HANDLER ---
+        if ($action == 'install_app') {
+            $app = $_POST['app'];
+            $dom_id = $_POST['domain_id'];
+            $d = $pdo->query("SELECT domain FROM domains WHERE id=$dom_id AND client_id=$cid")->fetchColumn();
+            if (!$d)
+                throw new Exception("Invalid Domain");
+
+            // Background command
+            // Note: In real env, use full path or ensure path is in env
+            $cmd = "app-tool $app " . escapeshellarg($d); // Simplified for demo
+            if (function_exists('cmd'))
+                cmd("$cmd > /dev/null 2>&1 &");
+
+            sendResponse($res);
+            exit;
+        }
+
+        // --- SECURITY HANDLERS ---
+        if ($action == 'add_ssh') {
+            cmd("shm-manage ssh-key add " . escapeshellarg($username) . " " . escapeshellarg($_POST['key']));
+            sendResponse($res);
+            exit;
+        }
+        if ($action == 'del_ssh') {
+            cmd("shm-manage ssh-key delete " . escapeshellarg($username) . " " . (int) $_POST['line']);
+            sendResponse($res);
+            exit;
+        }
+        if ($action == 'list_ssh') {
+            $out = cmd("shm-manage ssh-key list " . escapeshellarg($username));
+            $lines = array_filter(explode("\n", $out));
+            echo json_encode(['status' => 'success', 'data' => array_values($lines)]);
+            exit;
+        }
+
+        // --- BACKUP HANDLERS ---
+        if ($action == 'create_backup') {
+            cmd("shm-manage backup create " . escapeshellarg($username));
+            sendResponse($res);
+            exit;
+        }
+        if ($action == 'list_backups') {
+            $out = cmd("shm-manage backup list " . escapeshellarg($username));
+            $backups = [];
+            foreach (explode("\n", $out) as $line) {
+                if (!trim($line))
+                    continue;
+                $parts = preg_split('/\s+/', trim($line));
+                if (count($parts) >= 5) {
+                    $backups[] = [
+                        'name' => end($parts),
+                        'size' => $parts[0],
+                        'date' => $parts[1] . ' ' . $parts[2] . ' ' . $parts[3]
+                    ];
+                }
+            }
+            echo json_encode(['status' => 'success', 'data' => $backups]);
+            exit;
+        }
+        if ($action == 'restore_backup') {
+            cmd("shm-manage backup restore " . escapeshellarg($username) . " " . escapeshellarg($_POST['file']));
+            sendResponse($res);
+            exit;
+        }
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// -------- FRONTEND DATA --------
+$active_tab = $_GET['tab'] ?? 'apps';
+$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
+
+include 'layout/header.php';
+?>
+
+<div class="mb-8">
+    <h2 class="text-2xl font-bold text-white mb-2">System Tools</h2>
+    <p class="text-slate-400 text-sm">Manage applications, security, and backups.</p>
+</div>
+
+<!-- TABS -->
+<div class="flex border-b border-slate-800 mb-8">
+    <a href="?tab=apps"
+        class="px-6 py-3 text-sm font-bold border-b-2 transition <?= $active_tab == 'apps' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        App Installer
+    </a>
+    <a href="?tab=security"
+        class="px-6 py-3 text-sm font-bold border-b-2 transition <?= $active_tab == 'security' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        Security (SSH)
+    </a>
+    <a href="?tab=backups"
+        class="px-6 py-3 text-sm font-bold border-b-2 transition <?= $active_tab == 'backups' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        Backups
+    </a>
+</div>
+
+<!-- CONTENT: APPS -->
+<div id="tab-apps" class="<?= $active_tab == 'apps' ? '' : 'hidden' ?>">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <?php
+        $apps = [
+            'wordpress' => ['WordPress', 'The world\'s most popular CMS.', 'bg-blue-600'],
+            'laravel' => ['Laravel', 'The PHP Framework for Web Artisans.', 'bg-red-600'],
+            'codeigniter' => ['CodeIgniter', 'Powerful PHP framework with a small footprint.', 'bg-orange-600'],
+            'react' => ['React App', 'Create React App boilerplate.', 'bg-cyan-500']
+        ];
+        foreach ($apps as $key => $info): ?>
+            <div class="glass-card p-8 relative overflow-hidden group hover:-translate-y-1 transition duration-500">
+                <div
+                    class="absolute -right-6 -top-6 w-32 h-32 <?= $info[2] ?>/20 rounded-full blur-3xl group-hover:bg-opacity-40 transition">
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2 relative z-10">
+                    <?= $info[0] ?>
+                </h3>
+                <p class="text-slate-400 text-sm mb-6 relative z-10 h-10">
+                    <?= $info[1] ?>
+                </p>
+                <button onclick="openAppModal('<?= $key ?>', '<?= $info[0] ?>')"
+                    class="w-full py-3 <?= $info[2] ?> hover:opacity-90 text-white font-bold rounded-xl shadow-lg transition relative z-10">
+                    Install
+                </button>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<!-- CONTENT: SECURITY -->
+<div id="tab-security" class="<?= $active_tab == 'security' ? '' : 'hidden' ?>">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="glass-card p-8">
+            <h3 class="font-bold mb-4 text-white">Add Public Key</h3>
+            <textarea id="ssh-key-input" placeholder="ssh-rsa AAAA..." rows="4"
+                class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white font-mono text-xs mb-4"></textarea>
+            <button onclick="addSSHKey()"
+                class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-500 transition">Add
+                Key</button>
+        </div>
+        <div class="glass-card p-8">
+            <h3 class="font-bold mb-6 text-white text-lg">Authorized Keys</h3>
+            <div id="ssh-list" class="space-y-2">
+                <div class="animate-pulse flex space-x-4">
+                    <div class="h-4 bg-slate-700 rounded w-3/4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONTENT: BACKUPS -->
+<div id="tab-backups" class="<?= $active_tab == 'backups' ? '' : 'hidden' ?>">
+    <div class="flex justify-between items-center mb-8">
+        <h3 class="text-xl font-bold text-white">Archives</h3>
+        <button onclick="createBackup()"
+            class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg shadow-blue-600/20 flex items-center gap-2 transition">
+            <i data-lucide="plus-circle" class="w-4"></i> Create Backup
+        </button>
+    </div>
+    <div class="glass-card overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+                <tr>
+                    <th class="p-4">Filename</th>
+                    <th class="p-4">Size</th>
+                    <th class="p-4 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="backup-list" class="divide-y divide-slate-700/50">
+                <tr>
+                    <td class="p-4 text-center text-slate-500" colspan="3">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<?php include 'layout/footer.php'; ?>
+
+<script>
+    // --- APPS LOGIC ---
+    async function openAppModal(app, appName) {
+        let domList = "Available IDs:\n";
+        <?php foreach ($domains as $d)
+            echo "domList += \"{$d['id']}: {$d['domain']}\\n\";\n"; ?>
+        
+        const domainId = prompt(`Install ${appName} to which domain? (Enter Domain ID)\n\n${domList}`);
+        if (!domainId) return;
+
+        if (!confirm(`WARNING: This will OVERWRITE existing content in the public_html folder.\n\nAre you sure you want to install ${appName}?`)) return;
+
+        const fd = new FormData();
+        fd.append('ajax_action', 'install_app');
+        fd.append('app', app);
+        fd.append('domain_id', domainId);
+
+        showToast('info', 'Installation Started', 'Background process started.');
+        try {
+            await fetch('', { method: 'POST', body: fd });
+            showToast('success', 'Command Sent', 'Installation command queued.');
+        } catch (e) {
+            showToast('warning', 'Check Logs', 'Request sent but check status.');
+        }
+    }
+
+    // --- SECURITY LOGIC ---
+    async function loadSSH() {
+        const list = document.getElementById('ssh-list');
+        const fd = new FormData(); fd.append('ajax_action', 'list_ssh');
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            list.innerHTML = '';
+            if (res.data && res.data.length > 0) {
+                res.data.forEach((line, i) => {
+                    list.innerHTML += `
+                        <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-xl border border-slate-700/50 mb-2">
+                            <div class="font-mono text-xs text-slate-300 truncate w-3/4">${line}</div>
+                            <button onclick="delSSHKey('${parseInt(line)}')" class="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"><i data-lucide="trash-2" class="w-4"></i></button>
+                        </div>`;
+                });
+                lucide.createIcons();
+            } else {
+                list.innerHTML = '<div class="text-center text-slate-500 py-4">No SSH keys found.</div>';
+            }
+        } catch (e) { list.innerHTML = '<div class="text-center text-red-400">Error loading keys.</div>'; }
+    }
+
+    async function addSSHKey() {
+        const key = document.getElementById('ssh-key-input').value;
+        if (!key) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'add_ssh');
+        fd.append('key', key);
+        await fetch('', { method: 'POST', body: fd });
+        document.getElementById('ssh-key-input').value = '';
+        showToast('success', 'Key Added');
+        loadSSH();
+    }
+
+    async function delSSHKey(line) {
+        if (!confirm('Delete this key?')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'del_ssh');
+        fd.append('line', line);
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'Key Deleted');
+        loadSSH();
+    }
+
+    // --- BACKUPS LOGIC ---
+    async function loadBackups() {
+        const list = document.getElementById('backup-list');
+        const fd = new FormData(); fd.append('ajax_action', 'list_backups');
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            list.innerHTML = '';
+            if (res.data && res.data.length > 0) {
+                res.data.forEach(b => {
+                    list.innerHTML += `
+                        <tr class="hover:bg-slate-800/30 transition">
+                            <td class="p-4 font-bold text-slate-300">${b.name}</td>
+                            <td class="p-4 text-slate-400 text-xs">${b.size}</td>
+                            <td class="p-4 text-right">
+                                <button onclick="restoreBackup('${b.name}')" class="text-blue-400 font-bold text-xs uppercase hover:text-white mr-4 transition">Restore</button>
+                            </td>
+                        </tr>`;
+                });
+                lucide.createIcons();
+            } else {
+                list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-500">No backups found.</td></tr>';
+            }
+        } catch (e) { list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-red-400">Error loading.</td></tr>'; }
+    }
+
+    async function createBackup() {
+        const fd = new FormData(); fd.append('ajax_action', 'create_backup');
+        showToast('info', 'Processing...', 'Backup started.');
+        await fetch('', { method: 'POST', body: fd });
+        setTimeout(loadBackups, 2000);
+    }
+
+    async function restoreBackup(file) {
+        if (!confirm('Restoring will overwrite current files and DBs. Continue?')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'restore_backup');
+        fd.append('file', file);
+        showToast('info', 'Processing...', 'Restore job started.');
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'Restore Initiated');
+    }
+
+    // Init based on active tab
+    <?php if ($active_tab == 'security'): ?>
+            loadSSH();
+    <?php elseif ($active_tab == 'backups'): ?>
+            loadBackups();
+    <?php endif; ?>
+
+    // Global listener for tab switching cleanup/init if needed (simple page reload handles it now)
+</script>

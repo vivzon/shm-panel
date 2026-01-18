@@ -114,7 +114,7 @@ $PayPalEnabled = true;
 
             <div class="hidden md:flex gap-8 text-sm font-medium text-slate-400">
                 <a href="#features" class="hover:text-white transition">Features</a>
-                <a href="#pricing" class="hover:text-white transition">Pricing</a>
+                <a href="#pricing" class="hover:text-white transition">Packages</a>
                 <a href="<?= $scheme ?>client.<?= $base ?>" class="hover:text-white transition">Client Area</a>
             </div>
 
@@ -152,7 +152,8 @@ $PayPalEnabled = true;
             <div class="flex flex-col md:flex-row items-center justify-center gap-4">
                 <a href="#pricing"
                     class="w-full md:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-lg transition shadow-[0_10px_40px_-10px_rgba(37,99,235,0.5)] flex items-center justify-center gap-2 group">
-                    View Packages <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition"></i>
+                    Explore Packages <i data-lucide="arrow-right"
+                        class="w-5 h-5 group-hover:translate-x-1 transition"></i>
                 </a>
                 <a href="<?= $scheme ?>client.<?= $base ?>"
                     class="w-full md:w-auto px-8 py-4 glass text-white hover:bg-white/5 rounded-2xl font-bold text-lg transition flex items-center justify-center gap-2">

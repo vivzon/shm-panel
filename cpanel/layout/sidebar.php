@@ -38,13 +38,16 @@
 
         <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-4 mb-3 mt-8">Tools</div>
         <nav class="space-y-1">
-            <a href="apps.php" class="nav-btn <?= $current_page == 'apps.php' ? 'active' : '' ?>">
+            <a href="tools.php?tab=apps"
+                class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? 'apps') == 'apps') ? 'active' : '' ?>">
                 <i data-lucide="box" class="w-4"></i> App Installer
             </a>
-            <a href="security.php" class="nav-btn <?= $current_page == 'security.php' ? 'active' : '' ?>">
+            <a href="tools.php?tab=security"
+                class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? '') == 'security') ? 'active' : '' ?>">
                 <i data-lucide="shield" class="w-4"></i> Security (SSH)
             </a>
-            <a href="backups.php" class="nav-btn <?= $current_page == 'backups.php' ? 'active' : '' ?>">
+            <a href="tools.php?tab=backups"
+                class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? '') == 'backups') ? 'active' : '' ?>">
                 <i data-lucide="save" class="w-4"></i> Backups
             </a>
         </nav>
