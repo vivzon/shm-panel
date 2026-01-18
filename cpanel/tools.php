@@ -97,6 +97,12 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        if ($action == 'fix_perms') {
+            cmd("shm-manage fix-permissions " . escapeshellarg($username));
+            sendResponse($res);
+            exit;
+        }
+
         // --- BACKUP HANDLERS ---
         if ($action == 'create_backup') {
             cmd("shm-manage backup create " . escapeshellarg($username));
@@ -270,6 +276,16 @@ include 'layout/header.php';
                     <div class="h-4 bg-slate-700 rounded w-3/4"></div>
                 </div>
             </div>
+
+            <div class="mt-8 pt-8 border-t border-slate-700/50">
+                <h3 class="font-bold mb-4 text-white">Troubleshooting</h3>
+                <button onclick="fixPerms()"
+                    class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center gap-2 transition border border-slate-700">
+                    <i data-lucide="wrench" class="w-4"></i> Fix File Permissions
+                </button>
+                <p class="text-center text-[10px] text-slate-500 mt-2">Run this if you encounter "Permission Denied"
+                    errors.</p>
+            </div>
         </div>
     </div>
 </div>
@@ -434,6 +450,15 @@ include 'layout/header.php';
         await fetch('', { method: 'POST', body: fd });
         showToast('success', 'Key Deleted');
         loadSSH();
+    }
+
+    async function fixPerms() {
+        if (!confirm('This will reset file permissions for your entire account. Continue?')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'fix_perms');
+        showToast('info', 'Processing...', 'Fixing permissions...');
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'Done', 'Permissions have been reset.');
     }
 
     // --- BACKUPS LOGIC ---

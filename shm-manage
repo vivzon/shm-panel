@@ -131,6 +131,8 @@ NGINX
         mkdir -p $DOCROOT
         echo "<h1>$DOM</h1><p>Additional Domain</p>" > $DOCROOT/index.html
         chown -R $USER:$USER /var/www/clients/$USER/domains
+        # FORCE 775 for Group Write (www-data)
+        chmod -R 775 /var/www/clients/$USER/domains/$DOM
         
         cat > /etc/nginx/sites-available/$DOM << NGINX
 server {
@@ -244,6 +246,31 @@ NGINX
         fi
         
         log_action "Reset Account: $USER"
+        ;;
+
+    # --------------------------------------------------------------------------
+    # PERMISSION FIX TOOL
+    # --------------------------------------------------------------------------
+    fix-permissions)
+        # $2: user
+        USER=$2
+        HOME_DIR="/var/www/clients/$USER"
+        
+        if [ -d "$HOME_DIR" ]; then
+            # 1. Reset Ownership
+            chown -R $USER:$USER $HOME_DIR
+            
+            # 2. Reset Mode (775 for folders, 664 for files)
+            # Find directories and set to 775
+            find $HOME_DIR -type d -exec chmod 775 {} \;
+            # Find files and set to 664
+            find $HOME_DIR -type f -exec chmod 664 {} \;
+            
+            # 3. Ensure www-data is in group (Redundant but safe)
+            usermod -a -G $USER www-data
+            
+            log_action "Fixed Permissions for: $USER"
+        fi
         ;;
 
     # --------------------------------------------------------------------------

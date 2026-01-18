@@ -146,7 +146,7 @@ if (!file_exists($base_path)) {
 
 // Try to Fix Permissions
 if (is_dir($base_path) && !is_writable($base_path)) {
-    chmod($base_path, 0755);
+    chmod($base_path, 0775);
 }
 
 $full_path = shm_build_path($base_path, $current_path);
@@ -178,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$is_writable) {
         // Diagnostic Info
-        $process_user = function_exists('posix_getpwuid') ? posix_getpwuid(posix_geteuid())['name'] : get_current_user();
+        $process_user = (function_exists('posix_getpwuid') && function_exists('posix_geteuid')) ? posix_getpwuid(posix_geteuid())['name'] : get_current_user();
         $path_owner = file_exists($full_path) ? fileowner($full_path) : 'N/A';
         $perms = file_exists($full_path) ? substr(sprintf('%o', fileperms($full_path)), -4) : 'N/A';
 
@@ -241,7 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             fm_return('error', 'Item already exists');
 
         if ($_POST['type'] == 'folder') {
-            if (mkdir($target, 0755))
+            if (mkdir($target, 0775))
                 fm_return('success', 'Folder created');
         } else {
             if (file_put_contents($target, '') !== false)
@@ -385,6 +385,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['status' => 'error', 'msg' => 'File not found']);
         }
         exit;
+    }
+
+    // 10. CHMOD
+    if (isset($_POST['chmod_item'])) {
+        $target = shm_build_path($base_path, $_POST['item']);
+        $mode = intval($_POST['mode'], 8); // Octal
+        if ($target && chmod($target, $mode)) {
+            fm_return('success', 'Permissions updated');
+        }
+        fm_return('error', 'Failed to change permissions');
     }
 }
 
@@ -770,6 +780,32 @@ if (is_dir($full_path)) {
         </div>
     </div>
 
+    <!-- CHMOD MODAL -->
+    <div id="modal-chmod"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-white/10 shadow-2xl">
+            <h3 class="font-bold text-xl text-white mb-4">Permissions</h3>
+            <input type="hidden" id="chmod-target">
+            <div class="mb-6">
+                <label class="block text-slate-400 text-xs uppercase font-bold mb-2">Numeric Value (Octal)</label>
+                <input type="text" id="chmod-val" value="0775"
+                    class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white font-mono outline-none focus:border-blue-500">
+                <p class="text-[10px] text-slate-500 mt-2">
+                    Examples: <span class="text-blue-400 cursor-pointer"
+                        onclick="document.getElementById('chmod-val').value='0775'">0775</span> (Folder),
+                    <span class="text-blue-400 cursor-pointer"
+                        onclick="document.getElementById('chmod-val').value='0664'">0664</span> (File)
+                </p>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="FM.closeModals()"
+                    class="px-4 py-2 rounded-xl font-bold text-slate-400 hover:bg-white/5 transition">Cancel</button>
+                <button onclick="FM.doChmod()"
+                    class="px-6 py-2 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition shadow-lg">Save</button>
+            </div>
+        </div>
+    </div>
+
     <!-- CONTEXT MENU & MODALS (Kept in body) -->
     <!-- CONTEXT MENU -->
     <div id="ctx-menu"
@@ -785,8 +821,12 @@ if (is_dir($full_path)) {
                 data-lucide="edit-3" class="w-4"></i> Rename</button>
         <div class="h-px bg-white/10 my-1"></div>
         <button onclick="FM.extractCtx()" id="ctx-btn-extract"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-300"><i
+            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 font-medium text-white"><i
                 data-lucide="package-open" class="w-4 text-orange-400"></i> Extract</button>
+        <button onclick="FM.chmodCtx()"
+            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-300">
+            <i data-lucide="shield" class="w-4 text-slate-400"></i> Permissions
+        </button>
         <button onclick="FM.bulk('copy')"
             class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-300"><i
                 data-lucide="copy" class="w-4"></i> Copy</button>
@@ -1005,290 +1045,305 @@ if (is_dir($full_path)) {
                 document.getElementById('modal-rename').classList.remove('hidden');
             }
 
-            doRename() {
-                const oldName = document.getElementById('rename-target').value;
-                const newName = document.getElementById('input-rename').value;
-                if (newName && oldName) this.request('rename_item', { old: oldName, new_name: newName });
+            const newName = document.getElementById('input-rename').value;
+            if(newName && oldName) this.request('rename_item', { old: oldName, new_name: newName });
             }
 
-            // VIEW & UI
-            setView(mode) {
-                this.view = mode;
-                localStorage.setItem('fm_view', mode);
-                const container = document.getElementById('file-view');
-                const btnList = document.getElementById('btn-list');
-                const btnGrid = document.getElementById('btn-grid');
+        chmodCtx() {
+            // Determine suggestion based on type
+            const suggested = this.ctxType === 'dir' ? '0775' : '0664';
+            document.getElementById('chmod-val').value = suggested;
+            document.getElementById('chmod-target').value = this.ctxItem;
+            document.getElementById('modal-chmod').classList.remove('hidden');
+        }
 
-                // document.getElementById('file-container').className = `flex-1 overflow-hidden relative view-${mode}`; // Update main container wrapper if needed, but we used IDs
+        doChmod() {
+            const target = document.getElementById('chmod-target').value;
+            const mode = document.getElementById('chmod-val').value;
+            if (target && mode) {
+                this.request('chmod_item', { item: target, mode: mode });
+                this.closeModals();
+            }
+        }
 
-                if (mode === 'grid') {
-                    container.classList.add('view-grid');
-                    container.classList.remove('view-list');
-                    btnGrid.classList.add('bg-white/10', 'text-white');
-                    btnGrid.classList.remove('text-slate-500');
-                    btnList.classList.remove('bg-white/10', 'text-white');
-                    btnList.classList.add('text-blue-400'); // actually swap style
+        // VIEW & UI
+        setView(mode) {
+            this.view = mode;
+            localStorage.setItem('fm_view', mode);
+            const container = document.getElementById('file-view');
+            const btnList = document.getElementById('btn-list');
+            const btnGrid = document.getElementById('btn-grid');
+
+            // document.getElementById('file-container').className = `flex-1 overflow-hidden relative view-${mode}`; // Update main container wrapper if needed, but we used IDs
+
+            if (mode === 'grid') {
+                container.classList.add('view-grid');
+                container.classList.remove('view-list');
+                btnGrid.classList.add('bg-white/10', 'text-white');
+                btnGrid.classList.remove('text-slate-500');
+                btnList.classList.remove('bg-white/10', 'text-white');
+                btnList.classList.add('text-blue-400'); // actually swap style
+            } else {
+                container.classList.add('view-list');
+                container.classList.remove('view-grid');
+                btnList.classList.add('bg-white/10', 'text-blue-400');
+                btnGrid.classList.remove('bg-white/10', 'text-white');
+                btnGrid.classList.add('text-slate-500');
+            }
+        }
+
+        // SELECTION
+        toggleSelect(el, e) {
+            if (e.target.closest('input')) return; // Checkbox handled naturally? No, we custom handle
+            // Actually in list view checkbox is separate.
+            // Unified logic:
+            const path = el.dataset.path;
+            if (this.selected.has(path)) {
+                this.selected.delete(path);
+                el.classList.remove('selected');
+                el.querySelector('.file-check').checked = false;
+                el.querySelector('.file-check').classList.remove('opacity-100'); // Grid view
+            } else {
+                this.selected.add(path);
+                el.classList.add('selected');
+                el.querySelector('.file-check').checked = true;
+                el.querySelector('.file-check').classList.add('opacity-100');
+            }
+            this.updateActionBar();
+        }
+
+        updateActionBar() {
+            const bar = document.getElementById('action-bar');
+            const count = document.getElementById('selection-count');
+            if (this.selected.size > 0) {
+                bar.classList.remove('hidden', '-translate-y-full', 'opacity-0');
+                count.innerText = this.selected.size + ' Selected';
+            } else {
+                bar.classList.add('-translate-y-full', 'opacity-0');
+                setTimeout(() => bar.classList.add('hidden'), 300);
+            }
+        }
+
+        clearSelection() {
+            this.selected.clear();
+            document.querySelectorAll('.file-item.selected').forEach(el => {
+                el.classList.remove('selected');
+                el.querySelector('.file-check').checked = false;
+            });
+            this.updateActionBar();
+        }
+
+        // NAVIGATION
+        open(path, type) {
+            if (type === 'dir') {
+                location.href = `?domain_id=${CONFIG.domainId}&path=${path}`;
+            } else {
+                const ext = path.split('.').pop().toLowerCase();
+                const editable = ['php', 'html', 'css', 'js', 'json', 'xml', 'txt', 'md', 'sql', 'htaccess', 'env', 'ini', 'conf'];
+
+                if (editable.includes(ext)) {
+                    location.href = `editor.php?domain_id=${CONFIG.domainId}&file=${path}`;
                 } else {
-                    container.classList.add('view-list');
-                    container.classList.remove('view-grid');
-                    btnList.classList.add('bg-white/10', 'text-blue-400');
-                    btnGrid.classList.remove('bg-white/10', 'text-white');
-                    btnGrid.classList.add('text-slate-500');
+                    // Start Preview
+                    this.preview(path);
                 }
             }
-
-            // SELECTION
-            toggleSelect(el, e) {
-                if (e.target.closest('input')) return; // Checkbox handled naturally? No, we custom handle
-                // Actually in list view checkbox is separate.
-                // Unified logic:
-                const path = el.dataset.path;
-                if (this.selected.has(path)) {
-                    this.selected.delete(path);
-                    el.classList.remove('selected');
-                    el.querySelector('.file-check').checked = false;
-                    el.querySelector('.file-check').classList.remove('opacity-100'); // Grid view
-                } else {
-                    this.selected.add(path);
-                    el.classList.add('selected');
-                    el.querySelector('.file-check').checked = true;
-                    el.querySelector('.file-check').classList.add('opacity-100');
-                }
-                this.updateActionBar();
-            }
-
-            updateActionBar() {
-                const bar = document.getElementById('action-bar');
-                const count = document.getElementById('selection-count');
-                if (this.selected.size > 0) {
-                    bar.classList.remove('hidden', '-translate-y-full', 'opacity-0');
-                    count.innerText = this.selected.size + ' Selected';
-                } else {
-                    bar.classList.add('-translate-y-full', 'opacity-0');
-                    setTimeout(() => bar.classList.add('hidden'), 300);
-                }
-            }
-
-            clearSelection() {
-                this.selected.clear();
-                document.querySelectorAll('.file-item.selected').forEach(el => {
-                    el.classList.remove('selected');
-                    el.querySelector('.file-check').checked = false;
-                });
-                this.updateActionBar();
-            }
-
-            // NAVIGATION
-            open(path, type) {
-                if (type === 'dir') {
-                    location.href = `?domain_id=${CONFIG.domainId}&path=${path}`;
-                } else {
-                    const ext = path.split('.').pop().toLowerCase();
-                    const editable = ['php', 'html', 'css', 'js', 'json', 'xml', 'txt', 'md', 'sql', 'htaccess', 'env', 'ini', 'conf'];
-
-                    if (editable.includes(ext)) {
-                        location.href = `editor.php?domain_id=${CONFIG.domainId}&file=${path}`;
-                    } else {
-                        // Start Preview
-                        this.preview(path);
-                    }
-                }
-            }
+        }
 
             // ACTIONS
             async request(action, data = {}) {
-                const fd = new FormData();
-                fd.append('ajax', '1');
-                fd.append(action, '1');
-                fd.append('domain_id', CONFIG.domainId);
-                fd.append('path', CONFIG.currentPath);
-                for (let k in data) {
-                    if (Array.isArray(data[k])) data[k].forEach(v => fd.append(`${k}[]`, v));
-                    else fd.append(k, data[k]);
+            const fd = new FormData();
+            fd.append('ajax', '1');
+            fd.append(action, '1');
+            fd.append('domain_id', CONFIG.domainId);
+            fd.append('path', CONFIG.currentPath);
+            for (let k in data) {
+                if (Array.isArray(data[k])) data[k].forEach(v => fd.append(`${k}[]`, v));
+                else fd.append(k, data[k]);
+            }
+
+            // Show loading? type cursor
+            document.body.style.cursor = 'wait';
+            try {
+                const res = await fetch('', { method: 'POST', body: fd });
+                const json = await res.json();
+                document.body.style.cursor = 'default';
+                if (json.status === 'success') {
+                    this.toast('success', json.msg);
+                    setTimeout(() => location.reload(), 500); // Reload to reflect
+                } else {
+                    this.toast('error', json.msg);
                 }
+            } catch (e) {
+                document.body.style.cursor = 'default';
+                this.toast('error', 'Server Error');
+            }
+        }
 
-                // Show loading? type cursor
-                document.body.style.cursor = 'wait';
-                try {
-                    const res = await fetch('', { method: 'POST', body: fd });
-                    const json = await res.json();
-                    document.body.style.cursor = 'default';
-                    if (json.status === 'success') {
-                        this.toast('success', json.msg);
-                        setTimeout(() => location.reload(), 500); // Reload to reflect
-                    } else {
-                        this.toast('error', json.msg);
-                    }
-                } catch (e) {
-                    document.body.style.cursor = 'default';
-                    this.toast('error', 'Server Error');
+        bulk(action) {
+            if (this.selected.size === 0) return;
+            const paths = Array.from(this.selected);
+
+            if (action === 'delete') {
+                if (confirm(`Delete ${paths.length} items?`)) {
+                    this.request('delete_paths', { paths: paths });
                 }
+            } else if (action === 'download') {
+                const form = document.getElementById('form-download');
+                const inputs = document.getElementById('download-inputs');
+                inputs.innerHTML = '';
+                paths.forEach(p => inputs.innerHTML += `<input type="hidden" name="paths[]" value="${p}">`);
+                form.submit();
+            } else if (action === 'zip') {
+                this.request('zip_paths', { paths: paths });
+            } else if (action === 'copy' || action === 'move') {
+                this.openCopyMove(action);
             }
+        }
 
-            bulk(action) {
-                if (this.selected.size === 0) return;
-                const paths = Array.from(this.selected);
+        openCopyMove(action) {
+            if (this.selected.size === 0) return;
+            const paths = Array.from(this.selected);
+            document.getElementById('cm-title').innerText = (action === 'copy' ? 'Copy' : 'Move') + ' ' + paths.length + ' Items';
+            document.getElementById('cm-action').value = action;
+            document.getElementById('cm-dest').value = CONFIG.currentPath; // Pre-fill current
+            document.getElementById('modal-copymove').classList.remove('hidden');
+        }
 
-                if (action === 'delete') {
-                    if (confirm(`Delete ${paths.length} items?`)) {
-                        this.request('delete_paths', { paths: paths });
-                    }
-                } else if (action === 'download') {
-                    const form = document.getElementById('form-download');
-                    const inputs = document.getElementById('download-inputs');
-                    inputs.innerHTML = '';
-                    paths.forEach(p => inputs.innerHTML += `<input type="hidden" name="paths[]" value="${p}">`);
-                    form.submit();
-                } else if (action === 'zip') {
-                    this.request('zip_paths', { paths: paths });
-                } else if (action === 'copy' || action === 'move') {
-                    this.openCopyMove(action);
-                }
-            }
-
-            openCopyMove(action) {
-                if (this.selected.size === 0) return;
-                const paths = Array.from(this.selected);
-                document.getElementById('cm-title').innerText = (action === 'copy' ? 'Copy' : 'Move') + ' ' + paths.length + ' Items';
-                document.getElementById('cm-action').value = action;
-                document.getElementById('cm-dest').value = CONFIG.currentPath; // Pre-fill current
-                document.getElementById('modal-copymove').classList.remove('hidden');
-            }
-
-            doCopyMove() {
-                const action = document.getElementById('cm-action').value;
-                const dest = document.getElementById('cm-dest').value;
-                const paths = Array.from(this.selected);
-                this.request('copy_move_items', { action: action, destination: dest, paths: paths });
-            }
+        doCopyMove() {
+            const action = document.getElementById('cm-action').value;
+            const dest = document.getElementById('cm-dest').value;
+            const paths = Array.from(this.selected);
+            this.request('copy_move_items', { action: action, destination: dest, paths: paths });
+        }
 
             // PREVIEW
             async preview(path) {
-                const ext = path.split('.').pop().toLowerCase();
-                const modal = document.getElementById('modal-preview');
-                const container = document.getElementById('preview-content');
+            const ext = path.split('.').pop().toLowerCase();
+            const modal = document.getElementById('modal-preview');
+            const container = document.getElementById('preview-content');
 
-                modal.classList.remove('hidden');
-                container.innerHTML = '<div class="animate-pulse">Loading...</div>';
+            modal.classList.remove('hidden');
+            container.innerHTML = '<div class="animate-pulse">Loading...</div>';
 
-                if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
-                    const fd = new FormData();
-                    fd.append('download_items', '1');
-                    fd.append('paths[]', path);
-                    // We fetch blob
-                    try {
-                        const res = await fetch('', { method: 'POST', body: fd });
-                        const blob = await res.blob();
-                        const url = URL.createObjectURL(blob);
-                        container.innerHTML = `<img src="${url}" class="max-h-full max-w-full rounded shadow-lg">`;
-                    } catch (e) { container.innerHTML = 'Error loading image'; }
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                const fd = new FormData();
+                fd.append('download_items', '1');
+                fd.append('paths[]', path);
+                // We fetch blob
+                try {
+                    const res = await fetch('', { method: 'POST', body: fd });
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    container.innerHTML = `<img src="${url}" class="max-h-full max-w-full rounded shadow-lg">`;
+                } catch (e) { container.innerHTML = 'Error loading image'; }
+            } else {
+                const fd = new FormData();
+                fd.append('preview_item', '1');
+                fd.append('item', path);
+                const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+                if (res.status === 'success') {
+                    container.innerHTML = `<pre class="text-xs font-mono text-slate-300 p-4 w-full h-full overflow-auto text-left">${res.content}</pre>`;
                 } else {
-                    const fd = new FormData();
-                    fd.append('preview_item', '1');
-                    fd.append('item', path);
-                    const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-                    if (res.status === 'success') {
-                        container.innerHTML = `<pre class="text-xs font-mono text-slate-300 p-4 w-full h-full overflow-auto text-left">${res.content}</pre>`;
-                    } else {
-                        container.innerHTML = res.msg;
-                    }
+                    container.innerHTML = res.msg;
                 }
             }
+        }
 
-            // UTILS
-            toast(type, msg) {
-                const el = document.getElementById('toast');
-                el.innerText = msg;
-                el.className = `fixed bottom-6 right-6 z-[100] px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold transition-all duration-300 transform ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} text-white translate-y-0 opacity-100`;
-                setTimeout(() => el.classList.add('translate-y-20', 'opacity-0'), 3000);
-            }
+        // UTILS
+        toast(type, msg) {
+            const el = document.getElementById('toast');
+            el.innerText = msg;
+            el.className = `fixed bottom-6 right-6 z-[100] px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold transition-all duration-300 transform ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} text-white translate-y-0 opacity-100`;
+            setTimeout(() => el.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
 
-            closeModals() {
-                document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-            }
+        closeModals() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+        }
 
-            filter() {
-                const q = document.getElementById('file-search').value.toLowerCase();
-                document.querySelectorAll('.file-item').forEach(el => {
-                    el.classList.toggle('hidden', !el.dataset.name.includes(q));
-                });
-            }
+        filter() {
+            const q = document.getElementById('file-search').value.toLowerCase();
+            document.querySelectorAll('.file-item').forEach(el => {
+                el.classList.toggle('hidden', !el.dataset.name.includes(q));
+            });
+        }
 
-            // Handlers for HTML Buttons
-            openUpload() { document.getElementById('modal-upload') ? document.getElementById('modal-upload').classList.remove('hidden') : this.handleDragOverlay(); }
-            // Note: Original did not have modal-upload defined in HTML provided, relied on drag or maybe I missed it? 
-            // Ah, line 465 calls openUpload(). Line 1073 defines it. 
-            // The HTML I read has Drag Overlay but maybe not a traditional upload modal. 
-            // I will assume Drag Overlay is primary or use a hidden input triggered.
-            // Let's rely on standard logic. If modal-upload is missing, trigger drag overlay or file input.
-            // For now, I'll direct to drag overlay as fallback.
-            handleDragOverlay() { document.getElementById('drag-overlay').classList.remove('hidden'); }
+        // Handlers for HTML Buttons
+        openUpload() { document.getElementById('modal-upload') ? document.getElementById('modal-upload').classList.remove('hidden') : this.handleDragOverlay(); }
+        // Note: Original did not have modal-upload defined in HTML provided, relied on drag or maybe I missed it? 
+        // Ah, line 465 calls openUpload(). Line 1073 defines it. 
+        // The HTML I read has Drag Overlay but maybe not a traditional upload modal. 
+        // I will assume Drag Overlay is primary or use a hidden input triggered.
+        // Let's rely on standard logic. If modal-upload is missing, trigger drag overlay or file input.
+        // For now, I'll direct to drag overlay as fallback.
+        handleDragOverlay() { document.getElementById('drag-overlay').classList.remove('hidden'); }
 
-            openCreate() { document.getElementById('modal-create').classList.remove('hidden'); }
+        openCreate() { document.getElementById('modal-create').classList.remove('hidden'); }
 
-            setCreateType(t) {
-                this.createType = t;
-                document.getElementById('btn-c-file').className = t === 'file' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-white shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-400 hover:text-white transition';
-                document.getElementById('btn-c-folder').className = t === 'folder' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-white shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-400 hover:text-white transition';
-            }
+        setCreateType(t) {
+            this.createType = t;
+            document.getElementById('btn-c-file').className = t === 'file' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-white shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-400 hover:text-white transition';
+            document.getElementById('btn-c-folder').className = t === 'folder' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-white shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-400 hover:text-white transition';
+        }
 
-            doCreate() {
-                const name = document.getElementById('input-create').value;
-                if (!name) return;
-                this.request('create_item', { name: name, type: this.createType || 'file' });
-            }
+        doCreate() {
+            const name = document.getElementById('input-create').value;
+            if (!name) return;
+            this.request('create_item', { name: name, type: this.createType || 'file' });
+        }
 
-            initDragDrop() {
-                const zone = document.getElementById('drop-zone-global');
-                const overlay = document.getElementById('drag-overlay');
-                let timer;
+        initDragDrop() {
+            const zone = document.getElementById('drop-zone-global');
+            const overlay = document.getElementById('drag-overlay');
+            let timer;
 
-                window.addEventListener('dragover', e => {
-                    e.preventDefault();
-                    overlay.classList.remove('hidden');
-                    clearTimeout(timer);
-                });
+            window.addEventListener('dragover', e => {
+                e.preventDefault();
+                overlay.classList.remove('hidden');
+                clearTimeout(timer);
+            });
 
-                window.addEventListener('dragleave', e => {
-                    timer = setTimeout(() => overlay.classList.add('hidden'), 100);
-                });
+            window.addEventListener('dragleave', e => {
+                timer = setTimeout(() => overlay.classList.add('hidden'), 100);
+            });
 
-                window.addEventListener('drop', e => {
-                    e.preventDefault();
-                    overlay.classList.add('hidden');
-                    this.handleDrop(e.dataTransfer.files);
-                });
-            }
+            window.addEventListener('drop', e => {
+                e.preventDefault();
+                overlay.classList.add('hidden');
+                this.handleDrop(e.dataTransfer.files);
+            });
+        }
 
             async handleDrop(files) {
-                if (files.length === 0) return;
-                const fd = new FormData();
-                fd.append('upload_files', '1');
-                fd.append('ajax', '1');
-                for (let i = 0; i < files.length; i++) fd.append('files[]', files[i]);
+            if (files.length === 0) return;
+            const fd = new FormData();
+            fd.append('upload_files', '1');
+            fd.append('ajax', '1');
+            for (let i = 0; i < files.length; i++) fd.append('files[]', files[i]);
 
-                this.toast('success', 'Uploading...');
-                try {
-                    const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-                    if (res.status === 'success') {
-                        this.toast('success', res.msg || 'Uploaded successfully');
-                        setTimeout(() => location.reload(), 500);
-                    } else {
-                        console.error('Upload Error:', res);
-                        this.toast('error', res.msg || 'Upload failed');
-                    }
-                } catch (e) {
-                    console.error('Fetch Error:', e);
-                    this.toast('error', 'Network or Server Error');
+            this.toast('success', 'Uploading...');
+            try {
+                const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+                if (res.status === 'success') {
+                    this.toast('success', res.msg || 'Uploaded successfully');
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    console.error('Upload Error:', res);
+                    this.toast('error', res.msg || 'Upload failed');
                 }
+            } catch (e) {
+                console.error('Fetch Error:', e);
+                this.toast('error', 'Network or Server Error');
             }
+        }
 
-            doUploadInput(input) {
-                if (input.files.length > 0) {
-                    this.handleDrop(input.files);
-                    this.closeModals();
-                }
+        doUploadInput(input) {
+            if (input.files.length > 0) {
+                this.handleDrop(input.files);
+                this.closeModals();
             }
+        }
         }
 
         const FM = new FileManager();
