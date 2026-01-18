@@ -38,10 +38,8 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Passwords do not match");
             $ftp_user = $_POST['ftp_user'] . '@' . $username; // Enforce user@client format
 
-            // Password: Use generic hash. 
-            // Note: If server expects MD5, use md5($_POST['pass']). 
-            // We'll stick to standard password_hash. If 530 persists, check server config.
-            $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
+            // Password: Check valid FTP Login (MD5 is common for Pure/ProFTPD)
+            $pass = md5($_POST['pass']);
 
             $home = "/var/www/clients/$username/public_html" . ($_POST['dir'] ? '/' . trim($_POST['dir'], '/') : '');
 

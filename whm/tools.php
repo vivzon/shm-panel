@@ -19,7 +19,7 @@ if (isset($_POST['ajax_action'])) {
 
             $sys_user = $_POST['sys_user'];
             $ftp_user = $_POST['ftp_user'] . '@' . $sys_user; // Enforce user@client
-            $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
+            $pass = md5($_POST['pass']);
 
             // Default home to /var/www/clients/user/public_html
             $home = "/var/www/clients/$sys_user/public_html";
