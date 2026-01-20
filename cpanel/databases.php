@@ -43,13 +43,14 @@ if (isset($_POST['ajax_action'])) {
 
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
                 $pass = $_POST['db_pass'];
-                // Create User
-                $stmt = $pdo->prepare("CREATE USER IF NOT EXISTS ?@'localhost' IDENTIFIED BY ?");
-                $stmt->execute([$db_user, $pass]);
-                // Grant - using pure SQL construction for table name as it can't be bound in GRANT
+                // Create User safely using quote() for password
+                $quoted_pass = $pdo->quote($pass);
+                // Note: db_user is already sanitized by preg_replace above
+                $pdo->exec("CREATE USER IF NOT EXISTS '$db_user'@'localhost' IDENTIFIED BY $quoted_pass");
+                
+                // Grant - using pure SQL construction
                 $target_db = preg_replace('/[^a-z0-9_]/', '', $_POST['target_db']);
-                $stmt = $pdo->prepare("GRANT ALL PRIVILEGES ON `$target_db`.* TO ?@'localhost'");
-                $stmt->execute([$db_user]);
+                $pdo->exec("GRANT ALL PRIVILEGES ON `$target_db`.* TO '$db_user'@'localhost'");
                 $pdo->exec("FLUSH PRIVILEGES");
             } else {
                 $out = cmd("mysql-tool create-user " . escapeshellarg($db_user) . " " . escapeshellarg($_POST['db_pass']) . " " . escapeshellarg($_POST['target_db']));
@@ -92,8 +93,8 @@ if (isset($_POST['ajax_action'])) {
 
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
                 // Reset Pass
-                $stmt = $pdo->prepare("ALTER USER ?@'localhost' IDENTIFIED BY ?");
-                $stmt->execute([$db_user, $pass]);
+                $quoted_pass = $pdo->quote($pass);
+                $pdo->exec("ALTER USER '$db_user'@'localhost' IDENTIFIED BY $quoted_pass");
                 $pdo->exec("FLUSH PRIVILEGES");
             } else {
                 $out = cmd("mysql-tool reset-pass " . escapeshellarg($db_user) . " " . escapeshellarg($pass));
