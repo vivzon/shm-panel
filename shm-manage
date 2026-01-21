@@ -320,6 +320,11 @@ NGINX
             mysql -e "ALTER USER '$3'@'localhost' IDENTIFIED BY '$PASS';" || { echo "Error: Password Reset Failed"; exit 1; }
             mysql -e "FLUSH PRIVILEGES;"
             log_action "Reset Pass DB User: $3"
+            
+        elif [ "$SUB" == "delete-user" ]; then
+            # $3: db_user
+            mysql -e "DROP USER IF EXISTS '$3'@'localhost';" || echo "User drop failed or not found"
+            log_action "Deleted DB User: $3"
         fi
         ;;
 
@@ -488,76 +493,133 @@ CONF
     # APP INSTALLER TOOL
     # --------------------------------------------------------------------------
     app-tool)
-        CMD=$2
-        DOM=$3
+        ACTION=$2
+        APP=$3
+        DOM=$4
         
         # Get User Info for Domain
         read USER PHP_VER <<< $(mysql -N -s -e "SELECT c.username, d.php_version FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" $DB_NAME)
-        
         DOCROOT="/var/www/clients/$USER/public_html"
         TMP="/tmp/install_$USER"
-        mkdir -p $TMP
         
-        log_action "Starting App Install: $CMD for $DOM ($USER)"
-        
-        if [ "$CMD" == "wordpress" ]; then
-            # WordPress Install
-            wget https://wordpress.org/latest.tar.gz -O $TMP/wp.tar.gz
-            tar -xzf $TMP/wp.tar.gz -C $TMP
-            cp -r $TMP/wordpress/* $DOCROOT/
-            chown -R $USER:$USER $DOCROOT
-            # Clean up
-            rm -rf $TMP
-            log_action "Installed WordPress for $DOM"
-            
-        elif [ "$CMD" == "laravel" ]; then
-            # Laravel Install (via Composer)
-            cd /var/www/clients/$USER
-            rm -rf public_html_bak
-            mv public_html public_html_bak
-            
-            # Create Project
-            # Run as user to ensure permissions
-            sudo -u $USER composer create-project laravel/laravel public_html
-            
-            # Fix Permissions
-            chmod -R 775 $DOCROOT/storage $DOCROOT/bootstrap/cache
-            
-            # Update Nginx Root to /public
-            sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
-            systemctl reload nginx
-            log_action "Installed Laravel for $DOM"
+        if [ "$ACTION" == "install" ]; then
+            # $5: db_name, $6: db_user, $7: db_pass
+            DB_NAME_VAL=$5
+            DB_USER_VAL=$6
+            DB_PASS=$7
 
-        elif [ "$CMD" == "codeigniter" ]; then
-            # CI4 Install
-            wget https://github.com/codeigniter4/framework/archive/refs/tags/v4.4.4.zip -O $TMP/ci.zip
-            unzip -q $TMP/ci.zip -d $TMP
-            cp -r $TMP/framework-4.4.4/* $DOCROOT/
-            chown -R $USER:$USER $DOCROOT
+            log_action "Starting App Install: $APP for $DOM ($USER)"
             
-            # Update Nginx Root to /public
-            sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
-            systemctl reload nginx
-            log_action "Installed CodeIgniter for $DOM"
+            # 1. Create Database & User
+            $0 mysql-tool create-db $DB_NAME_VAL
+            $0 mysql-tool create-user $DB_USER_VAL $DB_PASS $DB_NAME_VAL
+            
+            # 2. Update DB with 'active' status (Assume row exists)
+            mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
 
-        elif [ "$CMD" == "react" ]; then
-            # React (Vite) Install
-            cd /var/www/clients/$USER
-            rm -rf public_html_bak
-            mv public_html public_html_bak
-            mkdir public_html
+            mkdir -p $TMP
+
+            if [ "$APP" == "wordpress" ]; then
+                # WordPress Install
+                wget https://wordpress.org/latest.tar.gz -O $TMP/wp.tar.gz
+                tar -xzf $TMP/wp.tar.gz -C $TMP
+                cp -r $TMP/wordpress/* $DOCROOT/
+                
+                # Config DB
+                cp $DOCROOT/wp-config-sample.php $DOCROOT/wp-config.php
+                sed -i "s/database_name_here/$DB_NAME_VAL/" $DOCROOT/wp-config.php
+                sed -i "s/username_here/$DB_USER_VAL/" $DOCROOT/wp-config.php
+                sed -i "s/password_here/$DB_PASS/" $DOCROOT/wp-config.php
+                
+                chown -R $USER:$USER $DOCROOT
+                rm -rf $TMP
+                log_action "Installed WordPress for $DOM"
+                
+            elif [ "$APP" == "laravel" ]; then
+                # Laravel Install
+                cd /var/www/clients/$USER
+                rm -rf public_html_bak
+                if [ -d "public_html" ]; then mv public_html public_html_bak; fi
+                
+                # Create Project
+                sudo -u $USER composer create-project laravel/laravel public_html
+                
+                # Config DB (.env)
+                sed -i "s/DB_DATABASE=laravel/DB_DATABASE=$DB_NAME_VAL/" $DOCROOT/.env
+                sed -i "s/DB_USERNAME=root/DB_USERNAME=$DB_USER_VAL/" $DOCROOT/.env
+                sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DB_PASS/" $DOCROOT/.env
+                
+                chmod -R 775 $DOCROOT/storage $DOCROOT/bootstrap/cache
+                
+                # Update Nginx
+                sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
+                systemctl reload nginx
+                log_action "Installed Laravel for $DOM"
+    
+            elif [ "$APP" == "codeigniter" ]; then
+                # CI4 Install
+                wget https://github.com/codeigniter4/framework/archive/refs/tags/v4.4.4.zip -O $TMP/ci.zip
+                unzip -q $TMP/ci.zip -d $TMP
+                cp -r $TMP/framework-4.4.4/* $DOCROOT/
+                
+                # Config DB (.env)
+                cp $DOCROOT/env $DOCROOT/.env
+                sed -i "s/# database.default.database = ci4/database.default.database = $DB_NAME_VAL/" $DOCROOT/.env
+                sed -i "s/# database.default.username = root/database.default.username = $DB_USER_VAL/" $DOCROOT/.env
+                sed -i "s/# database.default.password = root/database.default.password = $DB_PASS/" $DOCROOT/.env
+                sed -i "s/# CI_ENVIRONMENT = production/CI_ENVIRONMENT = development/" $DOCROOT/.env
+                
+                chown -R $USER:$USER $DOCROOT
+                
+                # Update Nginx
+                sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
+                systemctl reload nginx
+                log_action "Installed CodeIgniter for $DOM"
+    
+            elif [ "$APP" == "react" ]; then
+                # React (Vite)
+                cd /var/www/clients/$USER
+                rm -rf public_html_bak
+                if [ -d "public_html" ]; then mv public_html public_html_bak; fi
+                mkdir public_html
+                
+                sudo -u $USER npm create vite@latest public_html -- --template react
+                cd public_html
+                sudo -u $USER npm install
+                sudo -u $USER npm run build
+                
+                # Update Nginx
+                sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/dist;|" /etc/nginx/sites-available/$DOM
+                systemctl reload nginx
+                log_action "Installed React for $DOM"
+            fi
             
-            # We scaffold into a temp dir then move to public_html to keep structure
-            sudo -u $USER npm create vite@latest public_html -- --template react
+        elif [ "$ACTION" == "uninstall" ]; then
+            # $5: db_name, $6: db_user
+            DB_NAME_VAL=$5
+            DB_USER_VAL=$6
             
-            cd public_html
-            sudo -u $USER npm install
-            sudo -u $USER npm run build
+            log_action "Uninstalling App: $APP from $DOM ($USER)"
             
-            # Update Nginx Root to /dist
-            sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/dist;|" /etc/nginx/sites-available/$DOM
+            # 1. Drop DB & User
+            $0 mysql-tool delete-db $DB_NAME_VAL
+            $0 mysql-tool delete-user $DB_USER_VAL
+            
+            # 2. Remove Files (Preserve public_html directory but empty it)
+            # CAUTION: We don't want to delete the directory itself if it's the mount point or needed by nginx
+            rm -rf $DOCROOT/*
+            rm -rf $DOCROOT/.* 2>/dev/null # Remove hidden files like .env
+            
+            # 3. Restore Default Page
+            echo "<h1>Welcome to $DOM</h1><p>Application Uninstalled.</p>" > $DOCROOT/index.html
+            chown $USER:$USER $DOCROOT/index.html
+            
+            # 4. Reset Nginx Root if needed (Revert to public_html)
+            # We blindly reset it to standard public_html just in case
+            sed -i "s|root /var/www/clients/$USER/public_html/.*;|root /var/www/clients/$USER/public_html;|" /etc/nginx/sites-available/$DOM
             systemctl reload nginx
-            log_action "Installed React for $DOM"
+            
+            log_action "Uninstallation Complete for $DOM"
         fi
         ;;
 
