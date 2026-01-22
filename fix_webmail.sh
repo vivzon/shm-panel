@@ -6,6 +6,14 @@ source /etc/shm/config.sh
 
 echo "Fixing Webmail..."
 
+if [ -z "$DB_USER" ] || [ -z "$DB_PASS" ]; then
+    echo "Error: DB_USER or DB_PASS not found in /etc/shm/config.sh"
+    echo "Please edit /etc/shm/config.sh and add:"
+    echo "DB_USER='shm_admin'"
+    echo "DB_PASS='your_password'"
+    exit 1
+fi
+
 # 1. Check if Roundcube Database Exists
 if ! mysql -e "USE roundcube"; then
     echo "Creating 'roundcube' database..."

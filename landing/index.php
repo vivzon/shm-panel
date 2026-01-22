@@ -5,13 +5,7 @@
  */
 require_once __DIR__ . '/../shared/config.php';
 
-// Fetch Packages
-try {
-    $stmt = $pdo->query("SELECT * FROM packages ORDER BY price ASC");
-    $packages = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $packages = [];
-}
+
 
 $host = $_SERVER['HTTP_HOST'];
 if (filter_var($host, FILTER_VALIDATE_IP)) {
@@ -114,11 +108,10 @@ $PayPalEnabled = true;
 
             <div class="hidden md:flex gap-8 text-sm font-medium text-slate-400">
                 <a href="#features" class="hover:text-white transition">Features</a>
-                <a href="#pricing" class="hover:text-white transition">Packages</a>
                 <a href="<?= $scheme ?>client.<?= $base ?>" class="hover:text-white transition">Client Area</a>
             </div>
 
-            <a href="#pricing"
+            <a href="<?= $scheme ?>client.<?= $base ?>"
                 class="bg-white text-slate-900 px-6 py-2.5 rounded-full font-bold text-sm hover:bg-blue-50 text-center transition shadow-[0_0_20px_rgba(255,255,255,0.1)]">
                 Get Started
             </a>
@@ -150,10 +143,9 @@ $PayPalEnabled = true;
             </p>
 
             <div class="flex flex-col md:flex-row items-center justify-center gap-4">
-                <a href="#pricing"
+                <a href="#features"
                     class="w-full md:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-lg transition shadow-[0_10px_40px_-10px_rgba(37,99,235,0.5)] flex items-center justify-center gap-2 group">
-                    Explore Packages <i data-lucide="arrow-right"
-                        class="w-5 h-5 group-hover:translate-x-1 transition"></i>
+                    View Features <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition"></i>
                 </a>
                 <a href="<?= $scheme ?>client.<?= $base ?>"
                     class="w-full md:w-auto px-8 py-4 glass text-white hover:bg-white/5 rounded-2xl font-bold text-lg transition flex items-center justify-center gap-2">
@@ -176,78 +168,82 @@ $PayPalEnabled = true;
         </div>
     </section>
 
-    <!-- Pricing Section -->
-    <section id="pricing" class="py-32 relative z-10">
+    <!-- Features Section -->
+    <section id="features" class="py-32 relative z-10 bg-slate-900/10">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-20">
-                <h2 class="text-4xl md:text-5xl font-bold font-heading mb-6">Simple, Transparent Pricing</h2>
-                <p class="text-slate-400 max-w-xl mx-auto">Choose the perfect plan for your needs. Upgrade or downgrade
-                    at any time with zero downtime.</p>
+                <h2 class="text-4xl md:text-5xl font-bold font-heading mb-6">Enterprise-Grade Infrastructure</h2>
+                <p class="text-slate-400 max-w-xl mx-auto">Built for speed, security, and reliability. Our platform
+                    handles the complexity of cloud hosting so you can focus on your code.</p>
             </div>
 
-            <?php if (empty($packages)): ?>
-                <div class="text-center p-12 glass rounded-3xl border border-dashed border-slate-700">
-                    <i data-lucide="server-off" class="w-12 h-12 text-slate-500 mx-auto mb-4"></i>
-                    <h3 class="text-xl font-bold text-slate-300">No Packages Found</h3>
-                    <p class="text-slate-500 mt-2">Please ask the administrator to configure packages in the database.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-card p-8 rounded-3xl hover:bg-slate-800/50 transition duration-300">
+                    <div
+                        class="bg-blue-600/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-blue-500">
+                        <i data-lucide="zap" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Blazing Fast NVMe</h3>
+                    <p class="text-slate-400 leading-relaxed">Experience up to 10x faster storage I/O compared to
+                        traditional SSDs. Your applications load instantly and database queries fly.</p>
                 </div>
-            <?php else: ?>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
-                    <?php foreach ($packages as $pkg): ?>
-                        <div
-                            class="glass-card p-8 rounded-[32px] group hover:-translate-y-2 transition duration-500 relative overflow-hidden">
-                            <!-- Popular Badge -->
-                            <?php if ($pkg['price'] > 0 && $pkg['price'] < 50): ?>
-                                <div
-                                    class="absolute top-0 right-0 bg-gradient-to-bl from-blue-600 to-transparent p-6 px-8 text-white font-bold text-xs tracking-widest uppercase rounded-bl-[32px]">
-                                    Popular
-                                </div>
-                            <?php endif; ?>
 
-                            <h3 class="text-2xl font-bold text-white mb-2"><?= htmlspecialchars($pkg['name']) ?></h3>
-                            <div class="flex items-baseline gap-1 mb-6">
-                                <span class="text-4xl font-bold text-blue-400">$<?= number_format($pkg['price'], 2) ?></span>
-                                <span class="text-slate-500 font-medium">/mo</span>
-                            </div>
-
-                            <ul class="space-y-4 mb-8">
-                                <li class="flex items-center gap-3 text-slate-300">
-                                    <div class="p-1 rounded-full bg-emerald-500/20 text-emerald-400"><i data-lucide="check"
-                                            class="w-3 h-3"></i></div>
-                                    <span
-                                        class="font-medium"><?= $pkg['disk_mb'] < 1000 ? $pkg['disk_mb'] . ' MB' : ($pkg['disk_mb'] / 1000) . ' GB' ?>
-                                        NVMe Storage</span>
-                                </li>
-                                <li class="flex items-center gap-3 text-slate-300">
-                                    <div class="p-1 rounded-full bg-emerald-500/20 text-emerald-400"><i data-lucide="check"
-                                            class="w-3 h-3"></i></div>
-                                    <span class="font-medium"><?= $pkg['max_domains'] ?> Domain(s)</span>
-                                </li>
-                                <li class="flex items-center gap-3 text-slate-300">
-                                    <div class="p-1 rounded-full bg-emerald-500/20 text-emerald-400"><i data-lucide="check"
-                                            class="w-3 h-3"></i></div>
-                                    <span class="font-medium"><?= $pkg['max_emails'] ?> Email Accounts</span>
-                                </li>
-                                <li class="flex items-center gap-3 text-slate-300">
-                                    <div class="p-1 rounded-full bg-emerald-500/20 text-emerald-400"><i data-lucide="check"
-                                            class="w-3 h-3"></i></div>
-                                    <span class="font-medium"><?= $pkg['max_databases'] ?> Databases</span>
-                                </li>
-                                <li class="flex items-center gap-3 text-slate-300">
-                                    <div class="p-1 rounded-full bg-blue-500/20 text-blue-400"><i data-lucide="shield-check"
-                                            class="w-3 h-3"></i></div>
-                                    <span class="font-medium">Free SSL Certificates</span>
-                                </li>
-                            </ul>
-
-                            <a href="checkout.php?pkg=<?= $pkg['id'] ?>"
-                                class="block w-full py-4 rounded-xl bg-slate-800 hover:bg-blue-600 text-center font-bold text-white transition-all shadow-lg hover:shadow-blue-600/20 border border-slate-700 hover:border-blue-500">
-                                Choose Plan
-                            </a>
-                        </div>
-                    <?php endforeach; ?>
+                <!-- Feature 2 -->
+                <div class="glass-card p-8 rounded-3xl hover:bg-slate-800/50 transition duration-300">
+                    <div
+                        class="bg-purple-600/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-purple-500">
+                        <i data-lucide="shield" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">DDoS Protection</h3>
+                    <p class="text-slate-400 leading-relaxed">Our advanced edge network filters malicious traffic in
+                        real-time, ensuring your legitimate users always have access to your services.</p>
                 </div>
-            <?php endif; ?>
+
+                <!-- Feature 3 -->
+                <div class="glass-card p-8 rounded-3xl hover:bg-slate-800/50 transition duration-300">
+                    <div
+                        class="bg-emerald-600/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-emerald-500">
+                        <i data-lucide="globe" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Global Low Latency</h3>
+                    <p class="text-slate-400 leading-relaxed">Strategically located data centers ensure your content is
+                        delivered with minimal latency to users anywhere in the world.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="glass-card p-8 rounded-3xl hover:bg-slate-800/50 transition duration-300">
+                    <div
+                        class="bg-orange-600/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-orange-500">
+                        <i data-lucide="box" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Container Ready</h3>
+                    <p class="text-slate-400 leading-relaxed">Native support for Docker/Podman environments. Deploys
+                        microservices with isolated resources and full control.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="glass-card p-8 rounded-3xl hover:bg-slate-800/50 transition duration-300">
+                    <div
+                        class="bg-pink-600/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-pink-500">
+                        <i data-lucide="lock" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">SSL & Privacy</h3>
+                    <p class="text-slate-400 leading-relaxed">Automated Let's Encrypt SSL certificates for all your
+                        domains. We engage strictly zero-logging policies on our infrastructure edge.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="glass-card p-8 rounded-3xl hover:bg-slate-800/50 transition duration-300">
+                    <div
+                        class="bg-cyan-600/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 text-cyan-500">
+                        <i data-lucide="life-buoy" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">24/7 Expert Support</h3>
+                    <p class="text-slate-400 leading-relaxed">Our team of engineers is always awake. Whether it is a
+                        server misconfiguration or code advice, we are here to help.</p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -261,12 +257,7 @@ $PayPalEnabled = true;
                     </div>
                     <span class="text-xl font-bold font-heading">VIVZON<span class="text-slate-600">CLOUD</span></span>
                 </div>
-                <div class="flex gap-4">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
-                        class="h-6 opacity-50 grayscale hover:grayscale-0 transition" alt="PayPal">
-                    <!-- Placeholder Razorpay Icon -->
-                    <span class="opacity-50 font-bold text-slate-500">Razorpay</span>
-                </div>
+
             </div>
 
             <div class="border-t border-white/5 pt-8 text-center text-slate-600 text-sm">

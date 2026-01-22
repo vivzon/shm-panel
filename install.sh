@@ -184,6 +184,8 @@ chmod +x /usr/local/bin/shm-manage
 mkdir -p /etc/shm
 cat > /etc/shm/config.sh << CONFIG
 DB_NAME='$DB_NAME'
+DB_USER='$DB_USER'
+DB_PASS='$DB_PASS'
 MAIN_DOMAIN='$MAIN_DOMAIN'
 ADMIN_EMAIL='$ADMIN_EMAIL'
 CONFIG
