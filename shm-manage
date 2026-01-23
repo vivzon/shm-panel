@@ -540,6 +540,7 @@ CONF
                 sed -i "s/password_here/$DB_PASS/" $DOCROOT/wp-config.php
                 
                 chown -R $USER:$USER $DOCROOT
+                chmod -R 775 $DOCROOT
                 rm -rf $TMP
                 log_action "Installed WordPress for $DOM"
                 
@@ -557,7 +558,7 @@ CONF
                 sed -i "s/DB_USERNAME=root/DB_USERNAME=$DB_USER_VAL/" $DOCROOT/.env
                 sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DB_PASS/" $DOCROOT/.env
                 
-                chmod -R 775 $DOCROOT/storage $DOCROOT/bootstrap/cache
+                chmod -R 775 $DOCROOT/storage $DOCROOT/bootstrap/cache $DOCROOT/public
                 
                 # Update Nginx
                 sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
@@ -578,6 +579,7 @@ CONF
                 sed -i "s/# CI_ENVIRONMENT = production/CI_ENVIRONMENT = development/" $DOCROOT/.env
                 
                 chown -R $USER:$USER $DOCROOT
+                chmod -R 775 $DOCROOT
                 
                 # Update Nginx
                 sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM

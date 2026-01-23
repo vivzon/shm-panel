@@ -255,6 +255,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $count = 0;
         foreach ($_POST['paths'] as $p) {
             $abs = shm_build_path($base_path, $p);
+            // Critical Safeguard: Prevent Deletion of Root
+            if ($abs === $base_path)
+                continue;
+
             if ($abs && shm_rrmdir($abs))
                 $count++;
         }
