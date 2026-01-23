@@ -30,8 +30,15 @@ if (isset($_POST['ajax_action'])) {
             if ($exists->fetch())
                 throw new Exception("Domain already exists on server");
 
-            $pdo->prepare("INSERT INTO domains (client_id, domain, document_root) VALUES (?, ?, ?)")->execute([$cid, $dom, "/var/www/clients/$username/domains/$dom/public_html"]);
-            $dom_id = $pdo->lastInsertId();
+            try {
+                $pdo->prepare("INSERT INTO domains (client_id, domain, document_root) VALUES (?, ?, ?)")->execute([$cid, $dom, "/var/www/clients/$username/domains/$dom/public_html"]);
+                $dom_id = $pdo->lastInsertId();
+            } catch (PDOException $e) {
+                if ($e->getCode() == 23000) {
+                    throw new Exception("Domain already exists (Database Constraint)");
+                }
+                throw $e;
+            }
 
             // Auto DNS
             $server_ip = $_SERVER['SERVER_ADDR'];
@@ -47,6 +54,12 @@ if (isset($_POST['ajax_action'])) {
             $spf = "v=spf1 a mx ip4:$server_ip -all";
             $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '@', ?)")->execute([$dom_id, $spf]);
             $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '_dmarc', 'v=DMARC1; p=none')")->execute([$dom_id]);
+
+            // Add NS Records
+            $ns1 = "ns1." . $base_domain;
+            $ns2 = "ns2." . $base_domain;
+            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns1]);
+            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns2]);
 
             cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
             cmd("dns-tool sync $dom_id");
@@ -72,11 +85,36 @@ if (isset($_POST['ajax_action'])) {
         }
 
         if ($action == 'update_domain_config') {
-            $pdo->prepare("UPDATE domains SET php_version = ?, ssl_active = ? WHERE id = ? AND client_id = ?")->execute([$_POST['php_version'], isset($_POST['ssl']) ? 1 : 0, $_POST['domain_id'], $cid]);
-            $pdo->prepare("INSERT INTO php_config (domain_id, memory_limit) VALUES (?, ?) ON DUPLICATE KEY UPDATE memory_limit=VALUES(memory_limit)")->execute([$_POST['domain_id'], $_POST['mem']]);
+            $did = (int) $_POST['domain_id'];
+
+            // Check domain ownership first
+            $chk = $pdo->prepare("SELECT id FROM domains WHERE id = ? AND client_id = ?");
+            $chk->execute([$did, $cid]);
+            if (!$chk->fetch())
+                throw new Exception("Invalid Domain ID");
+
+            $pdo->prepare("UPDATE domains SET php_version = ?, ssl_active = ? WHERE id = ?")->execute([$_POST['php_version'], isset($_POST['ssl']) ? 1 : 0, $did]);
+
+            // Handle php_config safely
+            $exists = $pdo->prepare("SELECT 1 FROM php_config WHERE domain_id = ?");
+            $exists->execute([$did]);
+            if ($exists->fetch()) {
+                $pdo->prepare("UPDATE php_config SET memory_limit = ? WHERE domain_id = ?")->execute([$_POST['mem'], $did]);
+            } else {
+                try {
+                    $pdo->prepare("INSERT INTO php_config (domain_id, memory_limit) VALUES (?, ?)")->execute([$did, $_POST['mem']]);
+                } catch (PDOException $e) {
+                    // If duplicate entry occurs (race condition), fallback to update
+                    if ($e->getCode() == 23000) {
+                        $pdo->prepare("UPDATE php_config SET memory_limit = ? WHERE domain_id = ?")->execute([$_POST['mem'], $did]);
+                    } else {
+                        throw $e;
+                    }
+                }
+            }
 
             // Sync Vhost (Triggers SSL Install if needed)
-            cmd("vhost-tool sync " . (int) $_POST['domain_id']);
+            cmd("vhost-tool sync " . $did);
             sendResponse($res);
             exit;
         }
@@ -88,7 +126,50 @@ if (isset($_POST['ajax_action'])) {
             if (!$check->fetch())
                 throw new Exception("Access Denied");
 
-            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, ?, ?, ?)")->execute([$dom_id, $_POST['type'], $_POST['host'], $_POST['value']]);
+            $type = $_POST['type'];
+            $host = $_POST['host'];
+            $value = '';
+
+            // Validation & Packing
+            if ($type == 'A') {
+                if (!filter_var($_POST['value'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+                    throw new Exception("Invalid IPv4 Address");
+                $value = $_POST['value'];
+            } elseif ($type == 'AAAA') {
+                if (!filter_var($_POST['value'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6))
+                    throw new Exception("Invalid IPv6 Address");
+                $value = $_POST['value'];
+            } elseif ($type == 'CNAME' || $type == 'NS') {
+                // Basic domain validation could be added here
+                $value = $_POST['value'];
+            } elseif ($type == 'TXT') {
+                $value = $_POST['value'];
+            } elseif ($type == 'MX') {
+                $prio = (int) $_POST['priority'];
+                $val = $_POST['value']; // Destination
+                $value = "$prio $val";
+            } elseif ($type == 'SRV') {
+                $prio = (int) $_POST['priority'];
+                $weight = (int) $_POST['weight'];
+                $port = (int) $_POST['port'];
+                $target = $_POST['value']; // Target
+                $value = "$prio $weight $port $target";
+            } elseif ($type == 'SOA') {
+                // SOA is complex. Usually managed by system, but if manual:
+                // MNAME RNAME SERIAL REFRESH RETRY EXPIRE MIN_TTL
+                $mname = $_POST['mname'];
+                $rname = $_POST['rname'];
+                $serial = $_POST['serial'];
+                $refresh = $_POST['refresh'];
+                $retry = $_POST['retry'];
+                $expire = $_POST['expire'];
+                $ttl = $_POST['ttl'];
+                $value = "$mname $rname $serial $refresh $retry $expire $ttl";
+            } else {
+                throw new Exception("Invalid Record Type");
+            }
+
+            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, ?, ?, ?)")->execute([$dom_id, $type, $host, $value]);
 
             cmd("dns-tool sync " . (int) $dom_id);
             sendResponse($res);
@@ -118,7 +199,18 @@ if (isset($_POST['ajax_action'])) {
 }
 
 // Data
-$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
+// Pagination
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+if ($page < 1)
+    $page = 1;
+$per_page = 10;
+$offset = ($page - 1) * $per_page;
+
+// Count Total
+$total_domains = $pdo->query("SELECT COUNT(*) FROM domains WHERE client_id = $cid")->fetchColumn();
+$total_pages = ceil($total_domains / $per_page);
+
+$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid LIMIT $per_page OFFSET $offset")->fetchAll();
 
 // Base Domain
 $server_host = $_SERVER['HTTP_HOST'];
@@ -220,25 +312,45 @@ include 'layout/header.php';
             <div class="border-t border-slate-700/50 pt-8">
                 <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">DNS Zone Management
                 </h4>
-                <form onsubmit="handleGeneric(event, 'add_dns')" class="grid grid-cols-4 gap-3 mb-4">
-                    <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
-                    <input name="host" placeholder="Host (e.g. @)"
-                        class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
-                        required>
-                    <select name="type"
-                        class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm font-bold text-slate-300 outline-none">
-                        <option>A</option>
-                        <option>CNAME</option>
-                        <option>MX</option>
-                        <option>TXT</option>
-                    </select>
-                    <input name="value" placeholder="Value (IP or Domain)"
-                        class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500 transition"
-                        required>
-                    <button
-                        class="bg-slate-800 text-white rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-700 border border-slate-700 transition">Add
-                        Record</button>
-                </form>
+                <div class="mb-6">
+                    <div class="flex flex-wrap gap-2 mb-4" id="dns-tabs-<?= $d['id'] ?>">
+                        <?php foreach (['A', 'AAAA', 'MX', 'CNAME', 'NS', 'TXT', 'SRV', 'SOA'] as $t): ?>
+                            <button type="button" onclick="setDnsType(<?= $d['id'] ?>, '<?= $t ?>')"
+                                id="btn-dns-<?= $t ?>-<?= $d['id'] ?>"
+                                class="dns-type-btn px-4 py-2 rounded-lg text-xs font-bold border border-slate-700 transition <?= $t === 'A' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-800 text-slate-400 hover:bg-slate-700' ?>">
+                                <?= $t ?>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <form onsubmit="handleGeneric(event, 'add_dns')"
+                        class="glass-card p-6 border border-slate-700/50 bg-slate-900/30 rounded-xl relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                        <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
+                        <input type="hidden" name="type" id="input-dns-type-<?= $d['id'] ?>" value="A">
+
+                        <div id="dns-fields-<?= $d['id'] ?>" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                            <!-- Default A Record Fields -->
+                            <div class="col-span-4"><label
+                                    class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input
+                                    name="host" value="@"
+                                    class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner">
+                            </div>
+                            <div class="col-span-8"><label
+                                    class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">IPv4
+                                    Address</label><input name="value" placeholder="192.168.1.1"
+                                    class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner">
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex justify-end">
+                            <button
+                                class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 transition border border-blue-400 flex items-center gap-2">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Record
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
                 <table class="w-full mt-6 text-left">
                     <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
@@ -279,6 +391,23 @@ include 'layout/header.php';
             </div>
         </div>
     <?php endforeach; ?>
+    
+    <?php if ($total_pages > 1): ?>
+            <div class="flex justify-between items-center mt-6">
+                <div class="text-xs text-slate-500 font-bold">
+                    Page <?= $page ?> of <?= $total_pages ?>
+                </div>
+                <div class="flex gap-2">
+                    <?php if ($page > 1): ?>
+                            <a href="?page=<?= $page - 1 ?>" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Previous</a>
+                    <?php endif; ?>
+                
+                    <?php if ($page < $total_pages): ?>
+                            <a href="?page=<?= $page + 1 ?>" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Next</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+    <?php endif; ?>
 </div>
 <?php include 'layout/footer.php'; ?>
 
@@ -363,6 +492,67 @@ include 'layout/header.php';
         items.forEach(item => {
             const text = item.innerText.toLowerCase();
             item.style.display = text.includes(lower) ? '' : 'none';
+        });
+    }
+
+    const dnsTemplates = {
+        'A': `
+            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">IPv4 Address</label><input name="value" placeholder="192.168.1.1" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+        `,
+        'AAAA': `
+            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">IPv6 Address</label><input name="value" placeholder="2001:0db8:..." class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+        `,
+        'MX': `
+            <div class="col-span-3"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-3"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Priority</label><input name="priority" type="number" value="10" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-6"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Destination</label><input name="value" placeholder="mail.example.com" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+        `,
+        'CNAME': `
+            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input name="host" placeholder="www" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Target</label><input name="value" placeholder="example.com" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+        `,
+        'NS': `
+            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Nameserver</label><input name="value" placeholder="ns1.example.com" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+        `,
+        'TXT': `
+            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">TXT Value</label><input name="value" placeholder="v=spf1..." class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+        `,
+        'SRV': `
+            <div class="col-span-3"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Service</label><input name="host" placeholder="_sip._tcp" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Priority</label><input name="priority" type="number" value="10" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Weight</label><input name="weight" type="number" value="10" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Port</label><input name="port" type="number" value="5060" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-3"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Target</label><input name="value" placeholder="sip.example.com" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+        `,
+        'SOA': `
+            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">MNAME</label><input name="mname" placeholder="ns1.example.com" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">RNAME</label><input name="rname" placeholder="admin.example.com" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Serial</label><input name="serial" placeholder="2024010101" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">TTL</label><input name="ttl" value="86400" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            
+            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Refresh</label><input name="refresh" value="3600" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Retry</label><input name="retry" value="7200" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Expire</label><input name="expire" value="1209600" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner" required></div>
+            <input type="hidden" name="host" value="@">
+        `
+    };
+
+    function setDnsType(did, type) {
+        document.getElementById(`input-dns-type-${did}`).value = type;
+        document.getElementById(`dns-fields-${did}`).innerHTML = dnsTemplates[type];
+
+        // Update tabs
+        const parent = document.getElementById(`dns-tabs-${did}`);
+        parent.querySelectorAll('button').forEach(btn => {
+            if (btn.id === `btn-dns-${type}-${did}`) {
+                btn.className = "dns-type-btn px-4 py-2 rounded-lg text-xs font-bold border border-blue-500 bg-blue-600 text-white transition shadow-lg shadow-blue-500/20";
+            } else {
+                btn.className = "dns-type-btn px-4 py-2 rounded-lg text-xs font-bold border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700 transition";
+            }
         });
     }
 </script>

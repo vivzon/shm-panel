@@ -65,8 +65,19 @@ if (isset($_POST['ajax_action'])) {
 }
 
 // Data Handling
+// Pagination
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+if ($page < 1)
+    $page = 1;
+$per_page = 10;
+$offset = ($page - 1) * $per_page;
+
+// Count Total
+$total_emails = $pdo->query("SELECT COUNT(*) FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = $cid)")->fetchColumn();
+$total_pages = ceil($total_emails / $per_page);
+
 $domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
-$my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = $cid)")->fetchAll();
+$my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = $cid) LIMIT $per_page OFFSET $offset")->fetchAll();
 
 // Base Domain for Webmail Link
 $server_host = $_SERVER['HTTP_HOST'];

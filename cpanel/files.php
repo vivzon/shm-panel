@@ -414,6 +414,17 @@ if (is_dir($full_path)) {
             'rel' => shm_normalize_relative($current_path . '/' . $item)
         ];
     }
+
+    // Sort: Folders first, then Files
+    usort($items, function ($a, $b) {
+        if ($a['is_dir'] && !$b['is_dir']) {
+            return -1;
+        }
+        if (!$a['is_dir'] && $b['is_dir']) {
+            return 1;
+        }
+        return strnatcasecmp($a['name'], $b['name']);
+    });
 }
 ?>
 <!DOCTYPE html>

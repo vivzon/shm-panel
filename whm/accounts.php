@@ -15,6 +15,7 @@ if (isset($_POST['ajax_action'])) {
     try {
         if ($action == 'save_account') {
             $id = $_POST['id'] ?? null;
+            $did = $_POST['domain_id'] ?? null; // Domain ID from hidden input
             $u = trim($_POST['user']);
             $d = trim($_POST['dom']);
             $e = trim($_POST['email']);
@@ -22,7 +23,25 @@ if (isset($_POST['ajax_action'])) {
 
             if ($id) {
                 $pdo->prepare("UPDATE clients SET email=?, package_id=? WHERE id=?")->execute([$e, $pkg, $id]);
-                $pdo->prepare("UPDATE domains SET domain=? WHERE client_id=?")->execute([$d, $id]);
+
+                // Only update domain if domain_id is provided and valid ownership
+                if ($did && $d) {
+                    // Check if domain name is actually changing to avoid redundant unique checks
+                    $curr = $pdo->prepare("SELECT domain FROM domains WHERE id=?");
+                    $curr->execute([$did]);
+                    $currDom = $curr->fetchColumn();
+
+                    if ($currDom !== $d) {
+                        // Check for duplicates
+                        $exists = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND id != ?");
+                        $exists->execute([$d, $did]);
+                        if ($exists->fetch())
+                            throw new Exception("Domain $d already exists.");
+
+                        $pdo->prepare("UPDATE domains SET domain=? WHERE id=? AND client_id=?")->execute([$d, $did, $id]);
+                    }
+                }
+
                 if (!empty($_POST['pass'])) {
                     $hash = password_hash($_POST['pass'], PASSWORD_BCRYPT);
                     $pdo->prepare("UPDATE clients SET password=? WHERE id=?")->execute([$hash, $id]);
@@ -62,6 +81,12 @@ if (isset($_POST['ajax_action'])) {
                 $spf = "v=spf1 a mx ip4:$server_ip -all";
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '@', ?)")->execute([$dom_id, $spf]);
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '_dmarc', 'v=DMARC1; p=none')")->execute([$dom_id]);
+
+                // NS Records
+                $ns1 = "ns1." . $base_domain;
+                $ns2 = "ns2." . $base_domain;
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns1]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns2]);
 
                 $pdo->commit();
 
@@ -148,8 +173,18 @@ if (isset($_POST['ajax_action'])) {
     exit;
 }
 
-// DATA COLLECTION
-$clients = $pdo->query("SELECT c.*, d.domain, p.name as pkg_name FROM clients c LEFT JOIN domains d ON c.id = d.client_id LEFT JOIN packages p ON c.package_id = p.id ORDER BY c.id DESC")->fetchAll(PDO::FETCH_ASSOC);
+// DATA COLLECTION & PAGINATION
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+if ($page < 1)
+    $page = 1;
+$per_page = 10;
+$offset = ($page - 1) * $per_page;
+
+// Count Total
+$total_clients = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
+$total_pages = ceil($total_clients / $per_page);
+
+$clients = $pdo->query("SELECT c.*, d.id as domain_id, d.domain, p.name as pkg_name FROM clients c LEFT JOIN domains d ON c.id = d.client_id LEFT JOIN packages p ON c.package_id = p.id ORDER BY c.id DESC LIMIT $per_page OFFSET $offset")->fetchAll(PDO::FETCH_ASSOC);
 $packages = $pdo->query("SELECT * FROM packages")->fetchAll(PDO::FETCH_ASSOC);
 
 include 'layout/header.php';
@@ -254,6 +289,23 @@ include 'layout/header.php';
     </table>
 </div>
 
+<?php if ($total_pages > 1): ?>
+    <div class="flex justify-between items-center mt-6">
+        <div class="text-xs text-slate-500 font-bold">
+            Page <?= $page ?> of <?= $total_pages ?>
+        </div>
+        <div class="flex gap-2">
+            <?php if ($page > 1): ?>
+                <a href="?page=<?= $page - 1 ?>" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Previous</a>
+            <?php endif; ?>
+            
+            <?php if ($page < $total_pages): ?>
+                <a href="?page=<?= $page + 1 ?>" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Next</a>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
 <!-- ACCOUNT MODAL -->
 <div id="modal-acc"
     class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
@@ -261,6 +313,7 @@ include 'layout/header.php';
         class="glass-panel p-10 rounded-3xl w-full max-w-lg relative">
         <h3 id="acc-title" class="text-2xl font-bold mb-8 text-white font-heading">Provision Account</h3>
         <input type="hidden" name="id" id="acc-id">
+        <input type="hidden" name="domain_id" id="acc-did">
 
         <div class="space-y-5">
             <div class="space-y-2">
@@ -325,6 +378,7 @@ include 'layout/header.php';
 
         if (data) {
             document.getElementById('acc-id').value = data.id;
+            document.getElementById('acc-did').value = data.domain_id;
             document.getElementById('acc-user').value = data.username;
             document.getElementById('acc-user').readOnly = true;
             document.getElementById('acc-dom').value = data.domain;

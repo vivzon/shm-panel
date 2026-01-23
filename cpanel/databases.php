@@ -47,7 +47,7 @@ if (isset($_POST['ajax_action'])) {
                 $quoted_pass = $pdo->quote($pass);
                 // Note: db_user is already sanitized by preg_replace above
                 $pdo->exec("CREATE USER IF NOT EXISTS '$db_user'@'localhost' IDENTIFIED BY $quoted_pass");
-                
+
                 // Grant - using pure SQL construction
                 $target_db = preg_replace('/[^a-z0-9_]/', '', $_POST['target_db']);
                 $pdo->exec("GRANT ALL PRIVILEGES ON `$target_db`.* TO '$db_user'@'localhost'");
@@ -115,10 +115,21 @@ if (isset($_POST['ajax_action'])) {
 }
 
 // Data Handling
+// Pagination
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+if ($page < 1)
+    $page = 1;
+$per_page = 10;
+$offset = ($page - 1) * $per_page;
+
+// Count Total
+$total_dbs = $pdo->query("SELECT COUNT(*) FROM client_databases WHERE client_id = $cid")->fetchColumn();
+$total_pages = ceil($total_dbs / $per_page);
+
 try {
-    $my_dbs = $pdo->query("SELECT cd.*, d.domain FROM client_databases cd LEFT JOIN domains d ON cd.domain_id = d.id WHERE cd.client_id = $cid ORDER BY d.domain DESC")->fetchAll();
+    $my_dbs = $pdo->query("SELECT cd.*, d.domain FROM client_databases cd LEFT JOIN domains d ON cd.domain_id = d.id WHERE cd.client_id = $cid ORDER BY d.domain DESC LIMIT $per_page OFFSET $offset")->fetchAll();
 } catch (PDOException $e) {
-    $my_dbs = $pdo->query("SELECT *, NULL as domain FROM client_databases WHERE client_id = $cid")->fetchAll();
+    $my_dbs = $pdo->query("SELECT *, NULL as domain FROM client_databases WHERE client_id = $cid LIMIT $per_page OFFSET $offset")->fetchAll();
 }
 $domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
 
@@ -229,6 +240,24 @@ include 'layout/header.php';
                     </tbody>
                 </table>
             </div>
+            <?php if ($total_pages > 1): ?>
+                <div class="flex justify-between items-center mt-6">
+                    <div class="text-xs text-slate-500 font-bold">
+                        Page <?= $page ?> of <?= $total_pages ?>
+                    </div>
+                    <div class="flex gap-2">
+                        <?php if ($page > 1): ?>
+                            <a href="?page=<?= $page - 1 ?>"
+                                class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Previous</a>
+                        <?php endif; ?>
+
+                        <?php if ($page < $total_pages): ?>
+                            <a href="?page=<?= $page + 1 ?>"
+                                class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Next</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
 
         <div>
