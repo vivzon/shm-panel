@@ -36,7 +36,7 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'add_ftp') {
             if ($_POST['pass'] !== $_POST['pass2'])
                 throw new Exception("Passwords do not match");
-            $ftp_user = $_POST['ftp_user'] . '@' . $username; // Enforce user@client format
+            $ftp_user = strtolower($_POST['ftp_user'] . '@' . $username); // Enforce user@client format
 
             // Password: Check valid FTP Login (MD5 is common for Pure/ProFTPD)
             $pass = md5($_POST['pass']);
@@ -44,11 +44,17 @@ if (isset($_POST['ajax_action'])) {
             $home = "/var/www/clients/$username/public_html" . ($_POST['dir'] ? '/' . trim($_POST['dir'], '/') : '');
 
             // Get System User UID/GID to ensure file permissions work
-            $sys_user_info = posix_getpwnam($username);
-            if (!$sys_user_info)
-                throw new Exception("System user not found");
-            $uid = $sys_user_info['uid'];
-            $gid = $sys_user_info['gid'];
+            if (function_exists('posix_getpwnam')) {
+                $sys_user_info = posix_getpwnam($username);
+                if (!$sys_user_info)
+                    throw new Exception("System user not found");
+                $uid = $sys_user_info['uid'];
+                $gid = $sys_user_info['gid'];
+            } else {
+                // Fallback for Windows or non-POSIX envs
+                $uid = 1000;
+                $gid = 1000;
+            }
 
             $check = $pdo->prepare("SELECT count(*) FROM ftp_users WHERE userid = ?");
             $check->execute([$ftp_user]);
