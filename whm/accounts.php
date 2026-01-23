@@ -192,7 +192,7 @@ include 'layout/header.php';
 
 <div class="flex justify-between items-center mb-8 gap-4">
     <div class="flex items-center gap-4">
-        <h2 class="text-2xl font-bold text-white font-heading">Client Accounts</h2>
+        <h2 class="text-2xl font-bold text-white font-heading">Client Accounts <span class="text-slate-500 text-lg ml-2">(<?= $total_clients ?>)</span></h2>
         <div class="relative group">
             <i data-lucide="search"
                 class="w-4 absolute left-3 top-3 text-slate-500 group-focus-within:text-blue-400 transition"></i>
