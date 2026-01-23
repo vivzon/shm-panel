@@ -19,7 +19,7 @@
     *   **Auto-Propagation**: Instantly generates A, CNAME, MX, SPF, and DMARC records for new accounts.
 *   **Advanced File Manager**:
     *   Modern UI with List/Grid views.
-    *   **1GB Upload Support**: Handle large backups and media files with ease.
+    *   **2GB Upload Support**: Handle large backups and media files with ease.
     *   **Permission Tools**: Built-in CHMOD and "Fix Permissions" utilities.
 *   **One-Click Apps**: Install WordPress, Laravel, React (Vite), and CodeIgniter.
 

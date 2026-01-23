@@ -96,9 +96,9 @@ for v in 8.1 8.2 8.3; do
     apt-get install -y php$v-fpm php$v-mysql php$v-common php$v-gd php$v-mbstring php$v-xml php$v-zip php$v-curl php$v-bcmath php$v-intl php$v-imagick php$v-cli
     
     # Configure PHP Limits (Global)
-    sed -i "s/upload_max_filesize = .*/upload_max_filesize = 1024M/" /etc/php/$v/fpm/php.ini
-    sed -i "s/post_max_size = .*/post_max_size = 1024M/" /etc/php/$v/fpm/php.ini
-    sed -i "s/memory_limit = .*/memory_limit = 1024M/" /etc/php/$v/fpm/php.ini
+    sed -i "s/upload_max_filesize = .*/upload_max_filesize = 2048M/" /etc/php/$v/fpm/php.ini
+    sed -i "s/post_max_size = .*/post_max_size = 2048M/" /etc/php/$v/fpm/php.ini
+    sed -i "s/memory_limit = .*/memory_limit = 2048M/" /etc/php/$v/fpm/php.ini
 done
 
 # Install Composer
@@ -350,7 +350,7 @@ server {
     root ${SUBDOMAINS[$sub]};
     index index.php index.html;
     
-    client_max_body_size 1024M;
+    client_max_body_size 2048M;
     
     location / {
         try_files \$uri \$uri/ /index.php?\$args;
