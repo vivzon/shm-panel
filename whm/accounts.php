@@ -173,18 +173,11 @@ if (isset($_POST['ajax_action'])) {
     exit;
 }
 
-// DATA COLLECTION & PAGINATION
-$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-if ($page < 1)
-    $page = 1;
-$per_page = 10;
-$offset = ($page - 1) * $per_page;
-
 // Count Total
 $total_clients = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
-$total_pages = ceil($total_clients / $per_page);
 
-$clients = $pdo->query("SELECT c.*, d.id as domain_id, d.domain, p.name as pkg_name FROM clients c LEFT JOIN domains d ON c.id = d.client_id LEFT JOIN packages p ON c.package_id = p.id ORDER BY c.id DESC LIMIT $per_page OFFSET $offset")->fetchAll(PDO::FETCH_ASSOC);
+// Fetch All Clients
+$clients = $pdo->query("SELECT c.*, d.id as domain_id, d.domain, p.name as pkg_name FROM clients c LEFT JOIN domains d ON c.id = d.client_id LEFT JOIN packages p ON c.package_id = p.id ORDER BY c.id DESC")->fetchAll(PDO::FETCH_ASSOC);
 $packages = $pdo->query("SELECT * FROM packages")->fetchAll(PDO::FETCH_ASSOC);
 
 include 'layout/header.php';
@@ -192,7 +185,8 @@ include 'layout/header.php';
 
 <div class="flex justify-between items-center mb-8 gap-4">
     <div class="flex items-center gap-4">
-        <h2 class="text-2xl font-bold text-white font-heading">Client Accounts <span class="text-slate-500 text-lg ml-2">(<?= $total_clients ?>)</span></h2>
+        <h2 class="text-2xl font-bold text-white font-heading">Client Accounts <span
+                class="text-slate-500 text-lg ml-2">(<?= $total_clients ?>)</span></h2>
         <div class="relative group">
             <i data-lucide="search"
                 class="w-4 absolute left-3 top-3 text-slate-500 group-focus-within:text-blue-400 transition"></i>
@@ -289,22 +283,7 @@ include 'layout/header.php';
     </table>
 </div>
 
-<?php if ($total_pages > 1): ?>
-    <div class="flex justify-between items-center mt-6">
-        <div class="text-xs text-slate-500 font-bold">
-            Page <?= $page ?> of <?= $total_pages ?>
-        </div>
-        <div class="flex gap-2">
-            <?php if ($page > 1): ?>
-                <a href="?page=<?= $page - 1 ?>" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Previous</a>
-            <?php endif; ?>
-            
-            <?php if ($page < $total_pages): ?>
-                <a href="?page=<?= $page + 1 ?>" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Next</a>
-            <?php endif; ?>
-        </div>
-    </div>
-<?php endif; ?>
+
 
 <!-- ACCOUNT MODAL -->
 <div id="modal-acc"
