@@ -15,9 +15,10 @@ if (!isset($_SESSION['cid'])) {
 $user_id = $_SESSION['cid'];
 
 // Increase execution limits for large uploads/zips
-ini_set('upload_max_filesize', '1024M');
-ini_set('post_max_size', '1024M');
-ini_set('memory_limit', '1024M');
+// Increase execution limits for large uploads/zips
+ini_set('upload_max_filesize', '2048M');
+ini_set('post_max_size', '2048M');
+ini_set('memory_limit', '2048M');
 ini_set('max_execution_time', '3600');
 
 /**
@@ -663,7 +664,13 @@ if (is_dir($full_path)) {
                     <!-- LIST HEADER -->
                     <div
                         class="grid grid-cols-12 gap-4 px-4 py-2 border-b border-white/5 text-xs font-bold uppercase text-slate-500 tracking-wider mb-2 list-header sticky top-0 bg-[#0f172a] z-10 hidden">
-                        <div class="col-span-6 pl-8">Name</div>
+                        <div class="col-span-6 pl-8 flex items-center gap-3">
+                            <div class="w-5 flex justify-center">
+                                <input type="checkbox" onchange="FM.selectAll(this.checked)"
+                                    class="accent-blue-500 w-4 h-4 cursor-pointer">
+                            </div>
+                            Name
+                        </div>
                         <div class="col-span-2">Size</div>
                         <div class="col-span-2">Type</div>
                         <div class="col-span-2 text-right">Modified</div>
@@ -1147,6 +1154,20 @@ if (is_dir($full_path)) {
                     el.classList.remove('selected');
                     el.querySelector('.file-check').checked = false;
                 });
+                this.updateActionBar();
+            }
+
+            selectAll(checked) {
+                if (checked) {
+                    document.querySelectorAll('.file-item').forEach(el => {
+                        const path = el.dataset.path;
+                        this.selected.add(path);
+                        el.classList.add('selected');
+                        el.querySelector('.file-check').checked = true;
+                    });
+                } else {
+                    this.clearSelection();
+                }
                 this.updateActionBar();
             }
 
