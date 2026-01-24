@@ -6,7 +6,19 @@ if (!isset($_SESSION['client'])) {
     exit;
 }
 $cid = $_SESSION['cid'];
-
+if (isset($_POST['ajax_action'])) {
+    if ($_POST['ajax_action'] == 'clear_logs') {
+        cmd("clear-client-logs " . escapeshellarg($username));
+        echo json_encode(['status' => 'success']);
+        exit;
+    }
+    if ($_POST['ajax_action'] == 'get_logs') {
+        $logs = cmd("get-client-logs " . escapeshellarg($username));
+        // sanitize info
+        echo htmlspecialchars($logs);
+        exit;
+    }
+}
 // DASHBOARD DATA
 $clientData = $pdo->query("SELECT c.*, p.name as pkg_name, p.max_emails, p.max_databases, p.max_domains, p.disk_mb FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = $cid")->fetch();
 $domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
@@ -146,5 +158,74 @@ include 'layout/header.php';
         </div>
     </div>
 </div>
+</div>
+</div>
+
+<!-- Log Viewer -->
+<div class="glass-card p-0 overflow-hidden mb-10">
+    <div class="bg-slate-800/50 p-4 border-b border-slate-700 flex justify-between items-center">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="alert-triangle"
+                class="w-4 text-orange-400"></i> Website Error Logs</h3>
+        <div class="flex gap-2">
+            <button onclick="fetchLogs()"
+                class="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold text-white transition"><i
+                    data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+            <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg px-2">
+                <div id="live-indicator" class="w-2 h-2 rounded-full bg-slate-500"></div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase">Live</span>
+            </div>
+        </div>
+    </div>
+    <div class="p-4 bg-slate-950 font-mono text-xs text-slate-300 h-64 overflow-y-auto" id="log-container">
+        <div class="flex items-center justify-center h-full text-slate-600 animate-pulse">Loading logs...</div>
+    </div>
+</div>
+
+<script>
+    let logInterval;
+
+    async function fetchLogs() {
+        const ind = document.getElementById('live-indicator');
+        ind.classList.add('animate-pulse', 'bg-emerald-500');
+        ind.classList.remove('bg-slate-500');
+
+        try {
+            const fd = new FormData();
+            fd.append('ajax_action', 'get_logs');
+            const res = await fetch('', { method: 'POST', body: fd });
+            const text = await res.text();
+
+            const cont = document.getElementById('log-container');
+            if (text.trim() === "") {
+                cont.innerHTML = '<div class="flex items-center justify-center h-full text-slate-600">No error logs found. Good job!</div>';
+            } else {
+                cont.innerHTML = `<pre class="whitespace-pre-wrap">${text}</pre>`;
+                // Auto scroll to bottom
+                cont.scrollTop = cont.scrollHeight;
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            ind.classList.remove('animate-pulse');
+        }
+    }
+
+    async function clearLogs() {
+        if(!confirm("Are you sure you want to clear all error logs?")) return;
+        
+        try {
+            const fd = new FormData();
+            fd.append('ajax_action', 'clear_logs');
+            await fetch('', { method: 'POST', body: fd });
+            fetchLogs(); // Refresh immediately
+        } catch(e) {
+            console.error(e);
+        }
+    }
+    
+    // Start Live Tail
+    fetchLogs();
+    logInterval = setInterval(fetchLogs, 5000);
+</script>
 
 <?php include 'layout/footer.php'; ?>

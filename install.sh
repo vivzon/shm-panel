@@ -78,7 +78,7 @@ log "Updating System & Installing Dependencies..."
 apt-get update
 apt-get upgrade -y
 # Install essential core packages
-apt-get install -y software-properties-common curl wget git zip unzip ufw fail2ban acl quota jq
+apt-get install -y software-properties-common curl wget git zip unzip ufw fail2ban acl quota jq clamav clamav-daemon
 
 # Install Web Stack & Mail Stack
 apt-get install -y certbot python3-certbot-nginx bind9
@@ -151,7 +151,7 @@ mysql -e "FLUSH PRIVILEGES;"
 log "Importing Schema..."
 mysql $DB_NAME << SQL
 CREATE TABLE IF NOT EXISTS clients (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(32) UNIQUE, email VARCHAR(255), password VARCHAR(255), status ENUM('active','suspended') DEFAULT 'active', package_id INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
-CREATE TABLE IF NOT EXISTS domains (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain VARCHAR(255) UNIQUE, document_root VARCHAR(255), php_version VARCHAR(5) DEFAULT '8.2', ssl_active BOOLEAN DEFAULT 0, FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS domains (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain VARCHAR(255) UNIQUE, document_root VARCHAR(255), php_version VARCHAR(5) DEFAULT '8.2', ssl_active BOOLEAN DEFAULT 0, parent_id INT DEFAULT NULL, FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS packages (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), price DECIMAL(10,2) DEFAULT 0.00, disk_mb INT, max_domains INT, max_emails INT, max_databases INT DEFAULT 5);
 CREATE TABLE IF NOT EXISTS transactions (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, amount DECIMAL(10,2), currency VARCHAR(10), payment_gateway VARCHAR(20), transaction_id VARCHAR(100), status VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS admins (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) UNIQUE, password VARCHAR(255));
@@ -162,6 +162,11 @@ CREATE TABLE IF NOT EXISTS client_databases (id INT AUTO_INCREMENT PRIMARY KEY, 
 CREATE TABLE IF NOT EXISTS client_db_users (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, db_user VARCHAR(32));
 CREATE TABLE IF NOT EXISTS dns_records (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, type VARCHAR(10), host VARCHAR(255), value VARCHAR(255));
 CREATE TABLE IF NOT EXISTS php_config (domain_id INT PRIMARY KEY, memory_limit VARCHAR(10) DEFAULT '128M');
+CREATE TABLE IF NOT EXISTS domain_traffic (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, date DATE, bytes_sent BIGINT DEFAULT 0, hits INT DEFAULT 0, UNIQUE KEY (domain_id, date));
+CREATE TABLE IF NOT EXISTS domain_traffic (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, date DATE, bytes_sent BIGINT DEFAULT 0, hits INT DEFAULT 0, UNIQUE KEY (domain_id, date));
+CREATE TABLE IF NOT EXISTS malware_scans (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, status ENUM('running','clean','infected','failed'), report TEXT, scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS app_installations (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain_id INT, app_type VARCHAR(20), db_name VARCHAR(64), db_user VARCHAR(32), db_pass VARCHAR(255), status VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+
 
 -- Default Data
 INSERT IGNORE INTO packages VALUES (1, 'Starter', 0.00, 2000, 1, 5, 2), (2, 'Business', 9.99, 10000, 10, 50, 10);
@@ -404,6 +409,9 @@ mysql -N -s -e "SELECT username FROM clients" $DB_NAME | while read USER; do
   # Delete backups older than 7 days
   find /var/www/clients/\$USER/backups -type f -name "*.tar.gz" -mtime +7 -delete
 done
+
+# Update Traffic Stats
+/usr/local/bin/shm-manage update-traffic-stats
 CRON
 chmod +x /etc/cron.daily/shm-backup
 

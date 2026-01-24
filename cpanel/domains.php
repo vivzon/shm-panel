@@ -29,9 +29,34 @@ if (isset($_POST['ajax_action'])) {
             $exists->execute([$dom]);
             if ($exists->fetch())
                 throw new Exception("Domain already exists on server");
+            
+            // Check Parent Domain (If Subdomain)
+            $parent_id = null;
+            if (isset($_POST['parent_id'])) {
+                // If explicitly passed (Select Box)
+                $parent_name = $_POST['parent_id']; // This is domain string in current form
+                // Let's resolve ID
+                $get_p = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
+                $get_p->execute([$parent_name, $cid]);
+                $pid = $get_p->fetchColumn();
+                if($pid) $parent_id = $pid;
+            } 
+            
+            // Auto Detect if not passed?
+            // "foo.bar.com" -> check if "bar.com" exists.
+            if (!$parent_id) {
+                $parts = explode('.', $dom);
+                 if (count($parts) > 2) {
+                     $possible_parent = implode('.', array_slice($parts, 1));
+                     $get_p = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
+                     $get_p->execute([$possible_parent, $cid]);
+                     $pid = $get_p->fetchColumn();
+                     if($pid) $parent_id = $pid;
+                 }
+            }
 
             try {
-                $pdo->prepare("INSERT INTO domains (client_id, domain, document_root) VALUES (?, ?, ?)")->execute([$cid, $dom, "/var/www/clients/$username/domains/$dom/public_html"]);
+                $pdo->prepare("INSERT INTO domains (client_id, domain, document_root, parent_id) VALUES (?, ?, ?, ?)")->execute([$cid, $dom, "/var/www/clients/$username/domains/$dom/public_html", $parent_id]);
                 $dom_id = $pdo->lastInsertId();
             } catch (PDOException $e) {
                 if ($e->getCode() == 23000) {
@@ -40,42 +65,84 @@ if (isset($_POST['ajax_action'])) {
                 throw $e;
             }
 
-            // Auto DNS
             $server_ip = $_SERVER['SERVER_ADDR'];
-            $host_parts = explode('.', $_SERVER['HTTP_HOST']);
-            $base_domain = implode('.', array_slice($host_parts, -2));
-            $mail_host = "mail." . $base_domain;
 
-            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', '@', ?)")->execute([$dom_id, $server_ip]);
-            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'CNAME', 'www', '@')")->execute([$dom_id]);
-            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', 'mail', ?)")->execute([$dom_id, $server_ip]);
-            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'MX', '@', ?)")->execute([$dom_id, $mail_host]);
+            if ($parent_id) {
+                 // It IS a subdomain of a managed parent. 
+                 // We do NOT create a new Zone. We add an A record to the PARENT.
+                 $host = str_replace("." . $possible_parent, "", $dom); // e.g. "blog"
+                 
+                 // Add 'A' record to Parent
+                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', ?, ?)")->execute([$parent_id, $host, $server_ip]);
+                 
+                 // Add 'www' CNAME (optional, maybe overkill for subdomains but user expectation varies. Let's start with just A/root of sub)
+                 // $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'CNAME', ?, '@')")->execute([$parent_id, "www.$host"]);
+                 
+                 // Sync Parent DNS
+                 cmd("dns-tool sync $parent_id");
+                 
+                 // Sync VHost (still needed for the sub)
+                 cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
+                 
+            } else {
+                // Standard Domain Logic
+                // Auto DNS
+                $host_parts = explode('.', $_SERVER['HTTP_HOST']);
+                $base_domain = implode('.', array_slice($host_parts, -2));
+                $mail_host = "mail." . $base_domain;
 
-            $spf = "v=spf1 a mx ip4:$server_ip -all";
-            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '@', ?)")->execute([$dom_id, $spf]);
-            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '_dmarc', 'v=DMARC1; p=none')")->execute([$dom_id]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', '@', ?)")->execute([$dom_id, $server_ip]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'CNAME', 'www', '@')")->execute([$dom_id]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', 'mail', ?)")->execute([$dom_id, $server_ip]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'MX', '@', ?)")->execute([$dom_id, $mail_host]);
 
-            // Add NS Records
-            $ns1 = "ns1." . $base_domain;
-            $ns2 = "ns2." . $base_domain;
-            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns1]);
-            $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns2]);
+                $spf = "v=spf1 a mx ip4:$server_ip -all";
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '@', ?)")->execute([$dom_id, $spf]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'TXT', '_dmarc', 'v=DMARC1; p=none')")->execute([$dom_id]);
 
-            cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
-            cmd("dns-tool sync $dom_id");
+                // Add NS Records
+                $ns1 = "ns1." . $base_domain;
+                $ns2 = "ns2." . $base_domain;
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns1]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns2]);
+                
+                // Syncs
+                cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
+                cmd("dns-tool sync $dom_id");
+            }
+
             sendResponse($res);
             exit;
         }
 
         if ($action == 'delete_domain') {
             $dom_id = (int) $_POST['domain_id'];
-            $d = $pdo->prepare("SELECT domain FROM domains WHERE id=? AND client_id=?");
+            $d = $pdo->prepare("SELECT domain, parent_id FROM domains WHERE id=? AND client_id=?");
             $d->execute([$dom_id, $cid]);
-            $domain_name = $d->fetchColumn();
-            if (!$domain_name)
+            $dom_info = $d->fetch();
+            
+            if (!$dom_info)
                 throw new Exception("Invalid Domain");
+            
+            $domain_name = $dom_info['domain'];
+            $parent_id = $dom_info['parent_id'];
 
-            $pdo->prepare("DELETE FROM dns_records WHERE domain_id=?")->execute([$dom_id]);
+            if ($parent_id) {
+                // Cleanup Parent DNS
+                // Find parent name to strip subdomain
+                $pd = $pdo->prepare("SELECT domain FROM domains WHERE id=?");
+                $pd->execute([$parent_id]);
+                $parent_name = $pd->fetchColumn();
+                
+                if ($parent_name) {
+                    $host = str_replace("." . $parent_name, "", $domain_name);
+                    $pdo->prepare("DELETE FROM dns_records WHERE domain_id=? AND host=? AND type='A'")->execute([$parent_id, $host]);
+                    cmd("dns-tool sync $parent_id");
+                }
+            } else {
+                 $pdo->prepare("DELETE FROM dns_records WHERE domain_id=?")->execute([$dom_id]);
+            }
+            
             $pdo->prepare("DELETE FROM php_config WHERE domain_id=?")->execute([$dom_id]);
             $pdo->prepare("DELETE FROM domains WHERE id=?")->execute([$dom_id]);
 
@@ -191,6 +258,19 @@ if (isset($_POST['ajax_action'])) {
             exit; // Added explicit exit for consistency, though sendResponse exits.
         }
 
+        if ($action == 'start_scan') {
+            $did = (int) $_POST['domain_id'];
+            // Check ownership
+            $chk = $pdo->prepare("SELECT id FROM domains WHERE id = ? AND client_id = ?");
+            $chk->execute([$did, $cid]);
+            if (!$chk->fetch())
+                throw new Exception("Access Denied");
+
+            cmd("shm-manage malware-scan $did");
+            sendResponse($res);
+            exit;
+        }
+
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
@@ -210,7 +290,15 @@ $offset = ($page - 1) * $per_page;
 $total_domains = $pdo->query("SELECT COUNT(*) FROM domains WHERE client_id = $cid")->fetchColumn();
 $total_pages = ceil($total_domains / $per_page);
 
-$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid LIMIT $per_page OFFSET $offset")->fetchAll();
+$domains = $pdo->query("
+    SELECT d.*, 
+    (SELECT bytes_sent FROM domain_traffic WHERE domain_id = d.id ORDER BY date DESC LIMIT 1) as traffic_today,
+    (SELECT status FROM malware_scans WHERE domain_id = d.id ORDER BY scanned_at DESC LIMIT 1) as scan_status,
+    (SELECT scanned_at FROM malware_scans WHERE domain_id = d.id ORDER BY scanned_at DESC LIMIT 1) as last_scan
+    FROM domains d 
+    WHERE d.client_id = $cid 
+    LIMIT $per_page OFFSET $offset
+")->fetchAll();
 
 // Base Domain
 $server_host = $_SERVER['HTTP_HOST'];
@@ -285,6 +373,14 @@ include 'layout/header.php';
                     <button onclick="deleteAction('delete_domain', 'domain_id', <?= $d['id'] ?>)"
                         class="bg-red-500/10 text-red-400 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition border border-red-500/20">Delete</button>
                 </div>
+                <!-- Traffic Badge -->
+                <div class="absolute top-4 right-4 flex gap-2">
+                    <div
+                        class="bg-slate-900/80 backdrop-blur border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 flex items-center gap-2">
+                        <i data-lucide="activity" class="w-3 h-3 text-emerald-400"></i>
+                        <?= $d['traffic_today'] ? round($d['traffic_today'] / 1024 / 1024, 2) . ' MB Today' : '0 MB Today' ?>
+                    </div>
+                </div>
                 <form onsubmit="handleGeneric(event, 'update_domain_config')"
                     class="flex items-center gap-4 bg-slate-900/50 p-4 rounded-3xl border border-slate-700/50">
                     <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
@@ -310,8 +406,45 @@ include 'layout/header.php';
                 </form>
             </div>
             <div class="border-t border-slate-700/50 pt-8">
+                <?php if ($d['parent_id']): ?>
+                    <?php 
+                        // Fetch Parent Name
+                        $pname = $pdo->query("SELECT domain FROM domains WHERE id={$d['parent_id']}")->fetchColumn();
+                    ?>
+                    <div class="text-center p-8 bg-slate-900/30 rounded-xl border border-slate-800 border-dashed">
+                        <i data-lucide="git-merge" class="w-8 h-8 text-slate-600 mx-auto mb-2"></i>
+                        <p class="text-sm font-bold text-slate-400">DNS Managed by Parent Domain</p>
+                        <p class="text-xs text-slate-600">This subdomain is a record of <span class="text-blue-400"><?= $pname ?></span></p>
+                    </div>
+                <?php else: ?>
                 <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">DNS Zone Management
                 </h4>
+
+                <!-- Security Section -->
+                <div class="mb-8 p-6 bg-slate-900/30 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                        <h4 class="text-white font-bold text-sm flex items-center gap-2"><i data-lucide="shield"
+                                class="w-4 text-purple-400"></i> Malware Protection</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Status:
+                            <?php if ($d['scan_status'] == 'clean'): ?>
+                                <span class="text-emerald-400">Clean</span>
+                            <?php elseif ($d['scan_status'] == 'infected'): ?>
+                                <span class="text-red-400 blink">Infected!</span>
+                            <?php elseif ($d['scan_status'] == 'running'): ?>
+                                <span class="text-blue-400 animate-pulse">Scanning...</span>
+                            <?php else: ?>
+                                <span class="text-slate-500">Not Scanned</span>
+                            <?php endif; ?>
+                            <?php if ($d['last_scan']): ?>
+                                <span class="opacity-50 ml-2">Last: <?= $d['last_scan'] ?></span>
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                    <button onclick="startScan(<?= $d['id'] ?>)"
+                        class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-4 py-2 rounded-lg text-xs font-bold hover:bg-purple-600 hover:text-white transition">Run
+                        Scan</button>
+                </div>
+
                 <div class="mb-6">
                     <div class="flex flex-wrap gap-2 mb-4" id="dns-tabs-<?= $d['id'] ?>">
                         <?php foreach (['A', 'AAAA', 'MX', 'CNAME', 'NS', 'TXT', 'SRV', 'SOA'] as $t): ?>
@@ -388,25 +521,28 @@ include 'layout/header.php';
                         <?php endwhile; ?>
                     </tbody>
                 </table>
+                <?php endif; ?>
             </div>
         </div>
     <?php endforeach; ?>
-    
+
     <?php if ($total_pages > 1): ?>
-            <div class="flex justify-between items-center mt-6">
-                <div class="text-xs text-slate-500 font-bold">
-                    Page <?= $page ?> of <?= $total_pages ?>
-                </div>
-                <div class="flex gap-2">
-                    <?php if ($page > 1): ?>
-                            <a href="?page=<?= $page - 1 ?>" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Previous</a>
-                    <?php endif; ?>
-                
-                    <?php if ($page < $total_pages): ?>
-                            <a href="?page=<?= $page + 1 ?>" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Next</a>
-                    <?php endif; ?>
-                </div>
+        <div class="flex justify-between items-center mt-6">
+            <div class="text-xs text-slate-500 font-bold">
+                Page <?= $page ?> of <?= $total_pages ?>
             </div>
+            <div class="flex gap-2">
+                <?php if ($page > 1): ?>
+                    <a href="?page=<?= $page - 1 ?>"
+                        class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Previous</a>
+                <?php endif; ?>
+
+                <?php if ($page < $total_pages): ?>
+                    <a href="?page=<?= $page + 1 ?>"
+                        class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Next</a>
+                <?php endif; ?>
+            </div>
+        </div>
     <?php endif; ?>
 </div>
 <?php include 'layout/footer.php'; ?>
@@ -484,6 +620,23 @@ include 'layout/header.php';
         } catch (e) {
             showToast('error', 'Error', 'System error during deletion.');
         }
+    }
+
+    async function startScan(did) {
+        if (!confirm("Start a comprehensive malware scan? This may take a few minutes.")) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'start_scan');
+        fd.append('domain_id', did);
+
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success') {
+                showToast('success', 'Scan Started', 'The scan is running in background.');
+                setTimeout(() => forceReload(), 2000);
+            } else {
+                showToast('error', res.msg);
+            }
+        } catch (e) { showToast('error', 'Network Error'); }
     }
 
     function filterDomains(query) {

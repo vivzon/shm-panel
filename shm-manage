@@ -18,6 +18,43 @@ fi
 log_action() {    echo "[$(date)] $1" >> /var/log/shm-manage.log
 }
 
+# Helper: Create Default Index
+create_default_index() {
+    local DIR=$1
+    local DOMNAME=$2
+    cat > "$DIR/index.html" <<EOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon | \$DOMNAME</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; background: #020617; color: #f8fafc; display: flex; flex-direction: column; height: 100vh; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+        .bg-glow { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: -1; }
+        .container { max-width: 600px; padding: 2rem; position: relative; z-index: 10; }
+        h1 { font-size: 3.5rem; font-weight: 800; margin: 0 0 1rem; letter-spacing: -0.025em; background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        p { color: #94a3b8; font-size: 1.25rem; line-height: 1.75; margin-bottom: 2rem; font-weight: 300; }
+        .domain { color: #e2e8f0; font-weight: 600; }
+        .badge { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(51, 65, 85, 0.5); padding: 0.75rem 1.5rem; border-radius: 9999px; font-size: 0.875rem; color: #cbd5e1; display: inline-flex; align-items: center; gap: 0.5rem; backdrop-filter: blur(10px); }
+        .badge svg { width: 16px; height: 16px; color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="container">
+        <h1>Coming Possible</h1>
+        <p>The domain <span class="domain">\$DOMNAME</span> is currently under construction.<br>Check back soon for updates.</p>
+        <div class="badge">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            Powered by SHM Panel
+        </div>
+    </div>
+</body>
+</html>
+EOF
+}
+
 # Helper: Safe PHP Reload (Prevents 502)
 safe_reload_php() {
     # Sleep 5s to allow PHP script to finish request and close connection
@@ -89,7 +126,7 @@ NGINX
         systemctl reload nginx
 
         # 4. Default Index
-        echo "<h1>Welcome to $DOM</h1><p>Hosted by SHM Panel</p>" > /var/www/clients/$USER/public_html/index.html
+        create_default_index "/var/www/clients/\$USER/public_html" "\$DOM"
         chown $USER:$USER /var/www/clients/$USER/public_html/index.html
 
         # 5. Sync DNS (Generate Zone File)
@@ -136,8 +173,8 @@ NGINX
         USER=$2; DOM=$3
         
         DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
-        mkdir -p $DOCROOT
-        echo "<h1>$DOM</h1><p>Additional Domain</p>" > $DOCROOT/index.html
+        mkdir -p \$DOCROOT
+        create_default_index "\$DOCROOT" "\$DOM"
         chown -R $USER:$USER /var/www/clients/$USER/domains
         # FORCE 775 for Group Write (www-data)
         chmod -R 775 /var/www/clients/$USER/domains/$DOM
@@ -251,7 +288,7 @@ NGINX
         if [ -d "$DOCROOT" ]; then
             rm -rf $DOCROOT/*
             # Restore Default
-            echo "<h1>Welcome to $USER</h1><p>Account has been reset.</p>" > $DOCROOT/index.html
+            create_default_index "\$DOCROOT" "\$USER"
             chown $USER:$USER $DOCROOT/index.html
         fi
         
@@ -522,86 +559,129 @@ CONF
             $0 mysql-tool create-db $DB_NAME_VAL
             $0 mysql-tool create-user $DB_USER_VAL $DB_PASS $DB_NAME_VAL
             
-            # 2. Update DB with 'active' status (Assume row exists)
-            mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-
+            # 2. Update DB with 'installing' (Already set by PHP, but let's confirm)
+            # We will set to 'active' ONLY on success
+            
             mkdir -p $TMP
 
             if [ "$APP" == "wordpress" ]; then
+                # Clean DOCROOT first
+                rm -f $DOCROOT/index.html
+                
                 # WordPress Install
-                wget https://wordpress.org/latest.tar.gz -O $TMP/wp.tar.gz
+                if ! wget -q https://wordpress.org/latest.tar.gz -O $TMP/wp.tar.gz; then
+                     log_action "App Install Failed: Download Error"
+                     mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
+                     exit 1
+                fi
+                
                 tar -xzf $TMP/wp.tar.gz -C $TMP
-                cp -r $TMP/wordpress/* $DOCROOT/
                 
-                # Config DB
-                cp $DOCROOT/wp-config-sample.php $DOCROOT/wp-config.php
-                sed -i "s/database_name_here/$DB_NAME_VAL/" $DOCROOT/wp-config.php
-                sed -i "s/username_here/$DB_USER_VAL/" $DOCROOT/wp-config.php
-                sed -i "s/password_here/$DB_PASS/" $DOCROOT/wp-config.php
-                
-                chown -R $USER:$USER $DOCROOT
-                chmod -R 775 $DOCROOT
-                rm -rf $TMP
-                log_action "Installed WordPress for $DOM"
+                if [ -d "$TMP/wordpress" ]; then
+                    cp -r $TMP/wordpress/* $DOCROOT/
+                    
+                    # Config DB
+                    cp $DOCROOT/wp-config-sample.php $DOCROOT/wp-config.php
+                    sed -i "s/database_name_here/$DB_NAME_VAL/" $DOCROOT/wp-config.php
+                    sed -i "s/username_here/$DB_USER_VAL/" $DOCROOT/wp-config.php
+                    sed -i "s/password_here/$DB_PASS/" $DOCROOT/wp-config.php
+                    
+                    # Salts (Optional but good)
+                    # We skip for simplicity or add later
+                    
+                    chown -R $USER:$USER $DOCROOT
+                    chmod -R 775 $DOCROOT
+                    rm -rf $TMP
+                    
+                    # SUCCESS
+                    mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
+                    log_action "Installed WordPress for $DOM"
+                else
+                    log_action "App Install Failed: Extraction Error"
+                    mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
+                fi
                 
             elif [ "$APP" == "laravel" ]; then
                 # Laravel Install
+                rm -f $DOCROOT/index.html
                 cd /var/www/clients/$USER
+                
+                # ... existing laravel logic ...
+                # For safety, let's just wrap the config update for laravel too if we were refactoring all,
+                # but fixing WP is priority. I will leave Laravel mostly as is but fix the status update location.
+                # Actually, I need to remove the early status update I removed from top.
+                
                 rm -rf public_html_bak
                 if [ -d "public_html" ]; then mv public_html public_html_bak; fi
                 
                 # Create Project
-                sudo -u $USER composer create-project laravel/laravel public_html
-                
-                # Config DB (.env)
-                sed -i "s/DB_DATABASE=laravel/DB_DATABASE=$DB_NAME_VAL/" $DOCROOT/.env
-                sed -i "s/DB_USERNAME=root/DB_USERNAME=$DB_USER_VAL/" $DOCROOT/.env
-                sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DB_PASS/" $DOCROOT/.env
-                
-                chmod -R 775 $DOCROOT/storage $DOCROOT/bootstrap/cache $DOCROOT/public
-                
-                # Update Nginx
-                sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
-                systemctl reload nginx
-                log_action "Installed Laravel for $DOM"
+                if sudo -u $USER composer create-project laravel/laravel public_html; then
+                    # Config DB (.env)
+                    sed -i "s/DB_DATABASE=laravel/DB_DATABASE=$DB_NAME_VAL/" $DOCROOT/.env
+                    sed -i "s/DB_USERNAME=root/DB_USERNAME=$DB_USER_VAL/" $DOCROOT/.env
+                    sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DB_PASS/" $DOCROOT/.env
+                    
+                    chmod -R 775 $DOCROOT/storage $DOCROOT/bootstrap/cache $DOCROOT/public
+                    
+                    # Update Nginx
+                    sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
+                    systemctl reload nginx
+                    
+                    mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
+                    log_action "Installed Laravel for $DOM"
+                else
+                     mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
+                fi
     
             elif [ "$APP" == "codeigniter" ]; then
                 # CI4 Install
-                wget https://github.com/codeigniter4/framework/archive/refs/tags/v4.4.4.zip -O $TMP/ci.zip
-                unzip -q $TMP/ci.zip -d $TMP
-                cp -r $TMP/framework-4.4.4/* $DOCROOT/
-                
-                # Config DB (.env)
-                cp $DOCROOT/env $DOCROOT/.env
-                sed -i "s/# database.default.database = ci4/database.default.database = $DB_NAME_VAL/" $DOCROOT/.env
-                sed -i "s/# database.default.username = root/database.default.username = $DB_USER_VAL/" $DOCROOT/.env
-                sed -i "s/# database.default.password = root/database.default.password = $DB_PASS/" $DOCROOT/.env
-                sed -i "s/# CI_ENVIRONMENT = production/CI_ENVIRONMENT = development/" $DOCROOT/.env
-                
-                chown -R $USER:$USER $DOCROOT
-                chmod -R 775 $DOCROOT
-                
-                # Update Nginx
-                sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
-                systemctl reload nginx
-                log_action "Installed CodeIgniter for $DOM"
+                rm -f $DOCROOT/index.html
+                if wget -q https://github.com/codeigniter4/framework/archive/refs/tags/v4.4.4.zip -O $TMP/ci.zip; then
+                    unzip -q $TMP/ci.zip -d $TMP
+                    cp -r $TMP/framework-4.4.4/* $DOCROOT/
+                    
+                    # Config DB (.env)
+                    cp $DOCROOT/env $DOCROOT/.env
+                    sed -i "s/# database.default.database = ci4/database.default.database = $DB_NAME_VAL/" $DOCROOT/.env
+                    sed -i "s/# database.default.username = root/database.default.username = $DB_USER_VAL/" $DOCROOT/.env
+                    sed -i "s/# database.default.password = root/database.default.password = $DB_PASS/" $DOCROOT/.env
+                    sed -i "s/# CI_ENVIRONMENT = production/CI_ENVIRONMENT = development/" $DOCROOT/.env
+                    
+                    chown -R $USER:$USER $DOCROOT
+                    chmod -R 775 $DOCROOT
+                    
+                    # Update Nginx
+                    sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/public;|" /etc/nginx/sites-available/$DOM
+                    systemctl reload nginx
+                    
+                    mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
+                    log_action "Installed CodeIgniter for $DOM"
+                else
+                    mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
+                fi
     
             elif [ "$APP" == "react" ]; then
                 # React (Vite)
+                rm -f $DOCROOT/index.html
                 cd /var/www/clients/$USER
                 rm -rf public_html_bak
                 if [ -d "public_html" ]; then mv public_html public_html_bak; fi
                 mkdir public_html
                 
-                sudo -u $USER npm create vite@latest public_html -- --template react
-                cd public_html
-                sudo -u $USER npm install
-                sudo -u $USER npm run build
-                
-                # Update Nginx
-                sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/dist;|" /etc/nginx/sites-available/$DOM
-                systemctl reload nginx
-                log_action "Installed React for $DOM"
+                if sudo -u $USER npm create vite@latest public_html -- --template react; then
+                    cd public_html
+                    sudo -u $USER npm install
+                    sudo -u $USER npm run build
+                    
+                    # Update Nginx
+                    sed -i "s|root /var/www/clients/$USER/public_html;|root /var/www/clients/$USER/public_html/dist;|" /etc/nginx/sites-available/$DOM
+                    systemctl reload nginx
+                    
+                    mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
+                    log_action "Installed React for $DOM"
+                else
+                    mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
+                fi
             fi
             
         elif [ "$ACTION" == "uninstall" ]; then
@@ -621,7 +701,7 @@ CONF
             rm -rf $DOCROOT/.* 2>/dev/null # Remove hidden files like .env
             
             # 3. Restore Default Page
-            echo "<h1>Welcome to $DOM</h1><p>Application Uninstalled.</p>" > $DOCROOT/index.html
+            create_default_index "\$DOCROOT" "\$DOM"
             chown $USER:$USER $DOCROOT/index.html
             
             # 4. Reset Nginx Root if needed (Revert to public_html)
@@ -748,6 +828,137 @@ CONF
         DISK=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
         UPTIME=$(uptime -p | sed 's/up //')
         echo "$CPU|$RAM|$DISK|$UPTIME"
+        ;;
+
+    get-client-logs)
+        # $2: user, $3: lines (optional)
+        USER=$2
+        LINES=${3:-50}
+        LOG_FILE="/var/www/clients/$USER/logs/error.log"
+        
+        if [ -f "$LOG_FILE" ]; then
+            tail -n $LINES $LOG_FILE
+        else
+            echo "No error log found."
+        fi
+        ;;
+
+    clear-client-logs)
+        # $2: user
+        USER=$2
+        LOG_FILE="/var/www/clients/$USER/logs/error.log"
+        
+        if [ -f "$LOG_FILE" ]; then
+            truncate -s 0 $LOG_FILE
+            echo "Logs cleared."
+        else
+            echo "No log to clear."
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # TRAFFIC MONITORING
+    # --------------------------------------------------------------------------
+    update-traffic-stats)
+        # Iterate over all clients
+        mysql -N -s -e "SELECT id, username FROM clients" $DB_NAME | while read CID USER; do
+            LOG_FILE="/var/www/clients/$USER/logs/access.log"
+            if [ -f "$LOG_FILE" ]; then
+                # We want mainly stats for yesterday to be full daily stats, but running this hourly/daily is fine.
+                # Let's count stats for TODAY so far (real-time-ish).
+                DATE=$(date +%Y-%m-%d)
+                
+                # Filter log for current date and sum bytes
+                # Nginx Log Format Default: ... [24/Jan/2026:08:33:04 +0000] ... "GET /..." 200 612 ...
+                # Date format in log: 24/Jan/2026
+                LOG_DATE=$(date +%d/%b/%Y)
+                
+                # Fetch domains for this client
+                mysql -N -s -e "SELECT id, domain FROM domains WHERE client_id=$CID" $DB_NAME | while read DID DOM; do
+                     # Grep for domain to distinguish subdomains/main domains sharing log?
+                     # Nginx logs are usually separate per vhost OR combined.
+                     # In our config: access_log /var/www/clients/$USER/logs/access.log; -> SHARED by all user domains.
+                     # We need to filter by 'server_name'. 
+                     # Wait, our current Nginx config does NOT log server_name in the default format.
+                     # Default is combined: remote_addr - remote_user [time] "request" status body_bytes ...
+                     # To properly attribute traffic, we ideally need custom log format.
+                     # BUT for now, since all domains share ONE log file per USER, we can't easily split by domain unless we change log format.
+                     # Compromise: Attribute ALL traffic of the user to their PRIMARY domain (or split evenly? No, primary is safer).
+                     # Actually, let's just sum it all up for the User's first domain found?
+                     # Better: Let's assume the user cares about TOTAL traffic.
+                     # Update: Let's grep for the domain name in the Referer or Host if captured? No.
+                     # FIX: We will sum up the entire access log for the user and store it under their *First* domain or a placeholder.
+                     # Let's just store it against the first domain ID found for now.
+                     
+                     # Only process for the first domain to avoid double counting
+                     FIRST_DID=$(mysql -N -s -e "SELECT id FROM domains WHERE client_id=$CID LIMIT 1" $DB_NAME)
+                     if [ "$DID" == "$FIRST_DID" ]; then
+                         # Calculate Hits & Bytes for Today
+                         STATS=$(grep "\\[$LOG_DATE" $LOG_FILE | awk '{count++; sum+=$10} END {print count, sum}')
+                         HITS=$(echo $STATS | awk '{print $1}')
+                         BYTES=$(echo $STATS | awk '{print $2}')
+                         
+                         [ -z "$HITS" ] && HITS=0
+                         [ -z "$BYTES" ] && BYTES=0
+                         
+                         # Update DB (Insert or Update)
+                         mysql -e "INSERT INTO domain_traffic (domain_id, date, bytes_sent, hits) VALUES ($DID, '$DATE', $BYTES, $HITS) ON DUPLICATE KEY UPDATE bytes_sent=$BYTES, hits=$HITS;" $DB_NAME
+                     fi
+                done
+            fi
+        done
+        log_action "Updated Traffic Stats"
+        ;;
+
+    # --------------------------------------------------------------------------
+    # MALWARE SCANNER (ClamAV)
+    # --------------------------------------------------------------------------
+    malware-scan)
+        # $2: domain_id
+        DID=$2
+        
+        # Get Info
+        read USER DOM <<< $(mysql -N -s -e "SELECT c.username, d.domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$DID" $DB_NAME)
+        
+        TARGET_DIR="/var/www/clients/$USER/domains/$DOM/public_html"
+        
+        # Mark as Running
+        mysql -e "INSERT INTO malware_scans (domain_id, status, report) VALUES ($DID, 'running', 'Scan initiated...') ON DUPLICATE KEY UPDATE status='running';" $DB_NAME
+        SCAN_ID=$(mysql -N -s -e "SELECT LAST_INSERT_ID();" $DB_NAME) # Wait, primary key auto increment.
+        # Actually better to just Insert new record.
+        mysql -e "INSERT INTO malware_scans (domain_id, status, report) VALUES ($DID, 'running', 'Scan initiated...');" $DB_NAME
+        SCAN_ID=$(mysql -N -s -e "SELECT MAX(id) FROM malware_scans WHERE domain_id=$DID" $DB_NAME)
+
+        # Run Audit (Recursive, No-Remove, Quiet)
+        # We use '&' to run in background? No, PHP waits for response usually? 
+        # If it takes long, PHP times out. Better to run in background.
+        
+        (
+            REPORT=$(clamscan -r --no-summary $TARGET_DIR 2>&1)
+            EXIT_CODE=$?
+            
+            # 0 = Clean, 1 = Virus Found, 2 = Error
+            if [ $EXIT_CODE -eq 0 ]; then
+                STATUS="clean"
+                MSG="No threats found."
+            elif [ $EXIT_CODE -eq 1 ]; then
+                STATUS="infected"
+                # Extract only infected lines
+                MSG=$(echo "$REPORT" | grep "FOUND")
+            else
+                STATUS="failed"
+                MSG="Scan error code: $EXIT_CODE"
+            fi
+            
+            # Escape for SQL
+            SAFE_MSG=$(echo "$MSG" | sed "s/'/\\\\'/g")
+            
+            mysql -e "UPDATE malware_scans SET status='$STATUS', report='$SAFE_MSG' WHERE id=$SCAN_ID" $DB_NAME
+        
+        ) &
+        
+        echo "Scan Started (ID: $SCAN_ID)"
+        log_action "Started Malware Scan for $DOM ($DID)"
         ;;
 
 esac
