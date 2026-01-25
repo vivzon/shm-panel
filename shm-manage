@@ -22,7 +22,7 @@ log_action() {    echo "[$(date)] $1" >> /var/log/shm-manage.log
 create_default_index() {
     local DIR=$1
     local DOMNAME=$2
-    cat > "$DIR/index.html" <<EOF
+    cat > "$DIR/default.html" <<EOF
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -105,7 +105,7 @@ server {
     listen 80;
     server_name $DOM www.$DOM;
     root /var/www/clients/$USER/public_html;
-    index index.php index.html;
+    index index.php index.html index.htm default.html;
     
     client_max_body_size 2048M;
 
@@ -127,7 +127,7 @@ NGINX
 
         # 4. Default Index
         create_default_index "/var/www/clients/\$USER/public_html" "\$DOM"
-        chown $USER:$USER /var/www/clients/$USER/public_html/index.html
+        chown $USER:$USER /var/www/clients/$USER/public_html/default.html
 
         # 5. Sync DNS (Generate Zone File)
         DOM_ID=$(mysql -N -s -e "SELECT id FROM domains WHERE domain='$DOM'" $DB_NAME)
@@ -184,7 +184,7 @@ server {
     listen 80;
     server_name $DOM www.$DOM;
     root $DOCROOT;
-    index index.php index.html;
+    index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
 
@@ -289,7 +289,7 @@ NGINX
             rm -rf $DOCROOT/*
             # Restore Default
             create_default_index "\$DOCROOT" "\$USER"
-            chown $USER:$USER $DOCROOT/index.html
+            chown $USER:$USER $DOCROOT/default.html
         fi
         
         log_action "Reset Account: $USER"
@@ -449,7 +449,7 @@ server {
     listen 443 ssl http2;
     server_name $DOM www.$DOM;
     root /var/www/clients/$USER/public_html;
-    index index.php index.html;
+    index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
 
@@ -479,7 +479,7 @@ server {
     listen 80;
     server_name $DOM www.$DOM;
     root /var/www/clients/$USER/public_html;
-    index index.php index.html;
+    index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
 
@@ -566,7 +566,7 @@ CONF
 
             if [ "$APP" == "wordpress" ]; then
                 # Clean DOCROOT first
-                rm -f $DOCROOT/index.html
+                rm -f $DOCROOT/index.html $DOCROOT/default.html
                 
                 # WordPress Install
                 if ! wget -q https://wordpress.org/latest.tar.gz -O $TMP/wp.tar.gz; then
@@ -603,7 +603,8 @@ CONF
                 
             elif [ "$APP" == "laravel" ]; then
                 # Laravel Install
-                rm -f $DOCROOT/index.html
+                # Laravel Install
+                rm -f $DOCROOT/index.html $DOCROOT/default.html
                 cd /var/www/clients/$USER
                 
                 # ... existing laravel logic ...
@@ -635,7 +636,8 @@ CONF
     
             elif [ "$APP" == "codeigniter" ]; then
                 # CI4 Install
-                rm -f $DOCROOT/index.html
+                # CI4 Install
+                rm -f $DOCROOT/index.html $DOCROOT/default.html
                 if wget -q https://github.com/codeigniter4/framework/archive/refs/tags/v4.4.4.zip -O $TMP/ci.zip; then
                     unzip -q $TMP/ci.zip -d $TMP
                     cp -r $TMP/framework-4.4.4/* $DOCROOT/
@@ -662,7 +664,8 @@ CONF
     
             elif [ "$APP" == "react" ]; then
                 # React (Vite)
-                rm -f $DOCROOT/index.html
+                # React (Vite)
+                rm -f $DOCROOT/index.html $DOCROOT/default.html
                 cd /var/www/clients/$USER
                 rm -rf public_html_bak
                 if [ -d "public_html" ]; then mv public_html public_html_bak; fi
@@ -702,7 +705,7 @@ CONF
             
             # 3. Restore Default Page
             create_default_index "\$DOCROOT" "\$DOM"
-            chown $USER:$USER $DOCROOT/index.html
+            chown $USER:$USER $DOCROOT/default.html
             
             # 4. Reset Nginx Root if needed (Revert to public_html)
             # We blindly reset it to standard public_html just in case

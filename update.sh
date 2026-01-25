@@ -1,92 +1,95 @@
 #!/bin/bash
 
 # ==============================================================================
-# SHM PANEL - UPDATER (v6.0 to v6.1)
+# SHM PANEL - QUICK UPDATE UTILITY
 # ==============================================================================
-# Run this script as root to upgrade an existing installation.
-# It updates code and database schema without losing client data.
+# Run this to apply code changes to the live server.
 # ==============================================================================
+
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
 
 if [ "$EUID" -ne 0 ]; then echo "Please run as root"; exit 1; fi
 
-source /etc/shm/config.sh
-
-echo "------------------------------------------------"
-echo " Updating SHM Panel..."
-echo "------------------------------------------------"
+echo -e "${BLUE}[UPDATE] Starting SHM Panel Update...${NC}"
 
 # 1. Update Backend Engine
-echo "[1/4] Updating Backend Engine..."
-cp shm-manage /usr/local/bin/shm-manage
-chmod +x /usr/local/bin/shm-manage
-
-# 2. Update Frontend Code
-echo "[2/4] Updating Frontend Files..."
-# We overwrite the panel code but PRESERVE user data in /var/www/clients
-cp -r cpanel/* /var/www/panel/cpanel/
-cp -r whm/* /var/www/panel/whm/
-cp -r landing/* /var/www/panel/landing/ 2>/dev/null
-
-# Copy new shared logic but BE CAREFUL with config
-# Ideally config.php is generated once.
-# If we have new keys, we might need manual handling, but for now we skip config overwrite if it exists
-# actually we might need to update helper functions in config.php
-if [ -f "shared/config.php" ]; then
-    # Backup old config
-    cp /var/www/panel/shared/config.php /var/www/panel/shared/config.php.bak
-    # We can't just overwrite because it has the DB password.
-    # We should only overwrite if we parse the password out, or if the user manages it.
-    # Strategy: Do NOT overwrite config.php. Assume updated code works with old config variables.
-    # Exception: If we added new helper functions to config.php (like 'cmd'), we need them.
-    # The 'cmd' function is indeed in config.php. 
-    # Let's try to patch it or warn.
-    # Better: Read credentials from /etc/shm/config.sh and RE-GENERATE config.php if needed?
-    # No, that's risky.
-    # Safest: Let's assume the user hasn't modified shared/config.php logic, only values.
-    # We can read values from current config and write new one.
-    
-    # Simple Patch: Copy the new file but inject the old password.
-    OLD_PASS=$(grep "\$db_pass =" /var/www/panel/shared/config.php | cut -d "'" -f 2)
-    cp shared/config.php /var/www/panel/shared/config.php
-    sed -i "s/SHMPanel_Secure_Pass_2025/$OLD_PASS/" /var/www/panel/shared/config.php
-    echo "      (Config.php updated, password preserved)"
+if [ -f "shm-manage" ]; then
+    echo -e "${GREEN} -> Updating shm-manage...${NC}"
+    cp shm-manage /usr/local/bin/shm-manage
+    chmod +x /usr/local/bin/shm-manage
 fi
 
-# 3. Update Database Schema
-echo "[3/4] Updating Database Schema..."
+# 2. Update Frontend Files
+echo -e "${GREEN} -> Updating Frontend Files...${NC}"
 
-# Add 'parent_id' to domains if missing
-mysql $DB_NAME -e "
-    SET @exist := (SELECT count(*) FROM information_schema.columns WHERE table_schema='$DB_NAME' AND table_name='domains' AND column_name='parent_id');
-    SET @sql := IF(@exist = 0, 'ALTER TABLE domains ADD COLUMN parent_id INT DEFAULT NULL;', 'SELECT \"Column parent_id exists\";');
-    PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-"
+# WHM
+if [ -d "whm" ]; then
+    cp -r whm/* /var/www/panel/whm/
+fi
 
-# Add 'app_installations' table
-mysql $DB_NAME -e "
-    CREATE TABLE IF NOT EXISTS app_installations (
-        id INT AUTO_INCREMENT PRIMARY KEY, 
-        client_id INT, 
-        domain_id INT, 
-        app_type VARCHAR(20), 
-        db_name VARCHAR(64), 
-        db_user VARCHAR(32), 
-        db_pass VARCHAR(255), 
-        status VARCHAR(20), 
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-"
+# cPanel
+if [ -d "cpanel" ]; then
+    cp -r cpanel/* /var/www/panel/cpanel/
+fi
 
-# Add Monitoring Tables
-mysql $DB_NAME -e "
-    CREATE TABLE IF NOT EXISTS domain_traffic (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, date DATE, bytes_sent BIGINT DEFAULT 0, hits INT DEFAULT 0, UNIQUE KEY (domain_id, date));
-    CREATE TABLE IF NOT EXISTS malware_scans (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, status ENUM('running','clean','infected','failed'), report TEXT, scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
-"
+# Landing
+if [ -d "landing" ]; then
+    cp -r landing/* /var/www/panel/landing/
+fi
 
-# 4. Finalize
-echo "[4/4] Restarting Services..."
-systemctl reload nginx php8.2-fpm
+# Shared (Attempt smart update)
+if [ -d "shared" ]; then
+    if [ -f "/var/www/panel/shared/config.php" ]; then
+        # If config exists, try to preserve DB pass
+        OLD_PASS=$(grep "\$db_pass =" /var/www/panel/shared/config.php | cut -d "'" -f 2)
+        cp shared/config.php /var/www/panel/shared/config.php
+        # Re-inject password if it was a placeholder in repo
+        if [ ! -z "$OLD_PASS" ]; then
+            sed -i "s/SHMPanel_Secure_Pass_2025/$OLD_PASS/" /var/www/panel/shared/config.php
+        fi
+    else
+        # Fresh copy
+        cp shared/config.php /var/www/panel/shared/config.php
+    fi
+fi
 
-echo "------------------------------------------------"
-echo " Update Complete!"
-echo "------------------------------------------------"
+# File Manager Updates (if exists in cpanel folder)
+mkdir -p /var/www/apps/filemanager
+if [ -f "cpanel/files.php" ]; then
+    cp cpanel/files.php /var/www/apps/filemanager/index.php
+fi
+if [ -f "cpanel/login.php" ]; then
+    cp cpanel/login.php /var/www/apps/filemanager/login.php
+fi
+
+# 3. Apply DB Schema Changes (Idempotent)
+if [ -f "install.php" ]; then
+    # We can't easily run php installer via CLI without args, and we don't want to reset DB.
+    # So we assume the user might need to run DB migrations manually or via specific SQL updates.
+    # For now, let's just create the missing tables if they don't exist.
+    DB_NAME="shm_panel" # Assuming default, strictly we should read from config.sh
+    if [ -f "/etc/shm/config.sh" ]; then
+        source /etc/shm/config.sh
+    fi
+    
+    echo -e "${GREEN} -> Verifying Database Schema...${NC}"
+    # Basic Check for tables added in recent updates
+    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS domain_traffic (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, date DATE, bytes_sent BIGINT DEFAULT 0, hits INT DEFAULT 0, UNIQUE KEY (domain_id, date));" 2>/dev/null
+    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS malware_scans (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, status ENUM('running','clean','infected','failed'), report TEXT, scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);" 2>/dev/null
+fi
+
+# 4. Fix Permissions
+echo -e "${GREEN} -> Applying Permissions...${NC}"
+chown -R www-data:www-data /var/www/panel /var/www/apps
+chmod -R 755 /var/www/panel
+
+# 5. Restart Services
+echo -e "${GREEN} -> Reloading Services...${NC}"
+systemctl reload nginx
+systemctl reload php8.2-fpm
+
+echo -e "${GREEN}================================================"
+echo -e "   UPDATE COMPLETED SUCCESSFULLY"
+echo -e "================================================${NC}"
