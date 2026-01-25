@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WHM | System Administration</title>
+    <title>SHM Admin | System Administration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
@@ -117,55 +117,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-white font-heading tracking-tight mb-2">WHM Admin</h1>
-                <p class="text-slate-500 text-sm">System Administration Console</p>
+            </div>
+            <h1 class="text-2xl font-bold text-white font-heading tracking-tight mb-2">SHM Admin</h1>
+            <p class="text-slate-500 text-sm">System Administration Console</p>
+        </div>
+
+        <?php if (isset($error)): ?>
+            <div
+                class="mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold flex items-center gap-3 animate-[shake_0.5s_ease-in-out]">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <?= htmlspecialchars($error) ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" class="space-y-6"
+            onsubmit="this.querySelector('button[type=submit]').classList.add('loading')">
+
+            <div class="input-group">
+                <label for="u">Username</label>
+                <input id="u" name="u" type="text" required placeholder="Enter admin username"
+                    class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50">
             </div>
 
-            <?php if (isset($error)): ?>
-                <div
-                    class="mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold flex items-center gap-3 animate-[shake_0.5s_ease-in-out]">
-                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <?= htmlspecialchars($error) ?>
-                </div>
-            <?php endif; ?>
+            <div class="input-group">
+                <label for="p">Password</label>
+                <input id="p" name="p" type="password" required placeholder="Enter admin password"
+                    class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50">
+            </div>
 
-            <form method="POST" class="space-y-6"
-                onsubmit="this.querySelector('button[type=submit]').classList.add('loading')">
+            <button type="submit"
+                class="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-3.5 rounded-xl shadow-lg shadow-white/10 hover:shadow-white/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <span>Authenticate</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                    </path>
+                </svg>
+            </button>
 
-                <div class="input-group">
-                    <label for="u">Username</label>
-                    <input id="u" name="u" type="text" required placeholder="Enter admin username"
-                        class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50">
-                </div>
+        </form>
+    </div>
 
-                <div class="input-group">
-                    <label for="p">Password</label>
-                    <input id="p" name="p" type="password" required placeholder="Enter admin password"
-                        class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500/50">
-                </div>
-
-                <button type="submit"
-                    class="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-3.5 rounded-xl shadow-lg shadow-white/10 hover:shadow-white/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                    <span>Authenticate</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                        </path>
-                    </svg>
-                </button>
-
-            </form>
-        </div>
-
-        <div class="mt-8 text-center flex flex-col items-center gap-2">
-            <span
-                class="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
-                v5.0 Stable
-            </span>
-        </div>
+    <div class="mt-8 text-center flex flex-col items-center gap-2">
+        <span
+            class="px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px] uppercase font-bold text-slate-500 tracking-widest">
+            v5.0 Stable
+        </span>
+    </div>
     </div>
 
     <style>

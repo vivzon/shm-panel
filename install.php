@@ -36,23 +36,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $config_content .= "\$db_name = '$db_name';\n";
         $config_content .= "\$db_user = '$db_user';\n";
         $config_content .= "\$db_pass = '$db_pass';\n";
-        
+
         file_put_contents(__DIR__ . '/shared/config.local.php', $config_content);
 
         // 4. Import Schema (Consolidated)
         $sql = "
             CREATE TABLE IF NOT EXISTS clients (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(32) UNIQUE, email VARCHAR(255), password VARCHAR(255), status ENUM('active','suspended') DEFAULT 'active', package_id INT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
-            CREATE TABLE IF NOT EXISTS domains (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain VARCHAR(255) UNIQUE, document_root VARCHAR(255), php_version VARCHAR(5) DEFAULT '8.2', ssl_active BOOLEAN DEFAULT 0, FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE);
-            CREATE TABLE IF NOT EXISTS packages (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), disk_mb INT, max_domains INT, max_emails INT, max_databases INT DEFAULT 5);
+            CREATE TABLE IF NOT EXISTS domains (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain VARCHAR(255) UNIQUE, document_root VARCHAR(255), php_version VARCHAR(5) DEFAULT '8.2', ssl_active BOOLEAN DEFAULT 0, parent_id INT DEFAULT NULL, FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE);
+            CREATE TABLE IF NOT EXISTS packages (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50), price DECIMAL(10,2) DEFAULT 0.00, disk_mb INT, max_domains INT, max_emails INT, max_databases INT DEFAULT 5);
+            CREATE TABLE IF NOT EXISTS transactions (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, amount DECIMAL(10,2), currency VARCHAR(10), payment_gateway VARCHAR(20), transaction_id VARCHAR(100), status VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
             CREATE TABLE IF NOT EXISTS admins (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) UNIQUE, password VARCHAR(255));
             CREATE TABLE IF NOT EXISTS mail_domains (id INT AUTO_INCREMENT PRIMARY KEY, domain VARCHAR(255) UNIQUE);
             CREATE TABLE IF NOT EXISTS mail_users (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, email VARCHAR(255) UNIQUE, password VARCHAR(255));
+            CREATE TABLE IF NOT EXISTS ftp_users (id INT AUTO_INCREMENT PRIMARY KEY, userid VARCHAR(32) UNIQUE, passwd VARCHAR(255), homedir VARCHAR(255), uid INT DEFAULT 33, gid INT DEFAULT 33, shell VARCHAR(255) DEFAULT '/sbin/nologin');
             CREATE TABLE IF NOT EXISTS client_databases (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, db_name VARCHAR(64) UNIQUE, domain_id INT DEFAULT NULL);
             CREATE TABLE IF NOT EXISTS client_db_users (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, db_user VARCHAR(32));
             CREATE TABLE IF NOT EXISTS dns_records (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, type VARCHAR(10), host VARCHAR(255), value VARCHAR(255));
             CREATE TABLE IF NOT EXISTS php_config (domain_id INT PRIMARY KEY, memory_limit VARCHAR(10) DEFAULT '128M');
+            CREATE TABLE IF NOT EXISTS domain_traffic (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, date DATE, bytes_sent BIGINT DEFAULT 0, hits INT DEFAULT 0, UNIQUE KEY (domain_id, date));
+            CREATE TABLE IF NOT EXISTS malware_scans (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, status ENUM('running','clean','infected','failed'), report TEXT, scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+            CREATE TABLE IF NOT EXISTS app_installations (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain_id INT, app_type VARCHAR(20), db_name VARCHAR(64), db_user VARCHAR(32), db_pass VARCHAR(255), status VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
             
-            INSERT IGNORE INTO packages VALUES (1, 'Starter', 2000, 1, 5, 2), (2, 'Business', 10000, 10, 50, 10);
+            INSERT IGNORE INTO packages VALUES (1, 'Starter', 0.00, 2000, 1, 5, 2), (2, 'Business', 9.99, 10000, 10, 50, 10);
         ";
         $pdo->exec($sql);
 
@@ -71,35 +76,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Install SHM Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #fff; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
     </style>
 </head>
+
 <body class="flex items-center justify-center min-h-screen p-4">
 
     <div class="glass w-full max-w-lg rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         <!-- Glow Effect -->
-        <div class="absolute -top-20 -left-20 w-64 h-64 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div
+            class="absolute -top-20 -left-20 w-64 h-64 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse">
+        </div>
+        <div
+            class="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse">
+        </div>
 
         <div class="relative z-10">
-            <h1 class="text-3xl font-extrabold text-center mb-2 tracking-tight">SHM <span class="text-blue-500">Panel</span> Installer</h1>
+            <h1 class="text-3xl font-extrabold text-center mb-2 tracking-tight">SHM <span
+                    class="text-blue-500">Panel</span> Installer</h1>
             <p class="text-slate-400 text-center mb-8 text-sm">Automated System Setup & Configuration</p>
 
             <?php if ($success): ?>
-                <div class="bg-emerald-500/20 text-emerald-300 p-4 rounded-xl mb-6 border border-emerald-500/30 text-center font-bold">
+                <div
+                    class="bg-emerald-500/20 text-emerald-300 p-4 rounded-xl mb-6 border border-emerald-500/30 text-center font-bold">
                     <?= $success ?>
                 </div>
                 <div class="grid gap-4">
-                    <a href="cpanel/index.php" class="block w-full text-center py-4 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold transition shadow-lg shadow-blue-600/20">Go to Client Panel</a>
-                    <a href="whm/login.php" class="block w-full text-center py-4 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold transition">Go to Admin WHM</a>
+                    <a href="cpanel/index.php"
+                        class="block w-full text-center py-4 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold transition shadow-lg shadow-blue-600/20">Go
+                        to Client Panel</a>
+                    <a href="whm/login.php"
+                        class="block w-full text-center py-4 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold transition">Go
+                        to Admin WHM</a>
                 </div>
             <?php else: ?>
 
@@ -112,20 +139,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form method="POST" class="space-y-4">
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1 ml-1">Database Host</label>
-                        <input name="db_host" value="localhost" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm">
+                        <input name="db_host" value="localhost"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1 ml-1">Database Name</label>
-                        <input name="db_name" value="shm_panel" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm">
+                        <input name="db_name" value="shm_panel"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-1 ml-1">DB User</label>
-                            <input name="db_user" value="root" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm">
+                            <input name="db_user" value="root"
+                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm">
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-1 ml-1">DB Password</label>
-                            <input name="db_pass" type="password" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm">
+                            <input name="db_pass" type="password"
+                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm">
                         </div>
                     </div>
 
@@ -133,11 +164,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1 ml-1">Create Admin User</label>
-                        <input name="admin_user" value="admin" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm mb-2" placeholder="Username">
-                        <input name="admin_pass" value="admin123" class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm" placeholder="Password">
+                        <input name="admin_user" value="admin"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm mb-2"
+                            placeholder="Username">
+                        <input name="admin_pass" value="admin123"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm"
+                            placeholder="Password">
                     </div>
 
-                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 hover:scale-[1.02] transition transform mt-6">
+                    <button type="submit"
+                        class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 hover:scale-[1.02] transition transform mt-6">
                         Install & Initialize
                     </button>
                 </form>
@@ -146,4 +182,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
 </body>
+
 </html>

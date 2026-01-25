@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Vivzon CPanel</title>
+    <title>Login | <?= get_branding() ?> - SHM Client</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
@@ -190,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
 
         <div class="mt-8 text-center">
-            <p class="text-xs text-slate-600">&copy; <?= date('Y') ?> Vivzon CPanel. Secure Access.</p>
+            <p class="text-xs text-slate-600">&copy; <?= date('Y') ?> <?= get_branding() ?>. Secure Access.</p>
         </div>
     </div>
 

@@ -96,4 +96,57 @@ if (session_status() === PHP_SESSION_NONE) {
     }
     session_start();
 }
+
+/**
+ * Branding Helper
+ * Automatically derives branding from the domain name if not explicitly set.
+ */
+if (!function_exists('get_branding')) {
+    function get_branding()
+    {
+        global $brand_name;
+        if (isset($brand_name)) {
+            return $brand_name;
+        }
+
+        // Default branding
+        $brand = "SHM Provider";
+
+        if (isset($_SERVER['HTTP_HOST'])) {
+            $host = $_SERVER['HTTP_HOST'];
+
+            // If it's an IP address, use generic
+            if (filter_var($host, FILTER_VALIDATE_IP)) {
+                return "SHM Panel";
+            }
+
+            // Extract domain parts
+            $parts = explode('.', $host);
+
+            // Handle subdomains like panel.example.com -> Example
+            // or vivzon.cloud -> Vivzon
+
+            // If we have at least 2 parts (domain.com)
+            if (count($parts) >= 2) {
+                // If it's a subdomain (e.g. panel.domain.com), usually the main domain is the brand
+                // But simplification: take the second to last part (SLD)
+                // e.g. vivzon.cloud -> vivzon
+                // e.g. panel.vivzon.cloud -> vivzon (if we take parts[-2]?)
+                // Actually, if it is panel.example.com, parts are [panel, example, com].
+                // We want 'example'.
+
+                // Common TLDs handling might be complex, so let's try a simple approach:
+                // Take the SLD which is usually immediately before the TLD.
+
+                // Allow specific overrides here if needed, otherwise dynamic:
+                $sld = $parts[count($parts) - 2];
+                $brand = ucfirst($sld);
+
+                // Special case for 'shm-panel' test var or similar if needed
+            }
+        }
+
+        return $brand;
+    }
+}
 ?>

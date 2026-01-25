@@ -20,6 +20,8 @@ if (filter_var($host, FILTER_VALIDATE_IP)) {
 // Payment Gateways Config (Placeholder for Frontend)
 $RazorpayEnabled = true;
 $PayPalEnabled = true;
+
+$brandName = get_branding();
 ?>
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -27,7 +29,7 @@ $PayPalEnabled = true;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vivzon Cloud | Next-Gen Hosting Infrastructure</title>
+    <title><?= $brandName ?> | SHM (Server Hosting Management)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link
@@ -102,8 +104,7 @@ $PayPalEnabled = true;
                 <div class="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
                     <i data-lucide="cloud" class="w-6 h-6 text-white"></i>
                 </div>
-                <span class="text-xl font-bold font-heading tracking-tight">VIVZON<span
-                        class="text-blue-500">CLOUD</span></span>
+                <span class="text-xl font-bold font-heading tracking-tight"><?= strtoupper($brandName) ?></span>
             </div>
 
             <div class="hidden md:flex gap-8 text-sm font-medium text-slate-400">
@@ -255,13 +256,13 @@ $PayPalEnabled = true;
                     <div class="bg-slate-800 p-2 rounded-lg">
                         <i data-lucide="cloud" class="w-6 h-6 text-white"></i>
                     </div>
-                    <span class="text-xl font-bold font-heading">VIVZON<span class="text-slate-600">CLOUD</span></span>
+                    <span class="text-xl font-bold font-heading"><?= strtoupper($brandName) ?></span>
                 </div>
 
             </div>
 
             <div class="border-t border-white/5 pt-8 text-center text-slate-600 text-sm">
-                &copy; <?= date('Y') ?> Vivzon Cloud Services. All rights reserved. <br>
+                &copy; <?= date('Y') ?> <?= $brandName ?>. All rights reserved. <br>
                 <a href="#" class="hover:text-blue-500 transition">Privacy Policy</a> &bull; <a href="#"
                     class="hover:text-blue-500 transition">Terms of Service</a>
             </div>
