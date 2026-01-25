@@ -19,14 +19,26 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'install_app') {
             $app = $_POST['app'];
             $dom_id = $_POST['domain_id'];
-            $d = $pdo->query("SELECT domain FROM domains WHERE id=$dom_id AND client_id=$cid")->fetchColumn();
-            if (!$d)
+            $domain = $pdo->query("SELECT domain FROM domains WHERE id=$dom_id AND client_id=$cid")->fetchColumn();
+            if (!$domain)
                 throw new Exception("Invalid Domain");
 
-            // Background command
-            $cmd = "app-tool $app " . escapeshellarg($d);
-            if (function_exists('cmd'))
+            // Generate DB Credentials
+            $rand = substr(md5(uniqid()), 0, 6);
+            $db_name = $username . "_wp_" . $rand; // e.g. client_wp_123456
+            $db_user = $username . "_" . $rand;
+            $db_pass = bin2hex(random_bytes(8));
+
+            // Record Installation
+            $stmt = $pdo->prepare("INSERT INTO app_installations (client_id, domain_id, app_type, db_name, db_user, db_pass, status) VALUES (?, ?, ?, ?, ?, ?, 'installing')");
+            $stmt->execute([$cid, $dom_id, $app, $db_name, $db_user, $db_pass]);
+
+            // Call Backend: shm-manage app-tool install <APP> <DOMAIN> <DB> <USER> <PASS>
+            $cmd = "app-tool install " . escapeshellarg($app) . " " . escapeshellarg($domain) . " " . escapeshellarg($db_name) . " " . escapeshellarg($db_user) . " " . escapeshellarg($db_pass);
+
+            if (function_exists('cmd')) {
                 cmd("$cmd > /dev/null 2>&1 &");
+            }
 
             sendResponse($res);
             exit;
