@@ -47,6 +47,16 @@ if (isset($_POST['ajax_action'])) {
                     $pdo->prepare("UPDATE clients SET password=? WHERE id=?")->execute([$hash, $id]);
                 }
             } else {
+                // Check Username
+                $chkUser = $pdo->prepare("SELECT id FROM clients WHERE username = ?");
+                $chkUser->execute([$u]);
+                if ($chkUser->fetch()) throw new Exception("Username '$u' already exists.");
+
+                // Check Domain
+                $chkDom = $pdo->prepare("SELECT id FROM domains WHERE domain = ?");
+                $chkDom->execute([$d]);
+                if ($chkDom->fetch()) throw new Exception("Domain '$d' already exists.");
+
                 $pdo->beginTransaction();
                 $hash = password_hash($_POST['pass'], PASSWORD_BCRYPT);
                 $pdo->prepare("INSERT INTO clients (username, email, password, package_id) VALUES (?,?,?,?)")->execute([$u, $e, $hash, $pkg]);
@@ -173,11 +183,18 @@ if (isset($_POST['ajax_action'])) {
     exit;
 }
 
+// Pagination
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+if ($page < 1) $page = 1;
+$per_page = 10;
+$offset = ($page - 1) * $per_page;
+
 // Count Total
 $total_clients = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
+$total_pages = ceil($total_clients / $per_page);
 
-// Fetch All Clients
-$clients = $pdo->query("SELECT c.*, d.id as domain_id, d.domain, p.name as pkg_name FROM clients c LEFT JOIN domains d ON c.id = d.client_id LEFT JOIN packages p ON c.package_id = p.id ORDER BY c.id DESC")->fetchAll(PDO::FETCH_ASSOC);
+// Fetch Clients
+$clients = $pdo->query("SELECT c.*, d.id as domain_id, d.domain, p.name as pkg_name FROM clients c LEFT JOIN domains d ON c.id = d.client_id LEFT JOIN packages p ON c.package_id = p.id ORDER BY c.id DESC LIMIT $per_page OFFSET $offset")->fetchAll(PDO::FETCH_ASSOC);
 $packages = $pdo->query("SELECT * FROM packages")->fetchAll(PDO::FETCH_ASSOC);
 
 include 'layout/header.php';
@@ -282,6 +299,25 @@ include 'layout/header.php';
         </tbody>
     </table>
 </div>
+
+<?php if ($total_pages > 1): ?>
+    <div class="flex justify-between items-center mt-6">
+        <div class="text-xs text-slate-500 font-bold">
+            Page <?= $page ?> of <?= $total_pages ?>
+        </div>
+        <div class="flex gap-2">
+            <?php if ($page > 1): ?>
+                <a href="?page=<?= $page - 1 ?>"
+                    class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Previous</a>
+            <?php endif; ?>
+
+            <?php if ($page < $total_pages): ?>
+                <a href="?page=<?= $page + 1 ?>"
+                    class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Next</a>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
 
 
 

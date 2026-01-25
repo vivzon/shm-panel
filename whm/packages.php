@@ -14,9 +14,22 @@ if (isset($_POST['ajax_action'])) {
     try {
         if ($action == 'save_package') {
             $id = $_POST['id'] ?? null;
-            $vals = [$_POST['name'], $_POST['disk'], $_POST['doms'], $_POST['mails']];
+            $name = trim($_POST['name']);
+            if (empty($name))
+                throw new Exception("Package name is required.");
+
+            // Check Duplicate Name
+            $chk = $pdo->prepare("SELECT id FROM packages WHERE name = ? AND id != ?");
+            $chk->execute([$name, $id ?: 0]);
+            if ($chk->fetch())
+                throw new Exception("Package '$name' already exists.");
+
+            $vals = [$name, (int) $_POST['disk'], (int) $_POST['doms'], (int) $_POST['mails']];
             if ($id) {
-                $pdo->prepare("UPDATE packages SET name=?, disk_mb=?, max_domains=?, max_emails=? WHERE id=?")->execute([...$vals, $id]);
+                // Manual merge for compatibility
+                $update_vals = $vals;
+                $update_vals[] = $id;
+                $pdo->prepare("UPDATE packages SET name=?, disk_mb=?, max_domains=?, max_emails=? WHERE id=?")->execute($update_vals);
             } else {
                 $pdo->prepare("INSERT INTO packages (name, disk_mb, max_domains, max_emails) VALUES (?,?,?,?)")->execute($vals);
             }

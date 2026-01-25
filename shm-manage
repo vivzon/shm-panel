@@ -43,8 +43,8 @@ create_default_index() {
 <body>
     <div class="bg-glow"></div>
     <div class="container">
-        <h1>Coming Possible</h1>
-        <p>The domain <span class="domain">\$DOMNAME</span> is currently under construction.<br>Check back soon for updates.</p>
+        <h1>Coming Soon</h1>
+        <p>The domain <span class="domain">\$DOMNAME</span> is reserved.<br>A new website is coming soon.</p>
         <div class="badge">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
             Powered by SHM Panel

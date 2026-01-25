@@ -144,6 +144,24 @@ include 'layout/header.php';
             </tbody>
         </table>
     </div>
+
+    <?php if ($total_pages > 1): ?>
+        <div class="flex justify-between items-center mt-6">
+            <div class="text-xs text-slate-500 font-bold">
+                Page <?= $page ?> of <?= $total_pages ?>
+            </div>
+            <div class="flex gap-2">
+                <?php if ($page > 1): ?>
+                    <a href="?page=<?= $page - 1 ?>"
+                        class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Previous</a>
+                <?php endif; ?>
+                <?php if ($page < $total_pages): ?>
+                    <a href="?page=<?= $page + 1 ?>"
+                        class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Next</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php include 'layout/footer.php'; ?>

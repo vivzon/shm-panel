@@ -29,7 +29,7 @@ if (isset($_POST['ajax_action'])) {
             $exists->execute([$dom]);
             if ($exists->fetch())
                 throw new Exception("Domain already exists on server");
-            
+
             // Check Parent Domain (If Subdomain)
             $parent_id = null;
             if (isset($_POST['parent_id'])) {
@@ -39,20 +39,22 @@ if (isset($_POST['ajax_action'])) {
                 $get_p = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
                 $get_p->execute([$parent_name, $cid]);
                 $pid = $get_p->fetchColumn();
-                if($pid) $parent_id = $pid;
-            } 
-            
+                if ($pid)
+                    $parent_id = $pid;
+            }
+
             // Auto Detect if not passed?
             // "foo.bar.com" -> check if "bar.com" exists.
             if (!$parent_id) {
                 $parts = explode('.', $dom);
-                 if (count($parts) > 2) {
-                     $possible_parent = implode('.', array_slice($parts, 1));
-                     $get_p = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
-                     $get_p->execute([$possible_parent, $cid]);
-                     $pid = $get_p->fetchColumn();
-                     if($pid) $parent_id = $pid;
-                 }
+                if (count($parts) > 2) {
+                    $possible_parent = implode('.', array_slice($parts, 1));
+                    $get_p = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
+                    $get_p->execute([$possible_parent, $cid]);
+                    $pid = $get_p->fetchColumn();
+                    if ($pid)
+                        $parent_id = $pid;
+                }
             }
 
             try {
@@ -68,22 +70,22 @@ if (isset($_POST['ajax_action'])) {
             $server_ip = $_SERVER['SERVER_ADDR'];
 
             if ($parent_id) {
-                 // It IS a subdomain of a managed parent. 
-                 // We do NOT create a new Zone. We add an A record to the PARENT.
-                 $host = str_replace("." . $possible_parent, "", $dom); // e.g. "blog"
-                 
-                 // Add 'A' record to Parent
-                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', ?, ?)")->execute([$parent_id, $host, $server_ip]);
-                 
-                 // Add 'www' CNAME (optional, maybe overkill for subdomains but user expectation varies. Let's start with just A/root of sub)
-                 // $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'CNAME', ?, '@')")->execute([$parent_id, "www.$host"]);
-                 
-                 // Sync Parent DNS
-                 cmd("dns-tool sync $parent_id");
-                 
-                 // Sync VHost (still needed for the sub)
-                 cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
-                 
+                // It IS a subdomain of a managed parent. 
+                // We do NOT create a new Zone. We add an A record to the PARENT.
+                $host = str_replace("." . $possible_parent, "", $dom); // e.g. "blog"
+
+                // Add 'A' record to Parent
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', ?, ?)")->execute([$parent_id, $host, $server_ip]);
+
+                // Add 'www' CNAME (optional, maybe overkill for subdomains but user expectation varies. Let's start with just A/root of sub)
+                // $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'CNAME', ?, '@')")->execute([$parent_id, "www.$host"]);
+
+                // Sync Parent DNS
+                cmd("dns-tool sync $parent_id");
+
+                // Sync VHost (still needed for the sub)
+                cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
+
             } else {
                 // Standard Domain Logic
                 // Auto DNS
@@ -105,7 +107,7 @@ if (isset($_POST['ajax_action'])) {
                 $ns2 = "ns2." . $base_domain;
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns1]);
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns2]);
-                
+
                 // Syncs
                 cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
                 cmd("dns-tool sync $dom_id");
@@ -120,10 +122,10 @@ if (isset($_POST['ajax_action'])) {
             $d = $pdo->prepare("SELECT domain, parent_id FROM domains WHERE id=? AND client_id=?");
             $d->execute([$dom_id, $cid]);
             $dom_info = $d->fetch();
-            
+
             if (!$dom_info)
                 throw new Exception("Invalid Domain");
-            
+
             $domain_name = $dom_info['domain'];
             $parent_id = $dom_info['parent_id'];
 
@@ -133,16 +135,16 @@ if (isset($_POST['ajax_action'])) {
                 $pd = $pdo->prepare("SELECT domain FROM domains WHERE id=?");
                 $pd->execute([$parent_id]);
                 $parent_name = $pd->fetchColumn();
-                
+
                 if ($parent_name) {
                     $host = str_replace("." . $parent_name, "", $domain_name);
                     $pdo->prepare("DELETE FROM dns_records WHERE domain_id=? AND host=? AND type='A'")->execute([$parent_id, $host]);
                     cmd("dns-tool sync $parent_id");
                 }
             } else {
-                 $pdo->prepare("DELETE FROM dns_records WHERE domain_id=?")->execute([$dom_id]);
+                $pdo->prepare("DELETE FROM dns_records WHERE domain_id=?")->execute([$dom_id]);
             }
-            
+
             $pdo->prepare("DELETE FROM php_config WHERE domain_id=?")->execute([$dom_id]);
             $pdo->prepare("DELETE FROM domains WHERE id=?")->execute([$dom_id]);
 
@@ -152,6 +154,7 @@ if (isset($_POST['ajax_action'])) {
         }
 
         if ($action == 'update_domain_config') {
+            set_time_limit(300); // Allow 5 minutes for Certbot/SSL operations
             $did = (int) $_POST['domain_id'];
 
             // Check domain ownership first
@@ -407,120 +410,121 @@ include 'layout/header.php';
             </div>
             <div class="border-t border-slate-700/50 pt-8">
                 <?php if ($d['parent_id']): ?>
-                    <?php 
-                        // Fetch Parent Name
-                        $pname = $pdo->query("SELECT domain FROM domains WHERE id={$d['parent_id']}")->fetchColumn();
+                    <?php
+                    // Fetch Parent Name
+                    $pname = $pdo->query("SELECT domain FROM domains WHERE id={$d['parent_id']}")->fetchColumn();
                     ?>
                     <div class="text-center p-8 bg-slate-900/30 rounded-xl border border-slate-800 border-dashed">
                         <i data-lucide="git-merge" class="w-8 h-8 text-slate-600 mx-auto mb-2"></i>
                         <p class="text-sm font-bold text-slate-400">DNS Managed by Parent Domain</p>
-                        <p class="text-xs text-slate-600">This subdomain is a record of <span class="text-blue-400"><?= $pname ?></span></p>
+                        <p class="text-xs text-slate-600">This subdomain is a record of <span
+                                class="text-blue-400"><?= $pname ?></span></p>
                     </div>
                 <?php else: ?>
-                <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">DNS Zone Management
-                </h4>
+                    <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">DNS Zone Management
+                    </h4>
 
-                <!-- Security Section -->
-                <div class="mb-8 p-6 bg-slate-900/30 rounded-xl border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <h4 class="text-white font-bold text-sm flex items-center gap-2"><i data-lucide="shield"
-                                class="w-4 text-purple-400"></i> Malware Protection</h4>
-                        <p class="text-[10px] text-slate-500 mt-1">Status:
-                            <?php if ($d['scan_status'] == 'clean'): ?>
-                                <span class="text-emerald-400">Clean</span>
-                            <?php elseif ($d['scan_status'] == 'infected'): ?>
-                                <span class="text-red-400 blink">Infected!</span>
-                            <?php elseif ($d['scan_status'] == 'running'): ?>
-                                <span class="text-blue-400 animate-pulse">Scanning...</span>
-                            <?php else: ?>
-                                <span class="text-slate-500">Not Scanned</span>
-                            <?php endif; ?>
-                            <?php if ($d['last_scan']): ?>
-                                <span class="opacity-50 ml-2">Last: <?= $d['last_scan'] ?></span>
-                            <?php endif; ?>
-                        </p>
-                    </div>
-                    <button onclick="startScan(<?= $d['id'] ?>)"
-                        class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-4 py-2 rounded-lg text-xs font-bold hover:bg-purple-600 hover:text-white transition">Run
-                        Scan</button>
-                </div>
-
-                <div class="mb-6">
-                    <div class="flex flex-wrap gap-2 mb-4" id="dns-tabs-<?= $d['id'] ?>">
-                        <?php foreach (['A', 'AAAA', 'MX', 'CNAME', 'NS', 'TXT', 'SRV', 'SOA'] as $t): ?>
-                            <button type="button" onclick="setDnsType(<?= $d['id'] ?>, '<?= $t ?>')"
-                                id="btn-dns-<?= $t ?>-<?= $d['id'] ?>"
-                                class="dns-type-btn px-4 py-2 rounded-lg text-xs font-bold border border-slate-700 transition <?= $t === 'A' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-800 text-slate-400 hover:bg-slate-700' ?>">
-                                <?= $t ?>
-                            </button>
-                        <?php endforeach; ?>
+                    <!-- Security Section -->
+                    <div class="mb-8 p-6 bg-slate-900/30 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <h4 class="text-white font-bold text-sm flex items-center gap-2"><i data-lucide="shield"
+                                    class="w-4 text-purple-400"></i> Malware Protection</h4>
+                            <p class="text-[10px] text-slate-500 mt-1">Status:
+                                <?php if ($d['scan_status'] == 'clean'): ?>
+                                    <span class="text-emerald-400">Clean</span>
+                                <?php elseif ($d['scan_status'] == 'infected'): ?>
+                                    <span class="text-red-400 blink">Infected!</span>
+                                <?php elseif ($d['scan_status'] == 'running'): ?>
+                                    <span class="text-blue-400 animate-pulse">Scanning...</span>
+                                <?php else: ?>
+                                    <span class="text-slate-500">Not Scanned</span>
+                                <?php endif; ?>
+                                <?php if ($d['last_scan']): ?>
+                                    <span class="opacity-50 ml-2">Last: <?= $d['last_scan'] ?></span>
+                                <?php endif; ?>
+                            </p>
+                        </div>
+                        <button onclick="startScan(<?= $d['id'] ?>)"
+                            class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-4 py-2 rounded-lg text-xs font-bold hover:bg-purple-600 hover:text-white transition">Run
+                            Scan</button>
                     </div>
 
-                    <form onsubmit="handleGeneric(event, 'add_dns')"
-                        class="glass-card p-6 border border-slate-700/50 bg-slate-900/30 rounded-xl relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                        <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
-                        <input type="hidden" name="type" id="input-dns-type-<?= $d['id'] ?>" value="A">
-
-                        <div id="dns-fields-<?= $d['id'] ?>" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                            <!-- Default A Record Fields -->
-                            <div class="col-span-4"><label
-                                    class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input
-                                    name="host" value="@"
-                                    class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner">
-                            </div>
-                            <div class="col-span-8"><label
-                                    class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">IPv4
-                                    Address</label><input name="value" placeholder="192.168.1.1"
-                                    class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner">
-                            </div>
+                    <div class="mb-6">
+                        <div class="flex flex-wrap gap-2 mb-4" id="dns-tabs-<?= $d['id'] ?>">
+                            <?php foreach (['A', 'AAAA', 'MX', 'CNAME', 'NS', 'TXT', 'SRV', 'SOA'] as $t): ?>
+                                <button type="button" onclick="setDnsType(<?= $d['id'] ?>, '<?= $t ?>')"
+                                    id="btn-dns-<?= $t ?>-<?= $d['id'] ?>"
+                                    class="dns-type-btn px-4 py-2 rounded-lg text-xs font-bold border border-slate-700 transition <?= $t === 'A' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-800 text-slate-400 hover:bg-slate-700' ?>">
+                                    <?= $t ?>
+                                </button>
+                            <?php endforeach; ?>
                         </div>
 
-                        <div class="mt-6 flex justify-end">
-                            <button
-                                class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 transition border border-blue-400 flex items-center gap-2">
-                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Record
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                        <form onsubmit="handleGeneric(event, 'add_dns')"
+                            class="glass-card p-6 border border-slate-700/50 bg-slate-900/30 rounded-xl relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                            <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
+                            <input type="hidden" name="type" id="input-dns-type-<?= $d['id'] ?>" value="A">
 
-                <table class="w-full mt-6 text-left">
-                    <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
-                        <tr>
-                            <th class="p-3">Host</th>
-                            <th class="p-3">Type</th>
-                            <th class="p-3">Value</th>
-                            <th class="p-3 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-700/50">
-                        <?php
-                        $recs = $pdo->prepare("SELECT * FROM dns_records WHERE domain_id = ?");
-                        $recs->execute([$d['id']]);
-                        while ($r = $recs->fetch()): ?>
-                            <tr class="text-sm hover:bg-slate-800/30 transition">
-                                <td class="p-3 font-bold text-slate-300">
-                                    <?= $r['host'] ?>
-                                </td>
-                                <td class="p-3"><span
-                                        class="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs font-bold text-slate-400">
-                                        <?= $r['type'] ?>
-                                    </span>
-                                </td>
-                                <td class="p-3 font-mono text-slate-500 text-xs">
-                                    <?= $r['value'] ?>
-                                </td>
-                                <td class="p-3 text-right">
-                                    <button
-                                        onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
-                                        class="text-red-400 hover:text-red-500"><i data-lucide="trash-2"
-                                            class="w-4"></i></button>
-                                </td>
+                            <div id="dns-fields-<?= $d['id'] ?>" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                                <!-- Default A Record Fields -->
+                                <div class="col-span-4"><label
+                                        class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input
+                                        name="host" value="@"
+                                        class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner">
+                                </div>
+                                <div class="col-span-8"><label
+                                        class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">IPv4
+                                        Address</label><input name="value" placeholder="192.168.1.1"
+                                        class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner">
+                                </div>
+                            </div>
+
+                            <div class="mt-6 flex justify-end">
+                                <button
+                                    class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 transition border border-blue-400 flex items-center gap-2">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Record
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <table class="w-full mt-6 text-left">
+                        <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+                            <tr>
+                                <th class="p-3">Host</th>
+                                <th class="p-3">Type</th>
+                                <th class="p-3">Value</th>
+                                <th class="p-3 text-right">Action</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700/50">
+                            <?php
+                            $recs = $pdo->prepare("SELECT * FROM dns_records WHERE domain_id = ?");
+                            $recs->execute([$d['id']]);
+                            while ($r = $recs->fetch()): ?>
+                                <tr class="text-sm hover:bg-slate-800/30 transition">
+                                    <td class="p-3 font-bold text-slate-300">
+                                        <?= $r['host'] ?>
+                                    </td>
+                                    <td class="p-3"><span
+                                            class="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs font-bold text-slate-400">
+                                            <?= $r['type'] ?>
+                                        </span>
+                                    </td>
+                                    <td class="p-3 font-mono text-slate-500 text-xs">
+                                        <?= $r['value'] ?>
+                                    </td>
+                                    <td class="p-3 text-right">
+                                        <button
+                                            onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
+                                            class="text-red-400 hover:text-red-500"><i data-lucide="trash-2"
+                                                class="w-4"></i></button>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
                 <?php endif; ?>
             </div>
         </div>

@@ -89,12 +89,13 @@ include 'layout/header.php';
             list.innerHTML = '';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(b => {
+                    const safeName = b.name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
                     list.innerHTML += `
                             <tr class="hover:bg-slate-800/30 transition">
-                                <td class="p-4 font-bold text-slate-300">${b.name}</td>
+                                <td class="p-4 font-bold text-slate-300">${safeName}</td>
                                 <td class="p-4 text-slate-400 text-xs">${b.size}</td>
                                 <td class="p-4 text-right">
-                                    <button onclick="restoreBackup('${b.name}')" class="text-blue-400 font-bold text-xs uppercase hover:text-white mr-4 transition">Restore</button>
+                                    <button onclick="restoreBackup('${safeName}')" class="text-blue-400 font-bold text-xs uppercase hover:text-white mr-4 transition">Restore</button>
                                 </td>
                             </tr>
                         `;
