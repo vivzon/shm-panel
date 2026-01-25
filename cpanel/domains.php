@@ -184,7 +184,10 @@ if (isset($_POST['ajax_action'])) {
             }
 
             // Sync Vhost (Triggers SSL Install if needed)
-            cmd("vhost-tool sync " . $did);
+            // Run in background to prevent timeout
+            if (function_exists('cmd')) {
+                cmd("vhost-tool sync " . $did . " > /dev/null 2>&1 &");
+            }
             sendResponse($res);
             exit;
         }
@@ -395,9 +398,15 @@ include 'layout/header.php';
                     </select>
                     <select name="mem"
                         class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-xs font-bold text-white">
-                        <option>128M</option>
-                        <option>256M</option>
-                        <option>512M</option>
+                        <?php
+                        // Fetch current limit from DB or default
+                        $curr_mem = $pdo->query("SELECT memory_limit FROM php_config WHERE domain_id=" . $d['id'])->fetchColumn();
+                        if (!$curr_mem)
+                            $curr_mem = '512M'; // Default
+                        $opts = ['128M', '256M', '512M', '1024M', '2048M', '4096M'];
+                        foreach ($opts as $m): ?>
+                            <option value="<?= $m ?>" <?= $curr_mem == $m ? 'selected' : '' ?>><?= $m ?></option>
+                        <?php endforeach; ?>
                     </select>
                     <div class="flex items-center gap-2 px-2 border-l border-slate-700">
                         <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>

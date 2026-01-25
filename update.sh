@@ -78,6 +78,11 @@ if [ -f "install.php" ]; then
     # Basic Check for tables added in recent updates
     mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS domain_traffic (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, date DATE, bytes_sent BIGINT DEFAULT 0, hits INT DEFAULT 0, UNIQUE KEY (domain_id, date));" 2>/dev/null
     mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS malware_scans (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, status ENUM('running','clean','infected','failed'), report TEXT, scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);" 2>/dev/null
+    
+    # New Tables
+    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS app_installations (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain_id INT, app_type VARCHAR(20), db_name VARCHAR(64), db_user VARCHAR(32), db_pass VARCHAR(255), status VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);" 2>/dev/null
+    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS php_config (domain_id INT PRIMARY KEY, memory_limit VARCHAR(10) DEFAULT '512M');" 2>/dev/null
+    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS ftp_users (userid VARCHAR(64) PRIMARY KEY, passwd VARCHAR(128), homedir VARCHAR(255), uid INT, gid INT);" 2>/dev/null
 fi
 
 # 4. Fix Permissions
