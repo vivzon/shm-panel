@@ -168,11 +168,54 @@ echo -e "${GREEN} -> Applying Permissions...${NC}"
 chown -R www-data:www-data /var/www/panel /var/www/apps
 chmod -R 755 /var/www/panel
 
-# 5. Restart Services
+# 5. Fix Nginx Default Server (Prevent WHM Hijacking)
+if [ ! -f "/etc/nginx/sites-available/000-default" ]; then
+    echo -e "${GREEN} -> Installing Default Nginx Block...${NC}"
+    cat > /etc/nginx/sites-available/000-default << DEFAULT
+server {
+    listen 80 default_server;
+    server_name _;
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        return 404;
+    }
+}
+DEFAULT
+    ln -sf /etc/nginx/sites-available/000-default /etc/nginx/sites-enabled/
+fi
+
+# 6. Repair Log Directories
+echo -e "${GREEN} -> Verifying Log Directories...${NC}"
+# Iterate all client directories
+for client_dir in /var/www/clients/*; do
+    if [ -d "$client_dir" ]; then
+        USER=$(basename "$client_dir")
+        LOG_DIR="$client_dir/logs"
+        if [ ! -d "$LOG_DIR" ]; then
+             echo "Restoring logs for $USER..."
+             mkdir -p "$LOG_DIR"
+        fi
+        chown -R $USER:$USER "$LOG_DIR"
+        chmod 755 "$LOG_DIR"
+    fi
+done
+
+# 7. Restart Services
 echo -e "${GREEN} -> Reloading Services...${NC}"
 
 check_and_reload() {
     local service=$1
+    
+    # Pre-check config for Nginx
+    if [ "$service" == "nginx" ]; then
+        if ! nginx -t > /dev/null 2>&1; then
+             echo -e "\033[0;31m[CRITICAL] Nginx configuration is invalid! Aborting reload to prevent downtime.\033[0m"
+             return 1
+        fi
+    fi
+
     if systemctl is-active --quiet "$service"; then
         systemctl reload "$service"
     else
