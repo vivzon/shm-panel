@@ -923,6 +923,42 @@ CONF
         ;;
 
     # --------------------------------------------------------------------------
+    # TROUBLESHOOTING TOOL
+    # --------------------------------------------------------------------------
+    troubleshoot)
+        SUB=$2
+        # $3: domain_id
+        
+        if [ "$SUB" == "fix-perms" ]; then
+            # Get User & Docroot
+            read USER DOCROOT <<< $(mysql -N -s -e "SELECT c.username, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$3" $DB_NAME)
+            
+            if [ -d "$DOCROOT" ]; then
+                chown -R $USER:$USER $DOCROOT
+                find $DOCROOT -type d -exec chmod 775 {} \;
+                find $DOCROOT -type f -exec chmod 664 {} \;
+                usermod -a -G $USER www-data
+                log_action "Fixed Perms for $DOCROOT"
+            fi
+
+        elif [ "$SUB" == "fix-default-page" ]; then
+             read DOCROOT <<< $(mysql -N -s -e "SELECT document_root FROM domains WHERE id=$3" $DB_NAME)
+             if [ -f "$DOCROOT/index.php" ] || [ -f "$DOCROOT/index.html" ]; then
+                 if [ -f "$DOCROOT/default.html" ]; then
+                     mv $DOCROOT/default.html $DOCROOT/default.html.bak
+                     log_action "Hid default.html for $DOCROOT"
+                 fi
+             fi
+        
+        elif [ "$SUB" == "reload-services" ]; then
+             read PHP_VER <<< $(mysql -N -s -e "SELECT php_version FROM domains WHERE id=$3" $DB_NAME)
+             systemctl reload nginx
+             systemctl reload php$PHP_VER-fpm
+             log_action "Reloaded Services (User Triggered)"
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
     # MALWARE SCANNER (ClamAV)
     # --------------------------------------------------------------------------
     malware-scan)

@@ -151,6 +151,34 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        if ($action == 'fix_website') {
+            $did = (int) $_POST['domain_id'];
+            // Check ownership
+            $chk = $pdo->prepare("SELECT id FROM domains WHERE id=? AND client_id=?");
+            $chk->execute([$did, $cid]);
+            if (!$chk->fetch())
+                throw new Exception("Access Denied");
+
+            cmd("shm-manage troubleshoot fix-perms $did");
+            cmd("shm-manage troubleshoot fix-default-page $did");
+            cmd("shm-manage troubleshoot reload-services $did");
+
+            sendResponse($res);
+            exit;
+        }
+
+        if ($action == 'restart_services') {
+            $did = (int) $_POST['domain_id'];
+            $chk = $pdo->prepare("SELECT id FROM domains WHERE id=? AND client_id=?");
+            $chk->execute([$did, $cid]);
+            if (!$chk->fetch())
+                throw new Exception("Access Denied");
+
+            cmd("shm-manage troubleshoot reload-services $did");
+            sendResponse($res);
+            exit;
+        }
+
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
@@ -187,6 +215,10 @@ include 'layout/header.php';
     <a href="?tab=backups"
         class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'backups' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
         Backups
+    </a>
+    <a href="?tab=troubleshoot"
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'troubleshoot' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        Troubleshoot
     </a>
 </div>
 
@@ -294,16 +326,6 @@ include 'layout/header.php';
                     <div class="h-4 bg-slate-700 rounded w-3/4"></div>
                 </div>
             </div>
-
-            <div class="mt-8 pt-8 border-t border-slate-700/50">
-                <h3 class="font-bold mb-4 text-white">Troubleshooting</h3>
-                <button onclick="fixPerms()"
-                    class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold flex items-center justify-center gap-2 transition border border-slate-700">
-                    <i data-lucide="wrench" class="w-4"></i> Fix File Permissions
-                </button>
-                <p class="text-center text-[10px] text-slate-500 mt-2">Run this if you encounter "Permission Denied"
-                    errors.</p>
-            </div>
         </div>
     </div>
 </div>
@@ -335,15 +357,93 @@ include 'layout/header.php';
     </div>
 </div>
 
+<!-- CONTENT: TROUBLESHOOT -->
+<div id="tab-troubleshoot" class="<?= $active_tab == 'troubleshoot' ? '' : 'hidden' ?>">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="glass-card p-8 bg-gradient-to-br from-indigo-900/20 to-indigo-900/5 border-indigo-500/20">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="p-3 bg-indigo-500/10 rounded-xl text-indigo-400"><i data-lucide="monitor-check" class="w-6 h-6"></i></div>
+                <div>
+                   <h3 class="font-bold text-white">Display Doctor</h3>
+                   <p class="text-xs text-slate-400">Fix white screens, 403 errors, and caching issues.</p>
+                </div>
+            </div>
+            <p class="text-sm text-slate-300 mb-6 leading-relaxed">
+                If your website isn't loading after upload, runs into "Permission Denied", or shows the default "Coming Soon" page despite deleting it, run this tool.
+            </p>
+            <button onclick="fixWebsite()"
+                class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition">
+                <i data-lucide="wand-2" class="w-5 h-5"></i>
+                Fix Website Display
+            </button>
+        </div>
+
+        <div class="glass-card p-8 bg-gradient-to-br from-slate-900/50 to-slate-900/20">
+             <div class="flex items-center gap-4 mb-4">
+                <div class="p-3 bg-slate-700/30 rounded-xl text-slate-300"><i data-lucide="refresh-cw" class="w-6 h-6"></i></div>
+                <div>
+                   <h3 class="font-bold text-white">Restart Services</h3>
+                   <p class="text-xs text-slate-400">Restart PHP & Nginx for your sites.</p>
+                </div>
+            </div>
+            <p class="text-sm text-slate-300 mb-6 leading-relaxed">
+                Useful if you've made manual config changes or if the site feels sluggish. This checks configuration syntax before reloading.
+            </p>
+            <button onclick="restartServices()"
+                class="w-full py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
+                <i data-lucide="power" class="w-5 h-5"></i>
+                Restart Services
+            </button>
+        </div>
+    </div>
+</div>
+
 <?php include 'layout/footer.php'; ?>
 
 <script>
-    // --- APPS LOGIC ---
-    async function openAppModal(app, appName) {
+    // --- UTILS ---
+    function getDomId() {
         let domList = "Available IDs:\n";
         <?php foreach ($domains as $d)
             echo "domList += \"{$d['id']}: {$d['domain']}\\n\";\n"; ?>
-        const domainId = prompt(`Install ${appName} to which domain? (Enter Domain ID)\n\n${domList}`);
+        return prompt(`Select Domain ID:\n\n${domList}`);
+    }
+
+    // --- TROUBLESHOOT LOGIC ---
+    async function fixWebsite() {
+        const did = getDomId();
+        if (!did) return;
+        
+        if(!confirm("This will attempt to fix permissions and clear caches for this domain. Continue?")) return;
+
+        const fd = new FormData();
+        fd.append('ajax_action', 'fix_website');
+        fd.append('domain_id', did);
+        
+        showToast('info', 'Diagnosing...', 'Applying fixes...');
+        try {
+            await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            showToast('success', 'Fixes Applied', 'Check your website now.', 5000);
+        } catch(e) { showToast('error', 'Error', 'Failed to apply fixes.'); }
+    }
+
+    async function restartServices() {
+        const did = getDomId();
+        if (!did) return;
+
+        const fd = new FormData();
+        fd.append('ajax_action', 'restart_services');
+        fd.append('domain_id', did);
+        
+        showToast('info', 'Restarting...', 'Reloading services...');
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'Reloaded', 'Services restarted successfully.');
+    }
+
+
+    // --- APPS LOGIC ---
+    async function openAppModal(app, appName) {
+        const domainId = getDomId(); // Reuse
         if (!domainId) return;
 
         if (!confirm(`WARNING: This will OVERWRITE existing content in the public_html folder.\n\nAre you sure you want to install ${appName}?`)) return;
@@ -470,6 +570,10 @@ include 'layout/header.php';
         loadSSH();
     }
 
+    // Removed simple fixPerms as it is now in Troubleshooting tab with domain selector logic if we wanted, 
+    // but the Security tab one was for the whole account.
+    // I will leave the one in Security tab calling separate function or reuse existing simple one?
+    // The previous one was:
     async function fixPerms() {
         if (!confirm('This will reset file permissions for your entire account. Continue?')) return;
         const fd = new FormData();

@@ -60,6 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             border: 1px solid rgba(48, 54, 61, 0.8);
             box-shadow: 0 0 0 1px rgba(48, 54, 61, 0.4), 0 20px 40px -10px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(12px);
+            padding-top: 60px;
+            padding-bottom: 60px;
         }
 
         .input-field {
