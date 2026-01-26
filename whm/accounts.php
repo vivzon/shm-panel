@@ -193,7 +193,7 @@ $per_page = 10;
 $offset = ($page - 1) * $per_page;
 
 // Count Total
-$total_clients = $pdo->query("SELECT COUNT(*) FROM clients")->fetchColumn();
+$total_clients = $pdo->query("SELECT COUNT(*) FROM domains")->fetchColumn();
 $total_pages = ceil($total_clients / $per_page);
 
 // Fetch Clients

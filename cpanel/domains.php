@@ -294,7 +294,7 @@ $offset = ($page - 1) * $per_page;
 
 // Count Total
 $total_domains = $pdo->query("SELECT COUNT(*) FROM domains WHERE client_id = $cid")->fetchColumn();
-$total_pages = ceil($total_domains / $per_page);
+$total_pages = ceil($total_domains / $per_page) + 1;
 
 $domains = $pdo->query("
     SELECT d.*, 
