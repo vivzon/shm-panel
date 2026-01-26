@@ -551,17 +551,18 @@ CONF
         APP=$3
         DOM=$4
         
-        # Get User Info for Domain from DB to ensure we get the CORRECT docroot
-        read USER PHP_VER DOCROOT <<< $(mysql -N -s -e "SELECT c.username, d.php_version, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" $DB_NAME)
+        # Get User Info for Domain
+        read USER PHP_VER <<< $(mysql -N -s -e "SELECT c.username, d.php_version FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" $DB_NAME)
         
-        # Fallback if DOCROOT is empty (should not happen if DB is consistent, but safety)
-        if [ -z "$DOCROOT" ]; then
-             DOCROOT="/var/www/clients/$USER/public_html"
+        # Determine DOCROOT intelligently (Match vhost-tool logic)
+        POSSIBLE_ROOT="/var/www/clients/$USER/domains/$DOM/public_html"
+        if [ -d "$POSSIBLE_ROOT" ]; then
+            DOCROOT="$POSSIBLE_ROOT"
+        else
+            DOCROOT="/var/www/clients/$USER/public_html"
         fi
 
         # Determine Project Root (Parent of public_html)
-        # e.g. /var/www/clients/user/public_html -> /var/www/clients/user
-        # e.g. /var/www/clients/user/domains/dom/public_html -> /var/www/clients/user/domains/dom
         PROJECT_ROOT=$(dirname "$DOCROOT")
 
         TMP="/tmp/install_$USER"
