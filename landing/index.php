@@ -251,7 +251,7 @@ $brandName = get_branding();
     <!-- Footer -->
     <footer class="border-t border-white/5 bg-[#01030b] pt-20 pb-10">
         <div class="max-w-7xl mx-auto px-6">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+            <div class="flex flex-col md:flex-row justify-content-center items-center gap-6 mb-12">
                 <div class="flex items-center gap-3">
                     <div class="bg-slate-800 p-2 rounded-lg">
                         <i data-lucide="cloud" class="w-6 h-6 text-white"></i>
