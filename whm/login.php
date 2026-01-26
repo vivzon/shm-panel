@@ -34,15 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
-        :root {
-            --theme-color: #6366f1;
-        }
-
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #000000;
+            background: #010409;
             overflow: hidden;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
         }
@@ -51,246 +48,111 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-family: 'Outfit', sans-serif;
         }
 
-        /* Ambient Glows */
         .glow-bg {
             position: absolute;
             inset: 0;
-            overflow: hidden;
             z-index: 0;
-            background: #020617;
+            background: radial-gradient(circle at 50% 50%, rgba(29, 78, 216, 0.15), rgba(0, 0, 0, 0));
         }
 
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.4;
-            animation: orbFloat 20s infinite ease-in-out;
+        .glass-card {
+            background: rgba(13, 17, 23, 0.8);
+            border: 1px solid rgba(48, 54, 61, 0.8);
+            box-shadow: 0 0 0 1px rgba(48, 54, 61, 0.4), 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(12px);
         }
 
-        .orb-1 {
-            width: 50vw;
-            height: 50vw;
-            background: #4f46e5;
-            top: -10%;
-            left: -10%;
-            animation-delay: 0s;
-        }
-
-        .orb-2 {
-            width: 40vw;
-            height: 40vw;
-            background: #ec4899;
-            bottom: -10%;
-            right: -10%;
-            animation-delay: -5s;
-        }
-
-        .orb-3 {
-            width: 20vw;
-            height: 20vw;
-            background: #06b6d4;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: -10s;
-        }
-
-        @keyframes orbFloat {
-
-            0%,
-            100% {
-                transform: translate(0, 0) scale(1);
-            }
-
-            33% {
-                transform: translate(30px, -50px) scale(1.1);
-            }
-
-            66% {
-                transform: translate(-20px, 20px) scale(0.9);
-            }
-        }
-
-        /* Glass Panel */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow:
-                0 0 0 1px rgba(255, 255, 255, 0.05),
-                0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                inset 0 0 40px rgba(255, 255, 255, 0.02);
-        }
-
-        /* Inputs */
         .input-field {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(1, 4, 9, 0.6);
+            border: 1px solid #30363d;
+            transition: all 0.2s;
         }
 
         .input-field:focus-within {
-            background: rgba(15, 23, 42, 0.8);
-            border-color: #6366f1;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
 
-        /* Button Glow */
-        .btn-glow {
-            position: relative;
-            overflow: hidden;
+        .btn-primary {
+            background: #2563eb;
+            transition: all 0.2s;
         }
 
-        .btn-glow::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
-            transform: scale(0);
-            transition: transform 0.6s ease-out;
-            pointer-events: none;
+        .btn-primary:hover {
+            background: #1d4ed8;
         }
 
-        .btn-glow:hover::before {
-            transform: scale(1);
-        }
-
-        /* Loading */
-        .loading span {
-            opacity: 0;
-        }
-
-        .loading svg {
-            display: none;
-        }
-
-        .loading::after {
-            content: "";
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid currentColor;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        @keyframes spin {
-            to {
-                transform: translate(-50%, -50%) rotate(360deg);
-            }
+        .checkbox-wrapper input:checked {
+            background-color: white;
+            border-color: white;
         }
     </style>
 </head>
 
-<body class="selection:bg-indigo-500/30 selection:text-indigo-200">
+<body class="bg-[#010409] text-white">
 
-    <!-- Background -->
-    <div class="glow-bg">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-        <!-- Noise Overlay -->
-        <div class="absolute inset-0 opacity-[0.15]"
-            style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');">
-        </div>
-    </div>
+    <div class="glow-bg"></div>
 
-    <!-- Main Card -->
-    <div class="w-full max-w-[440px] px-6 relative z-10">
+    <div class="w-full max-w-[400px] z-10 relative">
+        <div class="glass-card rounded-3xl p-8 md:p-10">
 
-        <!-- Logo Area -->
-        <div class="text-center mb-8 flex flex-col items-center">
-            <div
-                class="h-16 w-16 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-6 group cursor-pointer transition-transform hover:rotate-3 hover:scale-105">
-                <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
-            </div>
-
-            <h1 class="text-3xl font-bold text-white font-heading tracking-tight mb-2">
-                SHM <span class="text-indigo-400">Admin</span>
-            </h1>
-            <p class="text-slate-400 font-medium text-sm">Use your master credentials to access the console</p>
-        </div>
-
-        <div class="glass-panel p-1 rounded-3xl">
-            <div class="bg-slate-950/40 rounded-[22px] p-8 md:p-10 backdrop-blur-sm">
-
-                <?php if (isset($error)): ?>
-                    <div
-                        class="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-center gap-3 text-red-400 text-xs font-bold animate-bounce-short">
-                        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
-                        <?= htmlspecialchars($error) ?>
-                    </div>
-                <?php endif; ?>
-
-                <form method="POST" class="space-y-6"
-                    onsubmit="document.getElementById('btn-submit').classList.add('loading')">
-
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Username</label>
-                        <div
-                            class="input-field rounded-xl flex items-center px-4 py-3 gap-3 focus-within:ring-2 focus-within:ring-indigo-500/20">
-                            <i data-lucide="user" class="w-5 h-5 text-slate-500"></i>
-                            <input name="u" type="text" required placeholder="admin" autocomplete="off"
-                                class="bg-transparent border-none outline-none text-sm text-white placeholder-slate-600 w-full">
-                        </div>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
-                        <div
-                            class="input-field rounded-xl flex items-center px-4 py-3 gap-3 focus-within:ring-2 focus-within:ring-indigo-500/20 relative">
-                            <i data-lucide="lock" class="w-5 h-5 text-slate-500"></i>
-                            <input name="p" id="pass-input" type="password" required placeholder="••••••••"
-                                class="bg-transparent border-none outline-none text-sm text-white placeholder-slate-600 w-full pr-8">
-
-                            <button type="button" onclick="togglePass()"
-                                class="absolute right-4 text-slate-500 hover:text-white transition focus:outline-none">
-                                <i data-lucide="eye" id="eye-icon" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <button type="submit" id="btn-submit"
-                        class="btn-glow w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-600/20 transition-all transform hover:-translate-y-0.5 mt-2 flex items-center justify-center gap-2 text-sm uppercase tracking-wide">
-                        <span>Authenticate</span>
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </button>
-
-                </form>
-
-                <div class="mt-8 pt-6 border-t border-slate-800/50 text-center">
-                    <p class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-                        Protected System • v5.0 Stable
-                    </p>
+            <div class="flex flex-col items-center text-center mb-8">
+                <div
+                    class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
+                    <i data-lucide="shield" class="w-8 h-8 text-white fill-current"></i>
                 </div>
+                <h1 class="text-2xl font-bold font-heading mb-2">SHM Admin</h1>
+                <p class="text-slate-400 text-xs">Use your master credentials to access the console</p>
             </div>
+
+            <?php if (isset($error)): ?>
+                <div
+                    class="mb-6 bg-red-900/20 border border-red-900/50 rounded-lg p-3 text-center text-red-400 text-xs font-bold">
+                    <?= htmlspecialchars($error) ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" class="space-y-5">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400">Username or Email</label>
+                    <div class="input-field rounded-xl px-4 py-3">
+                        <input name="u" type="text" required placeholder="Enter your username"
+                            class="bg-transparent border-none outline-none text-sm text-white placeholder-slate-600 w-full font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-400">Password</label>
+                    <div class="input-field rounded-xl px-4 py-3">
+                        <input name="p" type="password" required placeholder="Enter your password"
+                            class="bg-transparent border-none outline-none text-sm text-white placeholder-slate-600 w-full font-medium">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-xs mt-2">
+                    <label
+                        class="flex items-center gap-2 cursor-pointer text-slate-400 hover:text-slate-300 transition">
+                        <input type="checkbox"
+                            class="rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-0 w-3 h-3">
+                        Remember me
+                    </label>
+                    <a href="#" class="text-blue-500 hover:text-blue-400 font-bold">Forgot password?</a>
+                </div>
+
+                <button type="submit"
+                    class="btn-primary w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm mt-6 shadow-lg shadow-blue-600/20">
+                    Sign In <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </form>
         </div>
 
+        <p class="text-center text-[10px] text-slate-600 mt-8 font-medium">
+            &copy; 2026 Webguruindia. Secure Access.
+        </p>
     </div>
 
     <script>
         lucide.createIcons();
-
-        function togglePass() {
-            const inp = document.getElementById('pass-input');
-            const icon = document.getElementById('eye-icon');
-            if (inp.type === "password") {
-                inp.type = "text";
-                icon.setAttribute('data-lucide', 'eye-off');
-            } else {
-                inp.type = "password";
-                icon.setAttribute('data-lucide', 'eye');
-            }
-            lucide.createIcons();
-        }
     </script>
 </body>
 
