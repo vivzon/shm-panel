@@ -227,12 +227,20 @@ for client_dir in /var/www/clients/*; do
             
             # Smart Perms for WP/Public HTML
             find "$client_dir/domains" -mindepth 2 -maxdepth 2 -name "public_html" | while read WEBROOT; do
+                echo " -> Fixing Webroot: $WEBROOT"
                 # 1. Base Perms (775 = User & Group can write)
                 chmod 775 "$WEBROOT"
                 
                 # 2. Fix wp-content if exists
                 if [ -d "$WEBROOT/wp-content" ]; then
                     chmod -R 775 "$WEBROOT/wp-content"
+                    
+                    # 3. Special Case: Uploads folder should be owned by www-data to ensure writing works
+                    if [ -d "$WEBROOT/wp-content/uploads" ]; then
+                        echo "    -> Fixing WordPress Uploads permissions..."
+                        chown -R www-data:www-data "$WEBROOT/wp-content/uploads"
+                        chmod -R 775 "$WEBROOT/wp-content/uploads"
+                    fi
                 fi
             done
         fi
