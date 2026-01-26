@@ -1,0 +1,66 @@
+# ----------------------------------------------------------------------
+# SHM Panel - cPanel .htaccess Configuration
+# ----------------------------------------------------------------------
+
+# 1. Security & Headers
+<IfModule mod_headers.c>
+    # Protect against clickjacking
+    Header set X-Frame-Options "SAMEORIGIN"
+    # Protect against XSS
+    Header set X-XSS-Protection "1; mode=block"
+    # Protect against content sniffing
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
+
+# Block access to hidden files/directories (except .well-known for SSL)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} "!(^|/)\.well-known/([^./]+./?)+$" [NC]
+    RewriteCond %{SCRIPT_FILENAME} -d [OR]
+    RewriteCond %{SCRIPT_FILENAME} -f
+    RewriteRule "(^|/)\." - [F]
+</IfModule>
+
+# Disable Directory Browsing
+Options -Indexes
+
+# 2. Performance (Gzip/Deflate)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json application/x-javascript image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+    ExpiresByType text/html "access plus 0 seconds"
+    ExpiresByType text/xml "access plus 0 seconds"
+    ExpiresByType application/json "access plus 0 seconds"
+</IfModule>
+
+# 3. Routing (Front Controller)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # RewriteBase / # Adjust if cPanel is in a subdirectory like /cpanel
+
+    # Force HTTPS (Optional - dependent on Server Config)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Handle Static Files (Existing files/dirs are served directly)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Route everything else to index.php
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# 4. PHP Settings (Overrides for Apache/mod_php)
+# Note: These may be ignored if running PHP-FPM, use .user.ini instead.
+<IfModule mod_php.c>
+    php_value upload_max_filesize 2048M
+    php_value post_max_size 2048M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>

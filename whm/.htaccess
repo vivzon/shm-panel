@@ -1,0 +1,45 @@
+# ----------------------------------------------------------------------
+# SHM Panel - WHM .htaccess Configuration
+# ----------------------------------------------------------------------
+
+# 1. Security & Headers
+<IfModule mod_headers.c>
+    # Protect against clickjacking
+    Header set X-Frame-Options "SAMEORIGIN"
+    # Strict Transport Security (HSTS)
+    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+</IfModule>
+
+# Block access to hidden files
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} "!(^|/)\.well-known/([^./]+./?)+$" [NC]
+    RewriteRule "(^|/)\." - [F]
+</IfModule>
+
+Options -Indexes
+
+# 2. Performance
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json
+</IfModule>
+
+# 3. Routing
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Static Files check
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Route to index.php
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# 4. PHP Limits
+<IfModule mod_php.c>
+    php_value upload_max_filesize 2048M
+    php_value post_max_size 2048M
+    php_value memory_limit 512M
+    php_value max_execution_time 600
+</IfModule>
