@@ -100,8 +100,8 @@ listen.group = www-data
 pm = ondemand
 pm.max_children = 5
 php_admin_value[open_basedir] = /var/www/clients/$USER:/tmp
-php_admin_value[upload_max_filesize] = 2048M
-php_admin_value[post_max_size] = 2048M
+php_value[upload_max_filesize] = 2048M
+php_value[post_max_size] = 2048M
 PHP
 PHP
 
