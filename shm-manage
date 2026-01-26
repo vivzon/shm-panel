@@ -428,14 +428,13 @@ ZONE
         SUB=$2
         if [ "$SUB" == "sync" ]; then
             # $3: domain_id
-            read DOM USER PHP_VER SSL <<< $(mysql -N -s -e "SELECT d.domain, c.username, d.php_version, d.ssl_active FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$3" $DB_NAME)
+            read DOM USER PHP_VER SSL DOCROOT_DB <<< $(mysql -N -s -e "SELECT d.domain, c.username, d.php_version, d.ssl_active, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$3" $DB_NAME)
             
             # Determine DOCROOT intelligently
-            # Check if it is a secondary domain
-            POSSIBLE_ROOT="/var/www/clients/$USER/domains/$DOM/public_html"
-            if [ -d "$POSSIBLE_ROOT" ]; then
-                DOCROOT="$POSSIBLE_ROOT"
+            if [ ! -z "$DOCROOT_DB" ]; then
+                DOCROOT="$DOCROOT_DB"
             else
+                # Fallback for old records without docroot in DB (assume main account)
                 DOCROOT="/var/www/clients/$USER/public_html"
             fi
             
@@ -555,13 +554,12 @@ CONF
         APP=$3
         DOM=$4
         
-        # Get User Info for Domain
-        read USER PHP_VER SSL <<< $(mysql -N -s -e "SELECT c.username, d.php_version, d.ssl_active FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" $DB_NAME)
+        # Get User Info for Domain and DocRoot
+        read USER PHP_VER SSL DOCROOT_DB <<< $(mysql -N -s -e "SELECT c.username, d.php_version, d.ssl_active, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" $DB_NAME)
         
-        # Determine DOCROOT intelligently (Match vhost-tool logic)
-        POSSIBLE_ROOT="/var/www/clients/$USER/domains/$DOM/public_html"
-        if [ -d "$POSSIBLE_ROOT" ]; then
-            DOCROOT="$POSSIBLE_ROOT"
+        # Determine DOCROOT from DB
+        if [ ! -z "$DOCROOT_DB" ]; then
+            DOCROOT="$DOCROOT_DB"
         else
             DOCROOT="/var/www/clients/$USER/public_html"
         fi

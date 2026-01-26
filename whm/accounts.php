@@ -50,18 +50,20 @@ if (isset($_POST['ajax_action'])) {
                 // Check Username
                 $chkUser = $pdo->prepare("SELECT id FROM clients WHERE username = ?");
                 $chkUser->execute([$u]);
-                if ($chkUser->fetch()) throw new Exception("Username '$u' already exists.");
+                if ($chkUser->fetch())
+                    throw new Exception("Username '$u' already exists.");
 
                 // Check Domain
                 $chkDom = $pdo->prepare("SELECT id FROM domains WHERE domain = ?");
                 $chkDom->execute([$d]);
-                if ($chkDom->fetch()) throw new Exception("Domain '$d' already exists.");
+                if ($chkDom->fetch())
+                    throw new Exception("Domain '$d' already exists.");
 
                 $pdo->beginTransaction();
                 $hash = password_hash($_POST['pass'], PASSWORD_BCRYPT);
                 $pdo->prepare("INSERT INTO clients (username, email, password, package_id) VALUES (?,?,?,?)")->execute([$u, $e, $hash, $pkg]);
                 $cid = $pdo->lastInsertId();
-                $pdo->prepare("INSERT INTO domains (client_id, domain) VALUES (?,?)")->execute([$cid, $d]);
+                $pdo->prepare("INSERT INTO domains (client_id, domain, document_root) VALUES (?,?,?)")->execute([$cid, $d, "/var/www/clients/$u/public_html"]);
                 $pdo->prepare("INSERT INTO mail_domains (domain) VALUES (?)")->execute([$d]);
 
                 // Auto-Generate DNS Records
@@ -185,7 +187,8 @@ if (isset($_POST['ajax_action'])) {
 
 // Pagination
 $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-if ($page < 1) $page = 1;
+if ($page < 1)
+    $page = 1;
 $per_page = 10;
 $offset = ($page - 1) * $per_page;
 
