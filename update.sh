@@ -32,6 +32,13 @@ if ! dpkg -l | grep -q pure-ftpd-mysql; then
     apt-get install -y pure-ftpd-mysql
 fi
 
+# Check for mysql client
+if ! command -v mysql &> /dev/null; then
+    echo "Installing mariadb-client..."
+    apt-get update -qq
+    apt-get install -y mariadb-client
+fi
+
 # 1. Update Backend Engine
 if [ -f "shm-manage" ]; then
     echo -e "${GREEN} -> Updating shm-manage...${NC}"
@@ -44,21 +51,25 @@ echo -e "${GREEN} -> Updating Frontend Files...${NC}"
 
 # WHM
 if [ -d "whm" ]; then
+    mkdir -p /var/www/panel/whm
     cp -r whm/* /var/www/panel/whm/
 fi
 
 # cPanel
 if [ -d "cpanel" ]; then
+    mkdir -p /var/www/panel/cpanel
     cp -r cpanel/* /var/www/panel/cpanel/
 fi
 
 # Landing
 if [ -d "landing" ]; then
+    mkdir -p /var/www/panel/landing
     cp -r landing/* /var/www/panel/landing/
 fi
 
 # Shared (Attempt smart update)
 if [ -d "shared" ]; then
+    mkdir -p /var/www/panel/shared
     if [ -f "/var/www/panel/shared/config.php" ]; then
         # If config exists, try to preserve DB pass
         OLD_PASS=$(grep "\$db_pass =" /var/www/panel/shared/config.php | cut -d "'" -f 2)
@@ -104,20 +115,22 @@ if [ -f "install.php" ]; then
     
     # FIX: Ensure missing columns exist (for existing installs)
     # ftp_users: passwd
-    COL_EXIST=$(mysql -N -s -e "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='ftp_users' AND COLUMN_NAME='passwd'")
+    COL_EXIST=$(mysql -N -s -e "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='ftp_users' AND COLUMN_NAME='passwd'" 2>/dev/null)
+    COL_EXIST=${COL_EXIST:-0}
     if [ "$COL_EXIST" -eq 0 ]; then
         echo "Fixing ftp_users schema (adding passwd)..."
-        mysql $DB_NAME -e "ALTER TABLE ftp_users ADD COLUMN passwd VARCHAR(128) AFTER userid;"
+        mysql $DB_NAME -e "ALTER TABLE ftp_users ADD COLUMN passwd VARCHAR(128) AFTER userid;" 2>/dev/null
     fi
 
     # client_databases: domain_id
     # Create table if not exists first (it was missing from previous update script)
     mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS client_databases (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain_id INT, db_name VARCHAR(64), db_user VARCHAR(32), db_pass VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);" 2>/dev/null
     
-    COL_EXIST=$(mysql -N -s -e "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='client_databases' AND COLUMN_NAME='domain_id'")
+    COL_EXIST=$(mysql -N -s -e "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='client_databases' AND COLUMN_NAME='domain_id'" 2>/dev/null)
+    COL_EXIST=${COL_EXIST:-0}
     if [ "$COL_EXIST" -eq 0 ]; then
         echo "Fixing client_databases schema (adding domain_id)..."
-        mysql $DB_NAME -e "ALTER TABLE client_databases ADD COLUMN domain_id INT AFTER client_id;"
+        mysql $DB_NAME -e "ALTER TABLE client_databases ADD COLUMN domain_id INT AFTER client_id;" 2>/dev/null
     fi
 
     # 3.1 Configure Pure-FTPd MySQL
@@ -165,10 +178,12 @@ fi
 
 # 4. Fix Permissions
 echo -e "${GREEN} -> Applying Permissions...${NC}"
+mkdir -p /var/www/panel /var/www/apps
 chown -R www-data:www-data /var/www/panel /var/www/apps
 chmod -R 755 /var/www/panel
 
 # 5. Fix Nginx Default Server (Prevent WHM Hijacking)
+mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
 if [ ! -f "/etc/nginx/sites-available/000-default" ]; then
     echo -e "${GREEN} -> Installing Default Nginx Block...${NC}"
     cat > /etc/nginx/sites-available/000-default << DEFAULT
@@ -238,11 +253,17 @@ check_and_reload() {
         fi
     fi
 
-    if systemctl is-active --quiet "$service"; then
-        systemctl reload "$service"
+    # Silent check if service exists
+    if systemctl list-units --full -all | grep -Fq "$service.service"; then
+        if systemctl is-active --quiet "$service"; then
+            systemctl reload "$service"
+        else
+            echo "Service $service is not active. Attempting to start..."
+            systemctl start "$service"
+        fi
     else
-        echo "Service $service is not active. Attempting to start..."
-        systemctl start "$service"
+         echo -e "\033[0;33m[WARNING] Service $service not found. Skipping reload.\033[0m"
+         return 0
     fi
 
     if ! systemctl is-active --quiet "$service"; then
