@@ -426,6 +426,15 @@ ZONE
             # $3: domain_id
             read DOM USER PHP_VER SSL <<< $(mysql -N -s -e "SELECT d.domain, c.username, d.php_version, d.ssl_active FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$3" $DB_NAME)
             
+            # Determine DOCROOT intelligently
+            # Check if it is a secondary domain
+            POSSIBLE_ROOT="/var/www/clients/$USER/domains/$DOM/public_html"
+            if [ -d "$POSSIBLE_ROOT" ]; then
+                DOCROOT="$POSSIBLE_ROOT"
+            else
+                DOCROOT="/var/www/clients/$USER/public_html"
+            fi
+            
             VHOST="/etc/nginx/sites-available/$DOM"
             
             # PHP Sock
@@ -448,7 +457,7 @@ server {
 server {
     listen 443 ssl http2;
     server_name $DOM www.$DOM;
-    root /var/www/clients/$USER/public_html;
+    root $DOCROOT;
     index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
@@ -478,7 +487,7 @@ CONF
 server {
     listen 80;
     server_name $DOM www.$DOM;
-    root /var/www/clients/$USER/public_html;
+    root $DOCROOT;
     index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
