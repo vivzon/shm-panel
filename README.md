@@ -51,35 +51,84 @@
 
 ---
 
-## 💿 Installation
+## 💿 Deployment Guide (Step-by-Step)
 
-### Method 1: Automated Installer (Recommended)
+Follow this guide to deploy SHM Panel on a production server.
 
-1.  **Prepare the Server**
-    Login as `root`.
-    ```bash
-    sudo -i
-    ```
+### 1. Prerequisites
+- **Server**: A fresh VPS or Dedicated Server (Ubuntu 20.04/22.04 or Debian 11/12).
+- **Public IP**: A static IPv4 address (e.g., `192.0.2.1`).
+- **Domain**: A registered domain name (e.g., `example.com`) pointed to your server's IP.
 
-2.  **Download Source**
-    Upload the project files to `/root/shm-panel` or clone your repository.
-    ```bash
-    git clone https://github.com/vivzon/shm-panel.git /root/shm-panel
-    cd /root/shm-panel
-    ```
+### 2. DNS Configuration (Before You Start)
+Set up the following A records at your domain registrar (Cloudflare/Namecheap/GoDaddy):
+```text
+@           IN A   <YOUR_SERVER_IP>
+www         IN A   <YOUR_SERVER_IP>
+admin       IN A   <YOUR_SERVER_IP>
+client      IN A   <YOUR_SERVER_IP>
+webmail     IN A   <YOUR_SERVER_IP>
+ns1         IN A   <YOUR_SERVER_IP>
+ns2         IN A   <YOUR_SERVER_IP>
+```
 
-3.  **Run Installer**
-    ```bash
-    chmod +x install.sh
-    ./install.sh
-    ```
-    *Follow the on-screen wizard to set your Primary Domain and Admin Email.*
+### 3. Server Installation
+Login to your server via SSH as `root`.
 
-### Method 2: Web Installer (Alternative/Recovery)
-If you need to re-initialize the database or are running in a constrained local environment (e.g., using XAMPP/WAMP for frontend dev), use `install.php`.
-1.  Navigate to `/install.php` in your browser.
-2.  Enter Database Credentials.
-3.  Click **Install**.
+#### Step A: Download the Installer
+Clone the repository to your root directory.
+```bash
+cd /root
+git clone https://github.com/vivzon/shm-panel.git
+cd shm-panel
+```
+
+#### Step B: Run the Deployment Script
+Make the script executable and run it. The script will handle all dependencies, database setup, and web server configuration.
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+#### Step C: Configuration Wizard
+The script will ask for:
+1.  **Main Domain**: Enter your primary domain (e.g., `example.com`).
+2.  **Admin Email**: Used for Let's Encrypt SSL and alerts.
+
+*The installation takes some minutes. Do not close the terminal.*
+
+### 4. Post-Installation Verification
+
+Once the "SHM PANEL INSTALLED SUCCESSFULLY" message appears:
+
+1.  **Access Admin Panel**: Go to `http://admin.example.com`
+    -   Login with default credentials (see below).
+2.  **Verify Nginx**:
+    -   Run `systemctl status nginx` to ensure it's active.
+    -   If sites don't load, check the default catch-all: `ls -l /etc/nginx/sites-enabled/000-default`.
+3.  **Secure your Install**:
+    -   Change the admin password immediately inside the WHM.
+    -   SSH into your server and delete the installer logs if sensitive data is visible.
+
+### ❓ Troubleshooting
+
+**Issue: All domains load the Admin Login page.**
+*Fix*: This means the default server block is missing. Run:
+```bash
+ln -s /etc/nginx/sites-available/000-default /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+```
+
+**Issue: Nginx fails to reload.**
+*Fix*: Check if a client deleted their log directory.
+```bash
+# Force restore log directories
+shm-manage fix-permissions <username>
+```
+
+**Issue: PHP Upload Limit too low.**
+*Fix*: Adjust limits in the Admin Panel -> PHP Settings, or manually edit:
+`/etc/php/8.2/fpm/pool.d/<user>.conf`
 
 ---
 
