@@ -343,8 +343,26 @@ declare -A SUBDOMAINS=(
     ["phpmyadmin.$MAIN_DOMAIN"]="/var/www/apps/phpmyadmin"
 )
 
-# Remove Default
+# Remove Default provided by OS
 rm -f /etc/nginx/sites-enabled/default
+
+# Create Safe Default catch-all (Prevents WHM Hijacking)
+cat > /etc/nginx/sites-available/000-default << DEFAULT
+server {
+    listen 80 default_server;
+    server_name _;
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        return 404;
+    }
+    
+    # Optional: Serve a generic "Site Not Found" page instead of 404
+    # error_page 404 /404.html;
+}
+DEFAULT
+ln -sf /etc/nginx/sites-available/000-default /etc/nginx/sites-enabled/
 
 for sub in "${!SUBDOMAINS[@]}"; do
     cat > /etc/nginx/sites-available/$sub << CONF

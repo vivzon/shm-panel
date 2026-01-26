@@ -170,15 +170,41 @@ chmod -R 755 /var/www/panel
 
 # 5. Restart Services
 echo -e "${GREEN} -> Reloading Services...${NC}"
-systemctl reload nginx
-systemctl reload php8.2-fpm
+
+check_and_reload() {
+    local service=$1
+    if systemctl is-active --quiet "$service"; then
+        systemctl reload "$service"
+    else
+        echo "Service $service is not active. Attempting to start..."
+        systemctl start "$service"
+    fi
+
+    if ! systemctl is-active --quiet "$service"; then
+        echo -e "\033[0;31m[ERROR] Failed to reload/start $service! Check status with: systemctl status $service\033[0m"
+        return 1
+    fi
+    return 0
+}
+
+ERRORS=0
+
+check_and_reload "nginx" || ERRORS=$((ERRORS+1))
+check_and_reload "php8.2-fpm" || ERRORS=$((ERRORS+1))
+
 if systemctl is-active --quiet pure-ftpd-mysql; then
     systemctl restart pure-ftpd-mysql
 elif systemctl is-active --quiet pure-ftpd; then
     systemctl restart pure-ftpd
 fi
-systemctl reload php8.2-fpm
 
-echo -e "${GREEN}================================================"
-echo -e "   UPDATE COMPLETED SUCCESSFULLY"
-echo -e "================================================${NC}"
+if [ $ERRORS -eq 0 ]; then
+    echo -e "${GREEN}================================================"
+    echo -e "   UPDATE COMPLETED SUCCESSFULLY"
+    echo -e "================================================${NC}"
+else
+    echo -e "\033[0;31m================================================"
+    echo -e "   UPDATE COMPLETED WITH ERRORS"
+    echo -e "================================================${NC}"
+    exit 1
+fi

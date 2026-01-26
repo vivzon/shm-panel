@@ -61,10 +61,31 @@ EOF
     chmod 755 "\$DIR/index.html"
 }
 
-# Helper: Safe PHP Reload (Prevents 502)
 safe_reload_php() {
     # Sleep 5s to allow PHP script to finish request and close connection
     nohup bash -c "sleep 5; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
+}
+
+# Helper: Safe Nginx Reload (Prevents Crash)
+safe_nginx_reload() {
+    # 1. Verify Config
+    if ! nginx -t > /dev/null 2>&1; then
+        log_action "[CRITICAL] Nginx Config Check Failed! Aborting Reload."
+        return 1
+    fi
+
+    # 2. Verify Log Directories (Prevent Crash)
+    # Ensure current user's log dir exists if we are in a user context
+    if [ ! -z "$USER" ] && [ -d "/var/www/clients/$USER" ]; then
+        if [ ! -d "/var/www/clients/$USER/logs" ]; then
+            mkdir -p "/var/www/clients/$USER/logs"
+            chown "$USER:$USER" "/var/www/clients/$USER/logs"
+            chmod 755 "/var/www/clients/$USER/logs"
+            log_action "Restored missing log directory for $USER"
+        fi
+    fi
+
+    systemctl reload nginx
 }
 
 case "$1" in
@@ -80,7 +101,8 @@ case "$1" in
         
         # 1. System User
         useradd -m -d /var/www/clients/$USER -s /bin/bash $USER
-        mkdir -p /var/www/clients/$USER/{public_html,logs,tmp,mail}
+        # Create base structure including logs and domains container
+        mkdir -p /var/www/clients/$USER/{domains,logs,tmp,mail}
         chown -R $USER:$USER /var/www/clients/$USER
         
         # PERMISSION FIX: Allow www-data (File Manager) to write
@@ -106,17 +128,21 @@ PHP
 PHP
 
         # 3. Nginx VHost
+        # Correct DocRoot Structure: /var/www/clients/{user}/domains/{domain}/public_html
+        DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
+        mkdir -p "$DOCROOT"
+        
         cat > /etc/nginx/sites-available/$DOM << NGINX
 server {
     listen 80;
     server_name $DOM www.$DOM;
-    root /var/www/clients/$USER/public_html;
+    root $DOCROOT;
     index index.php index.html index.htm default.html;
     
     client_max_body_size 2048M;
 
-    access_log /var/www/clients/$USER/logs/access.log;
-    error_log /var/www/clients/$USER/logs/error.log;
+    access_log /var/www/clients/$USER/logs/$DOM.access.log;
+    error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
     location / {
         try_files \$uri \$uri/ /index.php?\$args;
@@ -129,10 +155,10 @@ server {
 }
 NGINX
         ln -s /etc/nginx/sites-available/$DOM /etc/nginx/sites-enabled/
-        systemctl reload nginx
+        safe_nginx_reload
 
         # 4. Default Index
-        create_default_index "/var/www/clients/\$USER/public_html" "\$DOM" "\$USER"
+        create_default_index "$DOCROOT" "\$DOM" "\$USER"
 
         # 5. Sync DNS (Generate Zone File)
         DOM_ID=$(mysql -N -s -e "SELECT id FROM domains WHERE domain='$DOM'" $DB_NAME)
@@ -166,8 +192,8 @@ NGINX
         # Remove User & Files
         userdel -r $USER
         
-        systemctl reload nginx
-        systemctl reload nginx
+        safe_nginx_reload
+        safe_nginx_reload
         safe_reload_php
         
         log_action "Deleted account: $USER"
@@ -193,8 +219,8 @@ server {
 
     client_max_body_size 2048M;
 
-    access_log /var/www/clients/$USER/logs/access.log;
-    error_log /var/www/clients/$USER/logs/error.log;
+    access_log /var/www/clients/$USER/logs/$DOM.access.log;
+    error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
     location / {
         try_files \$uri \$uri/ /index.php?\$args;
@@ -207,7 +233,7 @@ server {
 }
 NGINX
         ln -s /etc/nginx/sites-available/$DOM /etc/nginx/sites-enabled/
-        systemctl reload nginx
+        safe_nginx_reload
         
         log_action "Added Domain: $DOM for $USER"
         ;;
@@ -226,7 +252,7 @@ NGINX
             rm -rf $DOCROOT
         fi
         
-        systemctl reload nginx
+        safe_nginx_reload
         log_action "Deleted Domain: $DOM for $USER"
         ;;
 
@@ -248,7 +274,7 @@ NGINX
         # Kill processes
         pkill -u $USER
         
-        systemctl reload nginx
+        safe_nginx_reload
         nohup bash -c "sleep 1; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
         
         log_action "Suspended account: $USER"
@@ -269,7 +295,7 @@ NGINX
             mv /etc/php/8.2/fpm/pool.d/$USER.conf.disabled /etc/php/8.2/fpm/pool.d/$USER.conf
         fi
         
-        systemctl reload nginx
+        safe_nginx_reload
         nohup bash -c "sleep 1; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
         
         log_action "Unsuspended account: $USER"
@@ -470,8 +496,8 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    access_log /var/www/clients/$USER/logs/access.log;
-    error_log /var/www/clients/$USER/logs/error.log;
+    access_log /var/www/clients/$USER/logs/$DOM.access.log;
+    error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
     location / { try_files \$uri \$uri/ /index.php?\$args; }
 
@@ -495,8 +521,8 @@ server {
 
     client_max_body_size 2048M;
 
-    access_log /var/www/clients/$USER/logs/access.log;
-    error_log /var/www/clients/$USER/logs/error.log;
+    access_log /var/www/clients/$USER/logs/$DOM.access.log;
+    error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
     location / { try_files \$uri \$uri/ /index.php?\$args; }
 
@@ -525,7 +551,7 @@ CONF
                 systemctl reload php$PHP_VER-fpm
             fi
 
-            systemctl reload nginx
+            safe_nginx_reload
             log_action "Synced VHOST for $DOM (PHP $PHP_VER)"
         fi
         ;;
@@ -541,6 +567,8 @@ CONF
         # $2: op, $3: service
         if [ "$3" == "php8.2-fpm" ] && [ "$2" == "reload" ]; then
             safe_reload_php
+        elif [ "$3" == "nginx" ] && [ "$2" == "reload" ]; then
+            safe_nginx_reload
         else
             systemctl $2 $3
         fi
@@ -655,7 +683,7 @@ CONF
                     
                     # Update Nginx
                     sed -i "s|root $DOCROOT;|root $DOCROOT/public;|" /etc/nginx/sites-available/$DOM
-                    systemctl reload nginx
+                    safe_nginx_reload
                     
                     mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
                     log_action "Installed Laravel for $DOM"
@@ -682,7 +710,7 @@ CONF
                     
                     # Update Nginx
                     sed -i "s|root $DOCROOT;|root $DOCROOT/public;|" /etc/nginx/sites-available/$DOM
-                    systemctl reload nginx
+                    safe_nginx_reload
                     
                     mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
                     log_action "Installed CodeIgniter for $DOM"
@@ -708,7 +736,7 @@ CONF
                     
                     # Update Nginx
                     sed -i "s|root $DOCROOT;|root $DOCROOT/dist;|" /etc/nginx/sites-available/$DOM
-                    systemctl reload nginx
+                    safe_nginx_reload
                     
                     mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
                     log_action "Installed React for $DOM"
@@ -739,7 +767,7 @@ CONF
             # 4. Reset Nginx Root if needed (Revert to public_html)
             # We blindly reset it to standard public_html just in case
             sed -i "s|root /var/www/clients/$USER/public_html/.*;|root /var/www/clients/$USER/public_html;|" /etc/nginx/sites-available/$DOM
-            systemctl reload nginx
+            safe_nginx_reload
             
             log_action "Uninstallation Complete for $DOM"
         fi
