@@ -222,12 +222,12 @@ for client_dir in /var/www/clients/*; do
 
         # C. Domain Web Roots (Fix WordPress Permissions)
         if [ -d "$client_dir/domains" ]; then
-            # Fix Base Ownership
-            chown -R $USER:$USER "$client_dir/domains"
+            # Fix Base Ownership (User : Web Server Group)
+            chown -R $USER:www-data "$client_dir/domains"
             
             # Smart Perms for WP/Public HTML
             find "$client_dir/domains" -mindepth 2 -maxdepth 2 -name "public_html" | while read WEBROOT; do
-                # 1. Base Perms
+                # 1. Base Perms (775 = User & Group can write)
                 chmod 775 "$WEBROOT"
                 
                 # 2. Fix wp-content if exists
