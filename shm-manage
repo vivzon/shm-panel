@@ -556,7 +556,7 @@ CONF
         DOM=$4
         
         # Get User Info for Domain
-        read USER PHP_VER <<< $(mysql -N -s -e "SELECT c.username, d.php_version FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" $DB_NAME)
+        read USER PHP_VER SSL <<< $(mysql -N -s -e "SELECT c.username, d.php_version, d.ssl_active FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" $DB_NAME)
         
         # Determine DOCROOT intelligently (Match vhost-tool logic)
         POSSIBLE_ROOT="/var/www/clients/$USER/domains/$DOM/public_html"
@@ -609,6 +609,15 @@ CONF
                     sed -i "s/database_name_here/$DB_NAME_VAL/" $DOCROOT/wp-config.php
                     sed -i "s/username_here/$DB_USER_VAL/" $DOCROOT/wp-config.php
                     sed -i "s/password_here/$DB_PASS/" $DOCROOT/wp-config.php
+                    
+                    # Set Site URL
+                    if [ "$SSL" == "1" ]; then
+                        PROTOCOL="https"
+                    else
+                        PROTOCOL="http"
+                    fi
+                    echo "define('WP_SITEURL', '$PROTOCOL://$DOM');" >> $DOCROOT/wp-config.php
+                    echo "define('WP_HOME', '$PROTOCOL://$DOM');" >> $DOCROOT/wp-config.php
                     
                     # Salts (Optional but good)
                     # We skip for simplicity or add later
