@@ -186,19 +186,41 @@ DEFAULT
     ln -sf /etc/nginx/sites-available/000-default /etc/nginx/sites-enabled/
 fi
 
-# 6. Repair Log Directories
-echo -e "${GREEN} -> Verifying Log Directories...${NC}"
+# 6. Repair Client Permissions (Logs & Web Content)
+echo -e "${GREEN} -> Verifying Client Permissions...${NC}"
 # Iterate all client directories
 for client_dir in /var/www/clients/*; do
     if [ -d "$client_dir" ]; then
         USER=$(basename "$client_dir")
+        
+        # A. Status Log
+        echo "Processing user: $USER..."
+        
+        # B. Log Directory
         LOG_DIR="$client_dir/logs"
         if [ ! -d "$LOG_DIR" ]; then
-             echo "Restoring logs for $USER..."
+             echo " -> Restoring logs..."
              mkdir -p "$LOG_DIR"
         fi
         chown -R $USER:$USER "$LOG_DIR"
         chmod 755 "$LOG_DIR"
+
+        # C. Domain Web Roots (Fix WordPress Permissions)
+        if [ -d "$client_dir/domains" ]; then
+            # Fix Base Ownership
+            chown -R $USER:$USER "$client_dir/domains"
+            
+            # Smart Perms for WP/Public HTML
+            find "$client_dir/domains" -mindepth 2 -maxdepth 2 -name "public_html" | while read WEBROOT; do
+                # 1. Base Perms
+                chmod 775 "$WEBROOT"
+                
+                # 2. Fix wp-content if exists
+                if [ -d "$WEBROOT/wp-content" ]; then
+                    chmod -R 775 "$WEBROOT/wp-content"
+                fi
+            done
+        fi
     fi
 done
 

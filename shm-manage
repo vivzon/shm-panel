@@ -331,19 +331,42 @@ NGINX
     fix-permissions)
         # $2: user
         USER=$2
+        # Base Home
         HOME_DIR="/var/www/clients/$USER"
         
         if [ -d "$HOME_DIR" ]; then
-            # 1. Reset Ownership
+            log_action "Starting Permission Fix for $USER"
+            
+            # 1. Reset Ownership (Global) -> Force User Ownership
             chown -R $USER:$USER $HOME_DIR
             
             # 2. Reset Mode (775 for folders, 664 for files)
-            # Find directories and set to 775
-            find $HOME_DIR -type d -exec chmod 775 {} \;
-            # Find files and set to 664
-            find $HOME_DIR -type f -exec chmod 664 {} \;
+            find $HOME_DIR -type d -exec chmod 755 {} \;
+            find $HOME_DIR -type f -exec chmod 644 {} \;
             
-            # 3. Ensure www-data is in group (Redundant but safe)
+            # 3. Special Handling for Domain Public HTML (Allow Group Write for File Manager/www-data)
+            # Iterate domains
+            if [ -d "$HOME_DIR/domains" ]; then
+                find "$HOME_DIR/domains" -mindepth 2 -maxdepth 2 -name "public_html" | while read WEBROOT; do
+                    # Set 775/664 for Web Root to allow www-data (File Manager) access
+                    chmod 775 "$WEBROOT"
+                    find "$WEBROOT" -type d -exec chmod 775 {} \;
+                    find "$WEBROOT" -type f -exec chmod 664 {} \;
+                    
+                    # Ensure wp-content and uploads are writable by User (PHP)
+                    # (Already covered by chown above, but we ensure group is correct)
+                    if [ -d "$WEBROOT/wp-content" ]; then
+                         chmod -R 775 "$WEBROOT/wp-content"
+                    fi
+                done
+            fi
+
+            # 4. Logs Directory (Must be 755 for Nginx)
+            if [ -d "$HOME_DIR/logs" ]; then
+                chmod 755 "$HOME_DIR/logs"
+            fi
+            
+            # 5. Ensure www-data is in group (Redundant but confirms access)
             usermod -a -G $USER www-data
             
             log_action "Fixed Permissions for: $USER"
