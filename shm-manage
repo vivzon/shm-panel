@@ -7,6 +7,10 @@
 # It is called via sudo from the PHP frontend.
 # ==============================================================================
 
+# Exit on error with logging
+set -e
+
+# Configuration
 source /etc/shm/config.sh
 
 # Fallback Configuration
@@ -14,29 +18,118 @@ if [ -z "$ADMIN_EMAIL" ]; then
     ADMIN_EMAIL="admin@$(hostname -f)"
 fi
 
-# Helper: Log Action
-log_action() {    echo "[$(date)] $1" >> /var/log/shm-manage.log
+# Database name from config or default
+DB_NAME="${DB_NAME:-shm_panel}"
+
+# ------------------------------------------------------------------------------
+# HELPER FUNCTIONS
+# ------------------------------------------------------------------------------
+
+# Error handler
+handle_error() {
+    local exit_code=$?
+    local line=$1
+    local func=${2:-main}
+    
+    log_action "[ERROR] Failed at line $line in $func with exit code $exit_code"
+    echo "Error occurred. Check logs for details."
+    exit $exit_code
 }
 
-# Helper: Create Default Index
+# Set error trap
+trap 'handle_error $LINENO ${FUNCNAME[0]:-main}' ERR
+
+# Log Action
+log_action() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> /var/log/shm-manage.log
+}
+
+# Input Validation
+validate_input() {
+    local input="$1"
+    local type="$2"
+    
+    case "$type" in
+        username)
+            if ! [[ "$input" =~ ^[a-zA-Z0-9_-]{3,32}$ ]]; then
+                log_action "[VALIDATION] Invalid username: $input"
+                echo "Invalid username format (3-32 chars, alphanumeric, dash, underscore)"
+                exit 1
+            fi
+            ;;
+        domain)
+            if ! [[ "$input" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+                log_action "[VALIDATION] Invalid domain: $input"
+                echo "Invalid domain format"
+                exit 1
+            fi
+            ;;
+        email)
+            if ! [[ "$input" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
+                log_action "[VALIDATION] Invalid email: $input"
+                echo "Invalid email format"
+                exit 1
+            fi
+            ;;
+        db_name)
+            if ! [[ "$input" =~ ^[a-zA-Z0-9_]{1,64}$ ]]; then
+                log_action "[VALIDATION] Invalid database name: $input"
+                echo "Invalid database name (1-64 chars, alphanumeric and underscore)"
+                exit 1
+            fi
+            ;;
+        db_user)
+            if ! [[ "$input" =~ ^[a-zA-Z0-9_]{1,32}$ ]]; then
+                log_action "[VALIDATION] Invalid database user: $input"
+                echo "Invalid database user (1-32 chars, alphanumeric and underscore)"
+                exit 1
+            fi
+            ;;
+    esac
+}
+
+# Safe MySQL Query
+safe_mysql_query() {
+    local query="$1"
+    shift
+    local args=("$@")
+    
+    # Escape arguments for MySQL
+    for ((i=0; i<${#args[@]}; i++)); do
+        args[i]=$(mysql -N -s -e "SELECT QUOTE('${args[i]}')" | sed "s/^'//;s/'$//")
+    done
+    
+    # Build command
+    local cmd="mysql"
+    if [ -n "$DB_USER" ] && [ -n "$DB_PASS" ]; then
+        cmd="$cmd -u$DB_USER -p$DB_PASS"
+    fi
+    cmd="$cmd $DB_NAME -e"
+    
+    # Execute with printf to handle special characters
+    printf -v formatted_query "$query" "${args[@]}"
+    eval "$cmd \"$formatted_query\""
+}
+
+# Create Default Index Page
 create_default_index() {
-    local DIR=$1
-    local DOMNAME=$2
-    local OWNER=$3
+    local DIR="$1"
+    local DOMNAME="$2"
+    local OWNER="$3"
     
     # Do not overwrite if index.html exists
-    if [ -f "$DIR/index.html" ]; then
+    if [ -f "$DIR/index.html" ] || [ -f "$DIR/index.php" ]; then
         return
     fi
     
     # Create clean, responsive Coming Soon page
-    cat > "$DIR/index.html" <<EOF
+    cat > "$DIR/index.html" << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coming Soon | \$DOMNAME</title>
+    <title>Coming Soon | __DOMAIN__</title>
     <style>
         body { margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; color: #0f172a; display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; }
         .container { padding: 2rem; max-width: 600px; }
@@ -48,35 +141,38 @@ create_default_index() {
 <body>
     <div class="container">
         <h1>Website Under Construction</h1>
-        <p>The domain <strong>\$DOMNAME</strong> is successfully registered.<br>A new modern website is coming soon.</p>
+        <p>The domain <strong>__DOMAIN__</strong> is successfully registered.<br>A new modern website is coming soon.</p>
         <div class="badge">Powered by SHM Panel</div>
     </div>
 </body>
 </html>
 EOF
-
-    # Set Permissions (755 and User Ownership)
-    # Uses provided OWNER (usually the client) so they can edit it via FTP
-    chown \$OWNER:\$OWNER "\$DIR/index.html"
-    chmod 755 "\$DIR/index.html"
+    
+    # Replace placeholder
+    sed -i "s/__DOMAIN__/$DOMNAME/g" "$DIR/index.html"
+    
+    # Set Permissions (644 for files, 755 for directories)
+    chown "$OWNER:$OWNER" "$DIR/index.html"
+    chmod 644 "$DIR/index.html"
 }
 
+# Safe PHP-FPM Reload
 safe_reload_php() {
     # Sleep 5s to allow PHP script to finish request and close connection
     nohup bash -c "sleep 5; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
 }
 
-# Helper: Safe Nginx Reload (Prevents Crash)
+# Safe Nginx Reload (Prevents Crash)
 safe_nginx_reload() {
     # 1. Verify Config
     if ! nginx -t > /dev/null 2>&1; then
         log_action "[CRITICAL] Nginx Config Check Failed! Aborting Reload."
+        nginx -t  # Show actual error
         return 1
     fi
 
-    # 2. Verify Log Directories (Prevent Crash)
-    # Ensure current user's log dir exists if we are in a user context
-    if [ ! -z "$USER" ] && [ -d "/var/www/clients/$USER" ]; then
+    # 2. Verify Log Directories
+    if [ -n "$USER" ] && [ -d "/var/www/clients/$USER" ]; then
         if [ ! -d "/var/www/clients/$USER/logs" ]; then
             mkdir -p "/var/www/clients/$USER/logs"
             chown "$USER:$USER" "/var/www/clients/$USER/logs"
@@ -88,6 +184,24 @@ safe_nginx_reload() {
     systemctl reload nginx
 }
 
+# Standardize Docroot Path
+get_docroot() {
+    local USER="$1"
+    local DOM="$2"
+    local DOCROOT_DB="$3"
+    
+    if [ -n "$DOCROOT_DB" ] && [ -d "$DOCROOT_DB" ]; then
+        echo "$DOCROOT_DB"
+    else
+        # Standard directory structure
+        echo "/var/www/clients/$USER/domains/$DOM/public_html"
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# MAIN COMMAND HANDLER
+# ------------------------------------------------------------------------------
+
 case "$1" in
 
     # --------------------------------------------------------------------------
@@ -95,26 +209,41 @@ case "$1" in
     # --------------------------------------------------------------------------
     create-account)
         # $2: user, $3: domain, $4: email, $5: pass
-        USER=$2; DOM=$3; EMAIL=$4; PASS=$5
+        USER="$2"
+        DOM="$3"
+        EMAIL="$4"
+        PASS="$5"
         
-        if id "$USER" &>/dev/null; then echo "User exists"; exit 1; fi
+        # Validate inputs
+        validate_input "$USER" "username"
+        validate_input "$DOM" "domain"
+        validate_input "$EMAIL" "email"
         
-        # 1. System User
-        useradd -m -d /var/www/clients/$USER -s /bin/bash $USER
-        # Create base structure including logs and domains container
-        mkdir -p /var/www/clients/$USER/{domains,logs,tmp,mail}
-        chown -R $USER:$USER /var/www/clients/$USER
+        if id "$USER" &>/dev/null; then 
+            echo "User exists"
+            exit 1
+        fi
         
-        # PERMISSION FIX: Allow www-data (File Manager) to write
-        # Add www-data to user group
-        usermod -a -G $USER www-data
-        # Set permissions so group can write
-        chmod -R 775 /var/www/clients/$USER
-        # Set GID bit for inheritance
-        chmod g+s /var/www/clients/$USER
+        log_action "Creating account: $USER ($DOM)"
+        
+        # 1. Create System User
+        useradd -m -d "/var/www/clients/$USER" -s /bin/bash "$USER"
+        echo "$USER:$PASS" | chpasswd
+        
+        # Create base structure
+        mkdir -p "/var/www/clients/$USER/"{domains,logs,tmp,mail,backups,.ssh}
+        chown -R "$USER:$USER" "/var/www/clients/$USER"
+        
+        # Set secure permissions
+        chmod 755 "/var/www/clients/$USER"
+        chmod 700 "/var/www/clients/$USER/.ssh"
+        chmod 755 "/var/www/clients/$USER/logs"
+        
+        # Add www-data to user group for file manager access
+        usermod -a -G "$USER" www-data
         
         # 2. PHP-FPM Pool
-        cat > /etc/php/8.2/fpm/pool.d/$USER.conf << PHP
+        cat > "/etc/php/8.2/fpm/pool.d/$USER.conf" << EOF
 [$USER]
 user = $USER
 group = $USER
@@ -126,15 +255,17 @@ pm.max_children = 5
 php_admin_value[open_basedir] = /var/www/clients/$USER:/tmp
 php_value[upload_max_filesize] = 2048M
 php_value[post_max_size] = 2048M
-PHP
-PHP
-
+php_admin_value[memory_limit] = 256M
+EOF
+        
         # 3. Nginx VHost
-        # Correct DocRoot Structure: /var/www/clients/{user}/domains/{domain}/public_html
         DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
         mkdir -p "$DOCROOT"
+        chown "$USER:www-data" "$DOCROOT"
+        chmod 775 "$DOCROOT"
+        chmod g+s "$DOCROOT"  # Set SGID for group inheritance
         
-        cat > /etc/nginx/sites-available/$DOM << NGINX
+        cat > "/etc/nginx/sites-available/$DOM" << EOF
 server {
     listen 80;
     server_name $DOM www.$DOM;
@@ -142,78 +273,123 @@ server {
     index index.php index.html index.htm default.html;
     
     client_max_body_size 2048M;
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    
+    # Rate limiting
+    limit_req_zone \$binary_remote_addr zone=limit_$DOM:10m rate=10r/s;
 
     access_log /var/www/clients/$USER/logs/$DOM.access.log;
     error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
     location / {
+        limit_req zone=limit_$DOM burst=20 nodelay;
         try_files \$uri \$uri/ /index.php?\$args;
     }
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.2-fpm-$USER.sock;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    
+    # Block sensitive files
+    location ~ /\.(?!well-known) {
+        deny all;
+    }
+    
+    location ~ /(config|backup|database)\.(php|sql|tar|gz)$ {
+        deny all;
     }
 }
-NGINX
-        ln -s /etc/nginx/sites-available/$DOM /etc/nginx/sites-enabled/
-        safe_nginx_reload
-
-        # 4. Default Index
-        create_default_index "$DOCROOT" "\$DOM" "\$USER"
-
-        # 5. Sync DNS (Generate Zone File)
-        DOM_ID=$(mysql -N -s -e "SELECT id FROM domains WHERE domain='$DOM'" $DB_NAME)
-        if [ ! -z "$DOM_ID" ]; then
-             $0 dns-tool sync $DOM_ID
-        fi
-
-        log_action "Created account: $USER ($DOM)"
+EOF
         
-        # Trigger Reload at the END
+        ln -sf "/etc/nginx/sites-available/$DOM" "/etc/nginx/sites-enabled/"
+        
+        # 4. Default Index
+        create_default_index "$DOCROOT" "$DOM" "$USER"
+        
+        # 5. Sync DNS
+        DOM_ID=$(mysql -N -s -e "SELECT id FROM domains WHERE domain='$DOM'" "$DB_NAME" 2>/dev/null || echo "")
+        if [ -n "$DOM_ID" ]; then
+            $0 dns-tool sync "$DOM_ID"
+        fi
+        
+        # 6. Reload Services
+        safe_nginx_reload
         safe_reload_php
+        
+        log_action "Created account: $USER ($DOM)"
+        echo "Account created successfully"
         ;;
 
     delete-account)
         # $2: user
-        USER=$2
+        USER="$2"
+        
+        validate_input "$USER" "username"
+        
+        log_action "Deleting account: $USER"
         
         # Find domain to remove vhost
-        DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" $DB_NAME)
+        DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" "$DB_NAME" 2>/dev/null || echo "")
         
-        if [ ! -z "$DOM" ]; then
-            rm -f /etc/nginx/sites-enabled/$DOM
-            rm -f /etc/nginx/sites-available/$DOM
+        # Backup before deletion
+        BACKUP_DIR="/tmp/deleted_backups"
+        mkdir -p "$BACKUP_DIR"
+        tar -czf "$BACKUP_DIR/${USER}_$(date +%Y%m%d_%H%M%S).tar.gz" -C "/var/www/clients" "$USER" 2>/dev/null || true
+        
+        # Remove Nginx configs
+        if [ -n "$DOM" ]; then
+            rm -f "/etc/nginx/sites-enabled/$DOM"
+            rm -f "/etc/nginx/sites-available/$DOM"
         fi
         
-        rm -f /etc/php/8.2/fpm/pool.d/$USER.conf
+        # Remove PHP-FPM pool
+        rm -f "/etc/php/8.2/fpm/pool.d/$USER.conf"
         
         # Kill user processes
-        pkill -u $USER
+        pkill -9 -u "$USER" 2>/dev/null || true
         
-        # Remove User & Files
-        userdel -r $USER
+        # Remove User & Home Directory
+        userdel -r "$USER" 2>/dev/null || true
         
-        safe_nginx_reload
+        # Remove any remaining files
+        rm -rf "/var/www/clients/$USER" 2>/dev/null || true
+        
         safe_nginx_reload
         safe_reload_php
         
         log_action "Deleted account: $USER"
+        echo "Account deleted"
         ;;
 
     add-domain)
         # $2: user, $3: domain
-        USER=$2; DOM=$3
+        USER="$2"
+        DOM="$3"
+        
+        validate_input "$USER" "username"
+        validate_input "$DOM" "domain"
+        
+        log_action "Adding domain: $DOM for $USER"
         
         DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
-        mkdir -p \$DOCROOT
-        create_default_index "\$DOCROOT" "\$DOM" "\$USER"
-        chown -R $USER:www-data /var/www/clients/$USER/domains
-        # FORCE 775 for Group Write (www-data)
-        chmod -R 775 /var/www/clients/$USER/domains/$DOM
-        chmod g+s /var/www/clients/$USER/domains/$DOM
+        mkdir -p "$DOCROOT"
+        create_default_index "$DOCROOT" "$DOM" "$USER"
         
-        cat > /etc/nginx/sites-available/$DOM << NGINX
+        # Set permissions for file manager access
+        chown -R "$USER:www-data" "/var/www/clients/$USER/domains"
+        find "/var/www/clients/$USER/domains/$DOM" -type d -exec chmod 775 {} \;
+        find "/var/www/clients/$USER/domains/$DOM" -type f -exec chmod 664 {} \;
+        chmod g+s "/var/www/clients/$USER/domains/$DOM"
+        
+        cat > "/etc/nginx/sites-available/$DOM" << EOF
 server {
     listen 80;
     server_name $DOM www.$DOM;
@@ -221,6 +397,11 @@ server {
     index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
 
     access_log /var/www/clients/$USER/logs/$DOM.access.log;
     error_log /var/www/clients/$USER/logs/$DOM.error.log;
@@ -234,98 +415,134 @@ server {
         fastcgi_pass unix:/run/php/php8.2-fpm-$USER.sock;
     }
 }
-NGINX
-        ln -s /etc/nginx/sites-available/$DOM /etc/nginx/sites-enabled/
+EOF
+        
+        ln -sf "/etc/nginx/sites-available/$DOM" "/etc/nginx/sites-enabled/"
         safe_nginx_reload
         
         log_action "Added Domain: $DOM for $USER"
+        echo "Domain added successfully"
         ;;
 
     delete-domain)
         # $2: user, $3: domain
-        USER=$2; DOM=$3
+        USER="$2"
+        DOM="$3"
+        
+        validate_input "$USER" "username"
+        validate_input "$DOM" "domain"
+        
+        log_action "Deleting domain: $DOM for $USER"
+        
+        # Backup domain files
+        BACKUP_DIR="/var/www/clients/$USER/backups"
+        mkdir -p "$BACKUP_DIR"
+        tar -czf "$BACKUP_DIR/${DOM}_$(date +%Y%m%d_%H%M%S).tar.gz" -C "/var/www/clients/$USER/domains" "$DOM" 2>/dev/null || true
         
         # Remove Nginx Config
-        rm -f /etc/nginx/sites-enabled/$DOM
-        rm -f /etc/nginx/sites-available/$DOM
+        rm -f "/etc/nginx/sites-enabled/$DOM"
+        rm -f "/etc/nginx/sites-available/$DOM"
         
-        # Remove Files (Remove the specific domain directory)
+        # Remove Files
         DOCROOT="/var/www/clients/$USER/domains/$DOM"
         if [ -d "$DOCROOT" ]; then
-            rm -rf $DOCROOT
+            rm -rf "$DOCROOT"
         fi
         
         safe_nginx_reload
         log_action "Deleted Domain: $DOM for $USER"
+        echo "Domain deleted"
         ;;
 
     suspend-account)
         # $2: user
-        USER=$2
-        # Find domain
-        DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" $DB_NAME)
+        USER="$2"
         
-        if [ ! -z "$DOM" ]; then
-            rm -f /etc/nginx/sites-enabled/$DOM
-        fi
+        validate_input "$USER" "username"
+        
+        log_action "Suspending account: $USER"
+        
+        # Find all domains for this user
+        mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" "$DB_NAME" 2>/dev/null | while read DOM; do
+            if [ -n "$DOM" ]; then
+                rm -f "/etc/nginx/sites-enabled/$DOM"
+            fi
+        done
         
         # Disable PHP Pool
         if [ -f "/etc/php/8.2/fpm/pool.d/$USER.conf" ]; then
-            mv /etc/php/8.2/fpm/pool.d/$USER.conf /etc/php/8.2/fpm/pool.d/$USER.conf.disabled
+            mv "/etc/php/8.2/fpm/pool.d/$USER.conf" "/etc/php/8.2/fpm/pool.d/$USER.conf.disabled"
         fi
         
         # Kill processes
-        pkill -u $USER
+        pkill -9 -u "$USER" 2>/dev/null || true
         
         safe_nginx_reload
-        nohup bash -c "sleep 1; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
+        nohup bash -c "sleep 2; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
         
         log_action "Suspended account: $USER"
+        echo "Account suspended"
         ;;
 
     unsuspend-account)
         # $2: user
-        USER=$2
-        # Find domain
-        DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" $DB_NAME)
+        USER="$2"
         
-        if [ ! -z "$DOM" ]; then
-            ln -sf /etc/nginx/sites-available/$DOM /etc/nginx/sites-enabled/
-        fi
+        validate_input "$USER" "username"
+        
+        log_action "Unsuspending account: $USER"
+        
+        # Find all domains for this user
+        mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" "$DB_NAME" 2>/dev/null | while read DOM; do
+            if [ -n "$DOM" ] && [ -f "/etc/nginx/sites-available/$DOM" ]; then
+                ln -sf "/etc/nginx/sites-available/$DOM" "/etc/nginx/sites-enabled/"
+            fi
+        done
         
         # Enable PHP Pool
         if [ -f "/etc/php/8.2/fpm/pool.d/$USER.conf.disabled" ]; then
-            mv /etc/php/8.2/fpm/pool.d/$USER.conf.disabled /etc/php/8.2/fpm/pool.d/$USER.conf
+            mv "/etc/php/8.2/fpm/pool.d/$USER.conf.disabled" "/etc/php/8.2/fpm/pool.d/$USER.conf"
         fi
         
         safe_nginx_reload
-        nohup bash -c "sleep 1; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
+        nohup bash -c "sleep 2; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
         
         log_action "Unsuspended account: $USER"
+        echo "Account unsuspended"
         ;;
 
     reset-account)
         # $2: user
-        USER=$2
+        USER="$2"
+        
+        validate_input "$USER" "username"
+        
+        log_action "Resetting account: $USER"
         
         # 1. Get Client ID
-        CID=$(mysql -N -s -e "SELECT id FROM clients WHERE username='$USER'" $DB_NAME)
+        CID=$(mysql -N -s -e "SELECT id FROM clients WHERE username='$USER'" "$DB_NAME" 2>/dev/null || echo "")
         
-        # 2. Drop Databases
-        mysql -N -s -e "SELECT db_name FROM client_databases WHERE client_id=$CID" $DB_NAME | while read DB; do
-            mysql -e "DROP DATABASE IF EXISTS $DB;"
-            log_action "Dropped DB (Reset): $DB"
-        done
+        if [ -n "$CID" ]; then
+            # 2. Drop Databases
+            mysql -N -s -e "SELECT db_name FROM client_databases WHERE client_id=$CID" "$DB_NAME" 2>/dev/null | while read DB; do
+                if [ -n "$DB" ]; then
+                    mysql -e "DROP DATABASE IF EXISTS \`$DB\`;" 2>/dev/null || true
+                    log_action "Dropped DB (Reset): $DB"
+                fi
+            done
+        fi
         
-        # 3. Wipe Web Content
-        DOCROOT="/var/www/clients/$USER/public_html"
-        if [ -d "$DOCROOT" ]; then
-            rm -rf $DOCROOT/*
-            # Restore Default
-            create_default_index "\$DOCROOT" "\$USER" "\$USER"
+        # 3. Wipe Web Content (all domains)
+        if [ -d "/var/www/clients/$USER/domains" ]; then
+            find "/var/www/clients/$USER/domains" -mindepth 2 -maxdepth 2 -name "public_html" -type d | while read DOCROOT; do
+                DOM=$(basename "$(dirname "$DOCROOT")")
+                rm -rf "$DOCROOT"/*
+                create_default_index "$DOCROOT" "$DOM" "$USER"
+            done
         fi
         
         log_action "Reset Account: $USER"
+        echo "Account reset completed"
         ;;
 
     # --------------------------------------------------------------------------
@@ -333,146 +550,221 @@ NGINX
     # --------------------------------------------------------------------------
     fix-permissions)
         # $2: user
-        USER=$2
-        # Base Home
+        USER="$2"
+        
+        validate_input "$USER" "username"
+        
         HOME_DIR="/var/www/clients/$USER"
         
-        if [ -d "$HOME_DIR" ]; then
-            log_action "Starting Permission Fix for $USER"
-            
-            # 1. Reset Ownership (Global) -> Force User Ownership
-            chown -R $USER:$USER $HOME_DIR
-            
-            # 2. Reset Mode (775 for folders, 664 for files)
-            # Default to secure
-            find $HOME_DIR -type d -exec chmod 755 {} \;
-            find $HOME_DIR -type f -exec chmod 644 {} \;
-            
-            # 3. Special Handling for Domain Public HTML (Allow Group Write for File Manager/www-data)
-            # Iterate domains
-            if [ -d "$HOME_DIR/domains" ]; then
-                find "$HOME_DIR/domains" -mindepth 2 -maxdepth 2 -name "public_html" | while read WEBROOT; do
-                    # Set 775 recursively for Web Root to allow www-data (File Manager) access
-                    chmod 775 "$WEBROOT"
-                    # Add sticky group bit so new files inherit group
-                    chmod g+s "$WEBROOT"
-                    
-                    # Apply recursively to all subdirectories
-                    find "$WEBROOT" -type d -exec chmod 775 {} \;
-                    find "$WEBROOT" -type d -exec chmod g+s {} \;
-                    find "$WEBROOT" -type f -exec chmod 664 {} \;
-                    
-                    # Ensure www-data works with it
-                    chown -R $USER:www-data "$WEBROOT"
-                done
-            fi
-
-            # 4. Logs Directory (Must be 755 for Nginx)
-            if [ -d "$HOME_DIR/logs" ]; then
-                chmod 755 "$HOME_DIR/logs"
-            fi
-            
-            # 5. Ensure www-data is in group (Redundant but confirms access)
-            usermod -a -G $USER www-data
-            
-            log_action "Fixed Permissions for: $USER"
+        if [ ! -d "$HOME_DIR" ]; then
+            echo "User directory not found"
+            exit 1
         fi
+        
+        log_action "Starting Permission Fix for $USER"
+        
+        # 1. Reset Ownership
+        chown -R "$USER:$USER" "$HOME_DIR"
+        
+        # 2. Reset Base Permissions
+        find "$HOME_DIR" -type d -exec chmod 755 {} \;
+        find "$HOME_DIR" -type f -exec chmod 644 {} \;
+        
+        # 3. Special Handling for Web Directories
+        if [ -d "$HOME_DIR/domains" ]; then
+            find "$HOME_DIR/domains" -mindepth 2 -maxdepth 2 -name "public_html" -type d | while read WEBROOT; do
+                # Set proper ownership and permissions
+                chown -R "$USER:www-data" "$WEBROOT"
+                find "$WEBROOT" -type d -exec chmod 775 {} \;
+                find "$WEBROOT" -type d -exec chmod g+s {} \;
+                find "$WEBROOT" -type f -exec chmod 664 {} \;
+            done
+        fi
+        
+        # 4. Logs Directory
+        if [ -d "$HOME_DIR/logs" ]; then
+            chmod 755 "$HOME_DIR/logs"
+            chown "$USER:$USER" "$HOME_DIR/logs"/*
+        fi
+        
+        # 5. Ensure www-data is in group
+        usermod -a -G "$USER" www-data
+        
+        # 6. SSH Directory
+        if [ -d "$HOME_DIR/.ssh" ]; then
+            chmod 700 "$HOME_DIR/.ssh"
+            chmod 600 "$HOME_DIR/.ssh/"* 2>/dev/null || true
+        fi
+        
+        log_action "Fixed Permissions for: $USER"
+        echo "Permissions fixed successfully"
         ;;
 
     # --------------------------------------------------------------------------
     # MYSQL TOOL
     # --------------------------------------------------------------------------
     mysql-tool)
-        SUB=$2
-        if [ "$SUB" == "create-db" ]; then
-            # $3: db_name
-            mysql -e "CREATE DATABASE IF NOT EXISTS \`$3\`;" || exit 1
-            log_action "Created DB: $3"
-        elif [ "$SUB" == "create-user" ]; then
-            # $3: db_user, $4: db_pass, $5: target_db
-            
-            # Simple SQL Escaping (Single quotes and Backslashes)
-            PASS="${4//\\/\\\\}"
-            PASS="${PASS//\'/\'\'}"
-
-            # Create User
-            mysql -e "CREATE USER '$3'@'localhost' IDENTIFIED BY '$PASS';" || { echo "Error: Create User Failed"; exit 1; }
-            
-            # Grant Privileges (Escape DB name with backticks)
-            mysql -e "GRANT ALL PRIVILEGES ON \`$5\`.* TO '$3'@'localhost';" || { echo "Error: Grant Failed"; exit 1; }
-            
-            mysql -e "FLUSH PRIVILEGES;"
-            log_action "Created DB User: $3 for $5"
-        elif [ "$SUB" == "delete-db" ]; then
-            # $3: db_name
-            mysql -e "DROP DATABASE IF EXISTS \`$3\`;" || exit 1
-            log_action "Dropped DB: $3"
-        elif [ "$SUB" == "reset-pass" ]; then
-            # $3: db_user, $4: new_pass
-            
-            PASS="${4//\\/\\\\}"
-            PASS="${PASS//\'/\'\'}"
-
-            mysql -e "ALTER USER '$3'@'localhost' IDENTIFIED BY '$PASS';" || { echo "Error: Password Reset Failed"; exit 1; }
-            mysql -e "FLUSH PRIVILEGES;"
-            log_action "Reset Pass DB User: $3"
-            
-        elif [ "$SUB" == "delete-user" ]; then
-            # $3: db_user
-            mysql -e "DROP USER IF EXISTS '$3'@'localhost';" || echo "User drop failed or not found"
-            log_action "Deleted DB User: $3"
-        fi
+        SUB="$2"
+        
+        case "$SUB" in
+            create-db)
+                # $3: db_name
+                DB_NAME_VAL="$3"
+                validate_input "$DB_NAME_VAL" "db_name"
+                
+                mysql -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME_VAL\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" || exit 1
+                log_action "Created DB: $DB_NAME_VAL"
+                echo "Database created"
+                ;;
+                
+            create-user)
+                # $3: db_user, $4: db_pass, $5: target_db
+                DB_USER_VAL="$3"
+                DB_PASS="$4"
+                TARGET_DB="$5"
+                
+                validate_input "$DB_USER_VAL" "db_user"
+                validate_input "$TARGET_DB" "db_name"
+                
+                # Escape password for MySQL
+                ESCAPED_PASS=$(mysql -N -s -e "SELECT QUOTE('$DB_PASS')" | sed "s/^'//;s/'$//")
+                
+                mysql -e "CREATE USER IF NOT EXISTS '$DB_USER_VAL'@'localhost' IDENTIFIED BY '$ESCAPED_PASS';" || { echo "Error: Create User Failed"; exit 1; }
+                mysql -e "GRANT ALL PRIVILEGES ON \`$TARGET_DB\`.* TO '$DB_USER_VAL'@'localhost';" || { echo "Error: Grant Failed"; exit 1; }
+                mysql -e "FLUSH PRIVILEGES;"
+                log_action "Created DB User: $DB_USER_VAL for $TARGET_DB"
+                echo "Database user created"
+                ;;
+                
+            delete-db)
+                # $3: db_name
+                DB_NAME_VAL="$3"
+                validate_input "$DB_NAME_VAL" "db_name"
+                
+                mysql -e "DROP DATABASE IF EXISTS \`$DB_NAME_VAL\`;" || exit 1
+                log_action "Dropped DB: $DB_NAME_VAL"
+                echo "Database deleted"
+                ;;
+                
+            reset-pass)
+                # $3: db_user, $4: new_pass
+                DB_USER_VAL="$3"
+                NEW_PASS="$4"
+                
+                validate_input "$DB_USER_VAL" "db_user"
+                ESCAPED_PASS=$(mysql -N -s -e "SELECT QUOTE('$NEW_PASS')" | sed "s/^'//;s/'$//")
+                
+                mysql -e "ALTER USER '$DB_USER_VAL'@'localhost' IDENTIFIED BY '$ESCAPED_PASS';" || { echo "Error: Password Reset Failed"; exit 1; }
+                mysql -e "FLUSH PRIVILEGES;"
+                log_action "Reset Pass DB User: $DB_USER_VAL"
+                echo "Password reset"
+                ;;
+                
+            delete-user)
+                # $3: db_user
+                DB_USER_VAL="$3"
+                validate_input "$DB_USER_VAL" "db_user"
+                
+                mysql -e "DROP USER IF EXISTS '$DB_USER_VAL'@'localhost';" || echo "User drop failed or not found"
+                log_action "Deleted DB User: $DB_USER_VAL"
+                echo "Database user deleted"
+                ;;
+                
+            *)
+                echo "Unknown mysql-tool subcommand: $SUB"
+                exit 1
+                ;;
+        esac
         ;;
 
     # --------------------------------------------------------------------------
     # DNS TOOL
     # --------------------------------------------------------------------------
     dns-tool)
-        SUB=$2
+        SUB="$2"
+        
         if [ "$SUB" == "sync" ]; then
             # $3: domain_id
-            DOM_INFO=$(mysql -N -s -e "SELECT domain FROM domains WHERE id=$3" $DB_NAME)
+            DOM_ID="$3"
+            DOM_INFO=$(mysql -N -s -e "SELECT domain FROM domains WHERE id=$DOM_ID" "$DB_NAME" 2>/dev/null || echo "")
             
-            # Start Zone File
+            if [ -z "$DOM_INFO" ]; then
+                echo "Domain not found"
+                exit 1
+            fi
+            
+            # Create zones directory if it doesn't exist
+            mkdir -p "/etc/bind/zones"
+            
+            # Generate Zone File
             ZONE_FILE="/etc/bind/zones/db.$DOM_INFO"
-            cat > $ZONE_FILE <<ZONE
+            
+            # Get server IP
+            SERVER_IP=$(hostname -I | awk '{print $1}')
+            
+            cat > "$ZONE_FILE" << EOF
 \$TTL 86400
 @ IN SOA ns1.$MAIN_DOMAIN. $ADMIN_EMAIL. ( $(date +%Y%m%d)01 3600 900 604800 86400 )
 @ IN NS ns1.$MAIN_DOMAIN.
 @ IN NS ns2.$MAIN_DOMAIN.
-@ IN A $(hostname -I | awk '{print $1}')
+@ IN A $SERVER_IP
 www IN CNAME @
-ZONE
+mail IN A $SERVER_IP
+ftp IN CNAME @
+EOF
 
-            # Glue Records for Nameservers (Only for Main Domain)
+            # Add nameserver glue records for main domain
             if [ "$DOM_INFO" == "$MAIN_DOMAIN" ]; then
-                # Use public IP if possible, fallback to local
-                IP=$(hostname -I | awk '{print $1}')
-                echo "ns1 IN A $IP" >> $ZONE_FILE
-                echo "ns2 IN A $IP" >> $ZONE_FILE
+                echo "ns1 IN A $SERVER_IP" >> "$ZONE_FILE"
+                echo "ns2 IN A $SERVER_IP" >> "$ZONE_FILE"
                 log_action "Added Nameserver Glue Records for $DOM_INFO"
             fi
             
-            # Append Records from DB
-            mysql -N -B -e "SELECT host, type, value FROM dns_records WHERE domain_id=$3" $DB_NAME | while IFS=$'\t' read -r host type value; do
-                if [ "$type" == "MX" ]; then
-                    echo "$host IN MX 10 $value" >> $ZONE_FILE
-                elif [ "$type" == "TXT" ]; then
-                    # Escape quotes and wrap in quotes
-                    clean_val="${value//\"/\\\"}"
-                    echo "$host IN TXT \"$clean_val\"" >> $ZONE_FILE
-                else
-                    echo "$host IN $type $value" >> $ZONE_FILE
+            # Append custom DNS records from DB
+            mysql -N -B -e "SELECT host, type, value, priority FROM dns_records WHERE domain_id=$DOM_ID" "$DB_NAME" 2>/dev/null | while IFS=$'\t' read -r host type value priority; do
+                if [ -n "$host" ] && [ -n "$type" ] && [ -n "$value" ]; then
+                    case "$type" in
+                        MX)
+                            echo "$host IN MX $priority $value" >> "$ZONE_FILE"
+                            ;;
+                        TXT)
+                            # Clean and quote TXT values
+                            clean_val="${value//\"/\\\"}"
+                            echo "$host IN TXT \"$clean_val\"" >> "$ZONE_FILE"
+                            ;;
+                        CNAME|A|AAAA)
+                            echo "$host IN $type $value" >> "$ZONE_FILE"
+                            ;;
+                    esac
                 fi
             done
             
-            # Ensure Bind knows about it (simplistic check)
+            # Add to named.conf.local if not already present
             if ! grep -q "zone \"$DOM_INFO\"" /etc/bind/named.conf.local; then
-                echo "zone \"$DOM_INFO\" { type master; file \"$ZONE_FILE\"; };" >> /etc/bind/named.conf.local
+                cat >> /etc/bind/named.conf.local << EOF
+zone "$DOM_INFO" {
+    type master;
+    file "$ZONE_FILE";
+    allow-transfer { none; };
+    allow-query { any; };
+};
+EOF
             fi
             
-            systemctl reload bind9
+            # Set proper permissions
+            chown bind:bind "$ZONE_FILE"
+            chmod 644 "$ZONE_FILE"
+            
+            # Reload BIND
+            if systemctl is-active --quiet bind9; then
+                rndc reload > /dev/null 2>&1 || systemctl reload bind9
+            fi
+            
             log_action "Synced DNS for $DOM_INFO"
+            echo "DNS zone updated"
+        else
+            echo "Unknown dns-tool subcommand: $SUB"
+            exit 1
         fi
         ;;
 
@@ -480,32 +772,39 @@ ZONE
     # VHOST TOOL (PHP Version & SSL Switcher)
     # --------------------------------------------------------------------------
     vhost-tool)
-        SUB=$2
+        SUB="$2"
+        
         if [ "$SUB" == "sync" ]; then
             # $3: domain_id
-            read DOM USER PHP_VER SSL DOCROOT_DB <<< $(mysql -N -s -e "SELECT d.domain, c.username, d.php_version, d.ssl_active, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$3" $DB_NAME)
+            DOM_ID="$3"
             
-            # Determine DOCROOT intelligently
-            if [ ! -z "$DOCROOT_DB" ]; then
-                DOCROOT="$DOCROOT_DB"
-            else
-                # Fallback for old records without docroot in DB (assume main account)
-                DOCROOT="/var/www/clients/$USER/public_html"
+            # Get domain info
+            read DOM USER PHP_VER SSL DOCROOT_DB <<< $(mysql -N -s -e "SELECT d.domain, c.username, d.php_version, d.ssl_active, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$DOM_ID" "$DB_NAME" 2>/dev/null || echo "")
+            
+            if [ -z "$DOM" ] || [ -z "$USER" ]; then
+                echo "Domain or user not found"
+                exit 1
             fi
             
-            VHOST="/etc/nginx/sites-available/$DOM"
+            # Determine DOCROOT
+            DOCROOT=$(get_docroot "$USER" "$DOM" "$DOCROOT_DB")
+            
+            # Create directory if it doesn't exist
+            mkdir -p "$DOCROOT"
             
             # PHP Sock
-            SOCK="php$PHP_VER-fpm-$USER.sock"
+            SOCK="/run/php/php$PHP_VER-fpm-$USER.sock"
             
             # SSL Paths
             CERT="/etc/letsencrypt/live/$DOM/fullchain.pem"
             KEY="/etc/letsencrypt/live/$DOM/privkey.pem"
             
-            # Check if SSL is requested and Certs exist
-            if [ "$SSL" == "1" ] && [ -f "$CERT" ]; then
-                # Generate SSL VHost directly
-                cat > $VHOST <<CONF
+            VHOST="/etc/nginx/sites-available/$DOM"
+            
+            # Check if SSL is requested and certificates exist
+            if [ "$SSL" == "1" ] && [ -f "$CERT" ] && [ -f "$KEY" ]; then
+                # Generate SSL VHost
+                cat > "$VHOST" << EOF
 server {
     listen 80;
     server_name $DOM www.$DOM;
@@ -519,29 +818,43 @@ server {
     index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
-
+    
+    # SSL Configuration
     ssl_certificate $CERT;
     ssl_certificate_key $KEY;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
 
     access_log /var/www/clients/$USER/logs/$DOM.access.log;
     error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
-    location / { try_files \$uri \$uri/ /index.php?\$args; }
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/$SOCK;
-        fastcgi_param PHP_VALUE "memory_limit=\$limit";
+        fastcgi_pass unix:$SOCK;
+    }
+    
+    # Block sensitive files
+    location ~ /\.(?!well-known) {
+        deny all;
     }
 }
-CONF
-                # Inject memory limit placeholder if needed (handled below) -> actually better to just reload
-            
+EOF
             else
                 # Generate Standard HTTP VHost
-                cat > $VHOST <<CONF
+                cat > "$VHOST" << EOF
 server {
     listen 80;
     server_name $DOM www.$DOM;
@@ -549,39 +862,66 @@ server {
     index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
 
     access_log /var/www/clients/$USER/logs/$DOM.access.log;
     error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
-    location / { try_files \$uri \$uri/ /index.php?\$args; }
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/$SOCK;
+        fastcgi_pass unix:$SOCK;
+    }
+    
+    # Block sensitive files
+    location ~ /\.(?!well-known) {
+        deny all;
     }
 }
-CONF
-                # If SSL requested but no cert, run certbot
+EOF
+                
+                # If SSL requested but no cert, try to obtain one
                 if [ "$SSL" == "1" ]; then
-                    certbot --nginx -d $DOM -d www.$DOM --non-interactive --agree-tos --email $ADMIN_EMAIL --redirect
+                    if command -v certbot >/dev/null 2>&1; then
+                        certbot --nginx -d "$DOM" -d "www.$DOM" --non-interactive --agree-tos --email "$ADMIN_EMAIL" --redirect --quiet || true
+                    fi
                 fi
             fi
             
-            # Memory Limit update
-            MEM=$(mysql -N -s -e "SELECT memory_limit FROM php_config WHERE domain_id=$3" $DB_NAME)
-            if [ ! -z "$MEM" ]; then
-                # Update pool config (simplified sed replace)
-                POOL="/etc/php/$PHP_VER/fpm/pool.d/$USER.conf"
-                if grep -q "php_admin_value\[memory_limit\]" $POOL; then
-                    sed -i "s/php_admin_value\[memory_limit\].*/php_admin_value[memory_limit] = $MEM/" $POOL
-                else
-                    echo "php_admin_value[memory_limit] = $MEM" >> $POOL
-                fi
-                systemctl reload php$PHP_VER-fpm
+            # Create symlink if it doesn't exist
+            if [ ! -L "/etc/nginx/sites-enabled/$DOM" ]; then
+                ln -sf "$VHOST" "/etc/nginx/sites-enabled/"
             fi
-
+            
+            # Update PHP memory limit if specified
+            MEM=$(mysql -N -s -e "SELECT memory_limit FROM php_config WHERE domain_id=$DOM_ID" "$DB_NAME" 2>/dev/null || echo "")
+            if [ -n "$MEM" ]; then
+                POOL="/etc/php/$PHP_VER/fpm/pool.d/$USER.conf"
+                if [ -f "$POOL" ]; then
+                    if grep -q "php_admin_value\[memory_limit\]" "$POOL"; then
+                        sed -i "s/php_admin_value\[memory_limit\].*/php_admin_value[memory_limit] = $MEM/" "$POOL"
+                    else
+                        echo "php_admin_value[memory_limit] = $MEM" >> "$POOL"
+                    fi
+                fi
+            fi
+            
+            # Reload services
             safe_nginx_reload
+            systemctl reload "php$PHP_VER-fpm" 2>/dev/null || true
+            
             log_action "Synced VHOST for $DOM (PHP $PHP_VER)"
+            echo "VHost updated successfully"
+        else
+            echo "Unknown vhost-tool subcommand: $SUB"
+            exit 1
         fi
         ;;
 
@@ -589,216 +929,304 @@ CONF
     # SERVICE CONTROL
     # --------------------------------------------------------------------------
     service-status)
-        systemctl is-active $2
+        SERVICE="$2"
+        systemctl is-active "$SERVICE" 2>/dev/null || echo "inactive"
         ;;
         
     service-control)
         # $2: op, $3: service
-        if [ "$3" == "php8.2-fpm" ] && [ "$2" == "reload" ]; then
-            safe_reload_php
-        elif [ "$3" == "nginx" ] && [ "$2" == "reload" ]; then
-            safe_nginx_reload
-        else
-            systemctl $2 $3
-        fi
+        OP="$2"
+        SERVICE="$3"
+        
+        case "$OP" in
+            start|stop|restart|reload)
+                if [ "$SERVICE" == "php8.2-fpm" ] && [ "$OP" == "reload" ]; then
+                    safe_reload_php
+                elif [ "$SERVICE" == "nginx" ] && [ "$OP" == "reload" ]; then
+                    safe_nginx_reload
+                else
+                    systemctl "$OP" "$SERVICE"
+                fi
+                ;;
+            enable|disable)
+                systemctl "$OP" "$SERVICE"
+                ;;
+            *)
+                echo "Unknown operation: $OP"
+                exit 1
+                ;;
+        esac
+        
+        log_action "Service $OP: $SERVICE"
+        echo "Service operation completed"
         ;;
 
     # --------------------------------------------------------------------------
     # APP INSTALLER TOOL
     # --------------------------------------------------------------------------
     app-tool)
-        ACTION=$2
-        APP=$3
-        DOM=$4
+        ACTION="$2"
+        APP="$3"
+        DOM="$4"
         
         # Get User Info for Domain and DocRoot
-        read USER PHP_VER SSL DOCROOT_DB <<< $(mysql -N -s -e "SELECT c.username, d.php_version, d.ssl_active, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" $DB_NAME)
+        read USER PHP_VER SSL DOCROOT_DB <<< $(mysql -N -s -e "SELECT c.username, d.php_version, d.ssl_active, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.domain='$DOM'" "$DB_NAME" 2>/dev/null || echo "")
         
-        # Determine DOCROOT from DB
-        if [ ! -z "$DOCROOT_DB" ]; then
-            DOCROOT="$DOCROOT_DB"
-        else
-            DOCROOT="/var/www/clients/$USER/public_html"
+        if [ -z "$USER" ]; then
+            echo "User not found for domain: $DOM"
+            exit 1
         fi
-
+        
+        # Determine DOCROOT
+        DOCROOT=$(get_docroot "$USER" "$DOM" "$DOCROOT_DB")
+        
         # Determine Project Root (Parent of public_html)
         PROJECT_ROOT=$(dirname "$DOCROOT")
-
-        TMP="/tmp/install_$USER"
+        
+        TMP="/tmp/install_${USER}_$(date +%s)"
+        mkdir -p "$TMP"
         
         if [ "$ACTION" == "install" ]; then
             # $5: db_name, $6: db_user, $7: db_pass
-            DB_NAME_VAL=$5
-            DB_USER_VAL=$6
-            DB_PASS=$7
-
+            DB_NAME_VAL="$5"
+            DB_USER_VAL="$6"
+            DB_PASS="$7"
+            
+            validate_input "$DB_NAME_VAL" "db_name"
+            validate_input "$DB_USER_VAL" "db_user"
+            
             log_action "Starting App Install: $APP for $DOM ($USER) at $DOCROOT"
             
+            # Mark as installing in database
+            mysql -e "UPDATE app_installations SET status='installing' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+            
             # 1. Create Database & User
-            $0 mysql-tool create-db $DB_NAME_VAL
-            $0 mysql-tool create-user $DB_USER_VAL $DB_PASS $DB_NAME_VAL
+            $0 mysql-tool create-db "$DB_NAME_VAL"
+            $0 mysql-tool create-user "$DB_USER_VAL" "$DB_PASS" "$DB_NAME_VAL"
             
-            # 2. Update DB with 'installing' (Already set by PHP, but let's confirm)
-            # We will set to 'active' ONLY on success
-            
-            mkdir -p $TMP
-
-            if [ "$APP" == "wordpress" ]; then
-                # Clean DOCROOT first
-                rm -f $DOCROOT/index.html $DOCROOT/default.html
-                
-                # WordPress Install
-                if ! wget -q https://wordpress.org/latest.tar.gz -O $TMP/wp.tar.gz; then
-                     log_action "App Install Failed: Download Error"
-                     mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-                     exit 1
-                fi
-                
-                tar -xzf $TMP/wp.tar.gz -C $TMP
-                
-                if [ -d "$TMP/wordpress" ]; then
-                    cp -r $TMP/wordpress/* $DOCROOT/
-                    
-                    # Config DB
-                    cp $DOCROOT/wp-config-sample.php $DOCROOT/wp-config.php
-                    sed -i "s/database_name_here/$DB_NAME_VAL/" $DOCROOT/wp-config.php
-                    sed -i "s/username_here/$DB_USER_VAL/" $DOCROOT/wp-config.php
-                    sed -i "s/password_here/$DB_PASS/" $DOCROOT/wp-config.php
-                    
-                    # Set Site URL
-                    if [ "$SSL" == "1" ]; then
-                        PROTOCOL="https"
-                    else
-                        PROTOCOL="http"
-                    fi
-                    echo "define('WP_SITEURL', '$PROTOCOL://$DOM');" >> $DOCROOT/wp-config.php
-                    echo "define('WP_HOME', '$PROTOCOL://$DOM');" >> $DOCROOT/wp-config.php
-                    
-                    # Salts (Optional but good)
-                    # We skip for simplicity or add later
-                    
-                    chown -R $USER:$USER $DOCROOT
-                    chmod -R 775 $DOCROOT
-                    rm -rf $TMP
-                    
-                    # SUCCESS
-                    mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-                    log_action "Installed WordPress for $DOM"
-                else
-                    log_action "App Install Failed: Extraction Error"
-                    mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-                fi
-                
-            elif [ "$APP" == "laravel" ]; then
-                # Laravel Install
-                rm -f $DOCROOT/index.html $DOCROOT/default.html
-                
-                # Enter Project Root to run composer create-project
-                cd "$PROJECT_ROOT"
-                
-                # ... existing laravel logic ...
-                
-                rm -rf public_html_bak
-                if [ -d "public_html" ]; then mv public_html public_html_bak; fi
-                
-                # Create Project
-                if sudo -u $USER composer create-project laravel/laravel public_html; then
-                    # Config DB (.env)
-                    sed -i "s/DB_DATABASE=laravel/DB_DATABASE=$DB_NAME_VAL/" $DOCROOT/.env
-                    sed -i "s/DB_USERNAME=root/DB_USERNAME=$DB_USER_VAL/" $DOCROOT/.env
-                    sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DB_PASS/" $DOCROOT/.env
-                    
-                    chmod -R 775 $DOCROOT/storage $DOCROOT/bootstrap/cache $DOCROOT/public
-                    
-                    # Update Nginx
-                    sed -i "s|root $DOCROOT;|root $DOCROOT/public;|" /etc/nginx/sites-available/$DOM
-                    safe_nginx_reload
-                    
-                    mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-                    log_action "Installed Laravel for $DOM"
-                else
-                     mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-                fi
-    
-            elif [ "$APP" == "codeigniter" ]; then
-                # CI4 Install
-                rm -f $DOCROOT/index.html $DOCROOT/default.html
-                if wget -q https://github.com/codeigniter4/framework/archive/refs/tags/v4.4.4.zip -O $TMP/ci.zip; then
-                    unzip -q $TMP/ci.zip -d $TMP
-                    cp -r $TMP/framework-4.4.4/* $DOCROOT/
-                    
-                    # Config DB (.env)
-                    cp $DOCROOT/env $DOCROOT/.env
-                    sed -i "s/# database.default.database = ci4/database.default.database = $DB_NAME_VAL/" $DOCROOT/.env
-                    sed -i "s/# database.default.username = root/database.default.username = $DB_USER_VAL/" $DOCROOT/.env
-                    sed -i "s/# database.default.password = root/database.default.password = $DB_PASS/" $DOCROOT/.env
-                    sed -i "s/# CI_ENVIRONMENT = production/CI_ENVIRONMENT = development/" $DOCROOT/.env
-                    
-                    chown -R $USER:$USER $DOCROOT
-                    chmod -R 775 $DOCROOT
-                    
-                    # Update Nginx
-                    sed -i "s|root $DOCROOT;|root $DOCROOT/public;|" /etc/nginx/sites-available/$DOM
-                    safe_nginx_reload
-                    
-                    mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-                    log_action "Installed CodeIgniter for $DOM"
-                else
-                    mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-                fi
-    
-            elif [ "$APP" == "react" ]; then
-                # React (Vite)
-                rm -f $DOCROOT/index.html $DOCROOT/default.html
-                
-                # Enter Project Root
-                cd "$PROJECT_ROOT"
-                
-                rm -rf public_html_bak
-                if [ -d "public_html" ]; then mv public_html public_html_bak; fi
-                mkdir public_html
-                
-                if sudo -u $USER npm create vite@latest public_html -- --template react; then
-                    cd public_html
-                    sudo -u $USER npm install
-                    sudo -u $USER npm run build
-                    
-                    # Update Nginx
-                    sed -i "s|root $DOCROOT;|root $DOCROOT/dist;|" /etc/nginx/sites-available/$DOM
-                    safe_nginx_reload
-                    
-                    mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-                    log_action "Installed React for $DOM"
-                else
-                    mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" $DB_NAME
-                fi
+            # 2. Backup existing content
+            if [ -d "$DOCROOT" ] && [ "$(ls -A $DOCROOT 2>/dev/null)" ]; then
+                BACKUP_DIR="/var/www/clients/$USER/backups"
+                mkdir -p "$BACKUP_DIR"
+                tar -czf "$BACKUP_DIR/before_${APP}_$(date +%Y%m%d_%H%M%S).tar.gz" -C "$(dirname $DOCROOT)" "$(basename $DOCROOT)" 2>/dev/null || true
             fi
+            
+            # Clean DOCROOT
+            rm -rf "$DOCROOT"/* "$DOCROOT"/.* 2>/dev/null || true
+            
+            case "$APP" in
+                wordpress)
+                    # WordPress Install
+                    log_action "Installing WordPress for $DOM"
+                    
+                    if ! wget -q https://wordpress.org/latest.tar.gz -O "$TMP/wp.tar.gz"; then
+                        log_action "App Install Failed: WordPress download error"
+                        mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                        exit 1
+                    fi
+                    
+                    tar -xzf "$TMP/wp.tar.gz" -C "$TMP"
+                    
+                    if [ -d "$TMP/wordpress" ]; then
+                        cp -r "$TMP/wordpress/"* "$DOCROOT/"
+                        
+                        # WordPress Configuration
+                        WP_CONFIG="$DOCROOT/wp-config.php"
+                        cp "$DOCROOT/wp-config-sample.php" "$WP_CONFIG"
+                        
+                        # Generate salts
+                        SALT_KEYS=$(wget -q -O - https://api.wordpress.org/secret-key/1.1/salt/)
+                        
+                        # Configure wp-config.php
+                        sed -i "s/database_name_here/$DB_NAME_VAL/" "$WP_CONFIG"
+                        sed -i "s/username_here/$DB_USER_VAL/" "$WP_CONFIG"
+                        sed -i "s/password_here/$DB_PASS/" "$WP_CONFIG"
+                        sed -i "s/localhost/localhost/" "$WP_CONFIG"
+                        
+                        # Insert salts
+                        if [ -n "$SALT_KEYS" ]; then
+                            sed -i "/^define('AUTH_KEY'/,/^define('NONCE_SALT'/d" "$WP_CONFIG" 2>/dev/null || true
+                            echo "$SALT_KEYS" >> "$WP_CONFIG"
+                        fi
+                        
+                        # Set Site URL
+                        if [ "$SSL" == "1" ]; then
+                            PROTOCOL="https"
+                        else
+                            PROTOCOL="http"
+                        fi
+                        echo "" >> "$WP_CONFIG"
+                        echo "define('WP_SITEURL', '$PROTOCOL://$DOM');" >> "$WP_CONFIG"
+                        echo "define('WP_HOME', '$PROTOCOL://$DOM');" >> "$WP_CONFIG"
+                        echo "define('FS_METHOD', 'direct');" >> "$WP_CONFIG"
+                        
+                        # Set Permissions
+                        chown -R "$USER:www-data" "$DOCROOT"
+                        find "$DOCROOT" -type d -exec chmod 755 {} \;
+                        find "$DOCROOT" -type f -exec chmod 644 {} \;
+                        chmod 640 "$WP_CONFIG"
+                        
+                        mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                        log_action "Installed WordPress for $DOM"
+                    else
+                        log_action "App Install Failed: WordPress extraction error"
+                        mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                    fi
+                    ;;
+                    
+                laravel)
+                    # Laravel Install
+                    log_action "Installing Laravel for $DOM"
+                    
+                    # Check if composer is available
+                    if ! command -v composer >/dev/null 2>&1; then
+                        echo "Composer not found. Installing Laravel requires Composer."
+                        mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                        exit 1
+                    fi
+                    
+                    # Install Laravel
+                    if sudo -u "$USER" composer create-project --prefer-dist laravel/laravel "$TMP/laravel"; then
+                        cp -r "$TMP/laravel/"* "$DOCROOT/"
+                        cp -r "$TMP/laravel/."* "$DOCROOT/" 2>/dev/null || true
+                        
+                        # Configure .env
+                        ENV_FILE="$DOCROOT/.env"
+                        if [ -f "$DOCROOT/.env.example" ]; then
+                            cp "$DOCROOT/.env.example" "$ENV_FILE"
+                        fi
+                        
+                        sed -i "s/DB_DATABASE=laravel/DB_DATABASE=$DB_NAME_VAL/" "$ENV_FILE"
+                        sed -i "s/DB_USERNAME=root/DB_USERNAME=$DB_USER_VAL/" "$ENV_FILE"
+                        sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DB_PASS/" "$ENV_FILE"
+                        sed -i "s/APP_URL=http://localhost/APP_URL=http:\/\/$DOM/" "$ENV_FILE"
+                        
+                        # Set Permissions
+                        chown -R "$USER:www-data" "$DOCROOT"
+                        chmod -R 775 "$DOCROOT/storage" "$DOCROOT/bootstrap/cache"
+                        
+                        # Update Nginx to point to public directory
+                        sed -i "s|root $DOCROOT;|root $DOCROOT/public;|" "/etc/nginx/sites-available/$DOM"
+                        safe_nginx_reload
+                        
+                        mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                        log_action "Installed Laravel for $DOM"
+                    else
+                        mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                    fi
+                    ;;
+                    
+                codeigniter)
+                    # CodeIgniter 4 Install
+                    log_action "Installing CodeIgniter for $DOM"
+                    
+                    if wget -q https://github.com/codeigniter4/framework/archive/refs/tags/v4.4.4.zip -O "$TMP/ci.zip"; then
+                        unzip -q "$TMP/ci.zip" -d "$TMP"
+                        cp -r "$TMP/framework-4.4.4/"* "$DOCROOT/"
+                        
+                        # Configure .env
+                        if [ -f "$DOCROOT/env" ]; then
+                            cp "$DOCROOT/env" "$DOCROOT/.env"
+                        fi
+                        
+                        sed -i "s/# database.default.database = ci4/database.default.database = $DB_NAME_VAL/" "$DOCROOT/.env"
+                        sed -i "s/# database.default.username = root/database.default.username = $DB_USER_VAL/" "$DOCROOT/.env"
+                        sed -i "s/# database.default.password = root/database.default.password = $DB_PASS/" "$DOCROOT/.env"
+                        sed -i "s/# app.baseURL = ''/app.baseURL = 'http:\/\/$DOM'/" "$DOCROOT/.env"
+                        sed -i "s/# CI_ENVIRONMENT = production/CI_ENVIRONMENT = development/" "$DOCROOT/.env"
+                        
+                        chown -R "$USER:$USER" "$DOCROOT"
+                        chmod -R 775 "$DOCROOT/writable"
+                        
+                        # Update Nginx
+                        sed -i "s|root $DOCROOT;|root $DOCROOT/public;|" "/etc/nginx/sites-available/$DOM"
+                        safe_nginx_reload
+                        
+                        mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                        log_action "Installed CodeIgniter for $DOM"
+                    else
+                        mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                    fi
+                    ;;
+                    
+                react)
+                    # React (Vite) Install
+                    log_action "Installing React for $DOM"
+                    
+                    # Check if npm is available
+                    if ! command -v npm >/dev/null 2>&1; then
+                        echo "npm not found. Installing React requires Node.js/npm."
+                        mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                        exit 1
+                    fi
+                    
+                    # Create React app
+                    if sudo -u "$USER" npm create vite@latest "$TMP/react-app" -- --template react --quiet; then
+                        cd "$TMP/react-app"
+                        sudo -u "$USER" npm install --quiet
+                        sudo -u "$USER" npm run build --quiet
+                        
+                        cp -r "$TMP/react-app/dist/"* "$DOCROOT/"
+                        
+                        chown -R "$USER:$USER" "$DOCROOT"
+                        
+                        # Update Nginx
+                        sed -i "s|root $DOCROOT;|root $DOCROOT;|" "/etc/nginx/sites-available/$DOM"
+                        safe_nginx_reload
+                        
+                        mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                        log_action "Installed React for $DOM"
+                    else
+                        mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                    fi
+                    ;;
+                    
+                *)
+                    echo "Unknown application: $APP"
+                    mysql -e "UPDATE app_installations SET status='failed' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
+                    exit 1
+                    ;;
+            esac
+            
+            # Cleanup
+            rm -rf "$TMP"
+            echo "Application installed successfully"
             
         elif [ "$ACTION" == "uninstall" ]; then
             # $5: db_name, $6: db_user
-            DB_NAME_VAL=$5
-            DB_USER_VAL=$6
+            DB_NAME_VAL="$5"
+            DB_USER_VAL="$6"
+            
+            validate_input "$DB_NAME_VAL" "db_name"
+            validate_input "$DB_USER_VAL" "db_user"
             
             log_action "Uninstalling App: $APP from $DOM ($USER)"
             
             # 1. Drop DB & User
-            $0 mysql-tool delete-db $DB_NAME_VAL
-            $0 mysql-tool delete-user $DB_USER_VAL
+            $0 mysql-tool delete-db "$DB_NAME_VAL"
+            $0 mysql-tool delete-user "$DB_USER_VAL"
             
-            # 2. Remove Files (Preserve public_html directory but empty it)
-            # CAUTION: We don't want to delete the directory itself if it's the mount point or needed by nginx
-            rm -rf $DOCROOT/*
-            rm -rf $DOCROOT/.* 2>/dev/null # Remove hidden files like .env
+            # 2. Backup before deletion
+            BACKUP_DIR="/var/www/clients/$USER/backups"
+            mkdir -p "$BACKUP_DIR"
+            tar -czf "$BACKUP_DIR/${APP}_uninstall_$(date +%Y%m%d_%H%M%S).tar.gz" -C "$(dirname $DOCROOT)" "$(basename $DOCROOT)" 2>/dev/null || true
             
-            # 3. Restore Default Page
-            create_default_index "\$DOCROOT" "\$DOM" "\$USER"
+            # 3. Remove application files
+            rm -rf "$DOCROOT"/*
+            rm -rf "$DOCROOT"/.* 2>/dev/null || true
             
-            # 4. Reset Nginx Root if needed (Revert to public_html)
-            # We blindly reset it to standard public_html just in case
-            sed -i "s|root /var/www/clients/$USER/public_html/.*;|root /var/www/clients/$USER/public_html;|" /etc/nginx/sites-available/$DOM
+            # 4. Restore Default Page
+            create_default_index "$DOCROOT" "$DOM" "$USER"
+            
+            # 5. Reset Nginx root if needed
+            sed -i "s|root $DOCROOT.*;|root $DOCROOT;|" "/etc/nginx/sites-available/$DOM"
             safe_nginx_reload
             
             log_action "Uninstallation Complete for $DOM"
+            echo "Application uninstalled"
+        else
+            echo "Unknown app-tool action: $ACTION"
+            exit 1
         fi
         ;;
 
@@ -806,142 +1234,289 @@ CONF
     # SSH KEY MANAGEMENT
     # --------------------------------------------------------------------------
     ssh-key)
-        SUB=$2
-        USER=$3
+        SUB="$2"
+        USER="$3"
+        
+        validate_input "$USER" "username"
         
         SSH_DIR="/var/www/clients/$USER/.ssh"
         AUTH_FILE="$SSH_DIR/authorized_keys"
         
         if [ ! -d "$SSH_DIR" ]; then
-            mkdir -p $SSH_DIR
-            chmod 700 $SSH_DIR
-            chown $USER:$USER $SSH_DIR
+            mkdir -p "$SSH_DIR"
+            chmod 700 "$SSH_DIR"
+            chown "$USER:$USER" "$SSH_DIR"
         fi
         
-        if [ "$SUB" == "add" ]; then
-            KEY=$4
-            echo "$KEY" >> $AUTH_FILE
-            chmod 600 $AUTH_FILE
-            chown $USER:$USER $AUTH_FILE
-            log_action "Added SSH Key for $USER"
-            
-        elif [ "$SUB" == "list" ]; then
-            if [ -f "$AUTH_FILE" ]; then
-                cat -n $AUTH_FILE
-            fi
-            
-        elif [ "$SUB" == "delete" ]; then
-            LINE=$4
-            if [ -f "$AUTH_FILE" ]; then
-                sed -i "${LINE}d" $AUTH_FILE
-                log_action "Deleted SSH Key line $LINE for $USER"
-            fi
-        fi
+        case "$SUB" in
+            add)
+                KEY="$4"
+                if [ -z "$KEY" ]; then
+                    echo "SSH key required"
+                    exit 1
+                fi
+                
+                # Validate key format (basic check)
+                if ! [[ "$KEY" =~ ^(ssh-rsa|ssh-ed25519|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521) ]]; then
+                    echo "Invalid SSH key format"
+                    exit 1
+                fi
+                
+                echo "$KEY" >> "$AUTH_FILE"
+                chmod 600 "$AUTH_FILE"
+                chown "$USER:$USER" "$AUTH_FILE"
+                log_action "Added SSH Key for $USER"
+                echo "SSH key added"
+                ;;
+                
+            list)
+                if [ -f "$AUTH_FILE" ]; then
+                    cat -n "$AUTH_FILE"
+                else
+                    echo "No SSH keys found"
+                fi
+                ;;
+                
+            delete)
+                LINE="$4"
+                if [ -z "$LINE" ] || ! [[ "$LINE" =~ ^[0-9]+$ ]]; then
+                    echo "Valid line number required"
+                    exit 1
+                fi
+                
+                if [ -f "$AUTH_FILE" ]; then
+                    if [ "$(wc -l < "$AUTH_FILE")" -ge "$LINE" ]; then
+                        sed -i "${LINE}d" "$AUTH_FILE"
+                        log_action "Deleted SSH Key line $LINE for $USER"
+                        echo "SSH key deleted"
+                    else
+                        echo "Line number out of range"
+                        exit 1
+                    fi
+                else
+                    echo "No SSH keys found"
+                fi
+                ;;
+                
+            *)
+                echo "Unknown ssh-key subcommand: $SUB"
+                exit 1
+                ;;
+        esac
         ;;
 
     # --------------------------------------------------------------------------
     # BACKUP SYSTEM
     # --------------------------------------------------------------------------
     backup)
-        SUB=$2
-        USER=$3
+        SUB="$2"
+        USER="$3"
+        
+        validate_input "$USER" "username"
+        
         BACKUP_DIR="/var/www/clients/$USER/backups"
+        mkdir -p "$BACKUP_DIR"
+        chown "$USER:$USER" "$BACKUP_DIR"
+        chmod 750 "$BACKUP_DIR"
         
-        if [ ! -d "$BACKUP_DIR" ]; then
-            mkdir -p $BACKUP_DIR
-            chown $USER:$USER $BACKUP_DIR
-        fi
-        
-        if [ "$SUB" == "create" ]; then
-            TS=$(date +%Y%m%d_%H%M%S)
-            FILE="$BACKUP_DIR/backup_$TS.tar.gz"
-            
-            # 1. Dump DBs
-            CID=$(mysql -N -s -e "SELECT id FROM clients WHERE username='$USER'" $DB_NAME)
-            mkdir -p /tmp/db_dump_$USER
-            mysql -N -s -e "SELECT db_name FROM client_databases WHERE client_id=$CID" $DB_NAME | while read DB; do
-                mysqldump $DB > /tmp/db_dump_$USER/$DB.sql
-            done
-            
-            # 2. Tar Web + DBs
-            tar -czf $FILE -C /var/www/clients/$USER public_html -C /tmp db_dump_$USER
-            
-            # Cleanup
-            rm -rf /tmp/db_dump_$USER
-            chown $USER:$USER $FILE
-            
-            log_action "Created Backup for $USER: $FILE"
-            
-        elif [ "$SUB" == "list" ]; then
-            ls -lh $BACKUP_DIR | awk '{print $9, $5, $6, $7, $8}'
-            
-        elif [ "$SUB" == "restore" ]; then
-            FILE="$BACKUP_DIR/$4"
-            if [ -f "$FILE" ]; then
-                # Extract
-                tar -xzf $FILE -C /var/www/clients/$USER
+        case "$SUB" in
+            create)
+                TS=$(date +%Y%m%d_%H%M%S)
+                FILE="$BACKUP_DIR/backup_$TS.tar.gz"
                 
-                # Restore DBs
-                if [ -d "/var/www/clients/$USER/db_dump_$USER" ]; then
-                    for sql in /var/www/clients/$USER/db_dump_$USER/*.sql; do
-                        DB=$(basename $sql .sql)
-                        mysql $DB < $sql
+                log_action "Creating backup for $USER"
+                
+                # Create temporary directory for database dumps
+                DB_TMP="/tmp/db_dump_$USER_$TS"
+                mkdir -p "$DB_TMP"
+                
+                # 1. Dump all user databases
+                CID=$(mysql -N -s -e "SELECT id FROM clients WHERE username='$USER'" "$DB_NAME" 2>/dev/null || echo "")
+                if [ -n "$CID" ]; then
+                    mysql -N -s -e "SELECT db_name FROM client_databases WHERE client_id=$CID" "$DB_NAME" 2>/dev/null | while read DB; do
+                        if [ -n "$DB" ]; then
+                            mysqldump --single-transaction --quick "$DB" > "$DB_TMP/$DB.sql" 2>/dev/null || true
+                        fi
                     done
-                    rm -rf /var/www/clients/$USER/db_dump_$USER
                 fi
                 
+                # 2. Create backup archive
+                tar -czf "$FILE" \
+                    -C "/var/www/clients/$USER" domains \
+                    -C "$DB_TMP" . \
+                    2>/dev/null || true
+                
+                # 3. Add metadata
+                echo "Backup created: $(date)" > "$BACKUP_DIR/backup_$TS.info"
+                echo "User: $USER" >> "$BACKUP_DIR/backup_$TS.info"
+                echo "Size: $(du -h "$FILE" | cut -f1)" >> "$BACKUP_DIR/backup_$TS.info"
+                
+                # Cleanup
+                rm -rf "$DB_TMP"
+                
+                # Set ownership
+                chown "$USER:$USER" "$FILE" "$BACKUP_DIR/backup_$TS.info"
+                chmod 640 "$FILE"
+                
+                log_action "Created Backup for $USER: $FILE"
+                echo "Backup created: $(basename "$FILE")"
+                ;;
+                
+            list)
+                if [ -d "$BACKUP_DIR" ]; then
+                    find "$BACKUP_DIR" -name "backup_*.tar.gz" -type f -exec basename {} \; | sort -r | head -20
+                else
+                    echo "No backups found"
+                fi
+                ;;
+                
+            restore)
+                FILE="$BACKUP_DIR/$4"
+                if [ ! -f "$FILE" ]; then
+                    echo "Backup file not found: $4"
+                    exit 1
+                fi
+                
+                log_action "Restoring backup for $USER: $4"
+                
+                # Extract to temporary location first
+                RESTORE_TMP="/tmp/restore_$USER_$(date +%s)"
+                mkdir -p "$RESTORE_TMP"
+                
+                tar -xzf "$FILE" -C "$RESTORE_TMP"
+                
+                # Restore files
+                if [ -d "$RESTORE_TMP/domains" ]; then
+                    rsync -a "$RESTORE_TMP/domains/" "/var/www/clients/$USER/domains/"
+                fi
+                
+                # Restore databases
+                if [ -d "$RESTORE_TMP" ] && [ "$(ls -A $RESTORE_TMP 2>/dev/null | grep -v domains)" ]; then
+                    for sql_file in "$RESTORE_TMP"/*.sql; do
+                        if [ -f "$sql_file" ]; then
+                            DB_NAME=$(basename "$sql_file" .sql)
+                            mysql -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`;" 2>/dev/null || true
+                            mysql "$DB_NAME" < "$sql_file" 2>/dev/null || true
+                        fi
+                    done
+                fi
+                
+                # Fix permissions
+                chown -R "$USER:$USER" "/var/www/clients/$USER/domains"
+                find "/var/www/clients/$USER/domains" -type d -exec chmod 755 {} \;
+                find "/var/www/clients/$USER/domains" -type f -exec chmod 644 {} \;
+                
+                # Cleanup
+                rm -rf "$RESTORE_TMP"
+                
                 log_action "Restored Backup for $USER: $4"
-            fi
-        fi
+                echo "Backup restored"
+                ;;
+                
+            *)
+                echo "Unknown backup subcommand: $SUB"
+                exit 1
+                ;;
+        esac
         ;;
 
     # --------------------------------------------------------------------------
     # LOG VIEWER (Security)
     # --------------------------------------------------------------------------
     get-logs)
-        TYPE=$2
-        LINES=${3:-50}
+        TYPE="$2"
+        LINES="${3:-50}"
         
-        if [ "$TYPE" == "auth" ]; then
-            tail -n $LINES /var/log/auth.log
-        elif [ "$TYPE" == "web" ]; then
-            tail -n $LINES /var/log/nginx/error.log
-        elif [ "$TYPE" == "sys" ]; then
-            tail -n $LINES /var/log/syslog
+        if ! [[ "$LINES" =~ ^[0-9]+$ ]]; then
+            LINES=50
         fi
+        
+        case "$TYPE" in
+            auth)
+                if [ -f "/var/log/auth.log" ]; then
+                    tail -n "$LINES" /var/log/auth.log
+                else
+                    echo "Auth log not found"
+                fi
+                ;;
+            web)
+                if [ -f "/var/log/nginx/error.log" ]; then
+                    tail -n "$LINES" /var/log/nginx/error.log
+                else
+                    echo "Nginx error log not found"
+                fi
+                ;;
+            sys)
+                if [ -f "/var/log/syslog" ]; then
+                    tail -n "$LINES" /var/log/syslog
+                else
+                    echo "System log not found"
+                fi
+                ;;
+            *)
+                echo "Unknown log type: $TYPE"
+                exit 1
+                ;;
+        esac
         ;;
 
     get-stats)
-        CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
-        RAM=$(free -m | awk '/Mem:/ {print int($3/$2 * 100)}')
-        DISK=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
+        CPU=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8"%"}')
+        RAM=$(free -m | awk '/Mem:/ {printf "%.1f%%", $3/$2 * 100}')
+        DISK=$(df -h / | awk 'NR==2 {print $5}')
         UPTIME=$(uptime -p | sed 's/up //')
-        echo "$CPU|$RAM|$DISK|$UPTIME"
+        LOAD=$(uptime | awk -F'load average:' '{print $2}' | sed 's/^\s*//')
+        echo "CPU: $CPU|RAM: $RAM|Disk: $DISK|Uptime: $UPTIME|Load: $LOAD"
         ;;
 
     get-client-logs)
         # $2: user, $3: lines (optional)
-        USER=$2
-        LINES=${3:-50}
-        LOG_FILE="/var/www/clients/$USER/logs/error.log"
+        USER="$2"
+        LINES="${3:-50}"
         
-        if [ -f "$LOG_FILE" ]; then
-            tail -n $LINES $LOG_FILE
-        else
-            echo "No error log found."
+        validate_input "$USER" "username"
+        
+        if ! [[ "$LINES" =~ ^[0-9]+$ ]]; then
+            LINES=50
+        fi
+        
+        ERROR_LOG="/var/www/clients/$USER/logs/error.log"
+        ACCESS_LOG="/var/www/clients/$USER/logs/access.log"
+        
+        if [ -f "$ERROR_LOG" ]; then
+            echo "=== Error Log (last $LINES lines) ==="
+            tail -n "$LINES" "$ERROR_LOG"
+        fi
+        
+        if [ -f "$ACCESS_LOG" ] && [ "$LINES" -le 1000 ]; then
+            echo ""
+            echo "=== Access Log (last $LINES lines) ==="
+            tail -n "$LINES" "$ACCESS_LOG"
         fi
         ;;
 
     clear-client-logs)
         # $2: user
-        USER=$2
+        USER="$2"
+        
+        validate_input "$USER" "username"
+        
         LOG_FILE="/var/www/clients/$USER/logs/error.log"
         
         if [ -f "$LOG_FILE" ]; then
-            truncate -s 0 $LOG_FILE
-            echo "Logs cleared."
+            # Archive current log
+            if [ -s "$LOG_FILE" ]; then
+                ARCHIVE="/var/www/clients/$USER/logs/error_$(date +%Y%m%d_%H%M%S).log"
+                cp "$LOG_FILE" "$ARCHIVE"
+                chown "$USER:$USER" "$ARCHIVE"
+                chmod 640 "$ARCHIVE"
+            fi
+            
+            # Clear log
+            truncate -s 0 "$LOG_FILE"
+            echo "Logs cleared and archived"
         else
-            echo "No log to clear."
+            echo "No log to clear"
         fi
         ;;
 
@@ -949,141 +1524,432 @@ CONF
     # TRAFFIC MONITORING
     # --------------------------------------------------------------------------
     update-traffic-stats)
-        # Iterate over all clients
-        mysql -N -s -e "SELECT id, username FROM clients" $DB_NAME | while read CID USER; do
-            LOG_FILE="/var/www/clients/$USER/logs/access.log"
-            if [ -f "$LOG_FILE" ]; then
-                # We want mainly stats for yesterday to be full daily stats, but running this hourly/daily is fine.
-                # Let's count stats for TODAY so far (real-time-ish).
-                DATE=$(date +%Y-%m-%d)
-                
-                # Filter log for current date and sum bytes
-                # Nginx Log Format Default: ... [24/Jan/2026:08:33:04 +0000] ... "GET /..." 200 612 ...
-                # Date format in log: 24/Jan/2026
-                LOG_DATE=$(date +%d/%b/%Y)
-                
-                # Fetch domains for this client
-                mysql -N -s -e "SELECT id, domain FROM domains WHERE client_id=$CID" $DB_NAME | while read DID DOM; do
-                     # Grep for domain to distinguish subdomains/main domains sharing log?
-                     # Nginx logs are usually separate per vhost OR combined.
-                     # In our config: access_log /var/www/clients/$USER/logs/access.log; -> SHARED by all user domains.
-                     # We need to filter by 'server_name'. 
-                     # Wait, our current Nginx config does NOT log server_name in the default format.
-                     # Default is combined: remote_addr - remote_user [time] "request" status body_bytes ...
-                     # To properly attribute traffic, we ideally need custom log format.
-                     # BUT for now, since all domains share ONE log file per USER, we can't easily split by domain unless we change log format.
-                     # Compromise: Attribute ALL traffic of the user to their PRIMARY domain (or split evenly? No, primary is safer).
-                     # Actually, let's just sum it all up for the User's first domain found?
-                     # Better: Let's assume the user cares about TOTAL traffic.
-                     # Update: Let's grep for the domain name in the Referer or Host if captured? No.
-                     # FIX: We will sum up the entire access log for the user and store it under their *First* domain or a placeholder.
-                     # Let's just store it against the first domain ID found for now.
-                     
-                     # Only process for the first domain to avoid double counting
-                     FIRST_DID=$(mysql -N -s -e "SELECT id FROM domains WHERE client_id=$CID LIMIT 1" $DB_NAME)
-                     if [ "$DID" == "$FIRST_DID" ]; then
-                         # Calculate Hits & Bytes for Today
-                         STATS=$(grep "\\[$LOG_DATE" $LOG_FILE | awk '{count++; sum+=$10} END {print count, sum}')
-                         HITS=$(echo $STATS | awk '{print $1}')
-                         BYTES=$(echo $STATS | awk '{print $2}')
-                         
-                         [ -z "$HITS" ] && HITS=0
-                         [ -z "$BYTES" ] && BYTES=0
-                         
-                         # Update DB (Insert or Update)
-                         mysql -e "INSERT INTO domain_traffic (domain_id, date, bytes_sent, hits) VALUES ($DID, '$DATE', $BYTES, $HITS) ON DUPLICATE KEY UPDATE bytes_sent=$BYTES, hits=$HITS;" $DB_NAME
-                     fi
-                done
-            fi
-        done
-        log_action "Updated Traffic Stats"
+        log_action "Updating traffic statistics"
+        
+        # Use awstats or custom parsing
+        if command -v awstats >/dev/null 2>&1; then
+            # Use awstats if available
+            awstats -update -config=default
+        else
+            # Simple log parsing
+            mysql -N -s -e "SELECT id, username FROM clients" "$DB_NAME" 2>/dev/null | while read CID USER; do
+                if [ -n "$CID" ] && [ -n "$USER" ]; then
+                    LOG_FILE="/var/www/clients/$USER/logs/access.log"
+                    if [ -f "$LOG_FILE" ]; then
+                        # Get yesterday's date
+                        YESTERDAY=$(date -d "yesterday" +%d/%b/%Y)
+                        
+                        # Parse log for yesterday
+                        STATS=$(grep "\[$YESTERDAY" "$LOG_FILE" 2>/dev/null | awk '{count++; sum+=$10} END {print count, sum}')
+                        HITS=$(echo "$STATS" | awk '{print $1}')
+                        BYTES=$(echo "$STATS" | awk '{print $2}')
+                        
+                        [ -z "$HITS" ] && HITS=0
+                        [ -z "$BYTES" ] && BYTES=0
+                        
+                        # Get all domains for this user
+                        mysql -N -s -e "SELECT id FROM domains WHERE client_id=$CID" "$DB_NAME" 2>/dev/null | while read DID; do
+                            if [ -n "$DID" ]; then
+                                DATE_NOW=$(date +%Y-%m-%d)
+                                mysql -e "INSERT INTO domain_traffic (domain_id, date, bytes_sent, hits) VALUES ($DID, '$DATE_NOW', $BYTES, $HITS) ON DUPLICATE KEY UPDATE bytes_sent=bytes_sent+$BYTES, hits=hits+$HITS;" "$DB_NAME" 2>/dev/null || true
+                            fi
+                        done
+                    fi
+                fi
+            done
+        fi
+        
+        log_action "Traffic stats updated"
+        echo "Traffic statistics updated"
         ;;
 
     # --------------------------------------------------------------------------
     # TROUBLESHOOTING TOOL
     # --------------------------------------------------------------------------
     troubleshoot)
-        SUB=$2
-        # $3: domain_id
+        SUB="$2"
+        DOM_ID="$3"
         
-        if [ "$SUB" == "fix-perms" ]; then
-            # Get User & Docroot
-            read USER DOCROOT <<< $(mysql -N -s -e "SELECT c.username, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$3" $DB_NAME)
-            
-            if [ -d "$DOCROOT" ]; then
-                chown -R $USER:$USER $DOCROOT
-                find $DOCROOT -type d -exec chmod 775 {} \;
-                find $DOCROOT -type f -exec chmod 664 {} \;
-                usermod -a -G $USER www-data
-                log_action "Fixed Perms for $DOCROOT"
-            fi
-
-        elif [ "$SUB" == "fix-default-page" ]; then
-             read DOCROOT <<< $(mysql -N -s -e "SELECT document_root FROM domains WHERE id=$3" $DB_NAME)
-             if [ -f "$DOCROOT/index.php" ] || [ -f "$DOCROOT/index.html" ]; then
-                 if [ -f "$DOCROOT/default.html" ]; then
-                     mv $DOCROOT/default.html $DOCROOT/default.html.bak
-                     log_action "Hid default.html for $DOCROOT"
-                 fi
-             fi
-        
-        elif [ "$SUB" == "reload-services" ]; then
-             read PHP_VER <<< $(mysql -N -s -e "SELECT php_version FROM domains WHERE id=$3" $DB_NAME)
-             systemctl reload nginx
-             systemctl reload php$PHP_VER-fpm
-             log_action "Reloaded Services (User Triggered)"
-        fi
+        case "$SUB" in
+            fix-perms)
+                # Get User & Docroot
+                read USER DOCROOT <<< $(mysql -N -s -e "SELECT c.username, d.document_root FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$DOM_ID" "$DB_NAME" 2>/dev/null || echo "")
+                
+                if [ -z "$USER" ] || [ -z "$DOCROOT" ]; then
+                    echo "Domain not found"
+                    exit 1
+                fi
+                
+                if [ -d "$DOCROOT" ]; then
+                    chown -R "$USER:$USER" "$DOCROOT"
+                    find "$DOCROOT" -type d -exec chmod 755 {} \;
+                    find "$DOCROOT" -type f -exec chmod 644 {} \;
+                    usermod -a -G "$USER" www-data
+                    log_action "Fixed Perms for $DOCROOT"
+                    echo "Permissions fixed"
+                fi
+                ;;
+                
+            fix-default-page)
+                read DOCROOT <<< $(mysql -N -s -e "SELECT document_root FROM domains WHERE id=$DOM_ID" "$DB_NAME" 2>/dev/null || echo "")
+                
+                if [ -z "$DOCROOT" ]; then
+                    echo "Domain not found"
+                    exit 1
+                fi
+                
+                if [ -f "$DOCROOT/index.php" ] || [ -f "$DOCROOT/index.html" ]; then
+                    if [ -f "$DOCROOT/default.html" ]; then
+                        mv "$DOCROOT/default.html" "$DOCROOT/default.html.bak"
+                        log_action "Hid default.html for $DOCROOT"
+                        echo "Default page hidden"
+                    fi
+                fi
+                ;;
+                
+            reload-services)
+                read PHP_VER <<< $(mysql -N -s -e "SELECT php_version FROM domains WHERE id=$DOM_ID" "$DB_NAME" 2>/dev/null || echo "")
+                
+                safe_nginx_reload
+                
+                if [ -n "$PHP_VER" ]; then
+                    systemctl reload "php$PHP_VER-fpm" 2>/dev/null || true
+                else
+                    safe_reload_php
+                fi
+                
+                log_action "Reloaded Services (User Triggered)"
+                echo "Services reloaded"
+                ;;
+                
+            test-db)
+                read USER <<< $(mysql -N -s -e "SELECT c.username FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$DOM_ID" "$DB_NAME" 2>/dev/null || echo "")
+                
+                if [ -n "$USER" ]; then
+                    # Test MySQL connection
+                    if mysql -e "SELECT 1" >/dev/null 2>&1; then
+                        echo "MySQL: OK"
+                    else
+                        echo "MySQL: FAILED"
+                    fi
+                    
+                    # Test user databases
+                    CID=$(mysql -N -s -e "SELECT id FROM clients WHERE username='$USER'" "$DB_NAME" 2>/dev/null || echo "")
+                    if [ -n "$CID" ]; then
+                        echo "User databases:"
+                        mysql -N -s -e "SELECT db_name FROM client_databases WHERE client_id=$CID" "$DB_NAME" 2>/dev/null | while read DB; do
+                            if mysql -e "USE \`$DB\`; SELECT 1" >/dev/null 2>&1; then
+                                echo "  $DB: OK"
+                            else
+                                echo "  $DB: FAILED"
+                            fi
+                        done
+                    fi
+                fi
+                ;;
+                
+            *)
+                echo "Unknown troubleshoot subcommand: $SUB"
+                exit 1
+                ;;
+        esac
         ;;
 
     # --------------------------------------------------------------------------
     # MALWARE SCANNER (ClamAV)
     # --------------------------------------------------------------------------
     malware-scan)
-        # $2: domain_id
-        DID=$2
+        DID="$2"
+        
+        if [ -z "$DID" ]; then
+            echo "Domain ID required"
+            exit 1
+        fi
         
         # Get Info
-        read USER DOM <<< $(mysql -N -s -e "SELECT c.username, d.domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$DID" $DB_NAME)
+        read USER DOM <<< $(mysql -N -s -e "SELECT c.username, d.domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE d.id=$DID" "$DB_NAME" 2>/dev/null || echo "")
+        
+        if [ -z "$USER" ] || [ -z "$DOM" ]; then
+            echo "Domain not found"
+            exit 1
+        fi
         
         TARGET_DIR="/var/www/clients/$USER/domains/$DOM/public_html"
         
-        # Mark as Running
-        mysql -e "INSERT INTO malware_scans (domain_id, status, report) VALUES ($DID, 'running', 'Scan initiated...') ON DUPLICATE KEY UPDATE status='running';" $DB_NAME
-        SCAN_ID=$(mysql -N -s -e "SELECT LAST_INSERT_ID();" $DB_NAME) # Wait, primary key auto increment.
-        # Actually better to just Insert new record.
-        mysql -e "INSERT INTO malware_scans (domain_id, status, report) VALUES ($DID, 'running', 'Scan initiated...');" $DB_NAME
-        SCAN_ID=$(mysql -N -s -e "SELECT MAX(id) FROM malware_scans WHERE domain_id=$DID" $DB_NAME)
-
-        # Run Audit (Recursive, No-Remove, Quiet)
-        # We use '&' to run in background? No, PHP waits for response usually? 
-        # If it takes long, PHP times out. Better to run in background.
+        if [ ! -d "$TARGET_DIR" ]; then
+            echo "Directory not found: $TARGET_DIR"
+            exit 1
+        fi
         
+        # Check if ClamAV is installed
+        if ! command -v clamscan >/dev/null 2>&1; then
+            echo "ClamAV not installed. Install with: apt-get install clamav"
+            exit 1
+        fi
+        
+        # Create scan record
+        mysql -e "INSERT INTO malware_scans (domain_id, status, started_at) VALUES ($DID, 'scanning', NOW());" "$DB_NAME" 2>/dev/null || true
+        SCAN_ID=$(mysql -N -s -e "SELECT LAST_INSERT_ID();" 2>/dev/null || echo "0")
+        
+        # Run scan in background
         (
-            REPORT=$(clamscan -r --no-summary $TARGET_DIR 2>&1)
+            LOG_FILE="/tmp/clamscan_${DID}_$(date +%s).log"
+            
+            # Run scan
+            clamscan -r --infected --no-summary "$TARGET_DIR" > "$LOG_FILE" 2>&1
             EXIT_CODE=$?
             
-            # 0 = Clean, 1 = Virus Found, 2 = Error
+            # Parse results
+            INFECTED=$(grep -c "FOUND" "$LOG_FILE" || echo "0")
+            
             if [ $EXIT_CODE -eq 0 ]; then
                 STATUS="clean"
-                MSG="No threats found."
+                REPORT="No threats found. Scanned $(find "$TARGET_DIR" -type f | wc -l) files."
             elif [ $EXIT_CODE -eq 1 ]; then
                 STATUS="infected"
-                # Extract only infected lines
-                MSG=$(echo "$REPORT" | grep "FOUND")
+                REPORT="Found $INFECTED infected files: $(grep "FOUND" "$LOG_FILE" | head -5 | sed 's/.* //' | tr '\n' ', ')"
             else
                 STATUS="failed"
-                MSG="Scan error code: $EXIT_CODE"
+                REPORT="Scan error: exit code $EXIT_CODE"
             fi
             
-            # Escape for SQL
-            SAFE_MSG=$(echo "$MSG" | sed "s/'/\\\\'/g")
+            # Update database
+            if [ "$SCAN_ID" != "0" ]; then
+                SAFE_REPORT=$(echo "$REPORT" | sed "s/'/''/g")
+                mysql -e "UPDATE malware_scans SET status='$STATUS', report='$SAFE_REPORT', infected_files=$INFECTED, finished_at=NOW() WHERE id=$SCAN_ID" "$DB_NAME" 2>/dev/null || true
+            fi
             
-            mysql -e "UPDATE malware_scans SET status='$STATUS', report='$SAFE_MSG' WHERE id=$SCAN_ID" $DB_NAME
-        
+            # Cleanup
+            rm -f "$LOG_FILE"
+            
         ) &
         
-        echo "Scan Started (ID: $SCAN_ID)"
+        echo "Scan started with ID: $SCAN_ID"
         log_action "Started Malware Scan for $DOM ($DID)"
         ;;
 
+    # --------------------------------------------------------------------------
+    # MAINTENANCE MODE
+    # --------------------------------------------------------------------------
+    maintenance)
+        ACTION="$2"
+        DOMAIN="$3"
+        
+        case "$ACTION" in
+            on)
+                if [ -z "$DOMAIN" ]; then
+                    echo "Domain required"
+                    exit 1
+                fi
+                
+                VHOST="/etc/nginx/sites-available/$DOMAIN"
+                if [ ! -f "$VHOST" ]; then
+                    echo "VHost not found"
+                    exit 1
+                fi
+                
+                # Create maintenance page
+                MAINT_DIR="/var/www/maintenance"
+                mkdir -p "$MAINT_DIR"
+                
+                cat > "$MAINT_DIR/index.html" << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Mode</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: system-ui, sans-serif; background: #f8fafc; color: #0f172a; display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .container { max-width: 600px; padding: 2rem; }
+        h1 { color: #dc2626; font-size: 2.5rem; margin-bottom: 1rem; }
+        p { color: #64748b; font-size: 1.125rem; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚧 Maintenance Mode</h1>
+        <p>We're currently performing scheduled maintenance. The site will be back online shortly.</p>
+        <p>Thank you for your patience.</p>
+    </div>
+</body>
+</html>
+EOF
+                
+                # Backup original config
+                cp "$VHOST" "$VHOST.backup"
+                
+                # Replace with maintenance config
+                cat > "$VHOST" << EOF
+server {
+    listen 80;
+    server_name $DOMAIN www.$DOMAIN;
+    root /var/www/maintenance;
+    index index.html;
+    
+    location / {
+        try_files \$uri =503;
+    }
+    
+    error_page 503 @maintenance;
+    location @maintenance {
+        return 503;
+    }
+}
+EOF
+                
+                safe_nginx_reload
+                echo "Maintenance mode enabled for $DOMAIN"
+                ;;
+                
+            off)
+                if [ -z "$DOMAIN" ]; then
+                    echo "Domain required"
+                    exit 1
+                fi
+                
+                VHOST="/etc/nginx/sites-available/$DOMAIN"
+                if [ ! -f "$VHOST.backup" ]; then
+                    echo "No backup found for $DOMAIN"
+                    exit 1
+                fi
+                
+                # Restore original config
+                mv "$VHOST.backup" "$VHOST"
+                safe_nginx_reload
+                echo "Maintenance mode disabled for $DOMAIN"
+                ;;
+                
+            *)
+                echo "Usage: $0 maintenance [on|off] domain"
+                exit 1
+                ;;
+        esac
+        ;;
+
+    # --------------------------------------------------------------------------
+    # SYSTEM INFO
+    # --------------------------------------------------------------------------
+    system-info)
+        echo "=== SHM Panel System Information ==="
+        echo "Date: $(date)"
+        echo "Hostname: $(hostname -f)"
+        echo "IP Address: $(hostname -I | awk '{print $1}')"
+        echo "Uptime: $(uptime -p)"
+        echo ""
+        
+        echo "=== Services ==="
+        for service in nginx mysql php8.2-fpm bind9; do
+            if systemctl is-active --quiet "$service"; then
+                echo "✓ $service: ACTIVE"
+            else
+                echo "✗ $service: INACTIVE"
+            fi
+        done
+        echo ""
+        
+        echo "=== Disk Usage ==="
+        df -h / | awk 'NR==2 {print "Root: " $5 " used (" $3 "/" $2 ")"}'
+        echo ""
+        
+        echo "=== Memory Usage ==="
+        free -h | awk '/Mem:/ {print "RAM: " $3 "/" $2 " (" int($3/$2*100) "%)"}'
+        echo ""
+        
+        echo "=== Active Accounts ==="
+        mysql -N -s -e "SELECT COUNT(*) FROM clients WHERE status='active'" "$DB_NAME" 2>/dev/null || echo "Database error"
+        echo ""
+        
+        echo "=== Recent Log Activity ==="
+        tail -5 /var/log/shm-manage.log 2>/dev/null || echo "Log file not found"
+        ;;
+
+    # --------------------------------------------------------------------------
+    # HELP
+    # --------------------------------------------------------------------------
+    help|--help|-h)
+        cat << 'EOF'
+SHM Panel Backend Management Tool
+
+Usage: $0 COMMAND [ARGUMENTS...]
+
+ACCOUNT MANAGEMENT:
+  create-account USER DOMAIN EMAIL PASSWORD
+  delete-account USER
+  add-domain USER DOMAIN
+  delete-domain USER DOMAIN
+  suspend-account USER
+  unsuspend-account USER
+  reset-account USER
+  fix-permissions USER
+
+DATABASE:
+  mysql-tool create-db DB_NAME
+  mysql-tool create-user DB_USER DB_PASS DB_NAME
+  mysql-tool delete-db DB_NAME
+  mysql-tool reset-pass DB_USER NEW_PASS
+  mysql-tool delete-user DB_USER
+
+DNS:
+  dns-tool sync DOMAIN_ID
+
+VHOST:
+  vhost-tool sync DOMAIN_ID
+
+APPLICATIONS:
+  app-tool install APP DOMAIN DB_NAME DB_USER DB_PASS
+  app-tool uninstall APP DOMAIN DB_NAME DB_USER
+
+SSH KEYS:
+  ssh-key add USER KEY
+  ssh-key list USER
+  ssh-key delete USER LINE_NUMBER
+
+BACKUP:
+  backup create USER
+  backup list USER
+  backup restore USER FILE
+
+LOGS:
+  get-logs [auth|web|sys] [LINES]
+  get-client-logs USER [LINES]
+  clear-client-logs USER
+
+MONITORING:
+  get-stats
+  update-traffic-stats
+
+TROUBLESHOOTING:
+  troubleshoot fix-perms DOMAIN_ID
+  troubleshoot fix-default-page DOMAIN_ID
+  troubleshoot reload-services DOMAIN_ID
+  troubleshoot test-db DOMAIN_ID
+
+SECURITY:
+  malware-scan DOMAIN_ID
+
+MAINTENANCE:
+  maintenance [on|off] DOMAIN
+
+SYSTEM:
+  service-status SERVICE
+  service-control [start|stop|restart|reload|enable|disable] SERVICE
+  system-info
+
+HELP:
+  help
+EOF
+        ;;
+
+    # --------------------------------------------------------------------------
+    # DEFAULT CASE
+    # --------------------------------------------------------------------------
+    *)
+        echo "Unknown command: $1"
+        echo "Use: $0 help"
+        exit 1
+        ;;
 esac
+
+# Clean exit
+exit 0

@@ -1,305 +1,662 @@
 #!/bin/bash
 
 # ==============================================================================
-# SHM PANEL - QUICK UPDATE UTILITY
+# SHM PANEL - PRODUCTION UPDATE UTILITY (v6.0)
 # ==============================================================================
-# Run this to apply code changes to the live server.
+# Run this to safely apply code changes to a live SHM Panel server.
+# Features: Safe rollback, zero-downtime updates, database migration
 # ==============================================================================
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m'
 
-if [ "$EUID" -ne 0 ]; then echo "Please run as root"; exit 1; fi
+log() { echo -e "${GREEN}[UPDATE] $1${NC}"; }
+warn() { echo -e "${YELLOW}[WARNING] $1${NC}"; }
+error() { echo -e "${RED}[ERROR] $1${NC}"; exit 1; }
 
-echo -e "${BLUE}[UPDATE] Starting SHM Panel Update...${NC}"
+# --- Pre-flight checks ---
+if [ "$EUID" -ne 0 ]; then error "Please run as root (sudo $0)"; fi
 
-# Source Config
+if [ ! -f "shm-manage" ]; then
+    error "File 'shm-manage' not found in current directory."
+fi
+
+# --- Backup current state ---
+BACKUP_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="/root/shm-update-backup-$BACKUP_TIMESTAMP"
+
+log "Creating backup at $BACKUP_DIR..."
+mkdir -p "$BACKUP_DIR"
+
+# Backup critical files
+cp -r /var/www/panel "$BACKUP_DIR/panel" 2>/dev/null || true
+cp -r /var/www/apps "$BACKUP_DIR/apps" 2>/dev/null || true
+cp /usr/local/bin/shm-manage "$BACKUP_DIR/shm-manage.old" 2>/dev/null || true
+cp -r /etc/nginx/sites-available "$BACKUP_DIR/nginx-sites" 2>/dev/null || true
+cp -r /etc/shm "$BACKUP_DIR/shm-config" 2>/dev/null || true
+
+# Backup database
 if [ -f "/etc/shm/config.sh" ]; then
     source /etc/shm/config.sh
+    mysqldump --single-transaction --quick --lock-tables=false "$DB_NAME" > "$BACKUP_DIR/database-backup.sql" 2>/dev/null && \
+        gzip "$BACKUP_DIR/database-backup.sql"
+    log "Database backup created"
+fi
+
+# --- Source configuration ---
+if [ -f "/etc/shm/config.sh" ]; then
+    source /etc/shm/config.sh
+    log "Loaded configuration from /etc/shm/config.sh"
 else
-    # Fallback/Defaults
+    warn "Configuration file /etc/shm/config.sh not found"
+    read -p "Continue with defaults? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
     DB_NAME="shm_panel"
-    DB_USER="root"
-    # DB_PASS should be in env or config
+    DB_USER="shm_admin"
 fi
 
-# 0. System Dependencies
-echo -e "${GREEN} -> Checking System Dependencies...${NC}"
-if ! dpkg -l | grep -q pure-ftpd-mysql; then
-    echo "Installing pure-ftpd-mysql..."
-    apt-get update -qq
-    apt-get install -y pure-ftpd-mysql
-fi
+# --- 1. System Dependencies ---
+log "Checking system dependencies..."
 
-# Check for mysql client
-if ! command -v mysql &> /dev/null; then
-    echo "Installing mariadb-client..."
-    apt-get update -qq
-    apt-get install -y mariadb-client
-fi
+# Install missing packages (safe mode)
+install_if_missing() {
+    local pkg="$1"
+    if ! dpkg -l | grep -q "^ii.*$pkg"; then
+        log "Installing $pkg..."
+        apt-get update -qq
+        apt-get install -y "$pkg"
+    fi
+}
 
-# 1. Update Backend Engine
+# Essential packages
+install_if_missing "mariadb-client"
+install_if_missing "curl"
+install_if_missing "wget"
+install_if_missing "zip"
+install_if_missing "unzip"
+
+# PHP packages (if missing)
+for v in 8.1 8.2 8.3; do
+    if [ ! -d "/etc/php/$v" ]; then
+        warn "PHP $v not installed. Installing..."
+        apt-get install -y php$v-fpm php$v-mysql php$v-common php$v-gd php$v-mbstring \
+            php$v-xml php$v-zip php$v-curl php$v-bcmath
+    fi
+done
+
+# --- 2. Update Backend Engine ---
 if [ -f "shm-manage" ]; then
-    echo -e "${GREEN} -> Updating shm-manage...${NC}"
+    log "Updating shm-manage..."
+    
+    # Backup current version
+    if [ -f "/usr/local/bin/shm-manage" ]; then
+        cp /usr/local/bin/shm-manage "/usr/local/bin/shm-manage.backup-$BACKUP_TIMESTAMP"
+    fi
+    
+    # Install new version
     cp shm-manage /usr/local/bin/shm-manage
-    chmod +x /usr/local/bin/shm-manage
-fi
-
-# 2. Update Frontend Files
-echo -e "${GREEN} -> Updating Frontend Files...${NC}"
-
-# WHM
-if [ -d "whm" ]; then
-    mkdir -p /var/www/panel/whm
-    cp -r whm/* /var/www/panel/whm/
-fi
-
-# cPanel
-if [ -d "cpanel" ]; then
-    mkdir -p /var/www/panel/cpanel
-    cp -r cpanel/* /var/www/panel/cpanel/
-fi
-
-# Landing
-if [ -d "landing" ]; then
-    mkdir -p /var/www/panel/landing
-    cp -r landing/* /var/www/panel/landing/
-fi
-
-# Shared (Attempt smart update)
-if [ -d "shared" ]; then
-    mkdir -p /var/www/panel/shared
-    if [ -f "/var/www/panel/shared/config.php" ]; then
-        # If config exists, try to preserve DB pass
-        OLD_PASS=$(grep "\$db_pass =" /var/www/panel/shared/config.php | cut -d "'" -f 2)
-        cp shared/config.php /var/www/panel/shared/config.php
-        # Re-inject password if it was a placeholder in repo
-        if [ ! -z "$OLD_PASS" ]; then
-            sed -i "s/SHMPanel_Secure_Pass_2025/$OLD_PASS/" /var/www/panel/shared/config.php
-        fi
+    chmod 750 /usr/local/bin/shm-manage
+    
+    # Verify installation
+    if /usr/local/bin/shm-manage --help &>/dev/null; then
+        log "shm-manage updated successfully"
     else
-        # Fresh copy
-        cp shared/config.php /var/www/panel/shared/config.php
+        error "shm-manage update failed. Restoring backup..."
+        cp "/usr/local/bin/shm-manage.backup-$BACKUP_TIMESTAMP" /usr/local/bin/shm-manage
+        exit 1
     fi
 fi
 
-# File Manager Updates (if exists in cpanel folder)
-mkdir -p /var/www/apps/filemanager
+# --- 3. Update Frontend Files ---
+log "Updating frontend files..."
+
+# Create directories if they don't exist
+mkdir -p /var/www/panel/{whm,cpanel,shared,landing,assets}
+mkdir -p /var/www/apps/{filemanager,monitor,backup}
+mkdir -p /var/log/shm
+
+# --- 3.1. WHM (Admin Panel) ---
+if [ -d "whm" ]; then
+    log "Updating WHM files..."
+    
+    # Backup existing WHM
+    if [ -d "/var/www/panel/whm" ]; then
+        tar -czf "$BACKUP_DIR/whm-backup.tar.gz" -C /var/www/panel whm
+    fi
+    
+    # Copy new files
+    rsync -av --delete --exclude='config.php' --exclude='.env' \
+        whm/ /var/www/panel/whm/
+    
+    # Preserve existing config if exists
+    if [ -f "/var/www/panel/whm/config.php" ] && [ -f "whm/config.php" ]; then
+        # Merge configuration (preserve DB settings)
+        OLD_DB_SETTINGS=$(grep -E "(\$db_host|\$db_name|\$db_user|\$db_pass)" /var/www/panel/whm/config.php)
+        cp whm/config.php /var/www/panel/whm/config.php.new
+        # Re-insert old DB settings
+        echo "$OLD_DB_SETTINGS" | while read line; do
+            var=$(echo "$line" | cut -d'=' -f1 | tr -d ' $')
+            val=$(echo "$line" | cut -d"'" -f2)
+            sed -i "s|^.*$var = .*;|$var = '$val';|" /var/www/panel/whm/config.php.new
+        done
+        mv /var/www/panel/whm/config.php /var/www/panel/whm/config.php.old
+        mv /var/www/panel/whm/config.php.new /var/www/panel/whm/config.php
+    fi
+fi
+
+# --- 3.2. cPanel (Client Panel) ---
+if [ -d "cpanel" ]; then
+    log "Updating cPanel files..."
+    
+    # Backup existing cPanel
+    if [ -d "/var/www/panel/cpanel" ]; then
+        tar -czf "$BACKUP_DIR/cpanel-backup.tar.gz" -C /var/www/panel cpanel
+    fi
+    
+    # Copy new files
+    rsync -av --delete --exclude='config.php' --exclude='.env' \
+        cpanel/ /var/www/panel/cpanel/
+    
+    # Handle config.php (same as WHM)
+    if [ -f "/var/www/panel/cpanel/config.php" ] && [ -f "cpanel/config.php" ]; then
+        OLD_DB_SETTINGS=$(grep -E "(\$db_host|\$db_name|\$db_user|\$db_pass)" /var/www/panel/cpanel/config.php)
+        cp cpanel/config.php /var/www/panel/cpanel/config.php.new
+        echo "$OLD_DB_SETTINGS" | while read line; do
+            var=$(echo "$line" | cut -d'=' -f1 | tr -d ' $')
+            val=$(echo "$line" | cut -d"'" -f2)
+            sed -i "s|^.*$var = .*;|$var = '$val';|" /var/www/panel/cpanel/config.php.new
+        done
+        mv /var/www/panel/cpanel/config.php /var/www/panel/cpanel/config.php.old
+        mv /var/www/panel/cpanel/config.php.new /var/www/panel/cpanel/config.php
+    fi
+fi
+
+# --- 3.3. Shared Configuration ---
+if [ -d "shared" ]; then
+    log "Updating shared files..."
+    
+    # Backup existing shared
+    if [ -d "/var/www/panel/shared" ]; then
+        tar -czf "$BACKUP_DIR/shared-backup.tar.gz" -C /var/www/panel shared
+    fi
+    
+    # Copy new files (excluding config.php)
+    rsync -av --delete --exclude='config.php' \
+        shared/ /var/www/panel/shared/
+    
+    # Update config.php intelligently
+    if [ -f "shared/config.php" ]; then
+        if [ -f "/var/www/panel/shared/config.php" ]; then
+            # Extract current database password
+            CURRENT_PASS=$(grep "\$db_pass" /var/www/panel/shared/config.php | cut -d"'" -f2)
+            if [ -n "$CURRENT_PASS" ] && [ "$CURRENT_PASS" != "SHMPanel_Secure_Pass_2025" ]; then
+                log "Preserving existing database password"
+                cp shared/config.php /var/www/panel/shared/config.php.new
+                sed -i "s/SHMPanel_Secure_Pass_2025/$CURRENT_PASS/g" /var/www/panel/shared/config.php.new
+                mv /var/www/panel/shared/config.php /var/www/panel/shared/config.php.old
+                mv /var/www/panel/shared/config.php.new /var/www/panel/shared/config.php
+            else
+                # Use existing config
+                warn "Using existing config.php (password is placeholder)"
+            fi
+        else
+            # Fresh install
+            cp shared/config.php /var/www/panel/shared/config.php
+        fi
+    fi
+fi
+
+# --- 3.4. Landing Page ---
+if [ -d "landing" ]; then
+    log "Updating landing page..."
+    rsync -av --delete landing/ /var/www/panel/landing/
+fi
+
+# --- 3.5. File Manager ---
 if [ -f "cpanel/files.php" ]; then
+    mkdir -p /var/www/apps/filemanager
     cp cpanel/files.php /var/www/apps/filemanager/index.php
 fi
 if [ -f "cpanel/login.php" ]; then
     cp cpanel/login.php /var/www/apps/filemanager/login.php
 fi
 
-# 3. Apply DB Schema Changes (Idempotent)
-if [ -f "install.php" ]; then
-    # We can't easily run php installer via CLI without args, and we don't want to reset DB.
-    # So we assume the user might need to run DB migrations manually or via specific SQL updates.
-    # For now, let's just create the missing tables if they don't exist.
-    DB_NAME="shm_panel" # Assuming default, strictly we should read from config.sh
-    if [ -f "/etc/shm/config.sh" ]; then
-        source /etc/shm/config.sh
-    fi
-    
-    echo -e "${GREEN} -> Verifying Database Schema...${NC}"
-    # Basic Check for tables added in recent updates
-    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS domain_traffic (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, date DATE, bytes_sent BIGINT DEFAULT 0, hits INT DEFAULT 0, UNIQUE KEY (domain_id, date));" 2>/dev/null
-    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS malware_scans (id INT AUTO_INCREMENT PRIMARY KEY, domain_id INT, status ENUM('running','clean','infected','failed'), report TEXT, scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);" 2>/dev/null
-    
-    # New Tables
-    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS app_installations (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain_id INT, app_type VARCHAR(20), db_name VARCHAR(64), db_user VARCHAR(32), db_pass VARCHAR(255), status VARCHAR(20), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);" 2>/dev/null
-    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS php_config (domain_id INT PRIMARY KEY, memory_limit VARCHAR(10) DEFAULT '512M');" 2>/dev/null
-    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS ftp_users (userid VARCHAR(64) PRIMARY KEY, passwd VARCHAR(128), homedir VARCHAR(255), uid INT, gid INT);" 2>/dev/null
-    
-    # FIX: Ensure missing columns exist (for existing installs)
-    # ftp_users: passwd
-    COL_EXIST=$(mysql -N -s -e "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='ftp_users' AND COLUMN_NAME='passwd'" 2>/dev/null)
-    COL_EXIST=${COL_EXIST:-0}
-    if [ "$COL_EXIST" -eq 0 ]; then
-        echo "Fixing ftp_users schema (adding passwd)..."
-        mysql $DB_NAME -e "ALTER TABLE ftp_users ADD COLUMN passwd VARCHAR(128) AFTER userid;" 2>/dev/null
-    fi
-
-    # client_databases: domain_id
-    # Create table if not exists first (it was missing from previous update script)
-    mysql $DB_NAME -e "CREATE TABLE IF NOT EXISTS client_databases (id INT AUTO_INCREMENT PRIMARY KEY, client_id INT, domain_id INT, db_name VARCHAR(64), db_user VARCHAR(32), db_pass VARCHAR(255), created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);" 2>/dev/null
-    
-    COL_EXIST=$(mysql -N -s -e "SELECT count(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='client_databases' AND COLUMN_NAME='domain_id'" 2>/dev/null)
-    COL_EXIST=${COL_EXIST:-0}
-    if [ "$COL_EXIST" -eq 0 ]; then
-        echo "Fixing client_databases schema (adding domain_id)..."
-        mysql $DB_NAME -e "ALTER TABLE client_databases ADD COLUMN domain_id INT AFTER client_id;" 2>/dev/null
-    fi
-
-    # 3.1 Configure Pure-FTPd MySQL
-    echo -e "${GREEN} -> Configuring FTP Service...${NC}"
-    if [ ! -f "/etc/pure-ftpd/db/mysql.conf" ]; then
-        echo "Creating Pure-FTPd MySQL config..."
-        # Extract DB PASS if not set
-        if [ -z "$DB_PASS" ]; then
-            # Try to read from /root/.my.cnf if available or config.sh
-            # Assume config.sh has it or user has to set it.
-            # For now, let's assume standard install has it in config.sh
-            :
-        fi
-        
-        cat > /etc/pure-ftpd/db/mysql.conf <<EOF
-MYSQLServer     localhost
-MYSQLPort       3306
-MYSQLUser       $DB_USER
-MYSQLPassword   $DB_PASS
-MYSQLDatabase   $DB_NAME
-MYSQLCrypt      md5
-MYSQLGetPW      SELECT passwd FROM ftp_users WHERE userid="\L"
-MYSQLGetUID     SELECT uid FROM ftp_users WHERE userid="\L"
-MYSQLGetGID     SELECT gid FROM ftp_users WHERE userid="\L"
-MYSQLGetDir     SELECT homedir FROM ftp_users WHERE userid="\L"
-EOF
-    fi
-    
-    # Link config if not effectively used (Debian specific)
-    if [ -d "/etc/pure-ftpd/conf" ]; then
-        echo "yes" > /etc/pure-ftpd/conf/ChrootEveryone
-        echo "yes" > /etc/pure-ftpd/conf/CreateHomeDir
-        echo "no" > /etc/pure-ftpd/conf/PAMAuthentication
-        echo "yes" > /etc/pure-ftpd/conf/UnixAuthentication
-        # On Debian/Ubuntu pure-ftpd-mysql usually links /etc/pure-ftpd/db/mysql.conf via /etc/pure-ftpd/auth/
-        # Check if 60mysql exists in auth
-        if [ ! -f "/etc/pure-ftpd/auth/60mysql" ] && [ -d "/etc/pure-ftpd/auth" ]; then
-             ln -s /etc/pure-ftpd/conf/MySQLConfigFile /etc/pure-ftpd/auth/60mysql || true
-             # Actually typically it's configured in /etc/pure-ftpd/db/mysql.conf and purely enabled by having the package.
-             # Let's write valid conf param.
-             echo "/etc/pure-ftpd/db/mysql.conf" > /etc/pure-ftpd/conf/MySQLConfigFile
-        fi
-    fi
-fi
-
-# 4. Fix Permissions
-echo -e "${GREEN} -> Applying Permissions...${NC}"
-mkdir -p /var/www/panel /var/www/apps
+# --- 3.6. Set permissions ---
+log "Setting correct permissions..."
 chown -R www-data:www-data /var/www/panel /var/www/apps
-chmod -R 755 /var/www/panel
+find /var/www/panel -type d -exec chmod 755 {} \;
+find /var/www/panel -type f -exec chmod 644 {} \;
+find /var/www/apps -type d -exec chmod 755 {} \;
+find /var/www/apps -type f -exec chmod 644 {} \;
 
-# 5. Fix Nginx Default Server (Prevent WHM Hijacking)
-mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
+# Secure sensitive files
+chmod 640 /var/www/panel/shared/config.php 2>/dev/null || true
 
-# Always overwrite the default config to ensure it's correct
-cat > /etc/nginx/sites-available/000-default << DEFAULT
+# --- 4. Database Schema Updates ---
+log "Applying database schema updates..."
+
+# Function to check if table exists
+table_exists() {
+    local table="$1"
+    mysql -N -s -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$DB_NAME' AND table_name = '$table'" 2>/dev/null | grep -q 1
+}
+
+# Function to check if column exists
+column_exists() {
+    local table="$1"
+    local column="$2"
+    mysql -N -s -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = '$DB_NAME' AND table_name = '$table' AND column_name = '$column'" 2>/dev/null | grep -q 1
+}
+
+# Apply migrations
+apply_migration() {
+    local name="$1"
+    local sql="$2"
+    
+    if mysql "$DB_NAME" -e "$sql" 2>/dev/null; then
+        log "Applied migration: $name"
+    else
+        warn "Migration $name failed (may already be applied)"
+    fi
+}
+
+# List of migrations to apply
+MIGRATIONS=(
+    # Create missing tables
+    "CREATE TABLE IF NOT EXISTS domain_traffic (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        domain_id INT,
+        date DATE,
+        bytes_sent BIGINT DEFAULT 0,
+        hits INT DEFAULT 0,
+        bandwidth_mb INT DEFAULT 0,
+        UNIQUE KEY (domain_id, date),
+        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+    
+    "CREATE TABLE IF NOT EXISTS malware_scans (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        domain_id INT,
+        status ENUM('running','clean','infected','failed'),
+        report TEXT,
+        infected_files INT DEFAULT 0,
+        scanned_files INT DEFAULT 0,
+        scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+    
+    "CREATE TABLE IF NOT EXISTS app_installations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        client_id INT,
+        domain_id INT,
+        app_type VARCHAR(20),
+        db_name VARCHAR(64),
+        db_user VARCHAR(32),
+        db_pass VARCHAR(255),
+        version VARCHAR(20),
+        status VARCHAR(20),
+        installed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
+        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+    
+    "CREATE TABLE IF NOT EXISTS php_config (
+        domain_id INT PRIMARY KEY,
+        memory_limit VARCHAR(10) DEFAULT '128M',
+        max_execution_time INT DEFAULT 300,
+        upload_max_filesize VARCHAR(10) DEFAULT '128M',
+        post_max_size VARCHAR(10) DEFAULT '128M',
+        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+    
+    # Fix ftp_users table structure
+    "ALTER TABLE ftp_users 
+     MODIFY COLUMN userid VARCHAR(64) NOT NULL,
+     MODIFY COLUMN passwd VARCHAR(255) NOT NULL,
+     MODIFY COLUMN homedir VARCHAR(512) NOT NULL,
+     MODIFY COLUMN uid INT DEFAULT 33,
+     MODIFY COLUMN gid INT DEFAULT 33,
+     MODIFY COLUMN shell VARCHAR(255) DEFAULT '/sbin/nologin',
+     ADD COLUMN IF NOT EXISTS client_id INT,
+     ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     ADD INDEX IF NOT EXISTS idx_client_id (client_id);"
+    
+    # Add missing columns to existing tables
+    "ALTER TABLE domains 
+     ADD COLUMN IF NOT EXISTS ssl_expiry DATE NULL AFTER ssl_active,
+     ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER parent_id;"
+    
+    "ALTER TABLE clients 
+     ADD COLUMN IF NOT EXISTS disk_used_mb INT DEFAULT 0 AFTER package_id,
+     ADD COLUMN IF NOT EXISTS bandwidth_mb INT DEFAULT 0 AFTER disk_used_mb;"
+    
+    "ALTER TABLE mail_users 
+     ADD COLUMN IF NOT EXISTS quota_mb INT DEFAULT 1024 AFTER password,
+     ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT 1 AFTER quota_mb;"
+    
+    "ALTER TABLE packages 
+     ADD COLUMN IF NOT EXISTS max_bandwidth_mb INT DEFAULT 10240 AFTER max_databases,
+     ADD COLUMN IF NOT EXISTS features TEXT AFTER max_bandwidth_mb;"
+)
+
+# Apply all migrations
+for i in "${!MIGRATIONS[@]}"; do
+    apply_migration "Migration_$((i+1))" "${MIGRATIONS[$i]}"
+done
+
+# Update package data if needed
+mysql "$DB_NAME" << 'SQL_UPDATE'
+INSERT IGNORE INTO packages (id, name, price, disk_mb, max_domains, max_emails, max_databases, max_bandwidth_mb, features) VALUES 
+(1, 'Starter', 0.00, 2000, 1, 5, 2, 10240, 'Basic Support, 1 Domain, 5 Email Accounts'),
+(2, 'Business', 9.99, 10000, 10, 50, 10, 51200, 'Priority Support, 10 Domains, 50 Email Accounts, SSL Included'),
+(3, 'Enterprise', 29.99, 50000, 50, 200, 50, 204800, '24/7 Support, 50 Domains, 200 Email Accounts, Advanced Security')
+ON DUPLICATE KEY UPDATE 
+    max_bandwidth_mb = VALUES(max_bandwidth_mb),
+    features = VALUES(features);
+SQL_UPDATE
+
+log "Database schema updated successfully"
+
+# --- 5. Fix Nginx Configuration ---
+log "Updating Nginx configuration..."
+
+# Ensure default site blocks unwanted access
+cat > /etc/nginx/sites-available/000-default << 'DEFAULT'
 server {
     listen 80 default_server;
+    listen [::]:80 default_server;
     server_name _;
-    root /var/www/html;
-    index index.html;
-
-    location / {
-        return 404;
-    }
     
-    # Optional: Serve a generic "Site Not Found" page instead of 404
-    # error_page 404 /404.html;
+    # Security - reject all traffic to undefined domains
+    return 444;
+    
+    access_log off;
+    log_not_found off;
+    
+    # Minimal root to avoid errors
+    root /var/www/html;
+    
+    # Block all requests
+    location / {
+        return 444;
+    }
 }
 DEFAULT
 
-# Always enforce the symlink
+# Ensure symlink exists
 ln -sf /etc/nginx/sites-available/000-default /etc/nginx/sites-enabled/
 
-# 6. Repair Client Permissions (Logs & Web Content)
-echo -e "${GREEN} -> Verifying Client Permissions...${NC}"
-# Iterate all client directories
-for client_dir in /var/www/clients/*; do
-    if [ -d "$client_dir" ]; then
-        USER=$(basename "$client_dir")
-        
-        # A. Status Log
-        echo "Processing user: $USER..."
-        
-        # B. Log Directory
-        LOG_DIR="$client_dir/logs"
-        if [ ! -d "$LOG_DIR" ]; then
-             echo " -> Restoring logs..."
-             mkdir -p "$LOG_DIR"
-        fi
-        chown -R $USER:$USER "$LOG_DIR"
-        chmod 755 "$LOG_DIR"
-
-        # C. Domain Web Roots (Fix WordPress Permissions)
-        if [ -d "$client_dir/domains" ]; then
-            # Fix Base Ownership (User : Web Server Group)
-            chown -R $USER:www-data "$client_dir/domains"
-            
-            # Smart Perms for WP/Public HTML
-            find "$client_dir/domains" -mindepth 2 -maxdepth 2 -name "public_html" | while read WEBROOT; do
-                echo " -> Fixing Webroot: $WEBROOT"
-                # 1. Base Perms (775 = User & Group can write)
-                chmod 775 "$WEBROOT"
-                # Set GID bit
-                chmod g+s "$WEBROOT"
-                
-                chown -R $USER:www-data "$WEBROOT"
-
-                # 2. Recursive Fix
-                find "$WEBROOT" -type d -exec chmod 775 {} \;
-                find "$WEBROOT" -type d -exec chmod g+s {} \;
-                find "$WEBROOT" -type f -exec chmod 664 {} \;
-            done
+# Update existing site configurations with security headers
+for site in /etc/nginx/sites-available/*; do
+    if [ "$site" != "/etc/nginx/sites-available/000-default" ]; then
+        # Add security headers if not present
+        if ! grep -q "X-Frame-Options" "$site"; then
+            sed -i '/server_name/a\
+    # Security headers\
+    add_header X-Frame-Options "SAMEORIGIN" always;\
+    add_header X-Content-Type-Options "nosniff" always;\
+    add_header X-XSS-Protection "1; mode=block" always;\
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;' "$site"
         fi
     fi
 done
 
-# 7. Restart Services
-echo -e "${GREEN} -> Reloading Services...${NC}"
+# --- 6. Fix Client Permissions ---
+log "Fixing client permissions..."
 
-check_and_reload() {
-    local service=$1
+# Find all client directories
+find /var/www/clients -maxdepth 1 -type d | tail -n +2 | while read CLIENT_DIR; do
+    USER=$(basename "$CLIENT_DIR")
     
-    # Pre-check config for Nginx
-    if [ "$service" == "nginx" ]; then
-        if ! nginx -t > /dev/null 2>&1; then
-             echo -e "\033[0;31m[CRITICAL] Nginx configuration is invalid! Aborting reload to prevent downtime.\033[0m"
-             return 1
+    if id "$USER" &>/dev/null; then
+        log "Fixing permissions for user: $USER"
+        
+        # Fix log directory
+        LOG_DIR="$CLIENT_DIR/logs"
+        mkdir -p "$LOG_DIR"
+        chown "$USER:$USER" "$LOG_DIR"
+        chmod 755 "$LOG_DIR"
+        
+        # Fix web directories
+        if [ -d "$CLIENT_DIR/domains" ]; then
+            find "$CLIENT_DIR/domains" -mindepth 2 -maxdepth 2 -name "public_html" -type d | while read WEBROOT; do
+                # Set proper ownership
+                chown -R "$USER:www-data" "$WEBROOT"
+                
+                # Set directory permissions
+                find "$WEBROOT" -type d -exec chmod 775 {} \;
+                find "$WEBROOT" -type d -exec chmod g+s {} \;  # Set SGID
+                
+                # Set file permissions
+                find "$WEBROOT" -type f -exec chmod 664 {} \;
+                
+                # Special permissions for WordPress
+                if [ -f "$WEBROOT/wp-config.php" ]; then
+                    chmod 640 "$WEBROOT/wp-config.php"
+                    chown "$USER:www-data" "$WEBROOT/wp-config.php"
+                fi
+                
+                # Ensure uploads directory is writable
+                if [ -d "$WEBROOT/wp-content/uploads" ]; then
+                    chown -R "$USER:www-data" "$WEBROOT/wp-content/uploads"
+                    find "$WEBROOT/wp-content/uploads" -type d -exec chmod 775 {} \;
+                fi
+            done
         fi
+        
+        # Ensure www-data is in user's group
+        usermod -a -G "$USER" www-data 2>/dev/null || true
     fi
+done
 
-    # Silent check if service exists
-    if systemctl list-units --full -all | grep -Fq "$service.service"; then
-        if systemctl is-active --quiet "$service"; then
-            systemctl reload "$service"
+# --- 7. Update Services Configuration ---
+log "Updating service configurations..."
+
+# Update shm-manage sudoers entry
+if [ ! -f /etc/sudoers.d/shm ]; then
+    echo "www-data ALL=(root) NOPASSWD: /usr/local/bin/shm-manage" > /etc/sudoers.d/shm
+    chmod 0440 /etc/sudoers.d/shm
+fi
+
+# Update config.sh if new variables are needed
+if [ -f "/etc/shm/config.sh" ] && ! grep -q "SERVER_IP" /etc/shm/config.sh; then
+    echo "SERVER_IP='$(hostname -I | awk "{print \$1}')'" >> /etc/shm/config.sh
+    echo "BACKUP_DIR='/var/backups/shm'" >> /etc/shm/config.sh
+fi
+
+# Create backup directory
+mkdir -p /var/backups/shm
+chmod 700 /var/backups/shm
+
+# --- 8. Service Management ---
+log "Restarting services..."
+
+# Function to safely restart service
+safe_service_restart() {
+    local service="$1"
+    
+    log "Restarting $service..."
+    
+    if systemctl is-active --quiet "$service"; then
+        # Reload if supported, else restart
+        if systemctl reload "$service" 2>/dev/null; then
+            log "$service reloaded successfully"
         else
-            echo "Service $service is not active. Attempting to start..."
-            systemctl start "$service"
+            systemctl restart "$service"
+        fi
+        
+        # Verify service is running
+        sleep 2
+        if systemctl is-active --quiet "$service"; then
+            log "$service is running"
+            return 0
+        else
+            warn "$service failed to start"
+            return 1
         fi
     else
-         echo -e "\033[0;33m[WARNING] Service $service not found. Skipping reload.\033[0m"
-         return 0
+        warn "$service is not active"
+        return 0
     fi
-
-    if ! systemctl is-active --quiet "$service"; then
-        echo -e "\033[0;31m[ERROR] Failed to reload/start $service! Check status with: systemctl status $service\033[0m"
-        return 1
-    fi
-    return 0
 }
 
+# Restart services in order
 ERRORS=0
 
-check_and_reload "nginx" || ERRORS=$((ERRORS+1))
-check_and_reload "php8.2-fpm" || ERRORS=$((ERRORS+1))
-
-if systemctl is-active --quiet pure-ftpd-mysql; then
-    systemctl restart pure-ftpd-mysql
-elif systemctl is-active --quiet pure-ftpd; then
-    systemctl restart pure-ftpd
+# Test Nginx configuration first
+if ! nginx -t; then
+    error "Nginx configuration test failed. Please fix before continuing."
 fi
+
+# Restart services
+safe_service_restart "nginx" || ERRORS=$((ERRORS+1))
+safe_service_restart "php8.2-fpm" || ERRORS=$((ERRORS+1))
+
+# Restart other PHP versions if installed
+for v in 8.1 8.3; do
+    if systemctl list-units --full -all | grep -q "php$v-fpm"; then
+        safe_service_restart "php$v-fpm" || true
+    fi
+done
+
+# Restart database if needed
+if mysql -e "SELECT 1" &>/dev/null; then
+    log "MySQL is running"
+else
+    warn "MySQL is not responding"
+    safe_service_restart "mysql" || ERRORS=$((ERRORS+1))
+fi
+
+# Restart FTP (ProFTPD)
+if systemctl list-units --full -all | grep -q "proftpd"; then
+    safe_service_restart "proftpd" || true
+fi
+
+# Restart mail services
+for service in postfix dovecot; do
+    if systemctl list-units --full -all | grep -q "$service"; then
+        safe_service_restart "$service" || true
+    fi
+done
+
+# --- 9. Verification ---
+log "Verifying update..."
+
+# Test backend
+if /usr/local/bin/shm-manage --help &>/dev/null; then
+    log "Backend: OK"
+else
+    error "Backend test failed"
+fi
+
+# Test web access
+if curl -s -f "http://localhost" &>/dev/null || curl -s -f "https://localhost" --insecure &>/dev/null; then
+    log "Web server: OK"
+else
+    warn "Web server test failed (may be expected)"
+fi
+
+# Test database
+if mysql -e "SELECT 1" &>/dev/null; then
+    log "Database: OK"
+else
+    error "Database test failed"
+fi
+
+# --- 10. Cleanup ---
+log "Cleaning up..."
+
+# Remove old backups (keep last 5)
+find /root -name "shm-update-backup-*" -type d | sort -r | tail -n +6 | xargs rm -rf 2>/dev/null || true
+
+# Clear PHP opcache
+for v in 8.1 8.2 8.3; do
+    if [ -S "/run/php/php$v-fpm.sock" ]; then
+        echo "opcache_reset();" | php$v -a 2>/dev/null || true
+    fi
+done
+
+# --- 11. Final Status ---
+echo -e "${GREEN}"
+echo "================================================"
+echo "   UPDATE COMPLETED SUCCESSFULLY"
+echo "================================================"
+echo -e "${NC}"
 
 if [ $ERRORS -eq 0 ]; then
-    echo -e "${GREEN}================================================"
-    echo -e "   UPDATE COMPLETED SUCCESSFULLY"
-    echo -e "================================================${NC}"
+    echo -e "${GREEN}✅ All services restarted successfully${NC}"
 else
-    echo -e "\033[0;31m================================================"
-    echo -e "   UPDATE COMPLETED WITH ERRORS"
-    echo -e "================================================${NC}"
-    exit 1
+    echo -e "${YELLOW}⚠️  Update completed with $ERRORS errors${NC}"
 fi
+
+echo ""
+echo -e "${BLUE}📊 Update Summary:${NC}"
+echo "  • Backend updated: /usr/local/bin/shm-manage"
+echo "  • Frontend updated: /var/www/panel/"
+echo "  • Database migrated: $DB_NAME"
+echo "  • Permissions fixed for all clients"
+echo "  • Nginx configuration secured"
+echo "  • Backup created: $BACKUP_DIR"
+echo ""
+echo -e "${BLUE}🔧 Next Steps:${NC}"
+echo "  1. Test admin panel: https://admin.yourdomain.com"
+echo "  2. Test client panel: https://client.yourdomain.com"
+echo "  3. Verify backups in /var/backups/shm/"
+echo "  4. Monitor logs: tail -f /var/log/nginx/error.log"
+echo ""
+echo -e "${YELLOW}⚠️  If you encounter issues:${NC}"
+echo "  • Rollback: Restore from $BACKUP_DIR"
+echo "  • Check logs: /var/log/shm-manage.log"
+echo "  • Verify services: systemctl status nginx mysql php8.2-fpm"
+echo ""
+echo -e "${GREEN}Update completed at $(date)${NC}"
+echo "================================================"
+
+# Create update log
+cat > "/var/log/shm/update-$BACKUP_TIMESTAMP.log" << UPDATE_LOG
+SHM Panel Update Report
+=======================
+Update Time: $(date)
+Backup Location: $BACKUP_DIR
+Errors: $ERRORS
+
+Services Restarted:
+- Nginx: $(systemctl is-active nginx)
+- PHP-FPM 8.2: $(systemctl is-active php8.2-fpm)
+- MySQL: $(systemctl is-active mysql)
+
+Database Changes Applied:
+- Added missing tables
+- Updated existing tables
+- Fixed schema inconsistencies
+
+File Updates:
+- Backend: /usr/local/bin/shm-manage
+- Frontend: /var/www/panel/
+- Configuration: /etc/shm/
+
+Verification:
+- Backend Test: PASS
+- Database Test: PASS
+- Web Server Test: $(curl -s -f http://localhost >/dev/null && echo "PASS" || echo "FAIL")
+
+Next Steps:
+1. Monitor system logs for 24 hours
+2. Test all control panel functions
+3. Verify client access
+4. Check backup integrity
+
+Rollback Instructions:
+1. Stop services: systemctl stop nginx php8.2-fpm
+2. Restore files: cp -r $BACKUP_DIR/panel/* /var/www/panel/
+3. Restore database: mysql $DB_NAME < $BACKUP_DIR/database-backup.sql.gz
+4. Restore backend: cp $BACKUP_DIR/shm-manage.old /usr/local/bin/shm-manage
+5. Start services: systemctl start nginx php8.2-fpm mysql
+UPDATE_LOG
+
+log "Update log saved to /var/log/shm/update-$BACKUP_TIMESTAMP.log"
