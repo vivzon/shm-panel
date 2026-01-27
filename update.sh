@@ -184,9 +184,9 @@ chmod -R 755 /var/www/panel
 
 # 5. Fix Nginx Default Server (Prevent WHM Hijacking)
 mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-if [ ! -f "/etc/nginx/sites-available/000-default" ]; then
-    echo -e "${GREEN} -> Installing Default Nginx Block...${NC}"
-    cat > /etc/nginx/sites-available/000-default << DEFAULT
+
+# Always overwrite the default config to ensure it's correct
+cat > /etc/nginx/sites-available/000-default << DEFAULT
 server {
     listen 80 default_server;
     server_name _;
@@ -196,10 +196,14 @@ server {
     location / {
         return 404;
     }
+    
+    # Optional: Serve a generic "Site Not Found" page instead of 404
+    # error_page 404 /404.html;
 }
 DEFAULT
-    ln -sf /etc/nginx/sites-available/000-default /etc/nginx/sites-enabled/
-fi
+
+# Always enforce the symlink
+ln -sf /etc/nginx/sites-available/000-default /etc/nginx/sites-enabled/
 
 # 6. Repair Client Permissions (Logs & Web Content)
 echo -e "${GREEN} -> Verifying Client Permissions...${NC}"
