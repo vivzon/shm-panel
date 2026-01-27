@@ -234,18 +234,15 @@ for client_dir in /var/www/clients/*; do
                 echo " -> Fixing Webroot: $WEBROOT"
                 # 1. Base Perms (775 = User & Group can write)
                 chmod 775 "$WEBROOT"
+                # Set GID bit
+                chmod g+s "$WEBROOT"
                 
-                # 2. Fix wp-content if exists
-                if [ -d "$WEBROOT/wp-content" ]; then
-                    chmod -R 775 "$WEBROOT/wp-content"
-                    
-                    # 3. Special Case: Uploads folder should be owned by www-data to ensure writing works
-                    if [ -d "$WEBROOT/wp-content/uploads" ]; then
-                        echo "    -> Fixing WordPress Uploads permissions..."
-                        chown -R www-data:www-data "$WEBROOT/wp-content/uploads"
-                        chmod -R 775 "$WEBROOT/wp-content/uploads"
-                    fi
-                fi
+                chown -R $USER:www-data "$WEBROOT"
+
+                # 2. Recursive Fix
+                find "$WEBROOT" -type d -exec chmod 775 {} \;
+                find "$WEBROOT" -type d -exec chmod g+s {} \;
+                find "$WEBROOT" -type f -exec chmod 664 {} \;
             done
         fi
     fi

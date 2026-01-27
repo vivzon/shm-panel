@@ -110,6 +110,8 @@ case "$1" in
         usermod -a -G $USER www-data
         # Set permissions so group can write
         chmod -R 775 /var/www/clients/$USER
+        # Set GID bit for inheritance
+        chmod g+s /var/www/clients/$USER
         
         # 2. PHP-FPM Pool
         cat > /etc/php/8.2/fpm/pool.d/$USER.conf << PHP
@@ -206,9 +208,10 @@ NGINX
         DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
         mkdir -p \$DOCROOT
         create_default_index "\$DOCROOT" "\$DOM" "\$USER"
-        chown -R $USER:$USER /var/www/clients/$USER/domains
+        chown -R $USER:www-data /var/www/clients/$USER/domains
         # FORCE 775 for Group Write (www-data)
         chmod -R 775 /var/www/clients/$USER/domains/$DOM
+        chmod g+s /var/www/clients/$USER/domains/$DOM
         
         cat > /etc/nginx/sites-available/$DOM << NGINX
 server {
@@ -341,6 +344,7 @@ NGINX
             chown -R $USER:$USER $HOME_DIR
             
             # 2. Reset Mode (775 for folders, 664 for files)
+            # Default to secure
             find $HOME_DIR -type d -exec chmod 755 {} \;
             find $HOME_DIR -type f -exec chmod 644 {} \;
             
@@ -348,16 +352,18 @@ NGINX
             # Iterate domains
             if [ -d "$HOME_DIR/domains" ]; then
                 find "$HOME_DIR/domains" -mindepth 2 -maxdepth 2 -name "public_html" | while read WEBROOT; do
-                    # Set 775/664 for Web Root to allow www-data (File Manager) access
+                    # Set 775 recursively for Web Root to allow www-data (File Manager) access
                     chmod 775 "$WEBROOT"
+                    # Add sticky group bit so new files inherit group
+                    chmod g+s "$WEBROOT"
+                    
+                    # Apply recursively to all subdirectories
                     find "$WEBROOT" -type d -exec chmod 775 {} \;
+                    find "$WEBROOT" -type d -exec chmod g+s {} \;
                     find "$WEBROOT" -type f -exec chmod 664 {} \;
                     
-                    # Ensure wp-content and uploads are writable by User (PHP)
-                    # (Already covered by chown above, but we ensure group is correct)
-                    if [ -d "$WEBROOT/wp-content" ]; then
-                         chmod -R 775 "$WEBROOT/wp-content"
-                    fi
+                    # Ensure www-data works with it
+                    chown -R $USER:www-data "$WEBROOT"
                 done
             fi
 
