@@ -19,7 +19,9 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'install_app') {
             $app = $_POST['app'];
             $dom_id = $_POST['domain_id'];
-            $domain = $pdo->query("SELECT domain FROM domains WHERE id=$dom_id AND client_id=$cid")->fetchColumn();
+            $stmt = $pdo->prepare("SELECT domain FROM domains WHERE id = ? AND client_id = ?");
+            $stmt->execute([$dom_id, $cid]);
+            $domain = $stmt->fetchColumn();
             if (!$domain)
                 throw new Exception("Invalid Domain");
 
@@ -50,8 +52,8 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Passwords do not match");
             $ftp_user = strtolower($_POST['ftp_user'] . '@' . $username); // Enforce user@client format
 
-            // Password: Check valid FTP Login (MD5 is common for Pure/ProFTPD)
-            $pass = md5($_POST['pass']);
+            // Password: Use bcrypt hashing for FTP passwords (more secure than MD5)
+            $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
 
             $home = "/var/www/clients/$username/public_html" . ($_POST['dir'] ? '/' . trim($_POST['dir'], '/') : '');
 
@@ -188,7 +190,9 @@ if (isset($_POST['ajax_action'])) {
 
 // -------- FRONTEND DATA --------
 $active_tab = $_GET['tab'] ?? 'apps';
-$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
+$stmt = $pdo->prepare("SELECT * FROM domains WHERE client_id = ?");
+$stmt->execute([$cid]);
+$domains = $stmt->fetchAll();
 
 include 'layout/header.php';
 ?>

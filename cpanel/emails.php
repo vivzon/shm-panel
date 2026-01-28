@@ -13,13 +13,19 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
 
     try {
-        $limits = $pdo->query("SELECT p.* FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = $cid")->fetch();
+        $stmt = $pdo->prepare("SELECT p.* FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = ?");
+        $stmt->execute([$cid]);
+        $limits = $stmt->fetch();
 
         if ($action == 'add_email') {
-            $curr = $pdo->query("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = $cid))")->fetchColumn();
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = ?))");
+            $stmt->execute([$cid]);
+            $curr = $stmt->fetchColumn();
             if ($curr >= $limits['max_emails'])
                 throw new Exception("Email limit reached.");
-            $did = $pdo->query("SELECT id FROM mail_domains WHERE domain = '{$_POST['domain']}'")->fetchColumn();
+            $stmt = $pdo->prepare("SELECT id FROM mail_domains WHERE domain = ?");
+            $stmt->execute([$_POST['domain']]);
+            $did = $stmt->fetchColumn();
             if (!$did) {
                 // Should exist if domain exists, but just in case
                 $pdo->prepare("INSERT INTO mail_domains (domain) VALUES (?)")->execute([$_POST['domain']]);
@@ -73,10 +79,14 @@ $per_page = 10;
 $offset = ($page - 1) * $per_page;
 
 // Count Total
-$total_emails = $pdo->query("SELECT COUNT(*) FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = $cid)")->fetchColumn();
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = ?)");
+$stmt->execute([$cid]);
+$total_emails = $stmt->fetchColumn();
 $total_pages = ceil($total_emails / $per_page);
 
-$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
+$stmt = $pdo->prepare("SELECT * FROM domains WHERE client_id = ?");
+$stmt->execute([$cid]);
+$domains = $stmt->fetchAll();
 $my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = $cid) LIMIT $per_page OFFSET $offset")->fetchAll();
 
 // Base Domain for Webmail Link
