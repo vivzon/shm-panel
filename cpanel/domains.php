@@ -93,6 +93,7 @@ if (isset($_POST['ajax_action'])) {
 
                 // Sync VHost (still needed for the sub)
                 cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
+                cmd("shm-manage vhost-tool sync $dom_id");
 
             } else {
                 // Standard Domain Logic
@@ -118,6 +119,7 @@ if (isset($_POST['ajax_action'])) {
 
                 // Syncs
                 cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
+                cmd("shm-manage vhost-tool sync $dom_id");
                 cmd("dns-tool sync $dom_id");
             }
 

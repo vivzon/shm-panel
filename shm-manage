@@ -768,9 +768,9 @@ EOF
         fi
         ;;
 
-    # --------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
     # VHOST TOOL (PHP Version & SSL Switcher)
-    # --------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     vhost-tool)
         SUB="$2"
         
@@ -788,16 +788,77 @@ EOF
             
             # Determine DOCROOT
             DOCROOT=$(get_docroot "$USER" "$DOM" "$DOCROOT_DB")
-            
-            # Create directory if it doesn't exist
             mkdir -p "$DOCROOT"
             
-            # PHP Sock
-            SOCK="/run/php/php$PHP_VER-fpm-$USER.sock"
+            # 1. Update Nginx Config
+            if command -v nginx &> /dev/null; then
+                SOCK="/run/php/php$PHP_VER-fpm-$USER.sock"
+                cat > "/etc/nginx/sites-available/$DOM" << EOF
+server {
+    listen 80;
+    server_name $DOM www.$DOM;
+    root $DOCROOT;
+    index index.php index.html;
+
+    access_log /var/www/clients/$USER/logs/$DOM.access.log;
+    error_log /var/www/clients/$USER/logs/$DOM.error.log;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:$SOCK;
+    }
+}
+EOF
+                ln -sf "/etc/nginx/sites-available/$DOM" "/etc/nginx/sites-enabled/"
+                safe_nginx_reload
+            fi
+
+            # 2. Update Apache Config (If installed)
+            if command -v apache2 &> /dev/null; then
+                cat > "/etc/apache2/sites-available/$DOM.conf" << EOF
+<VirtualHost *:80>
+    ServerName $DOM
+    ServerAlias www.$DOM
+    DocumentRoot $DOCROOT
+
+    <Directory $DOCROOT>
+        AllowOverride All
+        Require all granted
+        Options +FollowSymLinks -Indexes
+    </Directory>
+
+    <FilesMatch \.php$>
+        SetHandler "proxy:unix:/run/php/php$PHP_VER-fpm-$USER.sock|fcgi://localhost"
+    </FilesMatch>
+
+    ErrorLog \${APACHE_LOG_DIR}/$DOM.error.log
+    CustomLog \${APACHE_LOG_DIR}/$DOM.access.log combined
+</VirtualHost>
+EOF
+                a2ensite "$DOM.conf" &> /dev/null || true
+                systemctl reload apache2
+            fi
             
-            # SSL Paths
-            CERT="/etc/letsencrypt/live/$DOM/fullchain.pem"
-            KEY="/etc/letsencrypt/live/$DOM/privkey.pem"
+            echo "VHost synced for $DOM"
+        elif [ "$SUB" == "sync-all" ]; then
+            log_action "Starting mass VHost sync for all domains"
+            mysql -N -s -e "SELECT id FROM domains" "$DB_NAME" 2>/dev/null | while read DID; do
+                if [ -n "$DID" ]; then
+                    $0 vhost-tool sync "$DID"
+                fi
+            done
+            echo "All domains synchronized successfully"
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # PERMISSION FIX TOOL (Improved)
+    # --------------------------------------------------------------------------
+    fix-permissions)
             
             VHOST="/etc/nginx/sites-available/$DOM"
             
