@@ -19,7 +19,7 @@ if (isset($_POST['ajax_action'])) {
 
             $sys_user = $_POST['sys_user'];
             $ftp_user = $_POST['ftp_user'] . '@' . $sys_user; // Enforce user@client
-            $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
+            $pass = md5($_POST['pass']);
 
             // Default home to /var/www/clients/user/public_html
             $home = "/var/www/clients/$sys_user/public_html";
@@ -57,9 +57,7 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'add_mail') {
             $full = $_POST['prefix'] . "@" . $_POST['domain'];
             $pass = password_hash($_POST['mail_pass'], PASSWORD_BCRYPT);
-            $stmt = $pdo->prepare("SELECT id FROM mail_domains WHERE domain = ?");
-            $stmt->execute([$_POST['domain']]);
-            $did = $stmt->fetchColumn();
+            $did = $pdo->query("SELECT id FROM mail_domains WHERE domain = '{$_POST['domain']}'")->fetchColumn();
             if (!$did)
                 throw new Exception("Domain not found for mail");
             $pdo->prepare("INSERT INTO mail_users (domain_id, email, password) VALUES (?,?,?)")->execute([$did, $full, $pass]);

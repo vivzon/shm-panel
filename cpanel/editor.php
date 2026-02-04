@@ -112,9 +112,7 @@ $content = file_get_contents($abs_path);
         </button>
     </header>
 
-    <div id="editor">
-        <?= htmlspecialchars($content) ?>
-    </div>
+    <div id="editor"><?= htmlspecialchars($content) ?></div>
 
     <form id="save-form" method="POST" class="hidden">
         <textarea name="content" id="form-content"></textarea>

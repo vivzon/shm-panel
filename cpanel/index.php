@@ -23,27 +23,18 @@ if (isset($_POST['ajax_action'])) {
 }
 
 // 1. Fetch Client Data
-$stmt = $pdo->prepare("SELECT c.*, p.name as pkg_name, p.max_emails, p.max_databases, p.max_domains, p.disk_mb FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = ?");
-$stmt->execute([$cid]);
-$clientData = $stmt->fetch();
-
-$stmt = $pdo->prepare("SELECT * FROM domains WHERE client_id = ?");
-$stmt->execute([$cid]);
-$domains = $stmt->fetchAll();
+$clientData = $pdo->query("SELECT c.*, p.name as pkg_name, p.max_emails, p.max_databases, p.max_domains, p.disk_mb FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = $cid")->fetch();
+$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
 
 // 2. Fetch Usage Stats
 try {
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM client_databases WHERE client_id = ?");
-    $stmt->execute([$cid]);
-    $usage_db = $stmt->fetchColumn();
+    $usage_db = $pdo->query("SELECT COUNT(*) FROM client_databases WHERE client_id = $cid")->fetchColumn();
 } catch (Exception $e) {
     $usage_db = 0;
 }
 
 $usage_dom = count($domains);
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = ?))");
-$stmt->execute([$cid]);
-$usage_mail = $stmt->fetchColumn();
+$usage_mail = $pdo->query("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = $cid))")->fetchColumn();
 
 // 3. Fetch Traffic Data (Last 7 Days)
 // Aggregate traffic across ALL user domains

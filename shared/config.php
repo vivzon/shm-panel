@@ -18,7 +18,7 @@ if (!isset($db_name))
 if (!isset($db_user))
     $db_user = 'shm_admin';
 if (!isset($db_pass))
-    $db_pass = 'SHMPanel_Secure_Pass_2025';
+    $db_pass = 'QwErTyUiOp@1';
 
 // 3. Database Connection
 try {
