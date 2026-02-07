@@ -7,25 +7,45 @@ if (!isset($_SESSION['client'])) {
 }
 $cid = $_SESSION['cid'];
 
+// 2. Security: CSRF Token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if (isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
     $action = $_POST['ajax_action'];
     $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
 
     try {
-        $limits = $pdo->query("SELECT p.* FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = $cid")->fetch();
+        // CSRF Validation
+        if (!isset($_POST['token']) || $_POST['token'] !== $_SESSION['csrf_token']) {
+            throw new Exception("Security token mismatch. Please refresh.");
+        }
+
+        $stmt = $pdo->prepare("SELECT p.* FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = ?");
+        $stmt->execute([$cid]);
+        $limits = $stmt->fetch();
 
         if ($action == 'add_email') {
-            $curr = $pdo->query("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = $cid))")->fetchColumn();
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = ?))");
+            $stmt->execute([$cid]);
+            $curr = $stmt->fetchColumn();
+
             if ($curr >= $limits['max_emails'])
                 throw new Exception("Email limit reached.");
-            $did = $pdo->query("SELECT id FROM mail_domains WHERE domain = '{$_POST['domain']}'")->fetchColumn();
+
+            $domain = $_POST['domain'];
+            $stmt = $pdo->prepare("SELECT id FROM mail_domains WHERE domain = ?");
+            $stmt->execute([$domain]);
+            $did = $stmt->fetchColumn();
+
             if (!$did) {
-                // Should exist if domain exists, but just in case
-                $pdo->prepare("INSERT INTO mail_domains (domain) VALUES (?)")->execute([$_POST['domain']]);
+                $stmt = $pdo->prepare("INSERT INTO mail_domains (domain) VALUES (?)");
+                $stmt->execute([$domain]);
                 $did = $pdo->lastInsertId();
             }
-            $pdo->prepare("INSERT INTO mail_users (domain_id, email, password) VALUES (?, ?, ?)")->execute([$did, $_POST['user'] . "@" . $_POST['domain'], password_hash($_POST['pass'], PASSWORD_BCRYPT)]);
+            $pdo->prepare("INSERT INTO mail_users (domain_id, email, password) VALUES (?, ?, ?)")->execute([$did, $_POST['user'] . "@" . $domain, password_hash($_POST['pass'], PASSWORD_BCRYPT)]);
             sendResponse($res);
             exit;
         }
@@ -73,11 +93,18 @@ $per_page = 10;
 $offset = ($page - 1) * $per_page;
 
 // Count Total
-$total_emails = $pdo->query("SELECT COUNT(*) FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = $cid)")->fetchColumn();
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = ?)");
+$stmt->execute([$cid]);
+$total_emails = $stmt->fetchColumn();
 $total_pages = ceil($total_emails / $per_page);
 
-$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
-$my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = $cid) LIMIT $per_page OFFSET $offset")->fetchAll();
+$stmt = $pdo->prepare("SELECT * FROM domains WHERE client_id = ?");
+$stmt->execute([$cid]);
+$domains = $stmt->fetchAll();
+
+$stmt = $pdo->prepare("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON mu.domain_id = md.id WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = ?) LIMIT $per_page OFFSET $offset");
+$stmt->execute([$cid]);
+$my_emails = $stmt->fetchAll();
 
 // Base Domain for Webmail Link
 $server_host = $_SERVER['HTTP_HOST'];
@@ -96,6 +123,7 @@ include 'layout/header.php';
     <div class="glass-card p-10">
         <h2 class="text-2xl font-bold mb-8 text-white">Create Email Account</h2>
         <form onsubmit="handleGeneric(event, 'add_email')" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input type="hidden" name="token" value="<?= $_SESSION['csrf_token'] ?>">
             <input name="user" required placeholder="mailbox name"
                 class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
             <select name="domain"
@@ -172,6 +200,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', action);
         fd.append(key, val);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
 
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
@@ -194,6 +223,7 @@ include 'layout/header.php';
         fd.append('ajax_action', action);
         fd.append(keyName, keyValue);
         fd.append('new_pass', newPass);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
 
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());

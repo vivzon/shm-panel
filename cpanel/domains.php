@@ -8,6 +8,11 @@ if (!isset($_SESSION['client'])) {
 $cid = $_SESSION['cid'];
 $username = $_SESSION['client'];
 
+// 2. Security: CSRF Token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Global search functionality
 $search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
 
@@ -17,14 +22,23 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
 
     try {
-        $limits = $pdo->query("SELECT p.* FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = $cid")->fetch();
+        // CSRF Validation
+        if (!isset($_POST['token']) || $_POST['token'] !== $_SESSION['csrf_token']) {
+            throw new Exception("Security token mismatch. Please refresh.");
+        }
+
+        $stmt = $pdo->prepare("SELECT p.* FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = ?");
+        $stmt->execute([$cid]);
+        $limits = $stmt->fetch();
 
         if ($action == 'add_domain') {
             $dom = strtolower(trim($_POST['domain']));
             if (!preg_match('/^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$/', $dom))
                 throw new Exception("Invalid Domain Name Format");
 
-            $curr = $pdo->query("SELECT COUNT(*) FROM domains WHERE client_id = $cid")->fetchColumn();
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM domains WHERE client_id = ?");
+            $stmt->execute([$cid]);
+            $curr = $stmt->fetchColumn();
             if ($curr >= $limits['max_domains'])
                 throw new Exception("Domain limit reached ({$limits['max_domains']})");
 
@@ -47,11 +61,11 @@ if (isset($_POST['ajax_action'])) {
             $dom_for_validation = preg_replace('/^www\./', '', $dom);
             $dom_parts = explode('.', $dom_for_validation);
             $is_subdomain = (count($dom_parts) > 2);
-            
+
             // Check Parent Domain (If Subdomain)
             $parent_id = null;
             $explicit_parent = isset($_POST['parent_id']) ? trim($_POST['parent_id']) : '';
-            
+
             if ($has_parent_id && $explicit_parent) {
                 // Subdomain mode - parent explicitly selected
                 $get_p = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
@@ -83,7 +97,7 @@ if (isset($_POST['ajax_action'])) {
             if ($has_parent_id && $parent_id) {
                 // It IS a subdomain of a managed parent. 
                 // We do NOT create a new Zone. We add an A record to the PARENT.
-                $host = str_replace("." . $possible_parent, "", $dom); // e.g. "blog"
+                $host = str_replace("." . $explicit_parent, "", $dom); // e.g. "blog"
 
                 // Add 'A' record to Parent
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', ?, ?)")->execute([$parent_id, $host, $server_ip]);
@@ -129,7 +143,7 @@ if (isset($_POST['ajax_action'])) {
 
         if ($action == 'delete_domain') {
             $dom_id = (int) $_POST['domain_id'];
-            
+
             // Check if parent_id column exists
             $has_parent_id = false;
             try {
@@ -138,14 +152,14 @@ if (isset($_POST['ajax_action'])) {
             } catch (Exception $e) {
                 $has_parent_id = false;
             }
-            
+
             // Build query based on column existence
             if ($has_parent_id) {
                 $d = $pdo->prepare("SELECT domain, parent_id FROM domains WHERE id=? AND client_id=?");
             } else {
                 $d = $pdo->prepare("SELECT domain FROM domains WHERE id=? AND client_id=?");
             }
-            
+
             $d->execute([$dom_id, $cid]);
             $dom_info = $d->fetch();
 
@@ -173,7 +187,7 @@ if (isset($_POST['ajax_action'])) {
                 } else {
                     // This is a parent domain - delete all its DNS records
                     $pdo->prepare("DELETE FROM dns_records WHERE domain_id=?")->execute([$dom_id]);
-                    
+
                     // Also delete DNS records for any subdomains pointing to this parent (only if parent_id column exists)
                     if ($has_parent_id) {
                         $pdo->prepare("DELETE FROM dns_records WHERE domain_id IN (SELECT id FROM domains WHERE parent_id=?)")->execute([$dom_id]);
@@ -182,14 +196,23 @@ if (isset($_POST['ajax_action'])) {
 
                 // Delete all related records for this domain
                 // 1. Delete PHP config
-                try { $pdo->prepare("DELETE FROM php_config WHERE domain_id=?")->execute([$dom_id]); } catch (Exception $e) {}
-                
+                try {
+                    $pdo->prepare("DELETE FROM php_config WHERE domain_id=?")->execute([$dom_id]);
+                } catch (Exception $e) {
+                }
+
                 // 2. Delete domain traffic records
-                try { $pdo->prepare("DELETE FROM domain_traffic WHERE domain_id=?")->execute([$dom_id]); } catch (Exception $e) {}
-                
+                try {
+                    $pdo->prepare("DELETE FROM domain_traffic WHERE domain_id=?")->execute([$dom_id]);
+                } catch (Exception $e) {
+                }
+
                 // 3. Delete malware scan records
-                try { $pdo->prepare("DELETE FROM malware_scans WHERE domain_id=?")->execute([$dom_id]); } catch (Exception $e) {}
-                
+                try {
+                    $pdo->prepare("DELETE FROM malware_scans WHERE domain_id=?")->execute([$dom_id]);
+                } catch (Exception $e) {
+                }
+
                 // 4. Delete any subdomains of this domain (only if parent_id column exists)
                 if ($has_parent_id) {
                     $subdomains = $pdo->prepare("SELECT id FROM domains WHERE parent_id=?");
@@ -197,15 +220,24 @@ if (isset($_POST['ajax_action'])) {
                     while ($sub = $subdomains->fetch()) {
                         $sub_id = $sub['id'];
                         // Delete subdomain related records
-                        try { $pdo->prepare("DELETE FROM php_config WHERE domain_id=?")->execute([$sub_id]); } catch (Exception $e) {}
-                        try { $pdo->prepare("DELETE FROM domain_traffic WHERE domain_id=?")->execute([$sub_id]); } catch (Exception $e) {}
-                        try { $pdo->prepare("DELETE FROM malware_scans WHERE domain_id=?")->execute([$sub_id]); } catch (Exception $e) {}
+                        try {
+                            $pdo->prepare("DELETE FROM php_config WHERE domain_id=?")->execute([$sub_id]);
+                        } catch (Exception $e) {
+                        }
+                        try {
+                            $pdo->prepare("DELETE FROM domain_traffic WHERE domain_id=?")->execute([$sub_id]);
+                        } catch (Exception $e) {
+                        }
+                        try {
+                            $pdo->prepare("DELETE FROM malware_scans WHERE domain_id=?")->execute([$sub_id]);
+                        } catch (Exception $e) {
+                        }
                     }
-                    
+
                     // 5. Delete the subdomains themselves
                     $pdo->prepare("DELETE FROM domains WHERE parent_id=?")->execute([$dom_id]);
                 }
-                
+
                 // 6. Finally delete the domain itself
                 $pdo->prepare("DELETE FROM domains WHERE id=?")->execute([$dom_id]);
 
@@ -213,7 +245,7 @@ if (isset($_POST['ajax_action'])) {
 
                 // Execute system commands after successful DB deletion
                 cmd("shm-manage delete-domain " . escapeshellarg($username) . " " . escapeshellarg($domain_name));
-                
+
             } catch (Exception $e) {
                 $pdo->rollBack();
                 throw $e;
@@ -392,7 +424,9 @@ $parts = explode('.', $server_host);
 $base_domain = count($parts) >= 2 ? implode('.', array_slice($parts, -2)) : $server_host;
 
 // Fetch ALL domains for subdomain dropdown (not just paginated ones)
-$all_domains = $pdo->query("SELECT id, domain FROM domains WHERE client_id = $cid ORDER BY domain ASC")->fetchAll();
+$stmt = $pdo->prepare("SELECT id, domain FROM domains WHERE client_id = ? ORDER BY domain ASC");
+$stmt->execute([$cid]);
+$all_domains = $stmt->fetchAll();
 
 include 'layout/header.php';
 ?>
@@ -457,15 +491,17 @@ include 'layout/header.php';
         </div>
     <?php endif; ?>
 
-    <?php foreach ($domains as $index => $d): 
+    <?php foreach ($domains as $index => $d):
         $is_first = ($index === 0);
         $domain_id = $d['id'];
-    ?>
+        ?>
         <div class="glass-card mb-4 shadow-sm group domain-card" data-domain-id="<?= $domain_id ?>">
             <!-- Domain Header - Always Visible -->
-            <div class="domain-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-800/30 transition rounded-xl" onclick="toggleDomain(<?= $domain_id ?>)">
+            <div class="domain-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-800/30 transition rounded-xl"
+                onclick="toggleDomain(<?= $domain_id ?>)">
                 <div class="flex items-center gap-4">
-                    <i data-lucide="chevron-down" id="chevron-<?= $domain_id ?>" class="w-5 h-5 text-slate-500 transition-transform <?= $is_first ? '' : '-rotate-90' ?>"></i>
+                    <i data-lucide="chevron-down" id="chevron-<?= $domain_id ?>"
+                        class="w-5 h-5 text-slate-500 transition-transform <?= $is_first ? '' : '-rotate-90' ?>"></i>
                     <div>
                         <h3 class="text-xl font-black text-white">
                             <?= $d['domain'] ?>
@@ -476,25 +512,30 @@ include 'layout/header.php';
                 <div class="flex items-center gap-4">
                     <!-- Quick Stats -->
                     <div class="flex gap-3">
-                        <div class="bg-slate-900/80 backdrop-blur border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 flex items-center gap-2">
+                        <div
+                            class="bg-slate-900/80 backdrop-blur border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 flex items-center gap-2">
                             <i data-lucide="activity" class="w-3 h-3 text-emerald-400"></i>
                             <?= $d['traffic_today'] ? round($d['traffic_today'] / 1024 / 1024, 2) . ' MB' : '0 MB' ?>
                         </div>
                         <?php if ($d['ssl_active']): ?>
-                            <div class="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-emerald-400 flex items-center gap-2">
+                            <div
+                                class="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-emerald-400 flex items-center gap-2">
                                 <i data-lucide="lock" class="w-3 h-3"></i> SSL
                             </div>
                         <?php endif; ?>
                         <?php if ($d['scan_status'] == 'clean'): ?>
-                            <div class="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-emerald-400 flex items-center gap-2">
+                            <div
+                                class="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-emerald-400 flex items-center gap-2">
                                 <i data-lucide="shield-check" class="w-3 h-3"></i> Clean
                             </div>
                         <?php elseif ($d['scan_status'] == 'infected'): ?>
-                            <div class="bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-red-400 flex items-center gap-2">
+                            <div
+                                class="bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-red-400 flex items-center gap-2">
                                 <i data-lucide="shield-alert" class="w-3 h-3"></i> Infected
                             </div>
                         <?php elseif ($d['scan_status'] == 'running'): ?>
-                            <div class="bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-blue-400 flex items-center gap-2">
+                            <div
+                                class="bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-blue-400 flex items-center gap-2">
                                 <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Scanning
                             </div>
                         <?php endif; ?>
@@ -512,9 +553,10 @@ include 'layout/header.php';
                     </div>
                 </div>
             </div>
-            
+
             <!-- Domain Content - Collapsible -->
-            <div id="domain-content-<?= $domain_id ?>" class="domain-content <?= $is_first ? '' : 'hidden' ?> border-t border-slate-700/50">
+            <div id="domain-content-<?= $domain_id ?>"
+                class="domain-content <?= $is_first ? '' : 'hidden' ?> border-t border-slate-700/50">
                 <div class="p-5">
                     <!-- Configuration Row -->
                     <form onsubmit="handleGeneric(event, 'update_domain_config')"
@@ -548,7 +590,8 @@ include 'layout/header.php';
                                 class="w-4 h-4 text-emerald-500 accent-emerald-500">
                             <span class="text-[10px] font-bold uppercase text-emerald-400">SSL</span>
                         </div>
-                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition text-xs font-bold ml-auto">
+                        <button
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition text-xs font-bold ml-auto">
                             <i data-lucide="save" class="w-4 h-4 inline mr-1"></i> Save
                         </button>
                     </form>
@@ -560,15 +603,18 @@ include 'layout/header.php';
                         <div class="text-center p-8 bg-slate-900/30 rounded-xl border border-slate-800 border-dashed">
                             <i data-lucide="git-merge" class="w-8 h-8 text-slate-600 mx-auto mb-2"></i>
                             <p class="text-sm font-bold text-slate-400">DNS Managed by Parent Domain</p>
-                            <p class="text-xs text-slate-600">This subdomain is a record of <span class="text-blue-400"><?= $pname ?></span></p>
+                            <p class="text-xs text-slate-600">This subdomain is a record of <span
+                                    class="text-blue-400"><?= $pname ?></span></p>
                         </div>
                     <?php else: ?>
                         <h4 class="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">DNS Zone Management</h4>
 
                         <!-- Security Section -->
-                        <div class="mb-6 p-4 bg-slate-900/30 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <div
+                            class="mb-6 p-4 bg-slate-900/30 rounded-xl border border-slate-800 flex justify-between items-center">
                             <div>
-                                <h4 class="text-white font-bold text-sm flex items-center gap-2"><i data-lucide="shield" class="w-4 text-purple-400"></i> Malware Protection</h4>
+                                <h4 class="text-white font-bold text-sm flex items-center gap-2"><i data-lucide="shield"
+                                        class="w-4 text-purple-400"></i> Malware Protection</h4>
                                 <p class="text-[10px] text-slate-500 mt-1">Status:
                                     <?php if ($d['scan_status'] == 'clean'): ?>
                                         <span class="text-emerald-400">Clean</span>
@@ -585,7 +631,8 @@ include 'layout/header.php';
                                 </p>
                             </div>
                             <button onclick="startScan(<?= $d['id'] ?>)"
-                                class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-4 py-2 rounded-lg text-xs font-bold hover:bg-purple-600 hover:text-white transition">Run Scan</button>
+                                class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-4 py-2 rounded-lg text-xs font-bold hover:bg-purple-600 hover:text-white transition">Run
+                                Scan</button>
                         </div>
 
                         <!-- DNS Tabs -->
@@ -608,12 +655,21 @@ include 'layout/header.php';
                                 <input type="hidden" name="type" id="input-dns-type-<?= $d['id'] ?>" value="A">
 
                                 <div id="dns-fields-<?= $d['id'] ?>" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                                    <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner"></div>
-                                    <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">IPv4 Address</label><input name="value" placeholder="192.168.1.1" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner"></div>
+                                    <div class="col-span-4"><label
+                                            class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Host</label><input
+                                            name="host" value="@"
+                                            class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner">
+                                    </div>
+                                    <div class="col-span-8"><label
+                                            class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">IPv4
+                                            Address</label><input name="value" placeholder="192.168.1.1"
+                                            class="w-full bg-slate-900 border border-slate-700 p-3 rounded-lg text-sm text-white outline-none focus:border-blue-500 shadow-inner">
+                                    </div>
                                 </div>
 
                                 <div class="mt-4 flex justify-end">
-                                    <button class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 transition border border-blue-400 flex items-center gap-2">
+                                    <button
+                                        class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 transition border border-blue-400 flex items-center gap-2">
                                         <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Record
                                     </button>
                                 </div>
@@ -636,16 +692,21 @@ include 'layout/header.php';
                                     $recs = $pdo->prepare("SELECT * FROM dns_records WHERE domain_id = ?");
                                     $recs->execute([$d['id']]);
                                     $has_records = false;
-                                    while ($r = $recs->fetch()): 
+                                    while ($r = $recs->fetch()):
                                         $has_records = true;
-                                    ?>
+                                        ?>
                                         <tr class="text-sm hover:bg-slate-800/30 transition">
                                             <td class="p-3 font-bold text-slate-300"><?= $r['host'] ?></td>
-                                            <td class="p-3"><span class="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs font-bold text-slate-400"><?= $r['type'] ?></span></td>
-                                            <td class="p-3 font-mono text-slate-500 text-xs truncate max-w-md"><?= $r['value'] ?></td>
+                                            <td class="p-3"><span
+                                                    class="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs font-bold text-slate-400"><?= $r['type'] ?></span>
+                                            </td>
+                                            <td class="p-3 font-mono text-slate-500 text-xs truncate max-w-md"><?= $r['value'] ?>
+                                            </td>
                                             <td class="p-3 text-right">
-                                                <button onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
-                                                    class="text-red-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4"></i></button>
+                                                <button
+                                                    onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
+                                                    class="text-red-400 hover:text-red-500"><i data-lucide="trash-2"
+                                                        class="w-4"></i></button>
                                             </td>
                                         </tr>
                                     <?php endwhile; ?>
@@ -707,7 +768,7 @@ include 'layout/header.php';
     function toggleDomain(domainId) {
         const content = document.getElementById('domain-content-' + domainId);
         const chevron = document.getElementById('chevron-' + domainId);
-        
+
         if (content.classList.contains('hidden')) {
             // Expand
             content.classList.remove('hidden');
@@ -749,6 +810,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'add_domain');
         fd.append('domain', domain);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
 
         const btn = form.querySelector('button');
         const oldHtml = btn.innerHTML;
@@ -788,6 +850,7 @@ include 'layout/header.php';
         fd.append('ajax_action', 'add_domain');
         fd.append('domain', fqdn);
         fd.append('parent_id', parent); // Pass parent domain for validation
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
 
         const btn = form.querySelector('button');
         const oldHtml = btn.innerHTML;

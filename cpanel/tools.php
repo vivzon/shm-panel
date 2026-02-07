@@ -9,6 +9,11 @@ if (!isset($_SESSION['client'])) {
 $username = $_SESSION['client'];
 $cid = $_SESSION['cid'];
 
+// Security: CSRF Token
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // -------- BACKEND HANDLERS --------
 if (isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
@@ -16,6 +21,10 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
 
     try {
+        // CSRF Validation
+        if (!isset($_POST['token']) || $_POST['token'] !== $_SESSION['csrf_token']) {
+            throw new Exception("Security token mismatch. Please refresh.");
+        }
         // --- APPS HANDLER ---
         if ($action == 'install_app') {
             $app = $_POST['app'];
@@ -166,7 +175,9 @@ if (isset($_POST['ajax_action'])) {
 
 // -------- FRONTEND DATA --------
 $active_tab = $_GET['tab'] ?? 'apps';
-$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
+$stmt = $pdo->prepare("SELECT * FROM domains WHERE client_id = ?");
+$stmt->execute([$cid]);
+$domains = $stmt->fetchAll();
 
 include 'layout/header.php';
 ?>
@@ -197,38 +208,31 @@ include 'layout/header.php';
 <!-- CONTENT: APPS -->
 <div id="tab-apps" class="<?= $active_tab == 'apps' ? '' : 'hidden' ?>">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- WP -->
-        <div class="glass-card p-6 bg-gradient-to-br from-blue-900/20 to-transparent border-blue-500/20">
-            <div class="flex items-center gap-4 mb-6">
-                <div
-                    class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-                    <i data-lucide="layout" class="w-6 h-6 text-white"></i>
+        <?php
+        $apps = [
+            'wordpress' => ['WordPress', 'The world\'s most popular CMS.', 'bg-blue-600', 'layout'],
+            'laravel' => ['Laravel', 'The PHP Framework for Web Artisans.', 'bg-red-600', 'zap'],
+            'codeigniter' => ['CodeIgniter', 'Powerful PHP framework.', 'bg-orange-600', 'flame'],
+            'react' => ['React App', 'Create React App boilerplate.', 'bg-cyan-500', 'atom']
+        ];
+        foreach ($apps as $key => $info): ?>
+            <div
+                class="glass-card p-6 bg-gradient-to-br from-<?= explode('-', $info[2])[1] ?>-900/20 to-transparent border-<?= explode('-', $info[2])[1] ?>-500/20">
+                <div class="flex items-center gap-4 mb-6">
+                    <div
+                        class="w-12 h-12 <?= $info[2] ?> rounded-2xl flex items-center justify-center shadow-lg shadow-<?= explode('-', $info[2])[1] ?>-600/20">
+                        <i data-lucide="<?= $info[3] ?>" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-lg"><?= $info[0] ?></h3>
+                        <p class="text-slate-500 text-xs"><?= $info[1] ?></p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="font-bold text-white text-lg">WordPress</h3>
-                    <p class="text-slate-500 text-xs">The world's most popular CMS.</p>
-                </div>
+                <button onclick="installApp('<?= $key ?>')"
+                    class="w-full py-3 <?= $info[2] ?> hover:opacity-90 text-white rounded-xl font-bold transition shadow-lg shadow-<?= explode('-', $info[2])[1] ?>-600/20">Install
+                    Now</button>
             </div>
-            <button onclick="installApp('wordpress')"
-                class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg shadow-blue-600/20">Install
-                Now</button>
-        </div>
-        <!-- Laravel -->
-        <div class="glass-card p-6 bg-gradient-to-br from-rose-900/20 to-transparent border-rose-500/20">
-            <div class="flex items-center gap-4 mb-6">
-                <div
-                    class="w-12 h-12 bg-rose-600 rounded-2xl flex items-center justify-center shadow-lg shadow-rose-600/20">
-                    <i data-lucide="zap" class="w-6 h-6 text-white"></i>
-                </div>
-                <div>
-                    <h3 class="font-bold text-white text-lg">Laravel</h3>
-                    <p class="text-slate-500 text-xs">The PHP Framework for Web Artisans.</p>
-                </div>
-            </div>
-            <button onclick="installApp('laravel')"
-                class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold transition shadow-lg shadow-rose-600/20">Install
-                Now</button>
-        </div>
+        <?php endforeach; ?>
     </div>
 </div>
 
@@ -337,7 +341,11 @@ include 'layout/header.php';
     async function installApp(app) {
         const did = getDomId(); if (!did) return;
         if (!confirm(`Install ${app} on domain ID ${did}? existing files will be backed up.`)) return;
-        const fd = new FormData(); fd.append('ajax_action', 'install_app'); fd.append('app', app); fd.append('domain_id', did);
+        const fd = new FormData();
+        fd.append('ajax_action', 'install_app');
+        fd.append('app', app);
+        fd.append('domain_id', did);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             if (res.status === 'success') showToast('success', 'Installation Started', res.msg);
@@ -348,7 +356,9 @@ include 'layout/header.php';
     // --- FTP ---
     async function addFtp(e) {
         e.preventDefault();
-        const fd = new FormData(e.target); fd.append('ajax_action', 'add_ftp');
+        const fd = new FormData(e.target);
+        fd.append('ajax_action', 'add_ftp');
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             if (res.status === 'success') {
@@ -361,7 +371,9 @@ include 'layout/header.php';
 
     async function loadFtp() {
         const container = document.getElementById('ftp-list-container');
-        const fd = new FormData(); fd.append('ajax_action', 'list_ftp');
+        const fd = new FormData();
+        fd.append('ajax_action', 'list_ftp');
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             if (res.status === 'success') {
@@ -384,12 +396,15 @@ include 'layout/header.php';
                     </div>
                 `;
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     async function delFtp(user) {
         if (!confirm(`Delete FTP user ${user}?`)) return;
-        const fd = new FormData(); fd.append('ajax_action', 'del_ftp'); fd.append('user', user);
+        const fd = new FormData();
+        fd.append('ajax_action', 'del_ftp');
+        fd.append('user', user);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         await fetch('', { method: 'POST', body: fd });
         loadFtp();
     }
@@ -398,7 +413,10 @@ include 'layout/header.php';
     async function addSSHKey() {
         const key = document.getElementById('ssh-key-input').value;
         if (!key) return;
-        const fd = new FormData(); fd.append('ajax_action', 'add_ssh'); fd.append('key', key);
+        const fd = new FormData();
+        fd.append('ajax_action', 'add_ssh');
+        fd.append('key', key);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         await fetch('', { method: 'POST', body: fd });
         document.getElementById('ssh-key-input').value = '';
         loadSSH();
@@ -406,7 +424,9 @@ include 'layout/header.php';
 
     async function loadSSH() {
         const container = document.getElementById('ssh-list');
-        const fd = new FormData(); fd.append('ajax_action', 'list_ssh');
+        const fd = new FormData();
+        fd.append('ajax_action', 'list_ssh');
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
         container.innerHTML = res.data.map(line => {
             const parts = line.trim().split(/\s+/);
@@ -422,7 +442,10 @@ include 'layout/header.php';
     }
 
     async function delSSH(num) {
-        const fd = new FormData(); fd.append('ajax_action', 'del_ssh'); fd.append('line', num);
+        const fd = new FormData();
+        fd.append('ajax_action', 'del_ssh');
+        fd.append('line', num);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         await fetch('', { method: 'POST', body: fd });
         loadSSH();
     }
@@ -432,7 +455,9 @@ include 'layout/header.php';
 
     async function loadBackups() {
         const list = document.getElementById('backup-list');
-        const fd = new FormData(); fd.append('ajax_action', 'list_backups');
+        const fd = new FormData();
+        fd.append('ajax_action', 'list_backups');
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             list.innerHTML = res.data.map(b => `
@@ -445,11 +470,13 @@ include 'layout/header.php';
                     </td>
                 </tr>
             `).join('') || '<tr><td colspan="3" class="p-4 text-center text-slate-500">No backups found.</td></tr>';
-        } catch (e) {}
+        } catch (e) { }
     }
 
     async function createBackup() {
-        const fd = new FormData(); fd.append('ajax_action', 'create_backup');
+        const fd = new FormData();
+        fd.append('ajax_action', 'create_backup');
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
         showToast('info', 'Backup Started', res.msg);
         checkBackupStatus();
@@ -457,14 +484,20 @@ include 'layout/header.php';
 
     async function deleteBackup(file) {
         if (!confirm(`Delete backup ${file}?`)) return;
-        const fd = new FormData(); fd.append('ajax_action', 'del_backup'); fd.append('file', file);
+        const fd = new FormData();
+        fd.append('ajax_action', 'del_backup');
+        fd.append('file', file);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         await fetch('', { method: 'POST', body: fd });
         loadBackups();
     }
 
     async function restoreBackup(file) {
         if (!confirm('This will OVERWRITE your current site. Continue?')) return;
-        const fd = new FormData(); fd.append('ajax_action', 'restore_backup'); fd.append('file', file);
+        const fd = new FormData();
+        fd.append('ajax_action', 'restore_backup');
+        fd.append('file', file);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         showToast('info', 'Restoring...', 'Restore job started.');
         await fetch('', { method: 'POST', body: fd });
     }
@@ -473,8 +506,10 @@ include 'layout/header.php';
         const banner = document.getElementById('backup-status-banner');
         const progress = document.getElementById('backup-status-progress');
         const text = document.getElementById('backup-status-text');
-        
-        const fd = new FormData(); fd.append('ajax_action', 'get_backup_status');
+
+        const fd = new FormData();
+        fd.append('ajax_action', 'get_backup_status');
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             const s = res.data;
@@ -487,25 +522,34 @@ include 'layout/header.php';
             if (s === 'dumping_db') { progress.style.width = '30%'; text.innerText = 'Dumping DB...'; }
             else if (s === 'compressing') { progress.style.width = '70%'; text.innerText = 'Compressing...'; }
             if (!backupStatusInterval) backupStatusInterval = setInterval(checkBackupStatus, 3000);
-        } catch (e) {}
+        } catch (e) { }
     }
 
     // --- TROUBLESHOOT ---
     async function fixWebsite() {
         const did = getDomId(); if (!did) return;
-        const fd = new FormData(); fd.append('ajax_action', 'fix_website'); fd.append('domain_id', did);
+        const fd = new FormData();
+        fd.append('ajax_action', 'fix_website');
+        fd.append('domain_id', did);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
         showToast('success', 'Done', res.msg);
     }
     async function restartServices() {
         const did = getDomId(); if (!did) return;
-        const fd = new FormData(); fd.append('ajax_action', 'restart_services'); fd.append('domain_id', did);
+        const fd = new FormData();
+        fd.append('ajax_action', 'restart_services');
+        fd.append('domain_id', did);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
         showToast('success', 'Done', res.msg);
     }
     async function fixConfig() {
         const did = getDomId(); if (!did) return;
-        const fd = new FormData(); fd.append('ajax_action', 'fix_config'); fd.append('domain_id', did);
+        const fd = new FormData();
+        fd.append('ajax_action', 'fix_config');
+        fd.append('domain_id', did);
+        fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
         const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
         showToast('success', 'Done', res.msg);
     }
