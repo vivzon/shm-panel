@@ -27,20 +27,24 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // If we are not already in the installer, redirect to it
+    // If we are not already in the installer, handle connection failure
     if (!defined('INSTALLER_RUNNING')) {
-        // Simple relative redirect check
-        if (file_exists(__DIR__ . '/../install.php')) {
-            header("Location: ../install.php?error=db_connect");
-            exit;
+        // Skip redirects/dies if running in CLI
+        if (PHP_SAPI === 'cli') {
+            trigger_error("Database connection failed: " . $e->getMessage(), E_USER_WARNING);
+        } else {
+            // Web Redirect/Die logic
+            if (file_exists(__DIR__ . '/../install.php')) {
+                header("Location: ../install.php?error=db_connect");
+                exit;
+            }
+            die("<div style='font-family:sans-serif;background:#fee;color:#c00;padding:20px;border-radius:10px;border:1px solid #eba;'>
+                    <b>SHM Panel System Error</b><br>
+                    Database connection failed. Please run the installer or check config.<br>
+                    <small>" . $e->getMessage() . "</small>
+                 </div>");
         }
-        die("<div style='font-family:sans-serif;background:#fee;color:#c00;padding:20px;border-radius:10px;border:1px solid #eba;'>
-                <b>SHM Panel System Error</b><br>
-                Database connection failed. Please run the installer or check config.<br>
-                <small>" . $e->getMessage() . "</small>
-             </div>");
     } else {
-        // Re-throw for installer to handle
         throw $e;
     }
 }
@@ -56,8 +60,44 @@ function cmd($command)
         // Mock responses for development
         if (strpos($command, 'list_ssh') !== false)
             return "mock-key-rsa AAAA...";
-        if (strpos($command, 'list_backups') !== false)
-            return "1024K Jan 01 12:00 backup_test.tar.gz";
+        if (strpos($command, 'list_backups') !== false || strpos($command, 'backup list') !== false)
+            return "1.2M Jan 01 12:00 2026 backup_20260101_120000.tar.gz\n800K Jan 02 12:00 2026 backup_20260102_120000.tar.gz";
+        if (strpos($command, 'backup delete') !== false)
+            return "Backup deleted";
+        if (strpos($command, 'backup get-status') !== false) {
+            $states = ['dumping_db', 'compressing', 'finished'];
+            return $states[array_rand($states)];
+        }
+        if (strpos($command, 'service-status-batch') !== false) {
+            $parts = explode(' ', $command);
+            $services = explode(',', end($parts));
+            $res = [];
+            foreach ($services as $s)
+                $res[] = "$s:active";
+            return implode("\n", $res);
+        }
+        if (strpos($command, 'service-status') !== false)
+            return "active";
+        if (strpos($command, 'get-logs') !== false) {
+            $parts = explode(' ', $command);
+            $type = $parts[1] ?? 'sys';
+            $lines = end($parts);
+            if (!is_numeric($lines))
+                $lines = 50;
+
+            $res = [];
+            $time = date('Y-m-d H:i:s');
+            for ($i = 0; $i < $lines; $i++) {
+                if ($type == 'auth') {
+                    $res[] = "\033[36m$time\033[0m \033[1;31mFAILED LOGIN\033[0m attempt for \033[1;33mroot\033[0m from 192.168.1." . rand(1, 254);
+                } elseif ($type == 'web') {
+                    $res[] = "\033[36m$time\033[0m \033[31m[error]\033[0m 1234#0: *56 open() \"/var/www/html/favicon.ico\" failed (2: No such file or directory)";
+                } else {
+                    $res[] = "\033[36m$time\033[0m \033[32mkernel:\033[0m [12345.678] \033[1mUSB device found\033[0m, idVendor=046d, idProduct=c077";
+                }
+            }
+            return implode("\n", $res);
+        }
         return "Command '$command' simulated on Windows.";
     }
 

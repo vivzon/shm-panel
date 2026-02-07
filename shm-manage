@@ -991,7 +991,23 @@ EOF
     # --------------------------------------------------------------------------
     service-status)
         SERVICE="$2"
-        systemctl is-active "$SERVICE" 2>/dev/null || echo "inactive"
+        if systemctl is-active --quiet "$SERVICE" 2>/dev/null; then
+            echo "active"
+        else
+            echo "inactive"
+        fi
+        ;;
+
+    service-status-batch)
+        # $2: comma-separated services
+        IFS=',' read -ra ADDR <<< "$2"
+        for SERVICE in "${ADDR[@]}"; do
+            if systemctl is-active --quiet "$SERVICE" 2>/dev/null; then
+                echo "$SERVICE:active"
+            else
+                echo "$SERVICE:inactive"
+            fi
+        done
         ;;
         
     service-control)
@@ -1384,8 +1400,10 @@ EOF
             create)
                 TS=$(date +%Y%m%d_%H%M%S)
                 FILE="$BACKUP_DIR/backup_$TS.tar.gz"
+                STATUS_FILE="$BACKUP_DIR/.status"
                 
                 log_action "Creating backup for $USER"
+                echo "dumping_db" > "$STATUS_FILE"
                 
                 # Create temporary directory for database dumps
                 DB_TMP="/tmp/db_dump_$USER_$TS"
@@ -1400,6 +1418,8 @@ EOF
                         fi
                     done
                 fi
+                
+                echo "compressing" > "$STATUS_FILE"
                 
                 # 2. Create backup archive
                 tar -czf "$FILE" \
@@ -1416,11 +1436,47 @@ EOF
                 rm -rf "$DB_TMP"
                 
                 # Set ownership
-                chown "$USER:$USER" "$FILE" "$BACKUP_DIR/backup_$TS.info"
+                chown "$USER:$USER" "$FILE" "$BACKUP_DIR/backup_$TS.info" "$STATUS_FILE"
                 chmod 640 "$FILE"
                 
+                echo "finished" > "$STATUS_FILE"
                 log_action "Created Backup for $USER: $FILE"
                 echo "Backup created: $(basename "$FILE")"
+                ;;
+                
+            delete)
+                FILENAME="$4"
+                if [ -z "$FILENAME" ]; then
+                    echo "Backup filename required"
+                    exit 1
+                fi
+                
+                # Safety check: ensure filename starts with backup_ and ends with .tar.gz
+                if [[ "$FILENAME" =~ ^backup_.*\.tar\.gz$ ]]; then
+                    FILE="$BACKUP_DIR/$FILENAME"
+                    INFO="${FILE%.tar.gz}.info"
+                    
+                    if [ -f "$FILE" ]; then
+                        rm -f "$FILE" "$INFO"
+                        log_action "Deleted Backup for $USER: $FILENAME"
+                        echo "Backup deleted"
+                    else
+                        echo "Backup not found"
+                        exit 1
+                    fi
+                else
+                    echo "Invalid backup filename"
+                    exit 1
+                fi
+                ;;
+
+            get-status)
+                STATUS_FILE="$BACKUP_DIR/.status"
+                if [ -f "$STATUS_FILE" ]; then
+                    cat "$STATUS_FILE"
+                else
+                    echo "idle"
+                fi
                 ;;
                 
             list)
@@ -1994,6 +2050,7 @@ MAINTENANCE:
 
 SYSTEM:
   service-status SERVICE
+  service-status-batch SERVICE1,SERVICE2,...
   service-control [start|stop|restart|reload|enable|disable] SERVICE
   system-info
 
