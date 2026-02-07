@@ -1,72 +1,97 @@
-# SHM Panel - Deployment Guide
+# 🚀 SHM Panel - Professional Hosting Control Panel
 
-Professional Web Hosting Control Panel for Ubuntu/Debian.
+**SHM Panel** is a lightweight, secure, and high-performance web hosting control panel designed for **Ubuntu 20.04+** and **Debian 11+**. It leverages **Nginx** for speed, **PHP-FPM** for flexibility, and a secure **Bash-based backend** for system operations.
 
-## 🚀 Prerequisites
+---
 
-- **OS**: Ubuntu 20.04+ or Debian 11+ (Fresh install recommended)
-- **User**: Root or sudo access
-- **Hard Drive**: Minimum 20GB (depending on hosting needs)
-- **RAM**: Minimum 2GB (4GB recommended)
-- **Domain**: A registered domain name for the panel (e.g., `panel.yourdomain.com`)
+## ✨ Features
 
-## 🛠️ Installation Steps
+### 🖥️ Client Panel (CPanel)
+-   **Domain Management**: Add/Remove domains, manage DNS records, and configure PHP versions per domain.
+-   **File Manager**: Full-featured web-based file manager to upload, edit, and manage files.
+-   **Database Wizard**: Create and manage MySQL databases and users.
+-   **Email Accounts**: Create email accounts with quota limits (Postfix/Dovecot/Roundcube).
+-   **FTP Accounts**: Manage FTP access for your domains.
+-   **One-Click Apps**: Install popular applications (phpMyAdmin, Roundcube, etc.).
+-   **SSL Certificates**: Automated Let's Encrypt SSL integration.
+-   **Analytics**: View bandwidth usage and traffic statistics.
 
-### 1. Copy Files to Server
-Upload the entire project directory to your server (e.g., to `/root/shm-panel/`).
+### 🛠️ Admin Panel (WHM)
+-   **Account Management**: Create, suspend, unsuspend, and delete client accounts.
+-   **Package Manager**: Define hosting packages with resource limits (Disk, Bandwidth, Domains, etc.).
+-   **Server Health**: Real-time monitoring of CPU, RAM, and Disk usage.
+-   **Service Status**: Monitor status of key services (Nginx, MySQL, PHP, Mail).
+-   **System Updates**: Keep the panel and system packages up to date.
 
-### 2. Set Permissions
-Ensure the installer script is executable:
+---
+
+## 🏗️ Architecture
+
+-   **Frontend**: PHP 8.2+ (Laravel-like structure but lightweight native PHP).
+-   **Backend**: `shm-manage` (Bash script) acting as a privileged bridge via sudo.
+-   **Web Server**: Nginx (High performance, reverse proxy).
+-   **Database**: MariaDB (MySQL compatible).
+-   **Mail Server**: Postfix + Dovecot.
+-   **Security**:
+    -   **User Isolation**: Each client runs as a separate system user.
+    -   **PHP-FPM Pools**: Dedicated PHP pools for each user/site.
+    -   **Sudo Bridge**: Frontend PHP code cannot run root commands directly; it requests `shm-manage` to perform specific, validated actions.
+
+---
+
+## 🚀 Installation
+
+### Prerequisites
+-   **OS**: Ubuntu 20.04+ / Debian 11+ (Fresh Install Recommended)
+-   **Root Access**: You must be logged in as `root`.
+-   **Hardware**: 1 CPU, 2GB RAM, 20GB Disk (Minimum).
+
+### Quick Install
+
+1.  **Download the Project**
+    Upload the files to your server (e.g., `/root/shm-panel/`).
+
+2.  **Run the Installer**
+    ```bash
+    chmod +x install.sh
+    sudo ./install.sh
+    ```
+
+3.  **Follow the Prompts**
+    -   Enter your **Main Domain** (e.g., `panel.example.com`).
+    -   Enter your **Admin Email**.
+    -   Wait for the installation to complete (takes ~5-10 minutes).
+
+4.  **Access the Panel**
+    -   **Admin WHM**: `https://admin.yourdomain.com` (or `http://your-ip/whm`)
+    -   **Client Panel**: `https://client.yourdomain.com` (or `http://your-ip/cpanel`)
+
+---
+
+## 🔧 Management CLI
+
+The `shm-manage` tool allows you to perform administrative tasks from the command line.
+
 ```bash
-chmod +x install.sh
+# Sync all VHost configurations
+shm-manage vhost-tool sync-all
+
+# Fix permissions for a specific user
+shm-manage fix-permissions <username>
+
+# Manually create a client account
+shm-manage create-account <username> <domain> <email> <password>
+
+# Suspend a client account
+shm-manage suspend-account <username>
 ```
 
-### 3. Run the Installer
-Execute the production installer as root:
-```bash
-sudo ./install.sh
-```
-
-**During installation, you will be asked for:**
-- Your Main Domain (the panel's primary domain)
-- Admin Email
-
-The installer will automatically:
-- Install Nginx, Apache, PHP (8.1, 8.2, 8.3), MariaDB, and Redis.
-- Configure BIND (DNS) and Postfix/Dovecot (Mail).
-- Set up the privileged backend engine (`shm-manage`).
-- Secure the system with UFW and Fail2ban.
-
-### 4. Post-Installation
-Once the script finishes, it will display your:
-- **Admin Panel URL**
-- **Admin Username/Password**
-- **Database Credentials**
-
 ---
 
-## 🔧 Management Commands
+## 🤝 Contributing
 
-The system uses `shm-manage` for all major operations.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started.
 
-| Command | Description |
-| :--- | :--- |
-| `sudo shm-manage vhost-tool sync-all` | Rebuilds all VirtualHost configs (Apache/Nginx) |
-| `sudo shm-manage fix-permissions <user>` | Fixes ownership/perms for a client account |
-| `sudo shm-manage delete-account <user>` | Entirely removes a client account |
-| `sudo shm-manage dns-tool sync <domain_id>` | Manually refreshes DNS zone for a domain |
+## 📄 License
 
----
-
-## 🔒 Security Notes
-- The panel does not run as root. It uses a **Sudo Bridge** via `shm-manage`.
-- Every client is isolated into their own system user for maximum security.
-- Standard ports (80, 443, 21, 22, 25, 53, 143, 587) are automatically opened by the installer.
-
----
-
-## 📁 Directory Structure
-- `/var/www/panel/` - Panel frontend files (WHM/CPanel)
-- `/var/www/clients/` - Hosted client data (Web/Logs/Backups)
-- `/etc/shm/` - System configuration files
-- `/usr/local/bin/shm-manage` - Backend engine executable
+This project is open-source and available under the **MIT License**.
