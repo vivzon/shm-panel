@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../shared/config.php';
-require_once __DIR__ . '/controllers/ServiceController.php';
+require_once __DIR__ . '/controllers/BackupController.php';
 
 // Authentication Check
 if (!isset($_SESSION['admin'])) {
@@ -8,7 +8,7 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
-$controller = new ServiceController();
+$controller = new BackupController();
 $data = $controller->index();
 
-require_once __DIR__ . '/views/services.php';
+require_once __DIR__ . '/views/backups.php';

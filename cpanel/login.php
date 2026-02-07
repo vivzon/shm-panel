@@ -4,20 +4,29 @@
  */
 require_once '../shared/config.php';
 
+require_once '../shared/AuthHelper.php';
+
 if (isset($_SESSION['client'])) {
     header("Location: index.php");
     exit;
 }
 
+$auth = new AuthHelper($pdo);
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $u = trim($_POST['u'] ?? '');
     $p = $_POST['p'] ?? '';
+    // 1. Get Client IP
+    $ip = $_SERVER['REMOTE_ADDR'];
 
-    if (!empty($u) && !empty($p)) {
+    // 2. Check Rate Limit
+    $rate_error = $auth->checkRateLimit($ip);
+    if ($rate_error) {
+        $error = $rate_error;
+    } elseif (!empty($u) && !empty($p)) {
         try {
-            $stmt = $pdo->prepare("SELECT id, username, password, status FROM clients WHERE username = ? OR email = ?");
+            $stmt = $pdo->prepare("SELECT id, username, password, status, two_fa_secret FROM clients WHERE username = ? OR email = ?");
             $stmt->execute([$u, $u]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -25,6 +34,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($user['status'] === 'suspended') {
                     $error = "Account suspended. Contact support.";
                 } else {
+                    // 3. Clear Rate Limit
+                    $auth->clearRateLimit($ip);
+
+                    // 4. Check 2FA
+                    if (!empty($user['two_fa_secret'])) {
+                        $_SESSION['2fa_pending_uid'] = $user['id'];
+                        header("Location: 2fa.php");
+                        exit;
+                    }
+
+                    // 5. Login Success
                     session_regenerate_id(true);
                     $_SESSION['client'] = $user['username'];
                     $_SESSION['cid'] = $user['id'];
@@ -32,6 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     exit;
                 }
             } else {
+                // 6. Log Failed Attempt
+                $auth->logFailedAttempt($ip);
                 $error = "Invalid credentials.";
             }
         } catch (PDOException $e) {

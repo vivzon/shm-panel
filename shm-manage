@@ -2062,6 +2062,62 @@ EOF
     # --------------------------------------------------------------------------
     # DEFAULT CASE
     # --------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # SERVICE CONTROL
+    # --------------------------------------------------------------------------
+    service-control)
+        # $2: action (restart/status), $3: service (nginx/php/mysql)
+        ACTION="$2"
+        SERVICE="$3"
+        
+        case "$ACTION" in
+            restart)
+                case "$SERVICE" in
+                    nginx)
+                        safe_nginx_reload
+                        echo "Nginx reloaded"
+                        ;;
+                    php)
+                        safe_reload_php
+                        echo "PHP-FPM reloaded"
+                        ;;
+                    mysql)
+                        systemctl restart mariadb
+                        echo "MariaDB restarted"
+                        ;;
+                    *)
+                        echo "Unknown service: $SERVICE"
+                        exit 1
+                        ;;
+                esac
+                log_action "Service Restart: $SERVICE"
+                ;;
+                
+            status)
+                case "$SERVICE" in
+                    nginx)
+                        systemctl is-active nginx
+                        ;;
+                    php)
+                        systemctl is-active php8.2-fpm
+                        ;;
+                    mysql)
+                        systemctl is-active mariadb
+                        ;;
+                    *)
+                        echo "Unknown service"
+                        exit 1
+                        ;;
+                esac
+                ;;
+                
+            *)
+                echo "Unknown action: $ACTION"
+                exit 1
+                ;;
+        esac
+        ;;
+
     *)
         echo "Unknown command: $1"
         echo "Use: $0 help"

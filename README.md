@@ -12,22 +12,24 @@
 -   **Database Wizard**: Create and manage MySQL databases and users.
 -   **Email Accounts**: Create email accounts with quota limits (Postfix/Dovecot/Roundcube).
 -   **FTP Accounts**: Manage FTP access for your domains.
+-   **Security**: Two-Factor Authentication (2FA) & Login Rate Limiting.
 -   **One-Click Apps**: Install popular applications (phpMyAdmin, Roundcube, etc.).
 -   **SSL Certificates**: Automated Let's Encrypt SSL integration.
 -   **Analytics**: View bandwidth usage and traffic statistics.
 
 ### 🛠️ Admin Panel (WHM)
 -   **Account Management**: Create, suspend, unsuspend, and delete client accounts.
+-   **Service Manager**: Monitor and restart core services (Nginx, PHP-FPM, MariaDB).
+-   **Backup Manager**: Create, list, downloads, and restore system backups.
 -   **Package Manager**: Define hosting packages with resource limits (Disk, Bandwidth, Domains, etc.).
--   **Server Health**: Real-time monitoring of CPU, RAM, and Disk usage.
--   **Service Status**: Monitor status of key services (Nginx, MySQL, PHP, Mail).
+-   **Server Health**: Real-time monitoring of CPU, RAM, and Disk usage via new AJAX Dashboard.
 -   **System Updates**: Keep the panel and system packages up to date.
 
 ---
 
 ## 🏗️ Architecture
 
--   **Frontend**: PHP 8.2+ (Laravel-like structure but lightweight native PHP).
+-   **Frontend**: PHP 8.2+ with **MVC Structure** (Controllers, Views, APIs) for both Client and Admin panels.
 -   **Backend**: `shm-manage` (Bash script) acting as a privileged bridge via sudo.
 -   **Web Server**: Nginx (High performance, reverse proxy).
 -   **Database**: MariaDB (MySQL compatible).
