@@ -10,7 +10,14 @@ setup_mail() {
     # 1. Install Packages
     export DEBIAN_FRONTEND=noninteractive
     apt-get install -y bind9 bind9utils
+    apt-get install -y bind9 bind9utils ssl-cert
     apt-get install -y dovecot-core dovecot-imapd dovecot-pop3d dovecot-mysql postfix postfix-mysql
+    
+    # Ensure Snakeoil Cert exists (Dovecot needs it to start)
+    if [ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]; then
+        log "Generating self-signed SSL certificate..."
+        make-ssl-cert generate-default-snakeoil --force-overwrite
+    fi
     
     # 2. Create vmail user
     groupadd -g 5000 vmail 2>/dev/null || true
@@ -39,7 +46,13 @@ DOVECOT_SQL
 !include_try local.conf
 
 protocols = imap pop3 lmtp
-listen = *, ::
+
+# Check for IPv6
+if grep -q "ipv6" /proc/net/protocols; then
+    listen = *, ::
+else
+    listen = *
+fi
 
 # SSL (using snakeoil initially, certbot will update)
 ssl = yes
@@ -130,6 +143,12 @@ POSTFIX_ALIASES
     postconf -e "smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination"
     
     # Restart Services
+    # Restart Services
+    log "Verifying Dovecot Configuration..."
+    if ! doveconf -n > /dev/null; then
+        error "Dovecot configuration is invalid. Check /var/log/shm-install.log"
+    fi
+
     systemctl restart dovecot
     systemctl restart postfix
 }
