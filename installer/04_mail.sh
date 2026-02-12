@@ -41,18 +41,19 @@ DOVECOT_SQL
     sed -i 's/#!include auth-sql.conf.ext/!include auth-sql.conf.ext/' /etc/dovecot/conf.d/10-auth.conf
     
     # Main Config
+# Check for IPv6
+    LISTEN_OPTS="*"
+    if [ -f /proc/net/protocols ] && grep -q "ipv6" /proc/net/protocols; then
+        LISTEN_OPTS="*, ::"
+    fi
+
     cat > /etc/dovecot/dovecot.conf << DOVECOT_MAIN
 !include conf.d/*.conf
 !include_try local.conf
 
 protocols = imap pop3 lmtp
 
-# Check for IPv6
-if grep -q "ipv6" /proc/net/protocols; then
-    listen = *, ::
-else
-    listen = *
-fi
+listen = $LISTEN_OPTS
 
 # SSL (using snakeoil initially, certbot will update)
 ssl = yes
