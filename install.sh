@@ -603,7 +603,6 @@ if [ -d "whm" ]; then
 fi
 if [ -d "cpanel" ]; then 
     cp -r cpanel/* /var/www/panel/cpanel/
-    log "Deployed Client Panel MVC (Controllers, Views, API)"
 fi
 
 # Create Landing Page if none exists

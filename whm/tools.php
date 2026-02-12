@@ -19,18 +19,17 @@ if (isset($_POST['ajax_action'])) {
 
             $sys_user = $_POST['sys_user'];
             $ftp_user = $_POST['ftp_user'] . '@' . $sys_user; // Enforce user@client
-            $pass = password_hash($_POST['pass'], PASSWORD_BCRYPT);
+            $pass = md5($_POST['pass']);
 
             // Default home to /var/www/clients/user/public_html
             $home = "/var/www/clients/$sys_user/public_html";
 
             // Get System User UID/GID
-            $sys_user_info = function_exists('posix_getpwnam') ? posix_getpwnam($sys_user) : null;
-            if (!$sys_user_info && strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN')
+            $sys_user_info = posix_getpwnam($sys_user);
+            if (!$sys_user_info)
                 throw new Exception("System user not found on server");
-            
-            $uid = $sys_user_info['uid'] ?? 33;
-            $gid = $sys_user_info['gid'] ?? 33;
+            $uid = $sys_user_info['uid'];
+            $gid = $sys_user_info['gid'];
 
             $check = $pdo->prepare("SELECT count(*) FROM ftp_users WHERE userid = ?");
             $check->execute([$ftp_user]);
@@ -38,7 +37,7 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("FTP User already exists");
 
             $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir, uid, gid) VALUES (?,?,?,?,?)")->execute([$ftp_user, $pass, $home, $uid, $gid]);
-            echo json_encode(['status' => 'success', 'msg' => 'FTP Account Created Successfully']);
+            sendResponse($res);
             exit;
         }
 
@@ -50,7 +49,7 @@ if (isset($_POST['ajax_action'])) {
 
         if ($action == 'del_ftp') {
             $pdo->prepare("DELETE FROM ftp_users WHERE userid = ?")->execute([$_POST['user']]);
-            echo json_encode(['status' => 'success', 'msg' => 'FTP Account Deleted']);
+            sendResponse($res);
             exit;
         }
 
@@ -58,48 +57,23 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'add_mail') {
             $full = $_POST['prefix'] . "@" . $_POST['domain'];
             $pass = password_hash($_POST['mail_pass'], PASSWORD_BCRYPT);
-            
-            $stmt = $pdo->prepare("SELECT id FROM mail_domains WHERE domain = ?");
-            $stmt->execute([$_POST['domain']]);
-            $did = $stmt->fetchColumn();
-            
+            $did = $pdo->query("SELECT id FROM mail_domains WHERE domain = '{$_POST['domain']}'")->fetchColumn();
             if (!$did)
                 throw new Exception("Domain not found for mail");
-            
             $pdo->prepare("INSERT INTO mail_users (domain_id, email, password) VALUES (?,?,?)")->execute([$did, $full, $pass]);
-            echo json_encode(['status' => 'success', 'msg' => 'Mailbox Created Successfully']);
+            sendResponse($res);
             exit;
         }
 
         if ($action == 'set_php_handler') {
-            $php_ver = $_POST['php_version'];
-            $sys_user = $_POST['sys_user'];
-            
-            if (!in_array($php_ver, ['8.1', '8.2', '8.3'])) throw new Exception("Invalid PHP Version");
-            
-            // In a real scenario, we find domains belonging to this user or update a global config
-            // For now, let's sync all domains of this user (simplified)
-            $stmt = $pdo->prepare("SELECT id FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username=?");
-            $stmt->execute([$sys_user]);
-            $domain_ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-            
-            foreach($domain_ids as $did) {
-                $pdo->prepare("UPDATE domains SET php_version = ? WHERE id = ?")->execute([$php_ver, $did]);
-                cmd("vhost-tool sync " . (int)$did);
-            }
-            
-            echo json_encode(['status' => 'success', 'msg' => "PHP Handler updated for user $sys_user"]);
+            // Stub logic
+            echo json_encode(['status' => 'success', 'msg' => 'PHP Handler Updated (Stub)']);
             exit;
         }
 
         if ($action == 'set_network_card') {
-            $interface = $_POST['interface'];
-            if (!preg_match('/^[a-z0-9]+$/i', $interface)) throw new Exception("Invalid interface name");
-            
-            // Command to update system network config could go here
-            cmd("system-info network-update " . escapeshellarg($interface));
-            
-            echo json_encode(['status' => 'success', 'msg' => "Network Interface set to $interface"]);
+            // Stub logic
+            echo json_encode(['status' => 'success', 'msg' => 'Network Config Updated (Stub)']);
             exit;
         }
 
@@ -297,44 +271,13 @@ include 'layout/header.php';
 
 <?php include 'layout/footer.php'; ?>
 <script>
-    // Generic Handler for simple forms
-    async function handleGeneric(e, action) {
-        e.preventDefault();
-        const btn = e.target.querySelector('button[type="submit"]');
-        const oldHtml = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
-        lucide.createIcons();
-
-        const fd = new FormData(e.target);
-        fd.append('ajax_action', action);
-
-        try {
-            const response = await fetch('', { method: 'POST', body: fd });
-            const res = await response.json();
-            if (res.status === 'success') {
-                showToast('success', res.msg || 'Success');
-                if(action !== 'set_php_handler' && action !== 'set_network_card') e.target.reset();
-            } else {
-                showToast('error', res.msg || 'Action failed');
-            }
-        } catch (error) {
-            showToast('error', 'Server Error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = oldHtml;
-            lucide.createIcons();
-        }
-    }
-
     // FTP Specific Logic
     async function loadFTP() {
         const list = document.getElementById('ftp-list');
         if (!list) return;
         const fd = new FormData(); fd.append('ajax_action', 'list_ftp');
         try {
-            const response = await fetch('', { method: 'POST', body: fd });
-            const res = await response.json();
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             list.innerHTML = '';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(u => {
@@ -360,29 +303,25 @@ include 'layout/header.php';
         const btn = e.target.querySelector('button[type="submit"]');
         const oldHtml = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
-        lucide.createIcons();
+        btn.innerHTML = '...';
 
         const fd = new FormData(e.target);
         fd.append('ajax_action', 'add_ftp');
 
         try {
-            const response = await fetch('', { method: 'POST', body: fd });
-            const res = await response.json();
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             if (res.status === 'success') {
-                showToast('success', res.msg || 'FTP Account Created');
-                e.target.reset();
+                showToast('success', 'FTP Account Created');
+                e.target.reset(); // Clear form
                 loadFTP();
             } else {
-                showToast('error', res.msg || 'Failed to create FTP Account');
+                showToast('error', res.msg);
             }
         } catch (e) {
             showToast('error', 'Server Error');
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = oldHtml;
-            lucide.createIcons();
         }
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
     }
 
     async function delFTP(user) {
@@ -390,18 +329,9 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'del_ftp');
         fd.append('user', user);
-        try {
-            const response = await fetch('', { method: 'POST', body: fd });
-            const res = await response.json();
-            if (res.status === 'success') {
-                showToast('success', res.msg || 'Deleted');
-                loadFTP();
-            } else {
-                showToast('error', res.msg || 'Delete failed');
-            }
-        } catch (e) {
-            showToast('error', 'Server Error');
-        }
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'Deleted');
+        loadFTP();
     }
 
     // Init

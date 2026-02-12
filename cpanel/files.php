@@ -15,11 +15,6 @@ if (!isset($_SESSION['cid'])) {
 
 $user_id = $_SESSION['cid'];
 
-// Security: CSRF Token
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
 // Increase execution limits for large uploads/zips with validation
 ini_set('upload_max_filesize', '2048M');
 ini_set('post_max_size', '2048M');
@@ -65,20 +60,20 @@ function shm_build_path($base, $relative)
     $base = rtrim(str_replace('\\', '/', $base), '/');
     $relative = shm_normalize_relative($relative);
     $full = $base . $relative;
-
+    
     // Enhanced security check: ensure final path is within base directory
     $real_base = realpath($base);
     $real_full = realpath($full);
-
+    
     if ($real_base === false || $real_full === false) {
         return false;
     }
-
+    
     // Check if the resolved path is within the base directory
     if (strpos($real_full, $real_base) !== 0) {
         return false;
     }
-
+    
     return $real_full;
 }
 
@@ -91,12 +86,12 @@ function shm_rrmdir($path)
         return true;
     if (!is_dir($path))
         return @unlink($path);
-
+    
     $items = scandir($path);
     if ($items === false) {
         return false;
     }
-
+    
     foreach ($items as $item) {
         if ($item === '.' || $item === '..')
             continue;
@@ -111,11 +106,11 @@ function shm_rcopy($src, $dst)
     if (!file_exists($src)) {
         return false;
     }
-
+    
     if (file_exists($dst)) {
         shm_rrmdir($dst);
     }
-
+    
     if (is_dir($src)) {
         if (!mkdir($dst, 0775, true)) {
             return false;
@@ -186,7 +181,7 @@ if (!file_exists($base_path)) {
     $old_umask = umask(0);
     $created = mkdir($base_path, 0775, true);
     umask($old_umask);
-
+    
     if (!$created) {
         $error = error_get_last();
         // Fallback for Windows Local Dev if not already handled
@@ -260,8 +255,8 @@ if ($is_writable) {
 }
 
 // Get user info for permission debugging
-$process_user = (function_exists('posix_getpwuid') && function_exists('posix_geteuid'))
-    ? posix_getpwuid(posix_geteuid())['name']
+$process_user = (function_exists('posix_getpwuid') && function_exists('posix_geteuid')) 
+    ? posix_getpwuid(posix_geteuid())['name'] 
     : get_current_user();
 $process_uid = function_exists('posix_geteuid') ? posix_geteuid() : getmyuid();
 
@@ -280,8 +275,7 @@ function fm_return($status, $msg = '', $data = [])
 }
 
 // Helper function to format bytes
-function formatBytes($bytes, $precision = 2)
-{
+function formatBytes($bytes, $precision = 2) {
     $units = ['B', 'KB', 'MB', 'GB', 'TB'];
     $bytes = max($bytes, 0);
     $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
@@ -294,62 +288,52 @@ function formatBytes($bytes, $precision = 2)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_ajax = isset($_POST['ajax']) || isset($_POST['ajax_action']);
 
-    // CSRF Validation
-    if (!isset($_POST['token']) || $_POST['token'] !== $_SESSION['csrf_token']) {
-        if ($is_ajax) {
-            echo json_encode(['status' => 'error', 'msg' => 'Security token mismatch. Please refresh.']);
-        } else {
-            die("Security token mismatch. Please refresh.");
-        }
-        exit;
-    }
-
     // ============================================
     // FIX 3: ENHANCED CHMOD - File Permission Update
     // ============================================
     if (isset($_POST['chmod_item'])) {
         $target = shm_build_path($base_path, $_POST['item']);
-
+        
         if (!$target || !file_exists($target)) {
             error_log("SHM-FM CHMOD Error: Target not found - " . ($_POST['item'] ?? 'null'));
             fm_return('error', 'Target file/folder not found');
         }
-
+        
         // Validate mode input - must be 3-4 digit octal
         $mode_input = $_POST['mode'] ?? '';
         if (!preg_match('/^[0-7]{3,4}$/', $mode_input)) {
             error_log("SHM-FM CHMOD Error: Invalid mode - $mode_input");
             fm_return('error', 'Invalid permission mode. Must be 3-4 digit octal (e.g., 755, 0775)');
         }
-
+        
         // Convert to octal integer
         $mode = octdec($mode_input);
-
+        
         // Get current permissions
         $old_perms = substr(sprintf('%o', fileperms($target)), -4);
-
+        
         // Attempt to change permissions
         $result = @chmod($target, $mode);
-
+        
         if ($result) {
             // Verify the change took effect
             clearstatcache(true, $target);
             $new_perms = substr(sprintf('%o', fileperms($target)), -4);
-
+            
             // Some systems may not support chmod (e.g., Windows)
             if ($old_perms === $new_perms && DIRECTORY_SEPARATOR !== '\\') {
                 error_log("SHM-FM CHMOD Warning: Permissions unchanged after chmod. Old: $old_perms, New: $new_perms");
             }
-
+            
             fm_return('success', "Permissions updated from $old_perms to $new_perms");
         } else {
             $error = error_get_last();
             $error_msg = $error['message'] ?? 'Unknown error';
             error_log("SHM-FM CHMOD Error: Failed to chmod $target to $mode_input - $error_msg");
-
+            
             // Provide helpful error with solutions
             $solutions = [];
-
+            
             // Try alternative methods
             if (function_exists('exec') && !in_array('exec', array_map('trim', explode(',', ini_get('disable_functions'))))) {
                 $escaped_target = escapeshellarg($target);
@@ -360,11 +344,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     fm_return('success', "Permissions updated from $old_perms to $new_perms (via exec)");
                 }
             }
-
+            
             $solutions[] = "Contact your hosting provider to change file ownership";
             $solutions[] = "Use your hosting control panel's file manager";
             $solutions[] = "Upload files via FTP which preserves your ownership";
-
+            
             fm_return('error', [
                 'msg' => "Cannot change permissions: Permission denied.",
                 'details' => "Process user: $process_user (UID: $process_uid), Error: $error_msg",
@@ -381,7 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Enhanced writability check
         clearstatcache(true, $full_path);
         $actual_writable = is_writable($full_path);
-
+        
         // Double-check with test file
         if ($actual_writable) {
             $test_file = $full_path . '/.writetest_' . time();
@@ -392,13 +376,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 @unlink($test_file);
             }
         }
-
+        
         if (!$actual_writable) {
             // Try to fix permissions automatically
             $old_umask = umask(0);
             @chmod($full_path, 0775);
             umask($old_umask);
-
+            
             // Re-check after chmod attempt
             clearstatcache(true, $full_path);
             $test_file = $full_path . '/.writetest_' . time();
@@ -406,118 +390,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 @unlink($test_file);
                 $actual_writable = true;
             }
-
+            
             if (!$actual_writable) {
                 error_log("SHM-FM Upload Error: Directory not writable. Path: $full_path, Process: $process_user");
                 fm_return('error', 'Upload failed: Directory is not writable. Check permissions for path: ' . $current_path);
             }
         }
-
+        
         // Check if files were received
         if (!isset($_FILES['files']) || empty($_FILES['files']['name'])) {
             error_log("SHM-FM Upload Error: No files received in \$_FILES");
             fm_return('error', 'No files received. Please select files to upload.');
         }
-
+        
         $count = 0;
         $errors = [];
         $max_file_size = 2048 * 1024 * 1024; // 2048MB
         $allowed_extensions = [
             // Images
-            'jpg',
-            'jpeg',
-            'png',
-            'gif',
-            'bmp',
-            'svg',
-            'webp',
+            'jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp',
             // Documents
-            'pdf',
-            'doc',
-            'docx',
-            'xls',
-            'xlsx',
-            'ppt',
-            'pptx',
-            'txt',
-            'csv',
+            'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv',
             // Archives
-            'zip',
-            'rar',
-            '7z',
-            'tar',
-            'gz',
+            'zip', 'rar', '7z', 'tar', 'gz',
             // Code
-            'php',
-            'html',
-            'htm',
-            'css',
-            'js',
-            'json',
-            'xml',
-            'sql',
+            'php', 'html', 'htm', 'css', 'js', 'json', 'xml', 'sql',
             // Media
-            'mp3',
-            'mp4',
-            'avi',
-            'mov',
-            'wmv',
-            'flv',
-            'webm'
+            'mp3', 'mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'
         ];
-
+        
         // Handle both single file and multiple files upload
         $file_names = is_array($_FILES['files']['name']) ? $_FILES['files']['name'] : [$_FILES['files']['name']];
         $file_tmps = is_array($_FILES['files']['tmp_name']) ? $_FILES['files']['tmp_name'] : [$_FILES['files']['tmp_name']];
         $file_errors = is_array($_FILES['files']['error']) ? $_FILES['files']['error'] : [$_FILES['files']['error']];
         $file_sizes = is_array($_FILES['files']['size']) ? $_FILES['files']['size'] : [$_FILES['files']['size']];
         $file_types = is_array($_FILES['files']['type']) ? $_FILES['files']['type'] : [$_FILES['files']['type']];
-
+        
         foreach ($file_names as $key => $name) {
             // Sanitize filename
             $name = basename($name);
             $name = preg_replace('/[^\w\.\-]/', '_', $name);
-
+            
             if (empty($name)) {
                 $errors[] = "File #$key: Invalid filename";
                 continue;
             }
-
+            
             // Check file size
             $file_size = $file_sizes[$key] ?? 0;
             if ($file_size > $max_file_size) {
                 $errors[] = "$name: File too large (max: 2GB)";
                 continue;
             }
-
+            
             // Check file extension
             $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
             if (!in_array($ext, $allowed_extensions)) {
                 $errors[] = "$name: File type not allowed";
                 continue;
             }
-
+            
             $target = $full_path . '/' . $name;
-
+            
             // Check for upload errors
             $upload_error = $file_errors[$key] ?? UPLOAD_ERR_NO_FILE;
-
+            
             if ($upload_error !== UPLOAD_ERR_OK) {
                 $error_msg = shm_get_upload_error_message($upload_error);
                 $errors[] = "$name: $error_msg";
                 error_log("SHM-FM Upload Error: $name - $error_msg (Code: $upload_error)");
                 continue;
             }
-
+            
             $tmp_name = $file_tmps[$key] ?? '';
-
+            
             // Verify the uploaded file exists
             if (!file_exists($tmp_name) || !is_uploaded_file($tmp_name)) {
                 $errors[] = "$name: Invalid upload file";
                 error_log("SHM-FM Upload Error: Invalid upload file - $tmp_name");
                 continue;
             }
-
+            
             // Check if target already exists
             $counter = 1;
             $original_name = $name;
@@ -527,7 +480,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $target = $full_path . '/' . $name;
                 $counter++;
             }
-
+            
             // Move the uploaded file
             if (@move_uploaded_file($tmp_name, $target)) {
                 $count++;
@@ -542,7 +495,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 error_log("SHM-FM Upload Error: Could not move $tmp_name to $target - $error_msg");
             }
         }
-
+        
         if ($count > 0) {
             $msg = $count . " file" . ($count > 1 ? "s" : "") . " uploaded successfully";
             if (!empty($errors)) {
@@ -619,7 +572,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!class_exists('ZipArchive')) {
             fm_return('error', 'ZipArchive extension not available');
         }
-
+        
         $zip = new ZipArchive();
         $zip_name = $full_path . '/' . (count($_POST['paths']) > 1 ? 'archive_' . date('Ymd_His') . '.zip' : basename($_POST['paths'][0]) . '.zip');
         if ($zip->open($zip_name, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
@@ -681,7 +634,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!class_exists('ZipArchive')) {
             fm_return('error', 'ZipArchive extension not available');
         }
-
+        
         $zip_file = shm_build_path($base_path, $_POST['item']);
         $zip = new ZipArchive;
         if ($zip->open($zip_file) === TRUE) {
@@ -712,7 +665,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!class_exists('ZipArchive')) {
                 die('ZipArchive extension not available');
             }
-
+            
             $zip_name = 'download_' . date('Ymd_His') . '.zip';
             $tmp_zip = sys_get_temp_dir() . '/' . $zip_name;
             $zip = new ZipArchive();
@@ -758,7 +711,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['status' => 'error', 'msg' => 'File too large for preview (max 10MB)']);
                 exit;
             }
-
+            
             $content = file_get_contents($file, false, NULL, 0, 10240);
             echo json_encode(['status' => 'success', 'type' => 'code', 'content' => htmlspecialchars($content, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')]);
         } else {
@@ -771,8 +724,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 /**
  * Helper function to get human-readable upload error messages
  */
-function shm_get_upload_error_message($code)
-{
+function shm_get_upload_error_message($code) {
     switch ($code) {
         case UPLOAD_ERR_INI_SIZE:
             return 'File exceeds upload_max_filesize directive in php.ini';
@@ -912,8 +864,8 @@ if (is_dir($full_path)) {
             border: 2px dashed rgba(255, 255, 255, 0.2);
         }
 
-        #action-bar .h-12 {
-            background: #354264d1 !important;
+        #action-bar .h-12{
+            background: #354264d1!important;
         }
 
         /* Checkbox indeterminate state styling */
@@ -925,19 +877,16 @@ if (is_dir($full_path)) {
         .file-item.selected .file-check {
             opacity: 1 !important;
         }
-
+        
         /* Loading animation */
         .animate-pulse {
             animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-
+        
         @keyframes pulse {
-
-            0%,
-            100% {
+            0%, 100% {
                 opacity: 1;
             }
-
             50% {
                 opacity: .5;
             }
@@ -1067,16 +1016,12 @@ if (is_dir($full_path)) {
                         <span class="text-blue-400 font-bold" id="selection-count">0 Selected</span>
                         <div class="h-4 w-px bg-white/10"></div>
                         <!-- FIX: Select All / Unselect All buttons -->
-                        <button onclick="FM.selectAll(true)" id="btn-select-all"
-                            class="hover:text-white flex items-center gap-2 transition text-slate-300"
-                            title="Select All (Ctrl+A)"><i data-lucide="check-square" class="w-4"></i> Select
-                            All</button>
-                        <button onclick="FM.selectAll(false)" id="btn-unselect-all"
-                            class="hover:text-white flex items-center gap-2 transition text-slate-300 hidden"
-                            title="Unselect All"><i data-lucide="square" class="w-4"></i> Unselect All</button>
-                        <button onclick="FM.bulk('download')"
-                            class="hover:text-white flex items-center gap-2 transition"><i data-lucide="download"
-                                class="w-4"></i> Download</button>
+                        <button onclick="FM.selectAll(true)" id="btn-select-all" class="hover:text-white flex items-center gap-2 transition text-slate-300" title="Select All (Ctrl+A)"><i
+                                data-lucide="check-square" class="w-4"></i> Select All</button>
+                        <button onclick="FM.selectAll(false)" id="btn-unselect-all" class="hover:text-white flex items-center gap-2 transition text-slate-300 hidden" title="Unselect All"><i
+                                data-lucide="square" class="w-4"></i> Unselect All</button>
+                        <button onclick="FM.bulk('download')" class="hover:text-white flex items-center gap-2 transition"><i
+                                data-lucide="download" class="w-4"></i> Download</button>
                         <button onclick="FM.bulk('zip')" class="hover:text-white flex items-center gap-2 transition"><i
                                 data-lucide="archive" class="w-4"></i> Archive</button>
                         <button onclick="FM.bulk('copy')" class="hover:text-white flex items-center gap-2 transition"><i
@@ -1085,11 +1030,11 @@ if (is_dir($full_path)) {
                                 data-lucide="move" class="w-4"></i> Move</button>
                         <div class="h-4 w-px bg-white/10"></div>
                         <button onclick="FM.bulk('delete')"
-                            class="text-red-400 hover:text-red-300 flex items-center gap-2 transition"
-                            title="Delete (Del key)"><i data-lucide="trash-2" class="w-4"></i> Delete</button>
+                            class="text-red-400 hover:text-red-300 flex items-center gap-2 transition" title="Delete (Del key)"><i data-lucide="trash-2"
+                                class="w-4"></i> Delete</button>
                     </div>
-                    <button onclick="FM.clearSelection()" class="text-slate-500 hover:text-white"
-                        title="Clear Selection"><i data-lucide="x" class="w-4"></i></button>
+                    <button onclick="FM.clearSelection()" class="text-slate-500 hover:text-white" title="Clear Selection"><i data-lucide="x"
+                            class="w-4"></i></button>
                 </div>
 
                 <div id="file-view" class="h-full overflow-y-auto p-6 view-list custom-scrollbar">
@@ -1153,9 +1098,8 @@ if (is_dir($full_path)) {
                         }
                         ?>
                         <div class="file-item group select-none transition-all duration-200 cursor-pointer"
-                            data-name="<?= strtolower(htmlspecialchars($i['name'])) ?>"
-                            data-path="<?= htmlspecialchars($i['rel']) ?>" data-type="<?= $i['is_dir'] ? 'dir' : 'file' ?>"
-                            onclick="FM.toggleSelect(this, event)"
+                            data-name="<?= strtolower(htmlspecialchars($i['name'])) ?>" data-path="<?= htmlspecialchars($i['rel']) ?>"
+                            data-type="<?= $i['is_dir'] ? 'dir' : 'file' ?>" onclick="FM.toggleSelect(this, event)"
                             ondblclick="FM.open('<?= htmlspecialchars($i['rel']) ?>', '<?= $i['is_dir'] ? 'dir' : 'file' ?>')">
 
                             <!-- Inner Content (CSS handles List/Grid layout) -->
@@ -1173,21 +1117,16 @@ if (is_dir($full_path)) {
                                         <span
                                             class="truncate font-medium text-slate-300 group-hover:text-white"><?= htmlspecialchars($i['name']) ?></span>
                                     </div>
-                                    <div class="col-span-2 text-sm text-slate-500 font-mono">
-                                        <?= htmlspecialchars($i['size']) ?></div>
-                                    <div class="col-span-2 text-sm text-slate-500 uppercase"><?= htmlspecialchars($type) ?>
-                                    </div>
-                                    <div class="col-span-2 text-right text-sm text-slate-500 font-mono">
-                                        <?= htmlspecialchars($i['date']) ?>
+                                    <div class="col-span-2 text-sm text-slate-500 font-mono"><?= htmlspecialchars($i['size']) ?></div>
+                                    <div class="col-span-2 text-sm text-slate-500 uppercase"><?= htmlspecialchars($type) ?></div>
+                                    <div class="col-span-2 text-right text-sm text-slate-500 font-mono"><?= htmlspecialchars($i['date']) ?>
                                     </div>
                                 </div>
 
                                 <!-- Grid Layout -->
                                 <div class="hidden flex-col items-center text-center gap-3 py-4 grid-layout relative">
-                                    <div class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 group-[.selected]:opacity-100 transition"
-                                        onclick="event.stopPropagation();">
-                                        <input type="checkbox" class="accent-blue-500 w-4 h-4 file-check cursor-pointer"
-                                            onclick="event.stopPropagation();">
+                                    <div class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 group-[.selected]:opacity-100 transition" onclick="event.stopPropagation();">
+                                        <input type="checkbox" class="accent-blue-500 w-4 h-4 file-check cursor-pointer" onclick="event.stopPropagation();">
                                     </div>
                                     <div class="p-4 rounded-2xl bg-slate-800/50 group-hover:bg-slate-800 transition">
                                         <i data-lucide="<?= $icon ?>" class="w-10 h-10 <?= $color ?>"></i>
@@ -1233,7 +1172,6 @@ if (is_dir($full_path)) {
                 ondrop="FM.handleDrop(event.dataTransfer.files); FM.closeModals();" ondragover="event.preventDefault()">
                 <i data-lucide="cloud-upload" class="w-12 h-12 text-slate-400 mb-3"></i>
                 <p class="text-slate-300 font-medium">Click to browse or drag files here</p>
-                <input type="hidden" name="token" value="<?= $_SESSION['csrf_token'] ?>">
                 <input type="file" id="inp-upload-files" multiple class="hidden" onchange="FM.doUploadInput(this)">
             </div>
             <div class="flex justify-end">
@@ -1252,8 +1190,7 @@ if (is_dir($full_path)) {
             <div class="mb-4">
                 <div class="flex justify-between items-center mb-2">
                     <label class="block text-slate-400 text-xs uppercase font-bold">Numeric Value (Octal)</label>
-                    <span class="text-xs text-slate-500">Current: <span id="chmod-current"
-                            class="text-slate-300 font-mono">-</span></span>
+                    <span class="text-xs text-slate-500">Current: <span id="chmod-current" class="text-slate-300 font-mono">-</span></span>
                 </div>
                 <input type="text" id="chmod-val" value="0775"
                     class="w-full bg-slate-900 border border-white/10 rounded-xl px-4 py-3 text-white font-mono outline-none focus:border-blue-500">
@@ -1269,8 +1206,7 @@ if (is_dir($full_path)) {
                     <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 mt-0.5 shrink-0"></i>
                     <div class="text-xs text-amber-200">
                         <p class="font-bold mb-1">Warning: Permission may be denied</p>
-                        <p>The web server user (<?= htmlspecialchars($process_user) ?>) may not own this file. Changes
-                            may fail.</p>
+                        <p>The web server user (<?= htmlspecialchars($process_user) ?>) may not own this file. Changes may fail.</p>
                     </div>
                 </div>
             </div>
@@ -1409,7 +1345,6 @@ if (is_dir($full_path)) {
 
     <!-- HIDDEN FORMS FOR DOWNLOADS -->
     <form id="form-download" method="POST" target="_blank">
-        <input type="hidden" name="token" value="<?= $_SESSION['csrf_token'] ?>">
         <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
         <input type="hidden" name="download_items" value="1">
         <div id="download-inputs"></div>
@@ -1541,7 +1476,7 @@ if (is_dir($full_path)) {
                 // Find the file element to get current permissions
                 const fileEl = document.querySelector(`.file-item[data-path="${this.ctxItem}"]`);
                 let currentPerms = '';
-
+                
                 if (fileEl) {
                     // Get permissions from the list view (4th column in list layout)
                     const permEl = fileEl.querySelector('.list-layout .col-span-2.text-slate-500.font-mono');
@@ -1549,24 +1484,24 @@ if (is_dir($full_path)) {
                         currentPerms = permEl.textContent.trim();
                     }
                 }
-
+                
                 // Determine suggestion based on type
                 const suggested = this.ctxType === 'dir' ? '0775' : '0664';
                 document.getElementById('chmod-val').value = suggested;
                 document.getElementById('chmod-target').value = this.ctxItem;
-
+                
                 // Update current permissions display
                 const currentPermEl = document.getElementById('chmod-current');
                 if (currentPermEl) {
                     currentPermEl.textContent = currentPerms || 'Unknown';
                 }
-
+                
                 // Show warning if file might not be owned by web server
                 const warningEl = document.getElementById('chmod-warning');
                 if (warningEl) {
                     warningEl.classList.remove('hidden');
                 }
-
+                
                 document.getElementById('modal-chmod').classList.remove('hidden');
             }
 
@@ -1619,7 +1554,7 @@ if (is_dir($full_path)) {
                     this.updateActionBar();
                     return;
                 }
-
+                
                 // Click on row (not checkbox)
                 const path = el.dataset.path;
                 if (this.selected.has(path)) {
@@ -1646,14 +1581,14 @@ if (is_dir($full_path)) {
             syncHeaderCheckbox() {
                 const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
                 if (!headerCheckbox) return;
-
+                
                 const fileItems = document.querySelectorAll('.file-item');
                 if (fileItems.length === 0) {
                     headerCheckbox.checked = false;
                     headerCheckbox.indeterminate = false;
                     return;
                 }
-
+                
                 if (this.selected.size === 0) {
                     headerCheckbox.checked = false;
                     headerCheckbox.indeterminate = false;
@@ -1671,11 +1606,11 @@ if (is_dir($full_path)) {
                 const count = document.getElementById('selection-count');
                 const btnSelectAll = document.getElementById('btn-select-all');
                 const btnUnselectAll = document.getElementById('btn-unselect-all');
-
+                
                 if (this.selected.size > 0) {
                     bar.classList.remove('hidden', '-translate-y-full', 'opacity-0');
                     count.innerText = this.selected.size + ' Selected';
-
+                    
                     // Show Select All or Unselect All based on current state
                     if (this.selected.size === CONFIG.totalItems && CONFIG.totalItems > 0) {
                         btnSelectAll.classList.add('hidden');
@@ -1708,7 +1643,7 @@ if (is_dir($full_path)) {
             selectAll(checked) {
                 const fileItems = document.querySelectorAll('.file-item');
                 const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
-
+                
                 if (checked === true) {
                     // Select all
                     this.selected.clear();
@@ -1763,7 +1698,6 @@ if (is_dir($full_path)) {
                 const fd = new FormData();
                 fd.append('ajax', '1');
                 fd.append(action, '1');
-                fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
                 fd.append('domain_id', CONFIG.domainId);
                 fd.append('path', CONFIG.currentPath);
                 for (let k in data) {
@@ -1775,7 +1709,7 @@ if (is_dir($full_path)) {
                 document.body.style.cursor = 'wait';
                 try {
                     const res = await fetch('', { method: 'POST', body: fd });
-
+                    
                     // Check if response is JSON
                     const contentType = res.headers.get('content-type');
                     if (!contentType || !contentType.includes('application/json')) {
@@ -1785,7 +1719,7 @@ if (is_dir($full_path)) {
                         document.body.style.cursor = 'default';
                         return;
                     }
-
+                    
                     const json = await res.json();
                     document.body.style.cursor = 'default';
                     if (json.status === 'success') {
@@ -1807,7 +1741,7 @@ if (is_dir($full_path)) {
                             }
                         }
                         this.toast('error', errorMsg);
-
+                        
                         // Also log to console for debugging
                         console.error('Operation failed:', json);
                     }
@@ -1907,14 +1841,14 @@ if (is_dir($full_path)) {
             }
 
             // Handlers for HTML Buttons
-            openUpload() {
+            openUpload() { 
                 const modal = document.getElementById('modal-upload');
                 if (modal) {
                     modal.classList.remove('hidden');
                 }
             }
 
-            openCreate() {
+            openCreate() { 
                 document.getElementById('modal-create').classList.remove('hidden');
                 this.setCreateType('file');
             }
@@ -1955,14 +1889,13 @@ if (is_dir($full_path)) {
 
             async handleDrop(files) {
                 if (files.length === 0) return;
-
+                
                 const fd = new FormData();
                 fd.append('upload_files', '1');
                 fd.append('ajax', '1');
-                fd.append('token', '<?= $_SESSION['csrf_token'] ?>');
                 fd.append('domain_id', CONFIG.domainId);
                 fd.append('path', CONFIG.currentPath);
-
+                
                 for (let i = 0; i < files.length; i++) {
                     fd.append('files[]', files[i]);
                 }
@@ -1970,7 +1903,7 @@ if (is_dir($full_path)) {
                 this.toast('success', 'Uploading...');
                 try {
                     const res = await fetch('', { method: 'POST', body: fd });
-
+                    
                     // Check if response is JSON
                     const contentType = res.headers.get('content-type');
                     if (!contentType || !contentType.includes('application/json')) {
@@ -1979,7 +1912,7 @@ if (is_dir($full_path)) {
                         this.toast('error', 'Server returned invalid response. Check server logs.');
                         return;
                     }
-
+                    
                     const json = await res.json();
                     if (json.status === 'success') {
                         this.toast('success', json.msg || 'Uploaded successfully');

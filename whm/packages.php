@@ -36,14 +36,7 @@ if (isset($_POST['ajax_action'])) {
         }
 
         if ($action == 'delete_package') {
-            $id = (int) $_POST['id'];
-            // Check if any clients are using this package
-            $chk = $pdo->prepare("SELECT COUNT(*) FROM clients WHERE package_id = ?");
-            $chk->execute([$id]);
-            if ($chk->fetchColumn() > 0) {
-                throw new Exception("Cannot delete package: It is currently assigned to one or more clients.");
-            }
-            $pdo->prepare("DELETE FROM packages WHERE id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM packages WHERE id = ?")->execute([$_POST['id']]);
         }
 
         echo json_encode($res);

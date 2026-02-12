@@ -768,9 +768,9 @@ EOF
         fi
         ;;
 
-# ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # VHOST TOOL (PHP Version & SSL Switcher)
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     vhost-tool)
         SUB="$2"
         
@@ -788,77 +788,16 @@ EOF
             
             # Determine DOCROOT
             DOCROOT=$(get_docroot "$USER" "$DOM" "$DOCROOT_DB")
+            
+            # Create directory if it doesn't exist
             mkdir -p "$DOCROOT"
             
-            # 1. Update Nginx Config
-            if command -v nginx &> /dev/null; then
-                SOCK="/run/php/php$PHP_VER-fpm-$USER.sock"
-                cat > "/etc/nginx/sites-available/$DOM" << EOF
-server {
-    listen 80;
-    server_name $DOM www.$DOM;
-    root $DOCROOT;
-    index index.php index.html;
-
-    access_log /var/www/clients/$USER/logs/$DOM.access.log;
-    error_log /var/www/clients/$USER/logs/$DOM.error.log;
-
-    location / {
-        try_files \$uri \$uri/ /index.php?\$args;
-    }
-
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:$SOCK;
-    }
-}
-EOF
-                ln -sf "/etc/nginx/sites-available/$DOM" "/etc/nginx/sites-enabled/"
-                safe_nginx_reload
-            fi
-
-            # 2. Update Apache Config (If installed)
-            if command -v apache2 &> /dev/null; then
-                cat > "/etc/apache2/sites-available/$DOM.conf" << EOF
-<VirtualHost *:80>
-    ServerName $DOM
-    ServerAlias www.$DOM
-    DocumentRoot $DOCROOT
-
-    <Directory $DOCROOT>
-        AllowOverride All
-        Require all granted
-        Options +FollowSymLinks -Indexes
-    </Directory>
-
-    <FilesMatch \.php$>
-        SetHandler "proxy:unix:/run/php/php$PHP_VER-fpm-$USER.sock|fcgi://localhost"
-    </FilesMatch>
-
-    ErrorLog \${APACHE_LOG_DIR}/$DOM.error.log
-    CustomLog \${APACHE_LOG_DIR}/$DOM.access.log combined
-</VirtualHost>
-EOF
-                a2ensite "$DOM.conf" &> /dev/null || true
-                systemctl reload apache2
-            fi
+            # PHP Sock
+            SOCK="/run/php/php$PHP_VER-fpm-$USER.sock"
             
-            echo "VHost synced for $DOM"
-        elif [ "$SUB" == "sync-all" ]; then
-            log_action "Starting mass VHost sync for all domains"
-            mysql -N -s -e "SELECT id FROM domains" "$DB_NAME" 2>/dev/null | while read DID; do
-                if [ -n "$DID" ]; then
-                    $0 vhost-tool sync "$DID"
-                fi
-            done
-            echo "All domains synchronized successfully"
-        fi
-        ;;
-
-    # --------------------------------------------------------------------------
-    # PERMISSION FIX TOOL (Improved)
-    # --------------------------------------------------------------------------
-    fix-permissions)
+            # SSL Paths
+            CERT="/etc/letsencrypt/live/$DOM/fullchain.pem"
+            KEY="/etc/letsencrypt/live/$DOM/privkey.pem"
             
             VHOST="/etc/nginx/sites-available/$DOM"
             
@@ -991,23 +930,7 @@ EOF
     # --------------------------------------------------------------------------
     service-status)
         SERVICE="$2"
-        if systemctl is-active --quiet "$SERVICE" 2>/dev/null; then
-            echo "active"
-        else
-            echo "inactive"
-        fi
-        ;;
-
-    service-status-batch)
-        # $2: comma-separated services
-        IFS=',' read -ra ADDR <<< "$2"
-        for SERVICE in "${ADDR[@]}"; do
-            if systemctl is-active --quiet "$SERVICE" 2>/dev/null; then
-                echo "$SERVICE:active"
-            else
-                echo "$SERVICE:inactive"
-            fi
-        done
+        systemctl is-active "$SERVICE" 2>/dev/null || echo "inactive"
         ;;
         
     service-control)
@@ -1400,10 +1323,8 @@ EOF
             create)
                 TS=$(date +%Y%m%d_%H%M%S)
                 FILE="$BACKUP_DIR/backup_$TS.tar.gz"
-                STATUS_FILE="$BACKUP_DIR/.status"
                 
                 log_action "Creating backup for $USER"
-                echo "dumping_db" > "$STATUS_FILE"
                 
                 # Create temporary directory for database dumps
                 DB_TMP="/tmp/db_dump_$USER_$TS"
@@ -1418,8 +1339,6 @@ EOF
                         fi
                     done
                 fi
-                
-                echo "compressing" > "$STATUS_FILE"
                 
                 # 2. Create backup archive
                 tar -czf "$FILE" \
@@ -1436,47 +1355,11 @@ EOF
                 rm -rf "$DB_TMP"
                 
                 # Set ownership
-                chown "$USER:$USER" "$FILE" "$BACKUP_DIR/backup_$TS.info" "$STATUS_FILE"
+                chown "$USER:$USER" "$FILE" "$BACKUP_DIR/backup_$TS.info"
                 chmod 640 "$FILE"
                 
-                echo "finished" > "$STATUS_FILE"
                 log_action "Created Backup for $USER: $FILE"
                 echo "Backup created: $(basename "$FILE")"
-                ;;
-                
-            delete)
-                FILENAME="$4"
-                if [ -z "$FILENAME" ]; then
-                    echo "Backup filename required"
-                    exit 1
-                fi
-                
-                # Safety check: ensure filename starts with backup_ and ends with .tar.gz
-                if [[ "$FILENAME" =~ ^backup_.*\.tar\.gz$ ]]; then
-                    FILE="$BACKUP_DIR/$FILENAME"
-                    INFO="${FILE%.tar.gz}.info"
-                    
-                    if [ -f "$FILE" ]; then
-                        rm -f "$FILE" "$INFO"
-                        log_action "Deleted Backup for $USER: $FILENAME"
-                        echo "Backup deleted"
-                    else
-                        echo "Backup not found"
-                        exit 1
-                    fi
-                else
-                    echo "Invalid backup filename"
-                    exit 1
-                fi
-                ;;
-
-            get-status)
-                STATUS_FILE="$BACKUP_DIR/.status"
-                if [ -f "$STATUS_FILE" ]; then
-                    cat "$STATUS_FILE"
-                else
-                    echo "idle"
-                fi
                 ;;
                 
             list)
@@ -2050,7 +1933,6 @@ MAINTENANCE:
 
 SYSTEM:
   service-status SERVICE
-  service-status-batch SERVICE1,SERVICE2,...
   service-control [start|stop|restart|reload|enable|disable] SERVICE
   system-info
 
@@ -2062,62 +1944,6 @@ EOF
     # --------------------------------------------------------------------------
     # DEFAULT CASE
     # --------------------------------------------------------------------------
-    # --------------------------------------------------------------------------
-    # SERVICE CONTROL
-    # --------------------------------------------------------------------------
-    service-control)
-        # $2: action (restart/status), $3: service (nginx/php/mysql)
-        ACTION="$2"
-        SERVICE="$3"
-        
-        case "$ACTION" in
-            restart)
-                case "$SERVICE" in
-                    nginx)
-                        safe_nginx_reload
-                        echo "Nginx reloaded"
-                        ;;
-                    php)
-                        safe_reload_php
-                        echo "PHP-FPM reloaded"
-                        ;;
-                    mysql)
-                        systemctl restart mariadb
-                        echo "MariaDB restarted"
-                        ;;
-                    *)
-                        echo "Unknown service: $SERVICE"
-                        exit 1
-                        ;;
-                esac
-                log_action "Service Restart: $SERVICE"
-                ;;
-                
-            status)
-                case "$SERVICE" in
-                    nginx)
-                        systemctl is-active nginx
-                        ;;
-                    php)
-                        systemctl is-active php8.2-fpm
-                        ;;
-                    mysql)
-                        systemctl is-active mariadb
-                        ;;
-                    *)
-                        echo "Unknown service"
-                        exit 1
-                        ;;
-                esac
-                ;;
-                
-            *)
-                echo "Unknown action: $ACTION"
-                exit 1
-                ;;
-        esac
-        ;;
-
     *)
         echo "Unknown command: $1"
         echo "Use: $0 help"

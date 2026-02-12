@@ -96,8 +96,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                         password VARCHAR(255) NOT NULL,
                         status ENUM('active','suspended') DEFAULT 'active',
                         package_id INT DEFAULT 1,
-                        two_fa_secret VARCHAR(255) DEFAULT NULL,
-                        two_fa_enabled BOOLEAN DEFAULT 0,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -158,18 +156,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                         status ENUM('active','inactive') DEFAULT 'active',
                         last_login TIMESTAMP NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "login_attempts" => "
-                    CREATE TABLE IF NOT EXISTS login_attempts (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        ip_address VARCHAR(45) NOT NULL,
-                        accumulated_count INT DEFAULT 0,
-                        last_attempt_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        is_blocked BOOLEAN DEFAULT 0,
-                        blocked_until TIMESTAMP NULL,
-                        INDEX idx_ip (ip_address)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 ",
 
@@ -382,14 +368,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Install SHM Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -397,26 +381,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             color: #fff;
             min-height: 100vh;
         }
-
         .glass {
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .progress-bar {
             height: 4px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 2px;
             overflow: hidden;
         }
-
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
             transition: width 0.5s ease;
         }
-
         .step-indicator {
             width: 40px;
             height: 40px;
@@ -428,30 +408,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             font-size: 14px;
             transition: all 0.3s ease;
         }
-
         .step-active {
             background: #3b82f6;
             color: white;
             box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
         }
-
         .step-inactive {
             background: rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.5);
         }
     </style>
 </head>
-
 <body class="flex items-center justify-center p-4">
 
     <div class="glass w-full max-w-2xl rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         <!-- Glow Effects -->
-        <div
-            class="absolute -top-20 -left-20 w-64 h-64 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse">
-        </div>
-        <div
-            class="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse">
-        </div>
+        <div class="absolute -top-20 -left-20 w-64 h-64 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
 
         <div class="relative z-10">
             <!-- Header -->
@@ -465,17 +438,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             <!-- Progress Bar -->
             <div class="mb-8">
                 <div class="flex justify-between items-center mb-4">
-                    <div
-                        class="step-indicator <?php echo ($step == 1 && !$installed) ? 'step-active' : 'step-inactive'; ?>">
-                        1</div>
+                    <div class="step-indicator <?php echo ($step == 1 && !$installed) ? 'step-active' : 'step-inactive'; ?>">1</div>
                     <div class="flex-1 mx-4">
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: <?php echo $installed ? '100%' : '50%'; ?>"></div>
                         </div>
                     </div>
-                    <div
-                        class="step-indicator <?php echo ($step == 2 || $installed) ? 'step-active' : 'step-inactive'; ?>">
-                        2</div>
+                    <div class="step-indicator <?php echo ($step == 2 || $installed) ? 'step-active' : 'step-inactive'; ?>">2</div>
                 </div>
                 <div class="flex justify-between text-xs text-slate-400 mt-2">
                     <span>Database Setup</span>
@@ -484,155 +453,150 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             </div>
 
             <?php if ($installed): ?>
-                <!-- Already Installed / Success -->
-                <div class="space-y-6">
-                    <div class="bg-emerald-500/20 text-emerald-300 p-6 rounded-xl border border-emerald-500/30 text-center">
-                        <div class="text-5xl mb-4">✅</div>
-                        <h3 class="text-xl font-bold mb-2">Installation Complete!</h3>
-                        <p class="text-sm">SHM Panel has been successfully installed and configured.</p>
-                    </div>
-
-                    <div class="grid gap-4">
-                        <div class="bg-slate-800/50 p-4 rounded-xl">
-                            <h4 class="font-bold text-sm text-slate-300 mb-2">Admin Credentials:</h4>
-                            <p class="text-sm"><span class="text-slate-400">Username:</span> <code
-                                    class="bg-slate-900 px-2 py-1 rounded">admin</code></p>
-                            <p class="text-sm"><span class="text-slate-400">Password:</span> <code
-                                    class="bg-slate-900 px-2 py-1 rounded"><?php echo htmlspecialchars($_POST['admin_pass'] ?? 'admin123'); ?></code>
-                            </p>
+                    <!-- Already Installed / Success -->
+                    <div class="space-y-6">
+                        <div class="bg-emerald-500/20 text-emerald-300 p-6 rounded-xl border border-emerald-500/30 text-center">
+                            <div class="text-5xl mb-4">✅</div>
+                            <h3 class="text-xl font-bold mb-2">Installation Complete!</h3>
+                            <p class="text-sm">SHM Panel has been successfully installed and configured.</p>
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <a href="cpanel/index.php"
-                                class="block text-center py-4 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold transition shadow-lg shadow-blue-600/20 hover:scale-[1.02] transform">
-                                Go to Client Panel
-                            </a>
-                            <a href="whm/login.php"
-                                class="block text-center py-4 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold transition hover:scale-[1.02] transform">
-                                Go to Admin WHM
-                            </a>
-                        </div>
-
-                        <div class="text-center text-xs text-slate-500 mt-4">
-                            <p>For security, please delete or rename this installer file:</p>
-                            <code class="bg-slate-900 px-3 py-1 rounded mt-1 inline-block">install.php</code>
+                    
+                        <div class="grid gap-4">
+                            <div class="bg-slate-800/50 p-4 rounded-xl">
+                                <h4 class="font-bold text-sm text-slate-300 mb-2">Admin Credentials:</h4>
+                                <p class="text-sm"><span class="text-slate-400">Username:</span> <code class="bg-slate-900 px-2 py-1 rounded">admin</code></p>
+                                <p class="text-sm"><span class="text-slate-400">Password:</span> <code class="bg-slate-900 px-2 py-1 rounded"><?php echo htmlspecialchars($_POST['admin_pass'] ?? 'admin123'); ?></code></p>
+                            </div>
+                        
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <a href="cpanel/index.php" 
+                                   class="block text-center py-4 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold transition shadow-lg shadow-blue-600/20 hover:scale-[1.02] transform">
+                                    Go to Client Panel
+                                </a>
+                                <a href="whm/login.php" 
+                                   class="block text-center py-4 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold transition hover:scale-[1.02] transform">
+                                    Go to Admin WHM
+                                </a>
+                            </div>
+                        
+                            <div class="text-center text-xs text-slate-500 mt-4">
+                                <p>For security, please delete or rename this installer file:</p>
+                                <code class="bg-slate-900 px-3 py-1 rounded mt-1 inline-block">install.php</code>
+                            </div>
                         </div>
                     </div>
-                </div>
-
+                
             <?php else: ?>
-                <!-- Installation Form -->
-                <?php if ($error): ?>
-                    <div class="bg-red-500/20 text-red-300 p-4 rounded-xl mb-6 border border-red-500/30 font-bold text-sm">
-                        <div class="flex items-center">
-                            <div class="mr-3">⚠️</div>
-                            <div><?php echo htmlspecialchars($error); ?></div>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <form method="POST" class="space-y-6">
-                    <!-- Database Configuration -->
-                    <div class="space-y-4">
-                        <h3 class="text-lg font-bold text-slate-300">Database Configuration</h3>
-
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Host</label>
-                            <input name="db_host" value="localhost" required
-                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                placeholder="Usually 'localhost'">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Name</label>
-                            <input name="db_name" value="shm_panel" required
-                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                placeholder="Database name to create">
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database
-                                    Username</label>
-                                <input name="db_user" value="root" required
-                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                    placeholder="MySQL username">
+                    <!-- Installation Form -->
+                    <?php if ($error): ?>
+                            <div class="bg-red-500/20 text-red-300 p-4 rounded-xl mb-6 border border-red-500/30 font-bold text-sm">
+                                <div class="flex items-center">
+                                    <div class="mr-3">⚠️</div>
+                                    <div><?php echo htmlspecialchars($error); ?></div>
+                                </div>
                             </div>
+                    <?php endif; ?>
+
+                    <form method="POST" class="space-y-6">
+                        <!-- Database Configuration -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-bold text-slate-300">Database Configuration</h3>
+                        
                             <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database
-                                    Password</label>
-                                <input name="db_pass" type="password"
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Host</label>
+                                <input name="db_host" value="localhost" required
                                     class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                    placeholder="MySQL password">
+                                    placeholder="Usually 'localhost'">
+                            </div>
+                        
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Name</label>
+                                <input name="db_name" value="shm_panel" required
+                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                    placeholder="Database name to create">
+                            </div>
+                        
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Username</label>
+                                    <input name="db_user" value="root" required
+                                        class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                        placeholder="MySQL username">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Password</label>
+                                    <input name="db_pass" type="password"
+                                        class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                        placeholder="MySQL password">
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="h-px bg-white/5 my-4"></div>
+                        <div class="h-px bg-white/5 my-4"></div>
 
-                    <!-- Admin Account -->
-                    <div class="space-y-4">
-                        <h3 class="text-lg font-bold text-slate-300">Admin Account</h3>
-
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Admin Username</label>
-                            <input name="admin_user" value="admin" required
-                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                placeholder="Admin panel username">
+                        <!-- Admin Account -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-bold text-slate-300">Admin Account</h3>
+                        
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Admin Username</label>
+                                <input name="admin_user" value="admin" required
+                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                    placeholder="Admin panel username">
+                            </div>
+                        
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Admin Password</label>
+                                <input name="admin_pass" type="password" value="admin123" required
+                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                    placeholder="Minimum 6 characters">
+                                <p class="text-xs text-slate-500 mt-2 ml-1">Choose a strong password for admin access</p>
+                            </div>
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Admin Password</label>
-                            <input name="admin_pass" type="password" value="admin123" required
-                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                placeholder="Minimum 6 characters">
-                            <p class="text-xs text-slate-500 mt-2 ml-1">Choose a strong password for admin access</p>
+                        <!-- Prerequisites Check -->
+                        <div class="bg-slate-800/30 p-4 rounded-xl border border-slate-700">
+                            <h4 class="font-bold text-sm text-slate-300 mb-3">System Requirements</h4>
+                            <div class="space-y-2 text-sm">
+                                <?php
+                                $checks = [
+                                    'PHP Version (>= 7.4)' => version_compare(PHP_VERSION, '7.4.0', '>='),
+                                    'PDO MySQL Extension' => extension_loaded('pdo_mysql'),
+                                    'JSON Extension' => extension_loaded('json'),
+                                    'OpenSSL Extension' => extension_loaded('openssl'),
+                                    'File Uploads Enabled' => ini_get('file_uploads'),
+                                    'Config Directory Writable' => is_writable(__DIR__ . '/shared') || is_writable(__DIR__),
+                                ];
+
+                                foreach ($checks as $label => $status) {
+                                    echo '<div class="flex items-center">';
+                                    echo $status ? '✅' : '❌';
+                                    echo '<span class="ml-2 ' . ($status ? 'text-emerald-400' : 'text-red-400') . '">' . $label . '</span>';
+                                    echo '</div>';
+                                }
+                                ?>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Prerequisites Check -->
-                    <div class="bg-slate-800/30 p-4 rounded-xl border border-slate-700">
-                        <h4 class="font-bold text-sm text-slate-300 mb-3">System Requirements</h4>
-                        <div class="space-y-2 text-sm">
-                            <?php
-                            $checks = [
-                                'PHP Version (>= 7.4)' => version_compare(PHP_VERSION, '7.4.0', '>='),
-                                'PDO MySQL Extension' => extension_loaded('pdo_mysql'),
-                                'JSON Extension' => extension_loaded('json'),
-                                'OpenSSL Extension' => extension_loaded('openssl'),
-                                'File Uploads Enabled' => ini_get('file_uploads'),
-                                'Config Directory Writable' => is_writable(__DIR__ . '/shared') || is_writable(__DIR__),
-                            ];
-
-                            foreach ($checks as $label => $status) {
-                                echo '<div class="flex items-center">';
-                                echo $status ? '✅' : '❌';
-                                echo '<span class="ml-2 ' . ($status ? 'text-emerald-400' : 'text-red-400') . '">' . $label . '</span>';
-                                echo '</div>';
-                            }
-                            ?>
+                        <button type="submit"
+                            class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 hover:scale-[1.02] transition transform mt-2">
+                            Install SHM Panel
+                        </button>
+                    
+                        <div class="text-center text-xs text-slate-500 mt-4">
+                            This will create the database, tables, and initial admin account.
                         </div>
-                    </div>
-
-                    <button type="submit"
-                        class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 hover:scale-[1.02] transition transform mt-2">
-                        Install SHM Panel
-                    </button>
-
-                    <div class="text-center text-xs text-slate-500 mt-4">
-                        This will create the database, tables, and initial admin account.
-                    </div>
-                </form>
+                    </form>
             <?php endif; ?>
         </div>
     </div>
 
     <!-- Script for form validation -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
             if (form) {
-                form.addEventListener('submit', function (e) {
+                form.addEventListener('submit', function(e) {
                     const password = document.querySelector('input[name="admin_pass"]');
                     if (password && password.value.length < 6) {
                         e.preventDefault();
@@ -644,5 +608,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
         });
     </script>
 </body>
-
 </html>
