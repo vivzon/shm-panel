@@ -114,5 +114,93 @@ enabled = true
 [proftpd]
 enabled = true
 FAIL2BAN
-    systemctl restart fail2ban
+    # 6. Nginx Panel Config (Robust Setup)
+    setup_nginx_domains
+}
+
+setup_nginx_domains() {
+    log "Configuring Nginx Domains..."
+
+    # Define Domain => Root Path Mapping
+    declare -A DOMAINS
+    DOMAINS=(
+        ["$MAIN_DOMAIN"]="/var/www/panel/landing"
+        ["admin.$MAIN_DOMAIN"]="/var/www/panel/whm"
+        ["client.$MAIN_DOMAIN"]="/var/www/panel/cpanel"
+        ["filemanager.$MAIN_DOMAIN"]="/var/www/apps/filemanager"
+        ["phpmyadmin.$MAIN_DOMAIN"]="/usr/share/phpmyadmin"
+        ["webmail.$MAIN_DOMAIN"]="/var/lib/roundcube"
+    )
+
+    # Clean legacy defaults
+    rm -f /etc/nginx/sites-enabled/default
+
+    for DOM in "${!DOMAINS[@]}"; do
+        ROOT_DIR="${DOMAINS[$DOM]}"
+        
+        # Ensure root exists (mkdir if missing to prevent Nginx crash)
+        if [ ! -d "$ROOT_DIR" ]; then
+            mkdir -p "$ROOT_DIR"
+            # Create dummy index if empty
+            if [ -z "$(ls -A $ROOT_DIR)" ]; then
+                 echo "<h1>$DOM</h1>" > "$ROOT_DIR/index.html"
+            fi
+        fi
+
+        log "Creating VHost for: $DOM -> $ROOT_DIR"
+
+        cat > "/etc/nginx/sites-available/$DOM" <<EOF
+server {
+    listen 80;
+    server_name $DOM;
+    root $ROOT_DIR;
+    index index.php index.html;
+
+    access_log /var/log/nginx/${DOM}_access.log;
+    error_log /var/log/nginx/${DOM}_error.log;
+
+    client_max_body_size 100M;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+EOF
+        # Enable Site
+        ln -sf "/etc/nginx/sites-available/$DOM" "/etc/nginx/sites-enabled/"
+    done
+
+    # 3. Fix Permissions
+    log "Fixing Web Permissions..."
+    chown -R www-data:www-data /var/www
+    chmod -R 755 /var/www
+
+    # 4. Validate Nginx
+    if ! nginx -t; then
+        error "Nginx configuration failed. Check logs."
+    fi
+
+    # 5. Reload Nginx
+    systemctl reload nginx
+    log "Nginx Reloaded."
+
+    # 6. Health Check (Local)
+    log "Running Health Checks..."
+    for DOM in "${!DOMAINS[@]}"; do
+        # Use curl with resolving to localhost to bypass DNS propagation issues during install
+        if curl -s -I -H "Host: $DOM" "http://127.0.0.1" | grep -q "200 OK"; then
+             log "[OK] $DOM is reachable."
+        else
+             warn "[FAIL] $DOM returned non-200 status."
+        fi
+    done
 }
