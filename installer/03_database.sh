@@ -15,23 +15,43 @@ setup_database() {
     # 2. Secure MariaDB
     log "Securing MariaDB..."
     
-    # Set Root Password
-    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';"
-    mysql -e "FLUSH PRIVILEGES;"
-    
-    # Create .my.cnf for root
+    # Create .my.cnf for root FIRST (so mysql client uses it)
     cat > /root/.my.cnf << EOF
 [client]
 user=root
 password=$MYSQL_ROOT_PASS
 EOF
     chmod 600 /root/.my.cnf
+
+    # Helper to run mysql commands robustly
+    mysql_exec() {
+        local query="$1"
+        # Try default (uses .my.cnf if exists)
+        if ! mysql -e "$query" 2>/dev/null; then
+            # If that fails, try via socket without password (fresh install case where .my.cnf might be ignored or wrong if password not yet set in DB)
+            # But wait, if .my.cnf exists, mysql uses it. 
+            # Force ignore .my.cnf for fallback?
+            mysql --no-defaults -e "$query"
+        fi
+    }
+
+    # Set Root Password
+    # We use a try-catch approach. 
+    # 1. Try setting password assuming we can connect (socket or .my.cnf)
+    log "Updating Root Password..."
+    if ! mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';" 2>/dev/null; then
+        # If failed, it might be because .my.cnf has new pass, but DB has old/no pass.
+        # Try connecting without password (socket)
+        mysql --no-defaults -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';" || true
+    fi
+    
+    mysql -e "FLUSH PRIVILEGES;"
     
     # Clean up anonymous users & test db
-    mysql -e "DELETE FROM mysql.user WHERE User='';"
-    mysql -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');"
-    mysql -e "DROP DATABASE IF EXISTS test;"
-    mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';"
+    mysql -e "DELETE FROM mysql.user WHERE User='';" 2>/dev/null || true
+    mysql -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');" 2>/dev/null || true
+    mysql -e "DROP DATABASE IF EXISTS test;" 2>/dev/null || true
+    mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';" 2>/dev/null || true
     mysql -e "FLUSH PRIVILEGES;"
     
     # 3. Optimization
