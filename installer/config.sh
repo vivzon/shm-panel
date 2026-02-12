@@ -4,7 +4,7 @@
 # SHM PANEL - CONFIGURATION
 # ==============================================================================
 
-CONFIG_FILE="$(dirname "$0")/config.env"
+CONFIG_FILE="$(dirname "${BASH_SOURCE[0]}")/config.env"
 
 # Load or Generate Configuration
 load_config() {

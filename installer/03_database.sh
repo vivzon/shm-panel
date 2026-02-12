@@ -38,11 +38,47 @@ EOF
     # Set Root Password
     # We use a try-catch approach. 
     # 1. Try setting password assuming we can connect (socket or .my.cnf)
+    # Set Root Password
     log "Updating Root Password..."
-    if ! mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';" 2>/dev/null; then
-        # If failed, it might be because .my.cnf has new pass, but DB has old/no pass.
-        # Try connecting without password (socket)
-        mysql --no-defaults -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';" || true
+    
+    # Try 1: Standard .my.cnf auth
+    if mysql -e "SELECT 1" &>/dev/null; then
+        mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';"
+    
+    # Try 2: Socket auth (no password)
+    elif mysql --no-defaults -e "SELECT 1" &>/dev/null; then
+         mysql --no-defaults -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS';"
+         
+    # Try 3: Nuclear Option (Reset Root Pass)
+    else
+        warn "Database access denied. Attempting to force reset root password..."
+        
+        systemctl stop mariadb
+        
+        # Start in safe mode
+        mysqld_safe --skip-grant-tables --skip-networking &
+        PID=$!
+        sleep 10
+        
+        # Force update
+        mysql --no-defaults -e "FLUSH PRIVILEGES; ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS'; FLUSH PRIVILEGES;"
+        
+        # Kill safe mode and restart
+        if ps -p $PID > /dev/null; then
+            kill $PID
+            wait $PID 2>/dev/null || true
+        else
+            pkill mysqld
+        fi
+        
+        systemctl start mariadb
+        
+        # Verify
+        if ! mysql -e "SELECT 1" &>/dev/null; then
+            error "Failed to reset MariaDB password. Please check logs."
+        fi
+        
+        log "Root password forcibly reset."
     fi
     
     mysql -e "FLUSH PRIVILEGES;"

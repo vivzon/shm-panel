@@ -11,6 +11,7 @@ SHM Panel is a lightweight, powerful, and secure web hosting control panel desig
 *   **One-Click Apps**: Install WordPress, Laravel, CodeIgniter, and React apps instantly.
 *   **Email Server**: Full-featured mail server with **Postfix**, **Dovecot**, and **Roundcube** webmail.
 *   **Security First**: Built-in **ModSecurity**, **Fail2ban**, **UFW Firewall**, and automated **Let's Encrypt SSL**.
+*   **Robust Installer**: Modular, self-healing installation system that handles errors gracefully.
 *   **Developer Friendly**: SSH Key management, PHP version switcher, and resource monitoring.
 
 ## 📋 System Requirements
@@ -92,6 +93,15 @@ shm-manage monitor-status
 *   `/etc/shm/`: Configuration files.
 *   `/var/log/shm/`: Panel-specific logs.
 *   `/usr/local/bin/shm-manage`: Backend engine executable.
+*   `installer/`: Modular installation scripts.
+
+## ❓ Troubleshooting
+
+If the installation fails, the installer is designed to be **idempotent** and **self-healing**.
+
+1.  **Check Logs**: Detailed logs are saved to `/var/log/shm-install.log`.
+2.  **Retry**: Simply run `sudo ./install.sh` again. It will detect existing configurations and attempt to fix issues (e.g., database permissions).
+3.  **Database Issues**: The installer includes a "safe mode" reset for MariaDB if password conflicts are detected.
 
 ## 🔒 Security Recommendations
 
