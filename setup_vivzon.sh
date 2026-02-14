@@ -258,14 +258,194 @@ create_vhost "$PHPMYADMIN_DOMAIN" "/usr/share/phpmyadmin" "$ADMIN_IP"
 nginx -t && systemctl reload nginx
 
 # ==============================================================================
-# 7. FIREWALL (UFW)
+# 7. DNS SERVER (BIND9)
 # ==============================================================================
-log "Step 7: Configuring Firewall..."
+log "Step 7: Configuring DNS Server (Bind9)..."
+
+apt-get install -y bind9 bind9utils bind9-doc
+
+# Create zones directory
+mkdir -p /etc/bind/zones
+
+# Configure Options
+cat > /etc/bind/named.conf.options << BIND_OPTS
+options {
+    directory "/var/cache/bind";
+    recursion no;
+    allow-transfer { none; };
+    
+    dnssec-validation auto;
+    listen-on-v6 { any; };
+};
+BIND_OPTS
+
+# Restart Bind9
+systemctl restart bind9
+
+# ==============================================================================
+# 8. MAIL SERVER (POSTFIX + DOVECOT + ROUNDCUBE)
+# ==============================================================================
+log "Step 8: Configuring Mail Server..."
+
+# 1. Install Packages
+debconf-set-selections <<< "postfix postfix/mailname string mail.$MAIN_DOMAIN"
+debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+apt-get install -y postfix postfix-mysql dovecot-core dovecot-imapd dovecot-pop3d dovecot-mysql dovecot-lmtpd
+
+# 2. SSL Certs (Snakeoil first, Certbot later)
+if [ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]; then
+    make-ssl-cert generate-default-snakeoil --force-overwrite
+fi
+
+# 3. Create vmail user
+groupadd -g 5000 vmail 2>/dev/null || true
+useradd -g vmail -u 5000 vmail -d /var/mail/vhosts -m -s /sbin/nologin 2>/dev/null || true
+mkdir -p /var/mail/vhosts
+chown -R vmail:vmail /var/mail/vhosts
+chmod 750 /var/mail/vhosts
+
+# 4. Configure Postfix
+cat > /etc/postfix/main.cf << POSTFIX_MAIN
+smtpd_banner = \$myhostname ESMTP \$mail_name (Ubuntu)
+biff = no
+append_dot_mydomain = no
+readme_directory = no
+compatibility_level = 2
+
+# TLS parameters
+smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_use_tls=yes
+smtpd_tls_session_cache_database = btree:\${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = btree:\${data_directory}/smtp_scache
+
+# Authentication
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+smtpd_recipient_restrictions = permit_mynetworks, permit_sasl_authenticated, reject_unauth_destination
+
+# Network
+myhostname = mail.$MAIN_DOMAIN
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+myorigin = /etc/mailname
+mydestination = localhost
+relayhost = 
+mynetworks = 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+inet_protocols = all
+
+# Virtual Mailbox (MySQL)
+virtual_transport = lmtp:unix:private/dovecot-lmtp
+virtual_uid_maps = static:5000
+virtual_gid_maps = static:5000
+virtual_mailbox_domains = mysql:/etc/postfix/mysql-virtual-mailbox-domains.cf
+virtual_mailbox_maps = mysql:/etc/postfix/mysql-virtual-mailbox-maps.cf
+virtual_alias_maps = mysql:/etc/postfix/mysql-virtual-alias-maps.cf
+POSTFIX_MAIN
+
+# MySQL Maps for Postfix
+echo "user = $DB_USER
+password = $DB_PASS
+hosts = 127.0.0.1
+dbname = $DB_NAME
+query = SELECT 1 FROM mail_domains WHERE domain='%s'" > /etc/postfix/mysql-virtual-mailbox-domains.cf
+
+echo "user = $DB_USER
+password = $DB_PASS
+hosts = 127.0.0.1
+dbname = $DB_NAME
+query = SELECT 1 FROM mail_users WHERE email='%s' AND is_active=1" > /etc/postfix/mysql-virtual-mailbox-maps.cf
+
+echo "user = $DB_USER
+password = $DB_PASS
+hosts = 127.0.0.1
+dbname = $DB_NAME
+query = SELECT destination FROM mail_aliases WHERE source='%s'" > /etc/postfix/mysql-virtual-alias-maps.cf
+
+chmod 600 /etc/postfix/mysql-*.cf
+
+# 5. Configure Dovecot
+cat > /etc/dovecot/dovecot-sql.conf.ext << DOVECOT_SQL
+driver = mysql
+connect = host=127.0.0.1 dbname=$DB_NAME user=$DB_USER password=$DB_PASS
+default_pass_scheme = SHA512-CRYPT
+password_query = SELECT email as user, password FROM mail_users WHERE email='%u' AND is_active=1;
+user_query = SELECT 5000 as uid, 5000 as gid, '/var/mail/vhosts/%d/%n' as home FROM mail_users WHERE email='%u';
+DOVECOT_SQL
+chmod 600 /etc/dovecot/dovecot-sql.conf.ext
+
+cat > /etc/dovecot/dovecot.conf << DOVECOT_MAIN
+!include_try /usr/share/dovecot/protocols.d/*.protocol
+protocols = imap pop3 lmtp
+
+listen = *, ::
+
+ssl = yes
+ssl_cert = </etc/ssl/certs/ssl-cert-snakeoil.pem
+ssl_key = </etc/ssl/private/ssl-cert-snakeoil.key
+
+mail_location = maildir:/var/mail/vhosts/%d/%n
+
+auth_mechanisms = plain login
+passdb {
+  driver = sql
+  args = /etc/dovecot/dovecot-sql.conf.ext
+}
+userdb {
+  driver = sql
+  args = /etc/dovecot/dovecot-sql.conf.ext
+}
+
+service lmtp {
+  unix_listener /var/spool/postfix/private/dovecot-lmtp {
+    mode = 0600
+    user = postfix
+    group = postfix
+  }
+}
+
+service auth {
+  unix_listener /var/spool/postfix/private/auth {
+    mode = 0666
+    user = postfix
+    group = postfix
+  }
+}
+DOVECOT_MAIN
+
+systemctl restart dovecot postfix
+
+# 6. Install Roundcube
+log "Installing Roundcube Webmail..."
+apt-get install -y roundcube roundcube-mysql roundcube-plugins
+
+# Configure Roundcube DB (Automated)
+# We assume dbconfig-common handled the DB creation during install with default headers
+# If not, we would need to manually create roundcubemail db.
+# For robustness, we link Nginx to Roundcube
+create_vhost "webmail.$MAIN_DOMAIN" "/var/lib/roundcube"
+
+# ==============================================================================
+# 9. FIREWALL (UFW)
+# ==============================================================================
+log "Step 9: Configuring Firewall..."
 
 ufw allow OpenSSH
 ufw allow 80
 ufw allow 443
 ufw allow 3306
+ufw allow 53          # DNS
+ufw allow 25          # SMTP
+ufw allow 465         # SMTPS
+ufw allow 587         # SUBMISSION
+ufw allow 110         # POP3
+ufw allow 995         # POP3S
+ufw allow 143         # IMAP
+ufw allow 993         # IMAPS
 ufw --force enable
 
 # ==============================================================================

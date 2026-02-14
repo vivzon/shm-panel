@@ -8,6 +8,7 @@ SHM Panel is a lightweight, powerful, and secure web hosting control panel desig
 
 *   **Multi-Role Architecture**: Separate **Admin Panel (WHM)** for server management and **Client Panel (cPanel)** for users.
 *   **Web Stack Management**: Automated setup of **Nginx**, **PHP 8.2**, and **MariaDB**.
+*   **Email & DNS**: Full-featured **Postifx/Dovecot** mail server with **Roundcube** and **Bind9** DNS.
 *   **Security First**: Built-in **Fail2ban (SSH Protection)**, **UFW Firewall**, and automated **Let's Encrypt SSL**.
 *   **Zero-Touch Installer**: Single script (`setup_vivzon.sh`) handles everything from system updates to SSL generation.
 
@@ -48,6 +49,7 @@ Once the script finishes, it will display your **Login Credentials**.
 -   **Client Panel**: `https://client.vivzon.cloud`
 -   **FileManager**: `https://filemanager.vivzon.cloud`
 -   **Database**: `https://phpmyadmin.vivzon.cloud`
+-   **Webmail**: `https://webmail.vivzon.cloud`
 
 > **Note**: If SSL fails due to DNS propagation, run `certbot --nginx` manually.
 
