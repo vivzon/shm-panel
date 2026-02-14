@@ -7,12 +7,9 @@ SHM Panel is a lightweight, powerful, and secure web hosting control panel desig
 ## ✨ Key Features
 
 *   **Multi-Role Architecture**: Separate **Admin Panel (WHM)** for server management and **Client Panel (cPanel)** for users.
-*   **Web Stack Management**: Automated setup of **Nginx**, **PHP** (8.1, 8.2, 8.3), and **MariaDB**.
-*   **One-Click Apps**: Install WordPress, Laravel, CodeIgniter, and React apps instantly.
-*   **Email Server**: Full-featured mail server with **Postfix**, **Dovecot**, and **Roundcube** webmail.
-*   **Security First**: Built-in **ModSecurity**, **Fail2ban**, **UFW Firewall**, and automated **Let's Encrypt SSL**.
-*   **Robust Installer**: Modular, self-healing installation system that handles errors gracefully.
-*   **Developer Friendly**: SSH Key management, PHP version switcher, and resource monitoring.
+*   **Web Stack Management**: Automated setup of **Nginx**, **PHP 8.2**, and **MariaDB**.
+*   **Security First**: Built-in **Fail2ban (SSH Protection)**, **UFW Firewall**, and automated **Let's Encrypt SSL**.
+*   **Zero-Touch Installer**: Single script (`setup_vivzon.sh`) handles everything from system updates to SSL generation.
 
 ## 📋 System Requirements
 
@@ -24,50 +21,35 @@ SHM Panel is a lightweight, powerful, and secure web hosting control panel desig
 
 ## 🛠️ Installation Guide
 
-Follow these steps to install SHM Panel on your server.
+**Automated Single-Command Installation for Vivzon Cloud**
 
-### 1. Prepare your Server
-Login to your server via SSH as `root`.
+Follow these steps to deploy SHM Panel on your fresh Ubuntu/Debian VPS.
+
+### 1. Upload Project
+Upload the entire `shm-panel` directory to your server's root directory (`/root/`).
 ```bash
-ssh root@your-server-ip
+# From your local machine
+scp -r shm-panel root@vivzon.cloud:/root/
 ```
 
-### 2. Download the Installer
-Clone the repository or download the project files to your server.
+### 2. Run Installer
+SSH into your server and execute the setup script. This will install Nginx, PHP 8.2, MariaDB, setup the database, configure firewalls, and generate SSL certificates automatically.
 ```bash
-apt-get update && apt-get install -y git
-git clone https://github.com/your-repo/shm-panel.git
-cd shm-panel
-```
-*(If you have the files locally, upload them to `/root/shm-panel`)*
-
-### 3. Run the Installer
-Make the script executable and run it. The interactive wizard will guide you through the configuration.
-```bash
-chmod +x install.sh
-sudo ./install.sh
+ssh root@vivzon.cloud
+cd /root/shm-panel
+chmod +x setup_vivzon.sh
+./setup_vivzon.sh
 ```
 
-### 4. Configuration Wizard
-You will be asked to provide:
-1.  **Main Domain**: The primary domain for the panel (e.g., `hosting.example.com`).
-2.  **Admin Email**: Email address for the super admin and SSL certificates.
-3.  **Server IP**: Auto-detected, but confirm it is correct.
+### 3. Access Your Panel
+Once the script finishes, it will display your **Login Credentials**.
+-   **Landing**: `https://vivzon.cloud`
+-   **Admin Panel**: `https://admin.vivzon.cloud`
+-   **Client Panel**: `https://client.vivzon.cloud`
+-   **FileManager**: `https://filemanager.vivzon.cloud`
+-   **Database**: `https://phpmyadmin.vivzon.cloud`
 
-The installer will automatically:
-*   Install all dependencies (Nginx, PHP, MySQL, Redis, etc.).
-*   Configure the database and backend services.
-*   Set up the directory structure and permissions.
-*   Generate secure credentials.
-
-### 5. Post-Installation
-Once the installation is complete, you will see a success message with your credentials. **Save these credentials immediately!**
-
-You can access your panels here:
-*   **Admin Panel (WHM)**: `https://admin.your-domain.com`
-*   **Client Panel**: `https://client.your-domain.com`
-*   **Webmail**: `https://webmail.your-domain.com`
-*   **System Monitor**: `https://monitor.your-domain.com`
+> **Note**: If SSL fails due to DNS propagation, run `certbot --nginx` manually.
 
 ---
 
