@@ -1,8 +1,10 @@
 <?php
 /**
- * SHM PANEL - WEB INSTALLER
+ * SHM PANEL - WEB INSTALLER (Updated with Security Tables)
  * =========================
  * Single-file setup wizard to fix database connections and initialize the system.
+ * 
+ * UPDATED: Now includes security tables for the new security implementation
  */
 
 // Disable error display for production
@@ -97,208 +99,179 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                         status ENUM('active','suspended') DEFAULT 'active',
                         package_id INT DEFAULT 1,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        last_login TIMESTAMP NULL,
+                        INDEX idx_username (username),
+                        INDEX idx_status (status)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 ",
-
+                "admins" => "
+                    CREATE TABLE IF NOT EXISTS admins (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(50) UNIQUE NOT NULL,
+                        password VARCHAR(255) NOT NULL,
+                        email VARCHAR(255) NOT NULL,
+                        role ENUM('superadmin','admin','support') DEFAULT 'admin',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_login TIMESTAMP NULL,
+                        INDEX idx_username (username)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ",
+                "packages" => "
+                    CREATE TABLE IF NOT EXISTS packages (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        price DECIMAL(10,2) DEFAULT 0.00,
+                        disk_mb INT DEFAULT 1000,
+                        max_domains INT DEFAULT 1,
+                        max_emails INT DEFAULT 10,
+                        max_databases INT DEFAULT 5,
+                        features TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ",
                 "domains" => "
                     CREATE TABLE IF NOT EXISTS domains (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         client_id INT NOT NULL,
                         domain VARCHAR(255) UNIQUE NOT NULL,
                         document_root VARCHAR(500),
-                        php_version VARCHAR(5) DEFAULT '8.2',
+                        php_version VARCHAR(10) DEFAULT '8.2',
                         ssl_active BOOLEAN DEFAULT 0,
-                        parent_id INT DEFAULT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
                         INDEX idx_client_id (client_id),
                         INDEX idx_domain (domain)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 ",
-
-                "packages" => "
-                    CREATE TABLE IF NOT EXISTS packages (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        name VARCHAR(50) NOT NULL,
-                        price DECIMAL(10,2) DEFAULT 0.00,
-                        disk_mb INT DEFAULT 2000,
-                        max_domains INT DEFAULT 1,
-                        max_emails INT DEFAULT 5,
-                        max_databases INT DEFAULT 2,
-                        features TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "transactions" => "
-                    CREATE TABLE IF NOT EXISTS transactions (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        client_id INT NOT NULL,
-                        amount DECIMAL(10,2) NOT NULL,
-                        currency VARCHAR(10) DEFAULT 'USD',
-                        payment_gateway VARCHAR(20),
-                        transaction_id VARCHAR(100),
-                        status VARCHAR(20) DEFAULT 'pending',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_client_id (client_id),
-                        INDEX idx_status (status)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "admins" => "
-                    CREATE TABLE IF NOT EXISTS admins (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        username VARCHAR(50) UNIQUE NOT NULL,
-                        password VARCHAR(255) NOT NULL,
-                        email VARCHAR(255),
-                        role ENUM('superadmin','admin','support') DEFAULT 'admin',
-                        status ENUM('active','inactive') DEFAULT 'active',
-                        last_login TIMESTAMP NULL,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "mail_domains" => "
-                    CREATE TABLE IF NOT EXISTS mail_domains (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        domain VARCHAR(255) UNIQUE NOT NULL,
-                        client_id INT,
-                        status ENUM('active','suspended') DEFAULT 'active',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "mail_users" => "
-                    CREATE TABLE IF NOT EXISTS mail_users (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        domain_id INT NOT NULL,
-                        email VARCHAR(255) UNIQUE NOT NULL,
-                        password VARCHAR(255) NOT NULL,
-                        quota_mb INT DEFAULT 100,
-                        status ENUM('active','suspended') DEFAULT 'active',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (domain_id) REFERENCES mail_domains(id) ON DELETE CASCADE
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "ftp_users" => "
-                    CREATE TABLE IF NOT EXISTS ftp_users (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        userid VARCHAR(32) UNIQUE NOT NULL,
-                        passwd VARCHAR(255) NOT NULL,
-                        homedir VARCHAR(500) NOT NULL,
-                        uid INT DEFAULT 33,
-                        gid INT DEFAULT 33,
-                        shell VARCHAR(255) DEFAULT '/usr/sbin/nologin',
-                        client_id INT,
-                        status ENUM('active','suspended') DEFAULT 'active',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "client_databases" => "
-                    CREATE TABLE IF NOT EXISTS client_databases (
+                "databases" => "
+                    CREATE TABLE IF NOT EXISTS databases (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         client_id INT NOT NULL,
                         db_name VARCHAR(64) UNIQUE NOT NULL,
-                        domain_id INT,
+                        db_user VARCHAR(32) NOT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-                        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE SET NULL,
                         INDEX idx_client_id (client_id)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 ",
-
-                "client_db_users" => "
-                    CREATE TABLE IF NOT EXISTS client_db_users (
+                "mail_users" => "
+                    CREATE TABLE IF NOT EXISTS mail_users (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         client_id INT NOT NULL,
-                        db_user VARCHAR(32) NOT NULL,
-                        db_pass VARCHAR(255) NOT NULL,
+                        email VARCHAR(255) UNIQUE NOT NULL,
+                        password VARCHAR(255) NOT NULL,
+                        quota_mb INT DEFAULT 100,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-                        UNIQUE KEY unique_user (db_user),
-                        INDEX idx_client_id (client_id)
+                        INDEX idx_client_id (client_id),
+                        INDEX idx_email (email)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 ",
-
                 "dns_records" => "
                     CREATE TABLE IF NOT EXISTS dns_records (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         domain_id INT NOT NULL,
-                        type VARCHAR(10) NOT NULL,
-                        host VARCHAR(255) NOT NULL,
-                        value VARCHAR(500) NOT NULL,
+                        type ENUM('A','AAAA','CNAME','MX','TXT','NS','SOA','SRV') NOT NULL,
+                        name VARCHAR(255) NOT NULL,
+                        value TEXT NOT NULL,
+                        ttl INT DEFAULT 3600,
                         priority INT DEFAULT 10,
-                        ttl INT DEFAULT 86400,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE,
                         INDEX idx_domain_id (domain_id),
                         INDEX idx_type (type)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 ",
-
                 "php_config" => "
                     CREATE TABLE IF NOT EXISTS php_config (
-                        domain_id INT PRIMARY KEY,
-                        memory_limit VARCHAR(10) DEFAULT '128M',
-                        max_execution_time INT DEFAULT 300,
-                        upload_max_filesize VARCHAR(10) DEFAULT '2048M',
-                        post_max_size VARCHAR(10) DEFAULT '2048M',
-                        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "domain_traffic" => "
-                    CREATE TABLE IF NOT EXISTS domain_traffic (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        domain_id INT NOT NULL,
-                        date DATE NOT NULL,
-                        bytes_sent BIGINT DEFAULT 0,
-                        hits INT DEFAULT 0,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE,
-                        UNIQUE KEY unique_domain_date (domain_id, date),
-                        INDEX idx_date (date)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "malware_scans" => "
-                    CREATE TABLE IF NOT EXISTS malware_scans (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        domain_id INT NOT NULL,
-                        status ENUM('running','clean','infected','failed') DEFAULT 'running',
-                        report TEXT,
-                        infected_files INT DEFAULT 0,
-                        scanned_files INT DEFAULT 0,
-                        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        finished_at TIMESTAMP NULL,
-                        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE,
-                        INDEX idx_domain_id (domain_id),
-                        INDEX idx_status (status)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-
-                "app_installations" => "
-                    CREATE TABLE IF NOT EXISTS app_installations (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         client_id INT NOT NULL,
-                        domain_id INT NOT NULL,
-                        app_type VARCHAR(20) NOT NULL,
-                        db_name VARCHAR(64),
-                        db_user VARCHAR(32),
-                        db_pass VARCHAR(255),
-                        status VARCHAR(20) DEFAULT 'installing',
-                        install_path VARCHAR(500),
+                        setting_name VARCHAR(100) NOT NULL,
+                        setting_value VARCHAR(255),
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                        FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
-                        FOREIGN KEY (domain_id) REFERENCES domains(id) ON DELETE CASCADE,
+                        INDEX idx_client_id (client_id)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ",
+                "cron_jobs" => "
+                    CREATE TABLE IF NOT EXISTS cron_jobs (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        client_id INT NOT NULL,
+                        command TEXT NOT NULL,
+                        schedule VARCHAR(100) NOT NULL,
+                        enabled BOOLEAN DEFAULT 1,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_client_id (client_id),
+                        INDEX idx_enabled (enabled)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ",
+                "backups" => "
+                    CREATE TABLE IF NOT EXISTS backups (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        client_id INT NOT NULL,
+                        backup_type ENUM('full','files','database') NOT NULL,
+                        file_path VARCHAR(500),
+                        size_mb DECIMAL(10,2),
+                        status ENUM('pending','completed','failed') DEFAULT 'pending',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         INDEX idx_client_id (client_id),
                         INDEX idx_status (status)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ",
+                // NEW: Security Tables for enhanced security implementation
+                "security_logs" => "
+                    CREATE TABLE IF NOT EXISTS security_logs (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        event VARCHAR(255) NOT NULL,
+                        severity ENUM('info', 'warning', 'critical') DEFAULT 'info',
+                        ip VARCHAR(45),
+                        user VARCHAR(50),
+                        user_agent VARCHAR(500),
+                        context TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_created (created_at),
+                        INDEX idx_severity (severity),
+                        INDEX idx_user (user),
+                        INDEX idx_ip (ip)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ",
+                "error_logs" => "
+                    CREATE TABLE IF NOT EXISTS error_logs (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        type VARCHAR(50) NOT NULL,
+                        message TEXT NOT NULL,
+                        file VARCHAR(500),
+                        line INT,
+                        user VARCHAR(50),
+                        trace TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_created (created_at),
+                        INDEX idx_type (type),
+                        INDEX idx_user (user)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ",
+                "login_attempts" => "
+                    CREATE TABLE IF NOT EXISTS login_attempts (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        username VARCHAR(50),
+                        ip VARCHAR(45) NOT NULL,
+                        user_agent VARCHAR(500),
+                        success BOOLEAN DEFAULT 0,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_ip (ip),
+                        INDEX idx_username (username),
+                        INDEX idx_created (created_at)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ",
+                "active_sessions" => "
+                    CREATE TABLE IF NOT EXISTS active_sessions (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        session_id VARCHAR(255) UNIQUE NOT NULL,
+                        user_id INT,
+                        user_type ENUM('client', 'admin') NOT NULL,
+                        ip VARCHAR(45),
+                        user_agent VARCHAR(500),
+                        last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_user (user_id, user_type),
+                        INDEX idx_session (session_id),
+                        INDEX idx_last_activity (last_activity)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 "
             ];
@@ -338,7 +311,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             $admin_email = $admin_user . '@' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
             $stmt->execute([$admin_user, $hash, $admin_email, $hash]);
 
-            // 6. Create necessary directories
+            // 6. Insert initial security log entry
+            $stmt = $pdo->prepare("
+                INSERT INTO security_logs (event, severity, ip, user, user_agent, context) 
+                VALUES (?, 'info', ?, 'installer', ?, ?)
+            ");
+            $stmt->execute([
+                'System installed successfully',
+                $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+                $_SERVER['HTTP_USER_AGENT'] ?? 'Installer',
+                json_encode(['version' => '1.0.0', 'timestamp' => date('Y-m-d H:i:s')])
+            ]);
+
+            // 7. Create necessary directories
             $directories = [
                 '/var/log',
                 '/var/www/clients',
@@ -352,7 +337,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                 mkdir(__DIR__ . '/shared', 0755, true);
             }
 
-            $success = "Installation successful! You can now access the panel.";
+            $success = "Installation successful! Security features enabled. You can now access the panel.";
             $step = 2; // Show success step
 
             // Set installed flag
@@ -368,12 +353,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Install SHM Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -381,222 +368,214 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
             color: #fff;
             min-height: 100vh;
         }
+
         .glass {
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .progress-bar {
             height: 4px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 2px;
             overflow: hidden;
         }
+
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
             transition: width 0.5s ease;
         }
-        .step-indicator {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-        .step-active {
-            background: #3b82f6;
-            color: white;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-        }
-        .step-inactive {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.5);
-        }
     </style>
 </head>
+
 <body class="flex items-center justify-center p-4">
 
-    <div class="glass w-full max-w-2xl rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-        <!-- Glow Effects -->
-        <div class="absolute -top-20 -left-20 w-64 h-64 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+    <div class="w-full max-w-2xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1
+                class="text-5xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+                SHM PANEL
+            </h1>
+            <p class="text-slate-400 text-lg">Web Hosting Control Panel - Installation Wizard</p>
+            <p class="text-slate-500 text-sm mt-2">✨ Now with Enhanced Security Features</p>
+        </div>
 
-        <div class="relative z-10">
-            <!-- Header -->
-            <div class="text-center mb-8">
-                <h1 class="text-4xl font-extrabold mb-2 tracking-tight">
-                    SHM <span class="text-blue-500">Panel</span> Installer
-                </h1>
-                <p class="text-slate-400 text-sm">Automated System Setup & Configuration</p>
-            </div>
+        <!-- Progress Bar -->
+        <div class="progress-bar mb-8">
+            <div class="progress-fill" style="width: <?= $installed ? '100' : '50' ?>%;"></div>
+        </div>
 
-            <!-- Progress Bar -->
-            <div class="mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="step-indicator <?php echo ($step == 1 && !$installed) ? 'step-active' : 'step-inactive'; ?>">1</div>
-                    <div class="flex-1 mx-4">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: <?php echo $installed ? '100%' : '50%'; ?>"></div>
+        <!-- Main Card -->
+        <div class="glass rounded-2xl p-8 shadow-2xl">
+
+            <?php if ($error): ?>
+                <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-6 py-4 rounded-xl mb-6 backdrop-blur">
+                    <div class="flex items-start">
+                        <span class="text-2xl mr-3">❌</span>
+                        <div>
+                            <p class="font-bold mb-1">Installation Error</p>
+                            <p class="text-sm opacity-90"><?= htmlspecialchars($error) ?></p>
                         </div>
                     </div>
-                    <div class="step-indicator <?php echo ($step == 2 || $installed) ? 'step-active' : 'step-inactive'; ?>">2</div>
                 </div>
-                <div class="flex justify-between text-xs text-slate-400 mt-2">
-                    <span>Database Setup</span>
-                    <span>Complete</span>
-                </div>
-            </div>
+            <?php endif; ?>
 
             <?php if ($installed): ?>
-                    <!-- Already Installed / Success -->
-                    <div class="space-y-6">
-                        <div class="bg-emerald-500/20 text-emerald-300 p-6 rounded-xl border border-emerald-500/30 text-center">
-                            <div class="text-5xl mb-4">✅</div>
-                            <h3 class="text-xl font-bold mb-2">Installation Complete!</h3>
-                            <p class="text-sm">SHM Panel has been successfully installed and configured.</p>
+                <!-- Success Screen -->
+                <div class="text-center py-8">
+                    <div class="text-7xl mb-6">🎉</div>
+                    <h2 class="text-3xl font-bold mb-4">Installation Complete!</h2>
+                    <p class="text-slate-400 mb-8">
+                        <?= $success ? htmlspecialchars($success) : 'Your SHM Panel is ready to use with enhanced security features.' ?>
+                    </p>
+
+                    <div class="bg-slate-800/50 rounded-xl p-6 mb-6 text-left">
+                        <h3 class="font-bold text-lg mb-4 text-blue-400">🔒 Security Features Enabled:</h3>
+                        <ul class="space-y-2 text-sm text-slate-300">
+                            <li>✅ SQL Injection Protection (Prepared Statements)</li>
+                            <li>✅ CSRF Token Validation</li>
+                            <li>✅ Secure Session Management</li>
+                            <li>✅ Security Event Logging</li>
+                            <li>✅ Login Attempt Tracking</li>
+                            <li>✅ Error Logging System</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 mb-6">
+                        <h3 class="font-bold mb-3 text-blue-400">Next Steps:</h3>
+                        <ol class="text-left text-sm text-slate-300 space-y-2">
+                            <li>1. Delete or rename this <code class="bg-slate-900 px-2 py-1 rounded">install.php</code>
+                                file</li>
+                            <li>2. Upload security files from the <code
+                                    class="bg-slate-900 px-2 py-1 rounded">shared/</code> directory</li>
+                            <li>3. Access Admin Panel: <a href="/whm/" class="text-blue-400 hover:underline">/whm/</a></li>
+                            <li>4. Access Client Panel: <a href="/cpanel/"
+                                    class="text-blue-400 hover:underline">/cpanel/</a></li>
+                            <li>5. Review security implementation guide</li>
+                        </ol>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <a href="/whm/"
+                            class="flex-1 bg-gradient-to-r from-purple-600 to-purple-500 text-white font-bold py-4 rounded-xl hover:scale-[1.02] transition transform text-center">
+                            Admin Panel
+                        </a>
+                        <a href="/cpanel/"
+                            class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-4 rounded-xl hover:scale-[1.02] transition transform text-center">
+                            Client Panel
+                        </a>
+                    </div>
+                </div>
+
+            <?php else: ?>
+                <!-- Installation Form -->
+                <h2 class="text-2xl font-bold mb-6">Database & Admin Setup</h2>
+
+                <form method="POST" class="space-y-6">
+                    <!-- Database Configuration -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-bold text-slate-300">Database Configuration</h3>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Host</label>
+                            <input name="db_host" value="localhost" required
+                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                placeholder="Usually 'localhost'">
                         </div>
-                    
-                        <div class="grid gap-4">
-                            <div class="bg-slate-800/50 p-4 rounded-xl">
-                                <h4 class="font-bold text-sm text-slate-300 mb-2">Admin Credentials:</h4>
-                                <p class="text-sm"><span class="text-slate-400">Username:</span> <code class="bg-slate-900 px-2 py-1 rounded">admin</code></p>
-                                <p class="text-sm"><span class="text-slate-400">Password:</span> <code class="bg-slate-900 px-2 py-1 rounded"><?php echo htmlspecialchars($_POST['admin_pass'] ?? 'admin123'); ?></code></p>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Name</label>
+                            <input name="db_name" value="shm_panel" required
+                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                placeholder="Database name to create">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database
+                                    Username</label>
+                                <input name="db_user" value="root" required
+                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                    placeholder="MySQL username">
                             </div>
-                        
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <a href="cpanel/index.php" 
-                                   class="block text-center py-4 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold transition shadow-lg shadow-blue-600/20 hover:scale-[1.02] transform">
-                                    Go to Client Panel
-                                </a>
-                                <a href="whm/login.php" 
-                                   class="block text-center py-4 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold transition hover:scale-[1.02] transform">
-                                    Go to Admin WHM
-                                </a>
-                            </div>
-                        
-                            <div class="text-center text-xs text-slate-500 mt-4">
-                                <p>For security, please delete or rename this installer file:</p>
-                                <code class="bg-slate-900 px-3 py-1 rounded mt-1 inline-block">install.php</code>
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database
+                                    Password</label>
+                                <input name="db_pass" type="password"
+                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                    placeholder="MySQL password">
                             </div>
                         </div>
                     </div>
-                
-            <?php else: ?>
-                    <!-- Installation Form -->
-                    <?php if ($error): ?>
-                            <div class="bg-red-500/20 text-red-300 p-4 rounded-xl mb-6 border border-red-500/30 font-bold text-sm">
-                                <div class="flex items-center">
-                                    <div class="mr-3">⚠️</div>
-                                    <div><?php echo htmlspecialchars($error); ?></div>
-                                </div>
-                            </div>
-                    <?php endif; ?>
 
-                    <form method="POST" class="space-y-6">
-                        <!-- Database Configuration -->
-                        <div class="space-y-4">
-                            <h3 class="text-lg font-bold text-slate-300">Database Configuration</h3>
-                        
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Host</label>
-                                <input name="db_host" value="localhost" required
-                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                    placeholder="Usually 'localhost'">
-                            </div>
-                        
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Name</label>
-                                <input name="db_name" value="shm_panel" required
-                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                    placeholder="Database name to create">
-                            </div>
-                        
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Username</label>
-                                    <input name="db_user" value="root" required
-                                        class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                        placeholder="MySQL username">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Database Password</label>
-                                    <input name="db_pass" type="password"
-                                        class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                        placeholder="MySQL password">
-                                </div>
-                            </div>
+                    <div class="h-px bg-white/5 my-4"></div>
+
+                    <!-- Admin Account -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-bold text-slate-300">Admin Account</h3>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Admin Username</label>
+                            <input name="admin_user" value="admin" required
+                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                placeholder="Admin panel username">
                         </div>
 
-                        <div class="h-px bg-white/5 my-4"></div>
-
-                        <!-- Admin Account -->
-                        <div class="space-y-4">
-                            <h3 class="text-lg font-bold text-slate-300">Admin Account</h3>
-                        
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Admin Username</label>
-                                <input name="admin_user" value="admin" required
-                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                    placeholder="Admin panel username">
-                            </div>
-                        
-                            <div>
-                                <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Admin Password</label>
-                                <input name="admin_pass" type="password" value="admin123" required
-                                    class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
-                                    placeholder="Minimum 6 characters">
-                                <p class="text-xs text-slate-500 mt-2 ml-1">Choose a strong password for admin access</p>
-                            </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-2 ml-1">Admin Password</label>
+                            <input name="admin_pass" type="password" value="admin123" required
+                                class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition text-sm placeholder-slate-500"
+                                placeholder="Minimum 6 characters">
+                            <p class="text-xs text-slate-500 mt-2 ml-1">Choose a strong password for admin access</p>
                         </div>
+                    </div>
 
-                        <!-- Prerequisites Check -->
-                        <div class="bg-slate-800/30 p-4 rounded-xl border border-slate-700">
-                            <h4 class="font-bold text-sm text-slate-300 mb-3">System Requirements</h4>
-                            <div class="space-y-2 text-sm">
-                                <?php
-                                $checks = [
-                                    'PHP Version (>= 7.4)' => version_compare(PHP_VERSION, '7.4.0', '>='),
-                                    'PDO MySQL Extension' => extension_loaded('pdo_mysql'),
-                                    'JSON Extension' => extension_loaded('json'),
-                                    'OpenSSL Extension' => extension_loaded('openssl'),
-                                    'File Uploads Enabled' => ini_get('file_uploads'),
-                                    'Config Directory Writable' => is_writable(__DIR__ . '/shared') || is_writable(__DIR__),
-                                ];
+                    <!-- Prerequisites Check -->
+                    <div class="bg-slate-800/30 p-4 rounded-xl border border-slate-700">
+                        <h4 class="font-bold text-sm text-slate-300 mb-3">System Requirements</h4>
+                        <div class="space-y-2 text-sm">
+                            <?php
+                            $checks = [
+                                'PHP Version (>= 7.4)' => version_compare(PHP_VERSION, '7.4.0', '>='),
+                                'PDO MySQL Extension' => extension_loaded('pdo_mysql'),
+                                'JSON Extension' => extension_loaded('json'),
+                                'OpenSSL Extension' => extension_loaded('openssl'),
+                                'File Uploads Enabled' => ini_get('file_uploads'),
+                                'Config Directory Writable' => is_writable(__DIR__ . '/shared') || is_writable(__DIR__),
+                            ];
 
-                                foreach ($checks as $label => $status) {
-                                    echo '<div class="flex items-center">';
-                                    echo $status ? '✅' : '❌';
-                                    echo '<span class="ml-2 ' . ($status ? 'text-emerald-400' : 'text-red-400') . '">' . $label . '</span>';
-                                    echo '</div>';
-                                }
-                                ?>
-                            </div>
+                            foreach ($checks as $label => $status) {
+                                echo '<div class="flex items-center">';
+                                echo $status ? '✅' : '❌';
+                                echo '<span class="ml-2 ' . ($status ? 'text-emerald-400' : 'text-red-400') . '">' . $label . '</span>';
+                                echo '</div>';
+                            }
+                            ?>
                         </div>
+                    </div>
 
-                        <button type="submit"
-                            class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 hover:scale-[1.02] transition transform mt-2">
-                            Install SHM Panel
-                        </button>
-                    
-                        <div class="text-center text-xs text-slate-500 mt-4">
-                            This will create the database, tables, and initial admin account.
-                        </div>
-                    </form>
+                    <button type="submit"
+                        class="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 hover:scale-[1.02] transition transform mt-2">
+                        Install SHM Panel with Security Features
+                    </button>
+
+                    <div class="text-center text-xs text-slate-500 mt-4">
+                        This will create the database, tables (including security tables), and initial admin account.
+                    </div>
+                </form>
             <?php endif; ?>
         </div>
     </div>
 
     <!-- Script for form validation -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');
             if (form) {
-                form.addEventListener('submit', function(e) {
+                form.addEventListener('submit', function (e) {
                     const password = document.querySelector('input[name="admin_pass"]');
                     if (password && password.value.length < 6) {
                         e.preventDefault();
@@ -608,4 +587,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
         });
     </script>
 </body>
+
 </html>
