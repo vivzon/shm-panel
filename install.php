@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 ",
                 "databases" => "
-                    CREATE TABLE IF NOT EXISTS databases (
+                    CREATE TABLE IF NOT EXISTS `databases` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         client_id INT NOT NULL,
                         db_name VARCHAR(64) UNIQUE NOT NULL,
@@ -163,6 +163,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         INDEX idx_client_id (client_id),
                         INDEX idx_email (email)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                ",
+                "mail_domains" => "
+                    CREATE TABLE IF NOT EXISTS mail_domains (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        client_id INT NOT NULL,
+                        domain VARCHAR(255) UNIQUE NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_client_id (client_id),
+                        INDEX idx_domain (domain)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 ",
                 "dns_records" => "
@@ -575,14 +585,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');
             if (form) {
-                form.addEventListener('submit', function (e) {
+                form.addEventListener('submit', functio n(e) {
                     const password = document.querySelector('input[name="admin_pass"]');
-                    if (password && password.value.length < 6) {
-                        e.preventDefault();
-                        alert('Admin password must be at least 6 characters long.');
-                        password.focus();
-                    }
-                });
+                    if(password && password.value.length < 6) {
+                    e.preventDefault();
+                    alert('Admin password must be at least 6 characters long.');
+                    password.focus();
+                }
+            });
             }
         });
     </script>

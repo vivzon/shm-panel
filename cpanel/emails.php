@@ -22,10 +22,10 @@ if (isset($_POST['ajax_action'])) {
             $did = $pdo->query("SELECT id FROM mail_domains WHERE domain = '{$_POST['domain']}'")->fetchColumn();
             if (!$did) {
                 // Should exist if domain exists, but just in case
-                $pdo->prepare("INSERT INTO mail_domains (domain) VALUES (?)")->execute([$_POST['domain']]);
+                $pdo->prepare("INSERT INTO mail_domains (client_id, domain) VALUES (?, ?)")->execute([$cid, $_POST['domain']]);
                 $did = $pdo->lastInsertId();
             }
-            $pdo->prepare("INSERT INTO mail_users (domain_id, email, password) VALUES (?, ?, ?)")->execute([$did, $_POST['user'] . "@" . $_POST['domain'], password_hash($_POST['pass'], PASSWORD_BCRYPT)]);
+            $pdo->prepare("INSERT INTO mail_users (client_id, domain_id, email, password) VALUES (?, ?, ?, ?)")->execute([$cid, $did, $_POST['user'] . "@" . $_POST['domain'], password_hash($_POST['pass'], PASSWORD_BCRYPT)]);
             sendResponse($res);
             exit;
         }

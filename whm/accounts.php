@@ -9,7 +9,8 @@ if (!isset($_SESSION['admin'])) {
 /**
  * HELPER: Fetch Clients (One row per client)
  */
-function getClientsData($pdo, $search = '', $page = 1, $limit = 10) {
+function getClientsData($pdo, $search = '', $page = 1, $limit = 10)
+{
     $offset = ($page - 1) * $limit;
     $params = [];
     $where = " WHERE 1=1 ";
@@ -32,12 +33,12 @@ function getClientsData($pdo, $search = '', $page = 1, $limit = 10) {
             $where 
             GROUP BY c.id 
             ORDER BY c.id DESC LIMIT $limit OFFSET $offset";
-    
+
     $stData = $pdo->prepare($sql);
     $stData->execute($params);
     $rows = $stData->fetchAll(PDO::FETCH_ASSOC);
 
-    return ['rows' => $rows, 'total' => (int)$total, 'pages' => ceil($total / $limit)];
+    return ['rows' => $rows, 'total' => (int) $total, 'pages' => ceil($total / $limit)];
 }
 
 /**
@@ -50,12 +51,12 @@ if (isset($_POST['ajax_action'])) {
 
     try {
         if ($action == 'search_clients') {
-            echo json_encode(getClientsData($pdo, $_POST['query'] ?? '', (int)($_POST['page'] ?? 1)));
+            echo json_encode(getClientsData($pdo, $_POST['query'] ?? '', (int) ($_POST['page'] ?? 1)));
             exit;
         }
 
         if ($action == 'save_account') {
-            $id = !empty($_POST['id']) ? (int)$_POST['id'] : null;
+            $id = !empty($_POST['id']) ? (int) $_POST['id'] : null;
             $u = trim($_POST['user']);
             $d = trim($_POST['dom']);
             $e = trim($_POST['email']);
@@ -68,7 +69,7 @@ if (isset($_POST['ajax_action'])) {
                 $curr = $oldSt->fetch(PDO::FETCH_ASSOC);
 
                 // Update email/package if changed
-                if ($curr['email'] !== $e || (int)$curr['package_id'] !== $pkg) {
+                if ($curr['email'] !== $e || (int) $curr['package_id'] !== $pkg) {
                     $pdo->prepare("UPDATE clients SET email=?, package_id=? WHERE id=?")->execute([$e, $pkg, $id]);
                 }
                 // Update domain name if changed
@@ -89,33 +90,35 @@ if (isset($_POST['ajax_action'])) {
                 $cid = $pdo->lastInsertId();
                 $pdo->prepare("INSERT INTO domains (client_id, domain, document_root) VALUES (?,?,?)")->execute([$cid, $d, "/var/www/clients/$u/public_html"]);
                 $dom_id = $pdo->lastInsertId();
-                
+
                 // Mail domain
-                $pdo->prepare("INSERT INTO mail_domains (domain) VALUES (?)")->execute([$d]);
-                
+                $pdo->prepare("INSERT INTO mail_domains (client_id, domain) VALUES (?, ?)")->execute([$cid, $d]);
+
                 // DNS Records
                 $ip = $_SERVER['SERVER_ADDR'] ?? '127.0.0.1';
-                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'A', '@', ?)")->execute([$dom_id, $ip]);
-                $pdo->prepare("INSERT INTO dns_records (domain_id, type, host, value) VALUES (?, 'MX', '@', ?)")->execute([$dom_id, "mail.$d"]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, name, value) VALUES (?, 'A', '@', ?)")->execute([$dom_id, $ip]);
+                $pdo->prepare("INSERT INTO dns_records (domain_id, type, name, value) VALUES (?, 'MX', '@', ?)")->execute([$dom_id, "mail.$d"]);
                 $pdo->commit();
 
                 echo json_encode($res);
-                if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+                if (function_exists('fastcgi_finish_request'))
+                    fastcgi_finish_request();
                 cmd("create-account " . escapeshellarg($u) . " " . escapeshellarg($d) . " " . escapeshellarg($e) . " " . escapeshellarg($_POST['pass']));
                 exit;
             }
         }
 
         if ($action == 'delete_account') {
-            $id = (int)$_POST['id']; $user = $_POST['user'];
-            
+            $id = (int) $_POST['id'];
+            $user = $_POST['user'];
+
             // 1. Fetch all domains for this client to clean up records
             $stmt = $pdo->prepare("SELECT id, domain FROM domains WHERE client_id = ?");
             $stmt->execute([$id]);
             $doms = $stmt->fetchAll();
 
             $pdo->beginTransaction();
-            foreach($doms as $dm) {
+            foreach ($doms as $dm) {
                 $pdo->prepare("DELETE FROM dns_records WHERE domain_id = ?")->execute([$dm['id']]);
                 $pdo->prepare("DELETE FROM mail_domains WHERE domain = ?")->execute([$dm['domain']]);
             }
@@ -125,16 +128,19 @@ if (isset($_POST['ajax_action'])) {
             $pdo->commit();
 
             echo json_encode($res);
-            if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+            if (function_exists('fastcgi_finish_request'))
+                fastcgi_finish_request();
             cmd("delete-account " . escapeshellarg($user));
             exit;
         }
 
         if ($action == 'suspend_account') {
-            $user = $_POST['user']; $sus = $_POST['suspend'] === 'true';
+            $user = $_POST['user'];
+            $sus = $_POST['suspend'] === 'true';
             $pdo->prepare("UPDATE clients SET status = ? WHERE username = ?")->execute([$sus ? 'suspended' : 'active', $user]);
             echo json_encode($res);
-            if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+            if (function_exists('fastcgi_finish_request'))
+                fastcgi_finish_request();
             $c = $sus ? 'suspend-account' : 'unsuspend-account';
             cmd("$c " . escapeshellarg($user));
             exit;
@@ -143,13 +149,15 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'reset_account') {
             $user = $_POST['user'];
             echo json_encode($res);
-            if (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+            if (function_exists('fastcgi_finish_request'))
+                fastcgi_finish_request();
             cmd("reset-account " . escapeshellarg($user));
             exit;
         }
 
         if ($action == 'login_as_client') {
-            $_SESSION['client'] = $_POST['user']; $_SESSION['cid'] = $_POST['cid'];
+            $_SESSION['client'] = $_POST['user'];
+            $_SESSION['cid'] = $_POST['cid'];
             $host = str_replace('admin.', 'client.', $_SERVER['HTTP_HOST']);
             echo json_encode(['status' => 'success', 'redirect' => (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $host]);
             exit;
@@ -157,7 +165,8 @@ if (isset($_POST['ajax_action'])) {
 
         echo json_encode($res);
     } catch (Exception $e) {
-        if ($pdo->inTransaction()) $pdo->rollBack();
+        if ($pdo->inTransaction())
+            $pdo->rollBack();
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
     }
@@ -171,14 +180,16 @@ include 'layout/header.php';
 <!-- HEADER & REAL-TIME SEARCH -->
 <div class="flex justify-between items-center mb-8 gap-4">
     <div class="flex items-center gap-4">
-        <h2 class="text-2xl font-bold text-white font-heading">Clients <span id="client-count" class="text-slate-500 text-lg ml-2"></span></h2>
+        <h2 class="text-2xl font-bold text-white font-heading">Clients <span id="client-count"
+                class="text-slate-500 text-lg ml-2"></span></h2>
         <div class="relative">
             <i data-lucide="search" class="w-4 absolute left-3 top-3 text-slate-500"></i>
-            <input id="live-search" onkeyup="debounceSearch()" placeholder="Search username, email or domain..." 
+            <input id="live-search" onkeyup="debounceSearch()" placeholder="Search username, email or domain..."
                 class="bg-slate-900/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-2.5 text-sm w-80 outline-none focus:border-blue-500 text-white transition-all">
         </div>
     </div>
-    <button onclick="openAccModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-lg shadow-blue-900/20">
+    <button onclick="openAccModal()"
+        class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-lg shadow-blue-900/20">
         <i data-lucide="plus-circle" class="w-4"></i> Create Account
     </button>
 </div>
@@ -186,7 +197,8 @@ include 'layout/header.php';
 <!-- DATA TABLE -->
 <div class="glass-panel rounded-2xl overflow-hidden">
     <table class="w-full text-left border-collapse">
-        <thead class="bg-slate-900/50 text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b border-slate-800">
+        <thead
+            class="bg-slate-900/50 text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b border-slate-800">
             <tr>
                 <th class="p-5">Client / Primary Domain</th>
                 <th class="p-5">Plan</th>
@@ -201,36 +213,47 @@ include 'layout/header.php';
 <div id="pagination-container" class="flex justify-between items-center mt-6"></div>
 
 <!-- CRUD MODAL -->
-<div id="modal-acc" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
-    <form id="form-acc" onsubmit="handleGeneric(event, 'save_account')" class="glass-panel p-10 rounded-3xl w-full max-w-lg">
+<div id="modal-acc"
+    class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
+    <form id="form-acc" onsubmit="handleGeneric(event, 'save_account')"
+        class="glass-panel p-10 rounded-3xl w-full max-w-lg">
         <h3 id="acc-title" class="text-2xl font-bold mb-8 text-white">Client Details</h3>
         <input type="hidden" name="id" id="acc-id">
         <div class="space-y-4">
             <div>
                 <label class="text-[10px] text-slate-500 font-bold uppercase pl-1">Username</label>
-                <input name="user" id="acc-user" required class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none focus:border-blue-500">
+                <input name="user" id="acc-user" required
+                    class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none focus:border-blue-500">
             </div>
             <div>
                 <label class="text-[10px] text-slate-500 font-bold uppercase pl-1">Domain</label>
-                <input name="dom" id="acc-dom" required placeholder="domain.com" class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none focus:border-blue-500">
+                <input name="dom" id="acc-dom" required placeholder="domain.com"
+                    class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none focus:border-blue-500">
             </div>
             <div>
                 <label class="text-[10px] text-slate-500 font-bold uppercase pl-1">Email</label>
-                <input name="email" id="acc-email" type="email" required class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none focus:border-blue-500">
+                <input name="email" id="acc-email" type="email" required
+                    class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none focus:border-blue-500">
             </div>
             <div>
-                <label class="text-[10px] text-slate-500 font-bold uppercase pl-1">Password (Leave blank to keep current)</label>
-                <input name="pass" type="password" class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none focus:border-blue-500">
+                <label class="text-[10px] text-slate-500 font-bold uppercase pl-1">Password (Leave blank to keep
+                    current)</label>
+                <input name="pass" type="password"
+                    class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none focus:border-blue-500">
             </div>
             <div>
                 <label class="text-[10px] text-slate-500 font-bold uppercase pl-1">Plan</label>
-                <select name="package_id" id="acc-pkg" class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none">
-                    <?php foreach($packages as $p): ?><option value="<?= $p['id'] ?>"><?= $p['name'] ?></option><?php endforeach; ?>
+                <select name="package_id" id="acc-pkg"
+                    class="w-full bg-slate-900/50 p-3 rounded-xl border border-slate-700 text-white outline-none">
+                    <?php foreach ($packages as $p): ?>
+                        <option value="<?= $p['id'] ?>"><?= $p['name'] ?></option><?php endforeach; ?>
                 </select>
             </div>
             <div class="flex gap-4 pt-4">
-                <button type="button" onclick="closeModal('modal-acc')" class="flex-1 p-3 text-slate-400 font-bold hover:bg-slate-800 rounded-xl transition">Cancel</button>
-                <button type="submit" class="flex-1 bg-blue-600 text-white p-3 rounded-xl font-bold transition hover:bg-blue-500">Save</button>
+                <button type="button" onclick="closeModal('modal-acc')"
+                    class="flex-1 p-3 text-slate-400 font-bold hover:bg-slate-800 rounded-xl transition">Cancel</button>
+                <button type="submit"
+                    class="flex-1 bg-blue-600 text-white p-3 rounded-xl font-bold transition hover:bg-blue-500">Save</button>
             </div>
         </div>
     </form>
@@ -259,7 +282,7 @@ include 'layout/header.php';
 
         document.getElementById('client-count').innerText = `(${data.total})`;
         const tbody = document.getElementById('client-table-body');
-        
+
         tbody.innerHTML = data.rows.map(c => `
             <tr class="hover:bg-slate-800/30 transition-colors">
                 <td class="p-5">
@@ -283,7 +306,7 @@ include 'layout/header.php';
                 </td>
             </tr>
         `).join('');
-        
+
         renderPagination(data.pages);
         lucide.createIcons();
     }

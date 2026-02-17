@@ -60,7 +60,11 @@ if (isset($_POST['ajax_action'])) {
             $did = $pdo->query("SELECT id FROM mail_domains WHERE domain = '{$_POST['domain']}'")->fetchColumn();
             if (!$did)
                 throw new Exception("Domain not found for mail");
-            $pdo->prepare("INSERT INTO mail_users (domain_id, email, password) VALUES (?,?,?)")->execute([$did, $full, $pass]);
+            // Get client_id from domain
+            $client_id = $pdo->query("SELECT client_id FROM mail_domains WHERE id = $did")->fetchColumn();
+            if (!$client_id)
+                throw new Exception("Client not found for domain");
+            $pdo->prepare("INSERT INTO mail_users (client_id, domain_id, email, password) VALUES (?,?,?,?)")->execute([$client_id, $did, $full, $pass]);
             sendResponse($res);
             exit;
         }
