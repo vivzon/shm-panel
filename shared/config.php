@@ -1,9 +1,18 @@
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 /**
  * SHM PANEL - SHARED CONFIGURATION (v5.0)
  * =======================================
  * Robust configuration loader supporting local environments.
  */
+
+// Load security helper functions
+require_once __DIR__ . '/security_helpers.php';
 
 // 1. Load Local Configuration (if exists)
 if (file_exists(__DIR__ . '/config.local.php')) {
@@ -27,6 +36,10 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
+    // Log the error for debugging
+    error_log("SHM Panel DB Connection Error: " . $e->getMessage());
+    error_log("DB Config: host=$db_host, dbname=$db_name, user=$db_user");
+
     // If we are not already in the installer, redirect to it
     if (!defined('INSTALLER_RUNNING')) {
         // Simple relative redirect check
@@ -34,10 +47,25 @@ try {
             header("Location: ../install.php?error=db_connect");
             exit;
         }
-        die("<div style='font-family:sans-serif;background:#fee;color:#c00;padding:20px;border-radius:10px;border:1px solid #eba;'>
-                <b>SHM Panel System Error</b><br>
-                Database connection failed. Please run the installer or check config.<br>
-                <small>" . $e->getMessage() . "</small>
+
+        // Detailed error message for debugging
+        $error_details = htmlspecialchars($e->getMessage());
+        $error_code = $e->getCode();
+
+        die("<div style='font-family:sans-serif;background:#fee;color:#c00;padding:20px;border-radius:10px;border:1px solid #eba;max-width:800px;margin:50px auto;'>
+                <b style='font-size:18px;'>🔴 SHM Panel Database Error</b><br><br>
+                <strong>Connection Failed:</strong> Unable to connect to the database.<br><br>
+                <strong>Error Code:</strong> $error_code<br>
+                <strong>Error Message:</strong> $error_details<br><br>
+                <strong>Troubleshooting Steps:</strong><br>
+                <ol style='margin:10px 0;padding-left:20px;'>
+                    <li>Verify MySQL/MariaDB is running</li>
+                    <li>Check database credentials in <code>shared/config.php</code> or <code>shared/config.local.php</code></li>
+                    <li>Ensure database '$db_name' exists</li>
+                    <li>Verify user '$db_user' has access to the database</li>
+                    <li>Run the installer: <a href='../install.php' style='color:#00c;'>install.php</a></li>
+                </ol>
+                <small style='color:#666;'>Check your PHP error log for more details.</small>
              </div>");
     } else {
         // Re-throw for installer to handle

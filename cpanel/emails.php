@@ -9,6 +9,16 @@ $cid = $_SESSION['cid'];
 
 if (isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
+
+    // CSRF Protection
+    try {
+        verify_csrf();
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+        exit;
+    }
+
     $action = $_POST['ajax_action'];
     $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
 
@@ -96,6 +106,7 @@ include 'layout/header.php';
     <div class="glass-card p-10">
         <h2 class="text-2xl font-bold mb-8 text-white">Create Email Account</h2>
         <form onsubmit="handleGeneric(event, 'add_email')" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <?= csrf_field() ?>
             <input name="user" required placeholder="mailbox name"
                 class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
             <select name="domain"

@@ -2,9 +2,25 @@
 /**
  * VIVZON CPANEL - Login Page (Production v5.0)
  */
-require_once '../shared/config.php';
 
+// Enable error logging for debugging
+error_log("Client login page accessed: " . date('Y-m-d H:i:s'));
+
+// Load configuration
+try {
+    require_once '../shared/config.php';
+    error_log("Config loaded successfully");
+} catch (Exception $e) {
+    error_log("Failed to load config: " . $e->getMessage());
+    die("<div style='font-family:sans-serif;background:#fee;color:#c00;padding:20px;'>
+            <b>Configuration Error</b><br>
+            Failed to load configuration file. Check error logs for details.
+         </div>");
+}
+
+// Check if already logged in
 if (isset($_SESSION['client'])) {
+    error_log("Client already logged in, redirecting to dashboard");
     header("Location: index.php");
     exit;
 }
@@ -15,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $u = trim($_POST['u'] ?? '');
     $p = $_POST['p'] ?? '';
 
+    error_log("Login attempt for user: " . $u);
+
     if (!empty($u) && !empty($p)) {
         try {
             $stmt = $pdo->prepare("SELECT id, username, password, status FROM clients WHERE username = ? OR email = ?");
@@ -23,8 +41,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if ($user && password_verify($p, $user['password'])) {
                 if ($user['status'] === 'suspended') {
+                    error_log("Login failed for $u: Account suspended");
                     $error = "Account suspended. Contact support.";
                 } else {
+                    error_log("Login successful for user: " . $user['username']);
                     session_regenerate_id(true);
                     $_SESSION['client'] = $user['username'];
                     $_SESSION['cid'] = $user['id'];
@@ -32,12 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     exit;
                 }
             } else {
+                error_log("Login failed for $u: Invalid credentials");
                 $error = "Invalid credentials.";
             }
         } catch (PDOException $e) {
+            error_log("Login database error for $u: " . $e->getMessage());
             $error = "System Error.";
         }
     } else {
+        error_log("Login failed: Empty username or password");
         $error = "Please fill in all fields.";
     }
 }

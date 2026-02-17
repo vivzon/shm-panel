@@ -13,6 +13,16 @@ $search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 if (isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
+
+    // CSRF Protection
+    try {
+        verify_csrf();
+    } catch (Exception $e) {
+        http_response_code(403);
+        echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+        exit;
+    }
+
     $action = $_POST['ajax_action'];
     $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
 
@@ -431,6 +441,7 @@ include 'layout/header.php';
     <div class="flex gap-4">
         <!-- Add Domain - Only main domains allowed (no subdomains) -->
         <form onsubmit="handleAddDomain(event)" class="flex gap-2" id="form-add-domain">
+            <?= csrf_field() ?>
             <input name="domain" required placeholder="example.com"
                 class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500 w-48 transition">
             <button
@@ -440,6 +451,7 @@ include 'layout/header.php';
 
         <!-- Subdomain - Select from all domains -->
         <form onsubmit="handleAddSubdomain(event)" class="flex gap-2 hidden" id="form-add-subdomain">
+            <?= csrf_field() ?>
             <input name="sub" required placeholder="sub (e.g. blog)"
                 class="bg-slate-900/50 border border-slate-700 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-white placeholder-slate-500 w-32 transition text-right">
             <span class="self-center font-bold text-slate-500">.</span>

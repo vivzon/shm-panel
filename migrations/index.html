@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHM Panel - Database Migration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .result pre {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Database Migration</h1>
+            <p>SHM Panel - Add Missing Analytics Tables</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <h3>📋 What This Migration Does:</h3>
+                <ul>
+                    <li>Creates <code>domain_traffic</code> table for analytics</li>
+                    <li>Creates <code>malware_scans</code> table for security scanning</li>
+                    <li>Inserts sample traffic data for the last 7 days</li>
+                    <li>Initializes malware scan status for all domains</li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <h3>⚠️ Important:</h3>
+                <ul>
+                    <li>This migration is safe to run multiple times</li>
+                    <li>Existing data will not be affected</li>
+                    <li>The process takes only a few seconds</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center;">
+                <button class="btn" onclick="runMigration()">Run Migration Now</button>
+            </div>
+
+            <div class="spinner" id="spinner"></div>
+
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        async function runMigration() {
+            const btn = event.target;
+            const spinner = document.getElementById('spinner');
+            const result = document.getElementById('result');
+
+            // Disable button and show spinner
+            btn.disabled = true;
+            btn.textContent = 'Running Migration...';
+            spinner.style.display = 'block';
+            result.style.display = 'none';
+
+            try {
+                const response = await fetch('run_migration_api.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                // Hide spinner
+                spinner.style.display = 'none';
+
+                // Show result
+                result.style.display = 'block';
+                result.className = 'result ' + (data.success ? 'success' : 'error');
+
+                if (data.success) {
+                    result.innerHTML = `
+                        <h3>✅ Migration Completed Successfully!</h3>
+                        <p>${data.message}</p>
+                        <pre>${data.details || ''}</pre>
+                        <p style="margin-top: 15px;">
+                            <a href="/cpanel/" class="btn">Go to Dashboard</a>
+                        </p>
+                    `;
+                    btn.textContent = 'Migration Complete';
+                } else {
+                    result.innerHTML = `
+                        <h3>❌ Migration Failed</h3>
+                        <p>${data.message}</p>
+                        <pre>${data.error || ''}</pre>
+                    `;
+                    btn.disabled = false;
+                    btn.textContent = 'Try Again';
+                }
+            } catch (error) {
+                spinner.style.display = 'none';
+                result.style.display = 'block';
+                result.className = 'result error';
+                result.innerHTML = `
+                    <h3>❌ Connection Error</h3>
+                    <p>Failed to connect to the migration API.</p>
+                    <pre>${error.message}</pre>
+                `;
+                btn.disabled = false;
+                btn.textContent = 'Try Again';
+            }
+        }
+    </script>
+</body>
+
+</html>
