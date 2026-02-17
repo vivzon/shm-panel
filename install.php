@@ -455,17 +455,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                     </div>
 
                     <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 mb-6">
-                        <h3 class="font-bold mb-3 text-blue-400">Next Steps:</h3>
-                        <ol class="text-left text-sm text-slate-300 space-y-2">
-                            <li>1. Delete or rename this <code class="bg-slate-900 px-2 py-1 rounded">install.php</code>
-                                file</li>
-                            <li>2. Upload security files from the <code
-                                    class="bg-slate-900 px-2 py-1 rounded">shared/</code> directory</li>
-                            <li>3. Access Admin Panel: <a href="/whm/" class="text-blue-400 hover:underline">/whm/</a></li>
-                            <li>4. Access Client Panel: <a href="/cpanel/"
-                                    class="text-blue-400 hover:underline">/cpanel/</a></li>
-                            <li>5. Review security implementation guide</li>
+                        <h3 class="font-bold mb-3 text-blue-400">📋 Next Steps:</h3>
+                        <ol class="text-left text-sm text-slate-300 space-y-3">
+                            <li class="flex items-start">
+                                <span class="font-bold mr-2">1.</span>
+                                <div>
+                                    <strong>Apply Database Schema Fixes</strong><br>
+                                    <code class="bg-slate-900 px-2 py-1 rounded text-xs">
+                                            mysql -u root -p shm_panel < migrations/003_fix_all_schema_issues.sql
+                                        </code>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="font-bold mr-2">2.</span>
+                                <div>
+                                    <strong>Configure DNS Records</strong><br>
+                                    Add A records for: whm.vivzon.cloud, cpanel.vivzon.cloud, phpmyadmin.vivzon.cloud,
+                                    webmail.vivzon.cloud
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="font-bold mr-2">3.</span>
+                                <div>
+                                    <strong>Setup Subdomains</strong><br>
+                                    <code class="bg-slate-900 px-2 py-1 rounded text-xs">
+                                            chmod +x setup_subdomains.sh && ./setup_subdomains.sh
+                                        </code>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="font-bold mr-2">4.</span>
+                                <div>
+                                    <strong>Secure Installation</strong><br>
+                                    Delete <code class="bg-slate-900 px-2 py-1 rounded">install.php</code> and remove test
+                                    files
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="font-bold mr-2">5.</span>
+                                <div>
+                                    <strong>Read Complete Guide</strong><br>
+                                    See <code class="bg-slate-900 px-2 py-1 rounded">README.md</code> for detailed
+                                    instructions
+                                </div>
+                            </li>
                         </ol>
+                    </div>
+
+                    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-6 text-left">
+                        <p class="text-xs text-yellow-300">
+                            <strong>⚠️ Important:</strong> The panel is now accessible but requires subdomain configuration
+                            for production use. Follow the complete guide in README.md for best results.
+                        </p>
                     </div>
 
                     <div class="flex gap-4">
