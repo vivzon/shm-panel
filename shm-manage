@@ -123,7 +123,7 @@ create_default_index() {
     fi
     
     # Create clean, responsive Coming Soon page
-    cat > "$DIR/index.html" << 'EOF'
+    cat > "$DIR/default.html" << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -149,11 +149,11 @@ create_default_index() {
 EOF
     
     # Replace placeholder
-    sed -i "s/__DOMAIN__/$DOMNAME/g" "$DIR/index.html"
+    sed -i "s/__DOMAIN__/$DOMNAME/g" "$DIR/default.html"
     
     # Set Permissions (644 for files, 755 for directories)
-    chown "$OWNER:$OWNER" "$DIR/index.html"
-    chmod 644 "$DIR/index.html"
+    chown "$OWNER:$OWNER" "$DIR/default.html"
+    chmod 644 "$DIR/default.html"
 }
 
 # Safe PHP-FPM Reload
@@ -1627,7 +1627,13 @@ EOF
                     if [ -f "$DOCROOT/default.html" ]; then
                         mv "$DOCROOT/default.html" "$DOCROOT/default.html.bak"
                         log_action "Hid default.html for $DOCROOT"
-                        echo "Default page hidden"
+                        echo "Default page hidden (default.html)"
+                    fi
+                    
+                    if [ -f "$DOCROOT/index.html" ] && grep -q "Powered by SHM Panel" "$DOCROOT/index.html"; then
+                        mv "$DOCROOT/index.html" "$DOCROOT/index.html.bak"
+                        log_action "Hid default index.html for $DOCROOT"
+                        echo "Default page hidden (index.html)"
                     fi
                 fi
                 ;;

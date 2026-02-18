@@ -289,6 +289,20 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        if ($action == 'fix_default_page') {
+            $did = (int) $_POST['domain_id'];
+            $chk = $pdo->prepare("SELECT id FROM domains WHERE id = ? AND client_id = ?");
+            $chk->execute([$did, $cid]);
+            if (!$chk->fetch())
+                throw new Exception("Invalid Domain");
+
+            if (function_exists('cmd')) {
+                cmd("troubleshoot fix-default-page $did");
+            }
+            sendResponse($res);
+            exit;
+        }
+
         if ($action == 'add_dns') {
             $dom_id = $_POST['domain_id'];
             $check = $pdo->prepare("SELECT id FROM domains WHERE id = ? AND client_id = ?");
@@ -542,6 +556,11 @@ include 'layout/header.php';
                             class="bg-blue-500/10 text-blue-400 px-3 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition flex items-center gap-2 border border-blue-500/20">
                             <i data-lucide="folder-open" class="w-4 h-4"></i>
                         </a>
+                        <button onclick="fixDefaultPage(<?= $d['id'] ?>)"
+                            class="bg-yellow-500/10 text-yellow-500 px-3 py-2 rounded-lg text-xs font-bold hover:bg-yellow-600 hover:text-white transition border border-yellow-500/20"
+                            title="Fix Default Page Issue">
+                            <i data-lucide="wrench" class="w-4 h-4"></i>
+                        </button>
                         <button onclick="deleteAction('delete_domain', 'domain_id', <?= $d['id'] ?>)"
                             class="bg-red-500/10 text-red-400 px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-white transition border border-red-500/20">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -557,6 +576,7 @@ include 'layout/header.php';
                     <!-- Configuration Row -->
                     <form onsubmit="handleGeneric(event, 'update_domain_config')"
                         class="flex flex-wrap items-center gap-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 mb-6">
+                        <?= csrf_field() ?>
                         <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
                         <div class="flex items-center gap-2">
                             <label class="text-[10px] uppercase font-bold text-slate-500">PHP</label>
@@ -647,6 +667,7 @@ include 'layout/header.php';
                             <form onsubmit="handleGeneric(event, 'add_dns')"
                                 class="glass-card p-5 border border-slate-700/50 bg-slate-900/30 rounded-xl relative overflow-hidden mb-6">
                                 <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                                <?= csrf_field() ?>
                                 <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
                                 <input type="hidden" name="type" id="input-dns-type-<?= $d['id'] ?>" value="A">
 
@@ -872,6 +893,7 @@ include 'layout/header.php';
         if (!confirm("Permanent Action: Are you sure? This will delete all related data including DNS records, traffic logs, scan history, and subdomains.")) return;
         const fd = new FormData();
         fd.append('ajax_action', action);
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
         for (let i = 0; i < args.length; i += 2) fd.append(args[i], args[i + 1]);
 
         try {
@@ -887,11 +909,31 @@ include 'layout/header.php';
         }
     }
 
+    async function fixDefaultPage(did) {
+        if (!confirm("This will attempt to fix the 'Default Page' issue by hiding the placeholder page so your uploaded content can load. Continue?")) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'fix_default_page');
+        fd.append('domain_id', did);
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success') {
+                showToast('success', 'Fixed', 'Default page hidden. Please clear your browser cache.');
+            } else {
+                showToast('error', 'Failed', res.msg || 'Could not fix default page.');
+            }
+        } catch (e) {
+            showToast('error', 'Error', 'System error.');
+        }
+    }
+
     async function startScan(did) {
         if (!confirm("Start a comprehensive malware scan? This may take a few minutes.")) return;
         const fd = new FormData();
         fd.append('ajax_action', 'start_scan');
         fd.append('domain_id', did);
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
 
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
