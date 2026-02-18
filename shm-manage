@@ -1828,6 +1828,62 @@ EOF
         ;;
 
     # --------------------------------------------------------------------------
+    # SERVICE MANAGEMENT
+    # --------------------------------------------------------------------------
+    service-status)
+        # $2: service name
+        SERVICE="$2"
+        
+        if [ -z "$SERVICE" ]; then
+            echo "Service name required"
+            exit 1
+        fi
+        
+        # Return just the status (active/inactive/failed)
+        systemctl is-active "$SERVICE" 2>/dev/null || echo "inactive"
+        ;;
+    
+    service-control)
+        # $2: operation (start|stop|restart|reload|enable|disable)
+        # $3: service name
+        OP="$2"
+        SERVICE="$3"
+        
+        if [ -z "$OP" ] || [ -z "$SERVICE" ]; then
+            echo "Usage: service-control [start|stop|restart|reload|enable|disable] SERVICE"
+            exit 1
+        fi
+        
+        # Validate operation
+        if ! [[ "$OP" =~ ^(start|stop|restart|reload|enable|disable)$ ]]; then
+            echo "Invalid operation: $OP"
+            exit 1
+        fi
+        
+        log_action "Service Control: $OP $SERVICE"
+        
+        case "$OP" in
+            start|stop|restart|reload)
+                systemctl "$OP" "$SERVICE" || {
+                    log_action "[ERROR] Failed to $OP $SERVICE"
+                    echo "Failed to $OP $SERVICE"
+                    exit 1
+                }
+                ;;
+            enable|disable)
+                systemctl "$OP" "$SERVICE" || {
+                    log_action "[ERROR] Failed to $OP $SERVICE"
+                    echo "Failed to $OP $SERVICE"
+                    exit 1
+                }
+                ;;
+        esac
+        
+        log_action "Service $OP completed: $SERVICE"
+        echo "Service $OP completed successfully"
+        ;;
+
+    # --------------------------------------------------------------------------
     # SYSTEM INFO
     # --------------------------------------------------------------------------
     system-info)

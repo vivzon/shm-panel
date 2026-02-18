@@ -158,7 +158,9 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'login_as_client') {
             $_SESSION['client'] = $_POST['user'];
             $_SESSION['cid'] = $_POST['cid'];
-            $host = str_replace('admin.', 'client.', $_SERVER['HTTP_HOST']);
+            $host = $_SERVER['HTTP_HOST'];
+            $host = str_replace('admin.', 'cpanel.', $host);
+            $host = str_replace('whm.', 'cpanel.', $host);
             echo json_encode(['status' => 'success', 'redirect' => (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $host]);
             exit;
         }
@@ -283,7 +285,9 @@ include 'layout/header.php';
         document.getElementById('client-count').innerText = `(${data.total})`;
         const tbody = document.getElementById('client-table-body');
 
-        tbody.innerHTML = data.rows.map(c => `
+        tbody.innerHTML = data.rows.map(c => {
+            const safeUsername = c.username.replace(/'/g, "\\'");
+            return `
             <tr class="hover:bg-slate-800/30 transition-colors">
                 <td class="p-5">
                     <div class="font-bold text-white text-sm">${c.username}</div>
@@ -298,14 +302,14 @@ include 'layout/header.php';
                     </span>
                 </td>
                 <td class="p-5 text-right flex justify-end gap-1">
-                    <button onclick="loginAs('${c.username}', ${c.id})" class="p-2 text-slate-400 hover:text-blue-400" title="Login"><i data-lucide="key" class="w-4"></i></button>
-                    <button onclick="toggleSus('${c.username}', ${c.status === 'active'})" class="p-2 text-slate-400 hover:text-orange-400" title="Suspend"><i data-lucide="${c.status === 'active' ? 'pause-circle' : 'play-circle'}" class="w-4"></i></button>
+                    <button onclick="loginAs('${safeUsername}', ${c.id})" class="p-2 text-slate-400 hover:text-blue-400" title="Login"><i data-lucide="key" class="w-4"></i></button>
+                    <button onclick="toggleSus('${safeUsername}', ${c.status === 'active'})" class="p-2 text-slate-400 hover:text-orange-400" title="Suspend"><i data-lucide="${c.status === 'active' ? 'pause-circle' : 'play-circle'}" class="w-4"></i></button>
                     <button onclick="editClient(${c.id})" class="p-2 text-slate-400 hover:text-white" title="Edit"><i data-lucide="edit-3" class="w-4"></i></button>
-                    <button onclick="resetAcc('${c.username}')" class="p-2 text-slate-400 hover:text-red-400" title="Reset Files"><i data-lucide="rotate-ccw" class="w-4"></i></button>
-                    <button onclick="delAcc(${c.id}, '${c.username}')" class="p-2 text-slate-400 hover:text-red-500" title="Delete"><i data-lucide="trash-2" class="w-4"></i></button>
+                    <button onclick="resetAcc('${safeUsername}')" class="p-2 text-slate-400 hover:text-red-400" title="Reset Files"><i data-lucide="rotate-ccw" class="w-4"></i></button>
+                    <button onclick="delAcc(${c.id}, '${safeUsername}')" class="p-2 text-slate-400 hover:text-red-500" title="Delete"><i data-lucide="trash-2" class="w-4"></i></button>
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
 
         renderPagination(data.pages);
         lucide.createIcons();
