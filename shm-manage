@@ -887,10 +887,22 @@ server {
 }
 EOF
                 
-                # If SSL requested but no cert, try to obtain one
+                # If SSL requested but no cert, enable HTTP first to allow Certbot to verify
+                if [ ! -L "/etc/nginx/sites-enabled/$DOM" ]; then
+                    ln -sf "$VHOST" "/etc/nginx/sites-enabled/"
+                fi
+                safe_nginx_reload
+
                 if [ "$SSL" == "1" ]; then
                     if command -v certbot >/dev/null 2>&1; then
-                        certbot --nginx -d "$DOM" -d "www.$DOM" --non-interactive --agree-tos --email "$ADMIN_EMAIL" --redirect --quiet || true
+                        # Try to obtain certificate (certonly to avoid config modification, since we will overwrite)
+                        certbot certonly --nginx -d "$DOM" -d "www.$DOM" --non-interactive --agree-tos --email "$ADMIN_EMAIL" --quiet || true
+                        
+                        # If certificate obtained, re-sync to generate SSL VHost
+                        if [ -f "/etc/letsencrypt/live/$DOM/fullchain.pem" ]; then
+                            $0 vhost-tool sync "$DOM_ID"
+                            exit 0
+                        fi
                     fi
                 fi
             fi
