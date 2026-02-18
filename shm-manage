@@ -1421,6 +1421,31 @@ EOF
         ;;
 
     # --------------------------------------------------------------------------
+    # CLIENT USAGE
+    # --------------------------------------------------------------------------
+    get-client-usage)
+        # $2: user
+        USER="$2"
+        
+        if [ -z "$USER" ]; then
+            echo "0"
+            exit 1
+        fi
+        
+        # Calculate usage in bytes for the user's directory
+        # Using -s for summary, -b for bytes (if available, otherwise standard du gives blocks)
+        # Standard du -sb is bytes.
+        
+        DIR="/var/www/clients/$USER"
+        if [ -d "$DIR" ]; then
+            USAGE=$(du -sb "$DIR" 2>/dev/null | awk '{print $1}')
+            echo "${USAGE:-0}"
+        else
+            echo "0"
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
     # LOG VIEWER (Security)
     # --------------------------------------------------------------------------
     get-logs)

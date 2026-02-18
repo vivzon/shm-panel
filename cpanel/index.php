@@ -36,6 +36,17 @@ try {
 $usage_dom = count($domains);
 $usage_mail = $pdo->query("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = $cid))")->fetchColumn();
 
+// Calculate Disk Usage
+$used_bytes = 0;
+if (function_exists('cmd')) {
+    $used_bytes = (int) cmd("get-client-usage " . escapeshellarg($username));
+}
+$used_mb = round($used_bytes / 1024 / 1024, 2);
+$disk_percent = ($clientData['disk_mb'] > 0) ? ($used_mb / $clientData['disk_mb']) * 100 : 0;
+if ($disk_percent > 100)
+    $disk_percent = 100;
+
+
 // 3. Fetch Traffic Data (Last 7 Days)
 // Aggregate traffic across ALL user domains
 $traffic_data = $pdo->query("
@@ -166,11 +177,10 @@ include 'layout/header.php';
                 <span
                     class="text-xs font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-1 rounded"><?= htmlspecialchars($clientData['pkg_name']) ?></span>
             </div>
-            <h3 class="text-3xl font-bold text-white mb-1 relative z-10"><?= $clientData['disk_mb'] ?> MB</h3>
-            <p class="text-sm text-slate-400 font-medium relative z-10">Total Storage</p>
+            <h3 class="text-3xl font-bold text-white mb-1 relative z-10"><?= $used_mb ?> MB</h3>
+            <p class="text-sm text-slate-400 font-medium relative z-10">of <?= $clientData['disk_mb'] ?> MB Used</p>
             <div class="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
-                <!-- Placeholder usage calc -->
-                <div class="bg-orange-500 h-full rounded-full" style="width: 45%"></div>
+                <div class="bg-orange-500 h-full rounded-full" style="width: <?= $disk_percent ?>%"></div>
             </div>
         </div>
     </div>

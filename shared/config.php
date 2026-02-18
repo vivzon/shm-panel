@@ -91,7 +91,7 @@ function cmd($command)
 
     // Production Linux Execution
     $output = shell_exec("sudo /usr/local/bin/shm-manage " . $command);
-    return trim($output ?? '');
+    return trim((string) $output);
 }
 
 // Helper: JSON Response

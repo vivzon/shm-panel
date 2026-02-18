@@ -50,6 +50,13 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        if ($action == 'list_apps') {
+            $stmt = $pdo->prepare("SELECT a.*, d.domain FROM app_installations a JOIN domains d ON a.domain_id = d.id WHERE a.client_id = ? ORDER BY a.created_at DESC");
+            $stmt->execute([$cid]);
+            echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+            exit;
+        }
+
         // --- FTP HANDLERS ---
         if ($action == 'add_ftp') {
             if ($_POST['pass'] !== $_POST['pass2'])
@@ -199,8 +206,117 @@ include 'layout/header.php';
         class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'troubleshoot' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">Troubleshoot</a>
 </div>
 
-<!-- Include your existing tab content here (Apps, FTP, Security, Backups) -->
-<!-- Only adding the new Fix Config button in Troubleshoot tab -->
+<!-- APPS TAB -->
+<div id="tab-apps" class="<?= $active_tab == 'apps' ? '' : 'hidden' ?>">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Install Form -->
+        <div class="glass-card p-6 h-fit">
+            <h3 class="font-bold text-white mb-4">Install Application</h3>
+            <form onsubmit="handleAppInstall(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-400 uppercase font-bold">Select Domain</label>
+                    <select name="domain_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none">
+                        <?php foreach ($domains as $d): ?>
+                            <option value="<?= $d['id'] ?>"><?= $d['domain'] ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 uppercase font-bold">Application</label>
+                    <select name="app" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none">
+                        <option value="wordpress">WordPress</option>
+                        <option value="laravel">Laravel</option>
+                        <option value="codeigniter">CodeIgniter 4</option>
+                        <option value="react">React (Vite)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
+                    Install Now
+                </button>
+            </form>
+        </div>
+
+        <!-- Recent Installations -->
+        <div class="lg:col-span-2 glass-card p-0 overflow-hidden">
+            <div class="p-4 border-b border-white/5 bg-slate-900/50 flex justify-between items-center">
+                <h3 class="font-bold text-white">Recent Installations</h3>
+                <button onclick="loadApps()" class="text-slate-400 hover:text-white"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-slate-900/50 text-[10px] uppercase text-slate-400 font-bold">
+                    <tr>
+                        <th class="p-4">App</th>
+                        <th class="p-4">Domain</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="app-list" class="divide-y divide-white/5 text-sm text-slate-300">
+                    <tr><td colspan="4" class="p-6 text-center text-slate-500">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- FTP TAB -->
+<div id="tab-ftp" class="<?= $active_tab == 'ftp' ? '' : 'hidden' ?>">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Add FTP Form -->
+        <div class="glass-card p-6 h-fit">
+            <h3 class="font-bold text-white mb-4">Create FTP Account</h3>
+            <form onsubmit="handleFTPAdd(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-400 uppercase font-bold">Username</label>
+                    <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
+                        <input name="ftp_user" required placeholder="user" class="bg-transparent p-3 w-full text-white outline-none">
+                        <span class="px-3 text-slate-500 bg-slate-800 border-l border-slate-700 py-3">@<?= $username ?></span>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 uppercase font-bold">Password</label>
+                    <input type="password" name="pass" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none mb-2" placeholder="Password">
+                    <input type="password" name="pass2" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none" placeholder="Confirm Password">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 uppercase font-bold">Directory (Optional)</label>
+                    <input name="dir" placeholder="/public_html" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none">
+                </div>
+                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
+                    Create FTP User
+                </button>
+            </form>
+        </div>
+
+        <!-- FTP List -->
+        <div class="lg:col-span-2 glass-card p-0 overflow-hidden">
+            <div class="p-4 border-b border-white/5 bg-slate-900/50 flex justify-between items-center">
+                <h3 class="font-bold text-white">FTP Accounts</h3>
+                <button onclick="loadFTP()" class="text-slate-400 hover:text-white"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-slate-900/50 text-[10px] uppercase text-slate-400 font-bold">
+                    <tr>
+                        <th class="p-4">Username</th>
+                        <th class="p-4">Home Directory</th>
+                        <th class="p-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="ftp-list" class="divide-y divide-white/5 text-sm text-slate-300">
+                    <tr><td colspan="3" class="p-6 text-center text-slate-500">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- SECURITY & BACKUPS (Placeholders for now, to be implemented similarly) -->
+<div id="tab-security" class="<?= $active_tab == 'security' ? '' : 'hidden' ?>">
+    <div class="text-center p-12 text-slate-500">SSH Key Management coming soon.</div>
+</div>
+<div id="tab-backups" class="<?= $active_tab == 'backups' ? '' : 'hidden' ?>">
+    <div class="text-center p-12 text-slate-500">Backup Management coming soon.</div>
+</div>
 
 <div id="tab-troubleshoot" class="<?= $active_tab == 'troubleshoot' ? '' : 'hidden' ?>">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -234,7 +350,129 @@ include 'layout/header.php';
 
 <?php include 'layout/footer.php'; ?>
 
-<script>
+    // Generic Tool Action Handler
+    async function handleToolAction(e, action, callback = null) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> Processing...`;
+        lucide.createIcons();
+
+        const fd = new FormData(e.target);
+        fd.append('ajax_action', action);
+
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success') {
+                showToast('success', res.msg || 'Success');
+                e.target.reset();
+                if (callback) callback();
+            } else {
+                showToast('error', res.msg || 'Error');
+            }
+        } catch (err) {
+            showToast('error', 'System Error');
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    // Apps Logic
+    function handleAppInstall(e) {
+        handleToolAction(e, 'install_app', () => {
+             loadApps(); 
+             // Start polling
+             if(!window.appPoll) window.appPoll = setInterval(loadApps, 5000);
+        });
+    }
+
+    async function loadApps() {
+        const tbody = document.getElementById('app-list');
+        try {
+            const fd = new FormData(); fd.append('ajax_action', 'list_apps');
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            
+            if (res.status === 'success' && res.data.length > 0) {
+                tbody.innerHTML = res.data.map(app => `
+                    <tr class="border-t border-white/5 hover:bg-white/5 transition">
+                        <td class="p-4 font-bold text-white capitalize">${app.app_type}</td>
+                        <td class="p-4 text-slate-400">${app.domain}</td>
+                        <td class="p-4">
+                            <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                app.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
+                                (app.status === 'failed' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 
+                                'bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse')
+                            }">
+                                ${app.status}
+                            </span>
+                        </td>
+                        <td class="p-4 text-right">
+                            ${app.status === 'active' ? 
+                                `<a href="http://${app.domain}" target="_blank" class="text-blue-400 hover:text-white mr-2"><i data-lucide="external-link" class="w-4 h-4"></i></a>` : 
+                                ''}
+                        </td>
+                    </tr>
+                `).join('');
+                lucide.createIcons();
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-500">No recent installations</td></tr>`;
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    // FTP Logic
+    function handleFTPAdd(e) {
+        handleToolAction(e, 'add_ftp', loadFTP);
+    }
+
+    async function loadFTP() {
+        const tbody = document.getElementById('ftp-list');
+        try {
+            const fd = new FormData(); fd.append('ajax_action', 'list_ftp');
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            
+            if (res.status === 'success' && res.data.length > 0) {
+                 tbody.innerHTML = res.data.map(user => `
+                    <tr class="border-t border-white/5 hover:bg-white/5 transition">
+                        <td class="p-4 font-bold text-white">${user.userid}</td>
+                        <td class="p-4 text-slate-400 font-mono text-xs">${user.homedir}</td>
+                        <td class="p-4 text-right">
+                            <button onclick="delFTP('${user.userid}')" class="text-red-400 hover:bg-red-500/10 p-2 rounded transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+                lucide.createIcons();
+            } else {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-500">No FTP accounts found</td></tr>`;
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function delFTP(user) {
+        if(!confirm('Delete FTP user ' + user + '?')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'del_ftp');
+        fd.append('user', user);
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'FTP User Deleted');
+        loadFTP();
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        if(document.getElementById('tab-apps') && !document.getElementById('tab-apps').classList.contains('hidden')) {
+            loadApps();
+            // Poll for status updates
+            window.appPoll = setInterval(loadApps, 10000); 
+        }
+        if(document.getElementById('tab-ftp') && !document.getElementById('tab-ftp').classList.contains('hidden')) {
+            loadFTP();
+        }
+    });
+
     // Utility: Prompt domain ID
     function getDomId() {
         let domList = "Available IDs:\n";
