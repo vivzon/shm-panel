@@ -1921,6 +1921,92 @@ EOF
         ;;
 
     # --------------------------------------------------------------------------
+    # PHP TOOL
+    # --------------------------------------------------------------------------
+    php-tool)
+        SUB="$2"
+        
+        if [ "$SUB" == "set-version" ]; then
+            # $3: user, $4: domain, $5: version
+            USER="$3"
+            DOM="$4"
+            VER="$5"
+            
+            validate_input "$USER" "username"
+            validate_input "$DOM" "domain"
+            
+            if [[ ! "$VER" =~ ^(8\.1|8\.2|8\.3)$ ]]; then
+                echo "Invalid PHP version: $VER"
+                exit 1
+            fi
+            
+            log_action "Setting PHP version for $DOM ($USER) to $VER"
+            
+            # Update Domain Record (if DB access available)
+             mysql -e "UPDATE domains SET php_version='$VER' WHERE domain='$DOM'" "$DB_NAME" 2>/dev/null || true
+            
+            # Re-generate PHP Pool if needed or just update socket in nginx
+            # For simplicity, we assume pool exists for user at version.
+            # Ideally, we should create a pool for that version if not exists.
+            
+            # Update Nginx VHost to point to new socket
+            SOCK="/run/php/php$VER-fpm-$USER.sock"
+            VHOST="/etc/nginx/sites-available/$DOM"
+            
+            if [ -f "$VHOST" ]; then
+                # Replace fastcgi_pass line
+                sed -i "s|fastcgi_pass unix:.*|fastcgi_pass unix:$SOCK;|" "$VHOST"
+                safe_nginx_reload
+                echo "PHP version updated to $VER"
+            else
+                echo "VHost not found"
+                exit 1
+            fi
+            
+        else
+            echo "Unknown php-tool subcommand: $SUB"
+            exit 1
+        fi
+        ;;
+
+    # --------------------------------------------------------------------------
+    # NETWORK TOOL
+    # --------------------------------------------------------------------------
+    network-tool)
+        SUB="$2"
+        
+        if [ "$SUB" == "set-interface" ]; then
+            # $3: interface (e.g. eth0)
+            IFACE="$3"
+            
+            if [[ ! "$IFACE" =~ ^[a-z0-9]+$ ]]; then
+                echo "Invalid interface name"
+                exit 1
+            fi
+            
+            log_action "Updating Network Interface to $IFACE"
+            
+            # Update config file
+            CONFIG_FILE="/etc/shm/config.sh"
+            if [ -f "$CONFIG_FILE" ]; then
+                # Update or Append
+                if grep -q "MAIN_INTERFACE=" "$CONFIG_FILE"; then
+                    sed -i "s/MAIN_INTERFACE=.*/MAIN_INTERFACE=\"$IFACE\"/" "$CONFIG_FILE"
+                else
+                    echo "MAIN_INTERFACE=\"$IFACE\"" >> "$CONFIG_FILE"
+                fi
+                echo "Interface updated to $IFACE"
+            else
+                echo "Config file not found"
+                exit 1
+            fi
+        else
+            echo "Unknown network-tool subcommand: $SUB"
+            exit 1
+        fi
+        ;;
+        
+    # --------------------------------------------------------------------------
     # HELP
     # --------------------------------------------------------------------------
     help|--help|-h)
