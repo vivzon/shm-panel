@@ -11,7 +11,27 @@
 set -e
 
 # Configuration
-source /etc/shm/config.sh
+# Configuration
+CONFIG_FILE="/etc/shm/config.sh"
+
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+elif [ -f "./shared/config.php" ]; then
+    # Fallback: Try to read from PHP config if running from panel root
+    echo "Notice: /etc/shm/config.sh not found. Attempting to parse shared/config.php..."
+    DB_NAME=$(grep "\$db_name =" ./shared/config.php | awk -F"'" '{print $2}')
+    DB_USER=$(grep "\$db_user =" ./shared/config.php | awk -F"'" '{print $2}')
+    DB_PASS=$(grep "\$db_pass =" ./shared/config.php | awk -F"'" '{print $2}')
+fi
+
+# Validate DB Creds
+if [ -z "$DB_PASS" ]; then
+    echo "CRITICAL ERROR: Configuration missing."
+    echo "1. File /etc/shm/config.sh not found."
+    echo "2. Could not auto-detect credentials from ./shared/config.php"
+    echo "Please create /etc/shm/config.sh with DB_NAME, DB_USER, DB_PASS."
+    exit 1
+fi
 
 # Fallback Configuration
 if [ -z "$ADMIN_EMAIL" ]; then
