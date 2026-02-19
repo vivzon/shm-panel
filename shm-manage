@@ -189,10 +189,10 @@ get_docroot() {
     local DOM="$2"
     local DOCROOT_DB="$3"
     
-    if [ -n "$DOCROOT_DB" ] && [ -d "$DOCROOT_DB" ]; then
+    if [ -n "$DOCROOT_DB" ]; then
         echo "$DOCROOT_DB"
     else
-        # Standard directory structure
+        # Standard directory structure (Fallback)
         echo "/var/www/clients/$USER/domains/$DOM/public_html"
     fi
 }
@@ -258,7 +258,7 @@ php_admin_value[memory_limit] = 256M
 EOF
         
         # 3. Nginx VHost
-        DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
+        DOCROOT="/var/www/clients/$USER/public_html"
         mkdir -p "$DOCROOT"
         chown "$USER:www-data" "$DOCROOT"
         chmod 775 "$DOCROOT"
@@ -378,7 +378,14 @@ EOF
         
         log_action "Adding domain: $DOM for $USER"
         
-        DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
+        # Check if DB has a specific docroot (e.g. from CPanel)
+        DOCROOT_DB=$(mysql -N -s -e "SELECT document_root FROM domains WHERE domain='$DOM'" "$DB_NAME" 2>/dev/null || echo "")
+        
+        if [ -n "$DOCROOT_DB" ]; then
+             DOCROOT="$DOCROOT_DB"
+        else
+             DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
+        fi
         mkdir -p "$DOCROOT"
         create_default_index "$DOCROOT" "$DOM" "$USER"
         
@@ -1696,6 +1703,83 @@ EOF
                         done
                     fi
                 fi
+                ;;
+
+            fix-structure)
+                echo "Starting Global Structure Fix..."
+                
+                # Iterate over all clients
+                mysql -N -s -e "SELECT id, username FROM clients" "$DB_NAME" 2>/dev/null | while read CID USER; do
+                    echo "Processing User: $USER"
+                    log_action "Fixing structure for user: $USER"
+                    
+                    # 1. Get Main Domain (Lowest ID is assumed Primary)
+                    read DOM_ID DOM <<< $(mysql -N -s -e "SELECT id, domain FROM domains WHERE client_id=$CID ORDER BY id ASC LIMIT 1" "$DB_NAME" 2>/dev/null || echo "")
+                    
+                    if [ -n "$DOM_ID" ]; then
+                        # Check current docroot in DB
+                        CURR_ROOT=$(mysql -N -s -e "SELECT document_root FROM domains WHERE id=$DOM_ID" "$DB_NAME" 2>/dev/null)
+                        TARGET_ROOT="/var/www/clients/$USER/public_html"
+                        OLD_ROOT="/var/www/clients/$USER/domains/$DOM/public_html"
+                        
+                        # Migration Condition: 
+                        # 1. DB points to old domains/path
+                        # 2. OR DB points to new path but directory is missing AND old path exists
+                        SHOULD_MIGRATE=0
+                        if [[ "$CURR_ROOT" == *"/domains/"* ]]; then
+                            SHOULD_MIGRATE=1
+                        elif [ ! -d "$TARGET_ROOT" ] && [ -d "$OLD_ROOT" ]; then
+                            SHOULD_MIGRATE=1
+                        fi
+
+                        if [ "$SHOULD_MIGRATE" -eq 1 ]; then
+                             echo "  - Migrating Main Domain: $DOM"
+                             
+                             # Ensure target layout exists
+                             mkdir -p "$TARGET_ROOT"
+                             
+                             # Move content if old exists
+                             if [ -d "$OLD_ROOT" ]; then
+                                 echo "    Moving files..."
+                                 # Move contents (cp -a to preserve permissions/times, then remove old)
+                                 cp -aT "$OLD_ROOT" "$TARGET_ROOT" 2>/dev/null || cp -a "$OLD_ROOT/." "$TARGET_ROOT/"
+                                 
+                                 # Rename old to avoid confusion (backup)
+                                 mv "$OLD_ROOT" "${OLD_ROOT}.migrated_backup"
+                                 # Remove empty parent dirs if possible
+                                 rmdir "/var/www/clients/$USER/domains/$DOM" 2>/dev/null || true
+                             else
+                                 echo "    Old directory not found, creating empty public_html"
+                                 create_default_index "$TARGET_ROOT" "$DOM" "$USER"
+                             fi
+                             
+                             # Update DB
+                             mysql -e "UPDATE domains SET document_root='$TARGET_ROOT' WHERE id=$DOM_ID" "$DB_NAME"
+                             log_action "Migrated $DOM to $TARGET_ROOT"
+                        else
+                             echo "  - Main Domain $DOM is already correct."
+                             # Ensure directory exists anyway
+                             if [ ! -d "$TARGET_ROOT" ]; then
+                                 mkdir -p "$TARGET_ROOT"
+                                 create_default_index "$TARGET_ROOT" "$DOM" "$USER"
+                             fi
+                        fi
+                    fi
+                    
+                    # 2. Sync ALL VHosts for this user (Main + Addons)
+                    echo "  - Regenerating VHosts..."
+                    mysql -N -s -e "SELECT id FROM domains WHERE client_id=$CID" "$DB_NAME" 2>/dev/null | while read DID; do
+                        $0 vhost-tool sync "$DID" >/dev/null 2>&1
+                    done
+                    
+                    # 3. Fix Permissions
+                    echo "  - Fixing Permissions..."
+                    $0 fix-permissions "$USER" >/dev/null 2>&1
+                    
+                done
+                
+                safe_nginx_reload
+                echo "Structure fix and VHost regeneration complete for all accounts."
                 ;;
                 
             *)
