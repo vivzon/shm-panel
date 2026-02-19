@@ -90,8 +90,16 @@ function cmd($command)
     }
 
     // Production Linux Execution
-    $output = shell_exec("sudo /usr/local/bin/shm-manage " . $command);
-    return trim((string) $output);
+    $output = [];
+    $return_var = 0;
+    exec("sudo /usr/local/bin/shm-manage " . $command . " 2>&1", $output, $return_var);
+    $output_str = implode("\n", $output);
+
+    if ($return_var !== 0) {
+        throw new Exception("Command Failed (Exit Code: $return_var): " . $output_str);
+    }
+
+    return trim($output_str);
 }
 
 // Helper: JSON Response

@@ -165,9 +165,8 @@ safe_reload_php() {
 # Safe Nginx Reload (Prevents Crash)
 safe_nginx_reload() {
     # 1. Verify Config
-    if ! nginx -t > /dev/null 2>&1; then
+    if ! nginx -t; then
         log_action "[CRITICAL] Nginx Config Check Failed! Aborting Reload."
-        nginx -t  # Show actual error
         return 1
     fi
 
@@ -1635,19 +1634,27 @@ EOF
                     exit 1
                 fi
                 
+                # 1. Hide Default Pages
                 if [ -f "$DOCROOT/index.php" ] || [ -f "$DOCROOT/index.html" ]; then
                     if [ -f "$DOCROOT/default.html" ]; then
                         mv "$DOCROOT/default.html" "$DOCROOT/default.html.bak"
                         log_action "Hid default.html for $DOCROOT"
-                        echo "Default page hidden (default.html)"
                     fi
                     
                     if [ -f "$DOCROOT/index.html" ] && grep -q "Powered by SHM Panel" "$DOCROOT/index.html"; then
                         mv "$DOCROOT/index.html" "$DOCROOT/index.html.bak"
                         log_action "Hid default index.html for $DOCROOT"
-                        echo "Default page hidden (index.html)"
                     fi
                 fi
+
+                # 2. Force VHost Sync (Re-generates config)
+                $0 vhost-tool sync "$DOM_ID"
+
+                # 3. Force Services Reload
+                safe_nginx_reload
+                safe_reload_php
+                
+                echo "Default page fix applied & Services reloaded"
                 ;;
                 
             reload-services)
