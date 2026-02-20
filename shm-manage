@@ -195,6 +195,13 @@ EOF
     # Replace placeholder
     sed -i "s/__DOMAIN__/$DOMNAME/g" "$DIR/default.html"
     
+    # Create dummy .nginx.conf for custom rules
+    if [ ! -f "$DIR/.nginx.conf" ]; then
+        touch "$DIR/.nginx.conf"
+        chown "$OWNER:$OWNER" "$DIR/.nginx.conf"
+        chmod 644 "$DIR/.nginx.conf"
+    fi
+
     # Set Permissions (644 for files, 755 for directories)
     chown "$OWNER:$OWNER" "$DIR/default.html"
     chmod 644 "$DIR/default.html"
