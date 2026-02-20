@@ -948,8 +948,11 @@ server {
         try_files \$uri \$uri/ /index.php?\$args;
     }
 
-    # Custom Rules (User editable)
-    include $DOCROOT/.nginx.conf;
+    # Global Panel Apps (phpMyAdmin, Webmail)
+    include snippets/panel-apps.conf;
+
+    # Custom Rules (Safe Include)
+    include \$DOCROOT/.nginx.conf*;
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
@@ -985,8 +988,11 @@ server {
         try_files \$uri \$uri/ /index.php?\$args;
     }
 
-    # Custom Rules (User editable)
-    include $DOCROOT/.nginx.conf;
+    # Global Panel Apps (phpMyAdmin, Webmail)
+    include snippets/panel-apps.conf;
+
+    # Custom Rules (Safe Include)
+    include \$DOCROOT/.nginx.conf*;
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
@@ -999,6 +1005,7 @@ server {
     }
 }
 EOF
+
                 
                 # If SSL requested but no cert, enable HTTP first to allow Certbot to verify
                 if [ ! -L "/etc/nginx/sites-enabled/$DOM" ]; then
@@ -1008,13 +1015,17 @@ EOF
 
                 if [ "$SSL" == "1" ]; then
                     if command -v certbot >/dev/null 2>&1; then
-                        # Try to obtain certificate (certonly to avoid config modification, since we will overwrite)
-                        certbot certonly --nginx -d "$DOM" -d "www.$DOM" --non-interactive --agree-tos --email "$ADMIN_EMAIL" --quiet || true
-                        
-                        # If certificate obtained, re-sync to generate SSL VHost
-                        if [ -f "/etc/letsencrypt/live/$DOM/fullchain.pem" ]; then
-                            $0 vhost-tool sync "$DOM_ID"
-                            exit 0
+                        # Check if we already tried recently to avoid loop?
+                        # Just try once.
+                        echo "Attempting Auto-SSL for $DOM..."
+                        if certbot certonly --nginx -d "$DOM" -d "www.$DOM" --non-interactive --agree-tos --email "$ADMIN_EMAIL" --quiet; then
+                             log_action "Auto-SSL success for $DOM"
+                             # RECURSIVE CALL to generate SSL VHost now that cert exists
+                             $0 vhost-tool sync "$DOM_ID"
+                             exit 0
+                        else
+                             log_action "Auto-SSL failed for $DOM"
+                             echo "Warning: SSL requested but Certbot failed. Using HTTP."
                         fi
                     fi
                 fi
@@ -1084,6 +1095,112 @@ EOF
         
         log_action "Service $OP: $SERVICE"
         echo "Service operation completed"
+        ;;
+
+    # --------------------------------------------------------------------------
+    # SYSTEM APPS (phpMyAdmin, Webmail)
+    # --------------------------------------------------------------------------
+    setup-system-apps)
+        log_action "Setting up System Apps (PMA, Roundcube)"
+        
+        APPS_ROOT="/var/www/html"
+        mkdir -p "$APPS_ROOT"
+        
+        # 1. phpMyAdmin
+        if [ ! -d "$APPS_ROOT/phpmyadmin" ]; then
+            echo "Installing phpMyAdmin..."
+            PMA_VER="5.2.1"
+            wget -q "https://files.phpmyadmin.net/phpMyAdmin/${PMA_VER}/phpMyAdmin-${PMA_VER}-all-languages.zip" -O /tmp/pma.zip
+            unzip -q /tmp/pma.zip -d /tmp
+            mv "/tmp/phpMyAdmin-${PMA_VER}-all-languages" "$APPS_ROOT/phpmyadmin"
+            rm /tmp/pma.zip
+            
+            # Config
+            cp "$APPS_ROOT/phpmyadmin/config.sample.inc.php" "$APPS_ROOT/phpmyadmin/config.inc.php"
+            sed -i "s/\$cfg\['blowfish_secret'\] = '';/\$cfg['blowfish_secret'] = '$(openssl rand -base64 32 | tr -d /=+ | cut -c -32)';/" "$APPS_ROOT/phpmyadmin/config.inc.php"
+            
+            # Create tmp dir for PMA
+            mkdir -p "$APPS_ROOT/phpmyadmin/tmp"
+            chmod 777 "$APPS_ROOT/phpmyadmin/tmp"
+        fi
+        
+        # 2. Roundcube
+        if [ ! -d "$APPS_ROOT/roundcube" ]; then
+            echo "Installing Roundcube..."
+            RC_VER="1.6.6"
+            wget -q "https://github.com/roundcube/roundcubemail/releases/download/${RC_VER}/roundcubemail-${RC_VER}-complete.tar.gz" -O /tmp/rc.tar.gz
+            tar -xzf /tmp/rc.tar.gz -C /tmp
+            mv "/tmp/roundcubemail-${RC_VER}" "$APPS_ROOT/roundcube"
+            rm /tmp/rc.tar.gz
+            
+            # Initial DB for Roundcube (Check if DB exists first?)
+            # Auto-creating DB 'roundcube'
+            mysql -e "CREATE DATABASE IF NOT EXISTS roundcube;" "$DB_NAME" 2>/dev/null || true
+            mysql -e "CREATE USER IF NOT EXISTS 'roundcube'@'localhost' IDENTIFIED BY 'roundcube_pass';" 2>/dev/null || true
+            mysql -e "GRANT ALL PRIVILEGES ON roundcube.* TO 'roundcube'@'localhost';" 2>/dev/null || true
+            mysql -e "FLUSH PRIVILEGES;" 2>/dev/null || true
+            
+            # Import initial SQL
+            if [ -f "$APPS_ROOT/roundcube/SQL/mysql.initial.sql" ]; then
+                 mysql "roundcube" < "$APPS_ROOT/roundcube/SQL/mysql.initial.sql" 2>/dev/null || true
+            fi
+            
+            # Config
+            cp "$APPS_ROOT/roundcube/config/config.inc.php.sample" "$APPS_ROOT/roundcube/config/config.inc.php"
+            # We would need to SED the db config here...
+            
+            # Fix permissions
+            chown -R www-data:www-data "$APPS_ROOT/roundcube/temp" "$APPS_ROOT/roundcube/logs"
+        fi
+        
+        # 3. Create Nginx Snippet
+        cat > "/etc/nginx/snippets/panel-apps.conf" << 'EOF'
+location /phpmyadmin {
+    root /var/www/html;
+    index index.php index.html index.htm;
+    
+    location ~ ^/phpmyadmin/(.+\.php)$ {
+        try_files $uri =404;
+        root /var/www/html;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock; # Default System PHP
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    
+    location ~* ^/phpmyadmin/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+        root /var/www/html;
+    }
+}
+
+location /webmail {
+    alias /var/www/html/roundcube;
+    index index.php index.html;
+    
+    location ~ ^/webmail/(.+\.php)$ {
+        alias /var/www/html/roundcube;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $request_filename;
+        include fastcgi_params;
+    }
+    
+    location ~* ^/webmail/(.+\.(jpg|jpeg|gif|css|png|js|ico|html|xml|txt))$ {
+        alias /var/www/html/roundcube;
+    }
+}
+EOF
+        
+        # Ensure it exists (empty if needed)
+        if [ ! -f "/etc/nginx/snippets/panel-apps.conf" ]; then
+             touch "/etc/nginx/snippets/panel-apps.conf"
+        fi
+
+        chown -R www-data:www-data "$APPS_ROOT"
+        
+        safe_nginx_reload
+        echo "System Apps Installed & Configured."
+        log_action "System Apps Installed"
         ;;
 
     # --------------------------------------------------------------------------
