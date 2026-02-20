@@ -248,6 +248,51 @@ get_docroot() {
     fi
 }
 
+# Ensure Safe VHost Environment (User, Dirs, Configs)
+ensure_safe_vhost_env() {
+    local USER="$1"
+    local DOCROOT="$2"
+
+    # 1. Ensure System User Exists
+    if ! id "$USER" >/dev/null 2>&1; then
+        useradd -m -d "/var/www/clients/$USER" -s /bin/bash "$USER"
+        echo "$USER:$(openssl rand -base64 12)" | chpasswd
+        log_action "Restored missing system user: $USER"
+    fi
+
+    # 2. Ensure Directories
+    if [ ! -d "$DOCROOT" ]; then
+        mkdir -p "$DOCROOT"
+    fi
+    
+    LOG_DIR="/var/www/clients/$USER/logs"
+    if [ ! -d "$LOG_DIR" ]; then
+        mkdir -p "$LOG_DIR"
+        chown "$USER:$USER" "$LOG_DIR"
+        chmod 755 "$LOG_DIR"
+    fi
+
+    # 3. Ensure .nginx.conf exists (and parent dir)
+    CONF_FILE="$DOCROOT/.nginx.conf"
+    CONF_DIR=$(dirname "$CONF_FILE")
+    
+    if [ ! -d "$CONF_DIR" ]; then
+        mkdir -p "$CONF_DIR"
+    fi
+    
+    if [ ! -f "$CONF_FILE" ]; then
+        touch "$CONF_FILE"
+        echo "# Custom Nginx Rules for $USER" > "$CONF_FILE"
+        chmod 644 "$CONF_FILE"
+        chown "$USER:$USER" "$CONF_FILE" 2>/dev/null || chown "$USER:www-data" "$CONF_FILE"
+    fi
+
+    # 4. Fix Basic Permissions (Safe)
+    chown "$USER:www-data" "$DOCROOT" 2>/dev/null || true
+    chmod 775 "$DOCROOT"
+    chmod g+s "$DOCROOT" # SGID
+}
+
 # ------------------------------------------------------------------------------
 # MAIN COMMAND HANDLER
 # ------------------------------------------------------------------------------
@@ -310,10 +355,9 @@ EOF
         
         # 3. Nginx VHost
         DOCROOT="/var/www/clients/$USER/public_html"
-        mkdir -p "$DOCROOT"
-        chown "$USER:www-data" "$DOCROOT"
-        chmod 775 "$DOCROOT"
-        chmod g+s "$DOCROOT"  # Set SGID for group inheritance
+        
+        # Ensure environment is safe
+        ensure_safe_vhost_env "$USER" "$DOCROOT"
         
         cat > "/etc/nginx/sites-available/$DOM" << EOF
 server {
@@ -437,7 +481,10 @@ EOF
         else
              DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
         fi
-        mkdir -p "$DOCROOT"
+        fi
+        
+        # Ensure environment is safe
+        ensure_safe_vhost_env "$USER" "$DOCROOT"
         create_default_index "$DOCROOT" "$DOM" "$USER"
         
         # Set permissions for file manager access
@@ -846,8 +893,11 @@ EOF
             # Determine DOCROOT
             DOCROOT=$(get_docroot "$USER" "$DOM" "$DOCROOT_DB")
             
-            # Create directory if it doesn't exist
-            mkdir -p "$DOCROOT"
+            # Determine DOCROOT
+            DOCROOT=$(get_docroot "$USER" "$DOM" "$DOCROOT_DB")
+            
+            # Ensure environment is safe
+            ensure_safe_vhost_env "$USER" "$DOCROOT"
             
             # PHP Sock
             SOCK="/run/php/php$PHP_VER-fpm-$USER.sock"
@@ -860,11 +910,6 @@ EOF
             
             # Check if SSL is requested and certificates exist
             if [ "$SSL" == "1" ] && [ -f "$CERT" ] && [ -f "$KEY" ]; then
-                # Ensure log directory exists (Moved outside of cat)
-                mkdir -p "/var/www/clients/$USER/logs"
-                chown "$USER:$USER" "/var/www/clients/$USER/logs"
-                chmod 755 "/var/www/clients/$USER/logs"
-
                 # Generate SSL VHost
                 cat > "$VHOST" << EOF
 server {
@@ -918,11 +963,6 @@ server {
 }
 EOF
             else
-                # Ensure log directory exists (Moved outside of cat)
-                mkdir -p "/var/www/clients/$USER/logs"
-                chown "$USER:$USER" "/var/www/clients/$USER/logs"
-                chmod 755 "/var/www/clients/$USER/logs"
-
                 # Generate Standard HTTP VHost
                 cat > "$VHOST" << EOF
 server {
@@ -1820,23 +1860,17 @@ EOF
                                  create_default_index "$TARGET_ROOT" "$DOM" "$USER"
                              fi
                              
-                             # Create .nginx.conf if missing
-                if [ ! -f "$TARGET_ROOT/.nginx.conf" ]; then
-                    touch "$TARGET_ROOT/.nginx.conf"
-                    chown "$USER:www-data" "$TARGET_ROOT/.nginx.conf"
-                    chmod 644 "$TARGET_ROOT/.nginx.conf"
-                fi
+                             # Safe Environment Check (creates .nginx.conf)
+                             ensure_safe_vhost_env "$USER" "$TARGET_ROOT"
 
-                # Update DB
+                             # Update DB
                              mysql -e "UPDATE domains SET document_root='$TARGET_ROOT' WHERE id=$DOM_ID" "$DB_NAME"
                              log_action "Migrated $DOM to $TARGET_ROOT"
                         else
                              echo "  - Main Domain $DOM is already correct."
                              # Ensure directory exists anyway
-                             if [ ! -d "$TARGET_ROOT" ]; then
-                                 mkdir -p "$TARGET_ROOT"
-                                 create_default_index "$TARGET_ROOT" "$DOM" "$USER"
-                             fi
+                             ensure_safe_vhost_env "$USER" "$TARGET_ROOT"
+                             create_default_index "$TARGET_ROOT" "$DOM" "$USER"
                         fi
                     fi
                     
