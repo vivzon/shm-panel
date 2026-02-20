@@ -827,6 +827,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'add_domain');
         fd.append('domain', domain);
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
 
         const btn = form.querySelector('button');
         const oldHtml = btn.innerHTML;
@@ -866,6 +867,7 @@ include 'layout/header.php';
         fd.append('ajax_action', 'add_domain');
         fd.append('domain', fqdn);
         fd.append('parent_id', parent); // Pass parent domain for validation
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
 
         const btn = form.querySelector('button');
         const oldHtml = btn.innerHTML;

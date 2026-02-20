@@ -8,28 +8,52 @@
 # ==============================================================================
 
 # Exit on error with logging
-set -e
+# set -e # Disabled to allow better error handling
 
 # Configuration
 # Configuration
 CONFIG_FILE="/etc/shm/config.sh"
 
+# Helper to extract PHP var
+extract_php_var() {
+    local file="$1"
+    local var="$2"
+    grep "$var" "$file" | sed -n "s/.*$var\s*=\s*['\"]\([^'\"]*\)['\"].*/\1/p" | head -n1
+}
+
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
-elif [ -f "./shared/config.php" ]; then
-    # Fallback: Try to read from PHP config if running from panel root
-    echo "Notice: /etc/shm/config.sh not found. Attempting to parse shared/config.php..."
-    DB_NAME=$(grep "\$db_name =" ./shared/config.php | awk -F"'" '{print $2}')
-    DB_USER=$(grep "\$db_user =" ./shared/config.php | awk -F"'" '{print $2}')
-    DB_PASS=$(grep "\$db_pass =" ./shared/config.php | awk -F"'" '{print $2}')
+else
+    # Auto-detect from panel files
+    ST_PATHS=("./shared/config.local.php" "./shared/config.php" "/var/www/panel/shared/config.local.php" "/var/www/panel/shared/config.php")
+    
+    for PHP_CONF in "${ST_PATHS[@]}"; do
+        if [ -f "$PHP_CONF" ]; then
+            # echo "Debug: Checking $PHP_CONF"
+            [ -z "$DB_NAME" ] && DB_NAME=$(extract_php_var "$PHP_CONF" "\$db_name")
+            [ -z "$DB_USER" ] && DB_USER=$(extract_php_var "$PHP_CONF" "\$db_user")
+            [ -z "$DB_PASS" ] && DB_PASS=$(extract_php_var "$PHP_CONF" "\$db_pass")
+            
+            # If we found the pass, we are likely good
+            if [ -n "$DB_PASS" ]; then 
+                # echo "Debug: Found config in $PHP_CONF"
+                break 
+            fi
+        fi
+    done
 fi
 
 # Validate DB Creds
 if [ -z "$DB_PASS" ]; then
     echo "CRITICAL ERROR: Configuration missing."
-    echo "1. File /etc/shm/config.sh not found."
-    echo "2. Could not auto-detect credentials from ./shared/config.php"
-    echo "Please create /etc/shm/config.sh with DB_NAME, DB_USER, DB_PASS."
+    echo "Could not auto-detect database credentials."
+    echo "Please run the following command to create the config manually:"
+    echo ""
+    echo "cat > /etc/shm/config.sh <<EOF"
+    echo "DB_NAME='shm_panel'"
+    echo "DB_USER='shm_admin'"
+    echo "DB_PASS='YOUR_DB_PASSWORD'"
+    echo "EOF"
     exit 1
 fi
 
@@ -1773,7 +1797,14 @@ EOF
                                  create_default_index "$TARGET_ROOT" "$DOM" "$USER"
                              fi
                              
-                             # Update DB
+                             # Create .nginx.conf if missing
+                if [ ! -f "$TARGET_ROOT/.nginx.conf" ]; then
+                    touch "$TARGET_ROOT/.nginx.conf"
+                    chown "$USER:www-data" "$TARGET_ROOT/.nginx.conf"
+                    chmod 644 "$TARGET_ROOT/.nginx.conf"
+                fi
+
+                # Update DB
                              mysql -e "UPDATE domains SET document_root='$TARGET_ROOT' WHERE id=$DOM_ID" "$DB_NAME"
                              log_action "Migrated $DOM to $TARGET_ROOT"
                         else
@@ -1789,7 +1820,7 @@ EOF
                     # 2. Sync ALL VHosts for this user (Main + Addons)
                     echo "  - Regenerating VHosts..."
                     mysql -N -s -e "SELECT id FROM domains WHERE client_id=$CID" "$DB_NAME" 2>/dev/null | while read DID; do
-                        $0 vhost-tool sync "$DID" >/dev/null 2>&1
+                        $0 vhost-tool sync "$DID" || echo "    ! Failed to sync domain ID $DID"
                     done
                     
                     # 3. Fix Permissions
