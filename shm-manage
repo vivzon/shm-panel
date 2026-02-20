@@ -903,6 +903,9 @@ server {
         try_files \$uri \$uri/ /index.php?\$args;
     }
 
+    # Custom Rules (User editable)
+    include $DOCROOT/.nginx.conf;
+
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:$SOCK;
@@ -941,6 +944,9 @@ server {
     location / {
         try_files \$uri \$uri/ /index.php?\$args;
     }
+
+    # Custom Rules (User editable)
+    include $DOCROOT/.nginx.conf;
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
