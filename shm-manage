@@ -891,6 +891,11 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
 
+    # Ensure log directory exists
+    mkdir -p "/var/www/clients/$USER/logs"
+    chown "$USER:$USER" "/var/www/clients/$USER/logs"
+    chmod 755 "/var/www/clients/$USER/logs"
+
     access_log /var/www/clients/$USER/logs/$DOM.access.log;
     error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
