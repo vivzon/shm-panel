@@ -56,6 +56,10 @@ apt-get install -y php8.2-fpm php8.2-mysql php8.2-common php8.2-gd php8.2-mbstri
     php8.2-xml php8.2-zip php8.2-curl php8.2-bcmath php8.2-intl php8.2-imagick php8.2-cli \
     php8.2-redis php8.2-opcache php8.2-soap
 
+# WSL FIX: Disable Native AIO to prevent hanging on startup
+mkdir -p /etc/mysql/mariadb.conf.d/
+echo -e "[mysqld]\ninnodb_use_native_aio=0" > /etc/mysql/mariadb.conf.d/99-wsl.cnf
+
 # Start Services
 systemctl enable nginx php8.2-fpm mariadb fail2ban redis-server
 systemctl start nginx php8.2-fpm mariadb fail2ban redis-server
@@ -100,15 +104,36 @@ EOF
 chmod 600 /root/.my.cnf
 
 # Reset Root Password & Secure
-systemctl stop mariadb
-mysqld_safe --skip-grant-tables --skip-networking &
-PID=$!
-sleep 10
-
-mysql --no-defaults -e "FLUSH PRIVILEGES; ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS'; FLUSH PRIVILEGES;"
-kill $PID
-wait $PID 2>/dev/null || true
+# Reset Root Password & Secure
+# 1. Try socket auth (Default fresh install)
 systemctl start mariadb
+sleep 5
+
+if mysql -u root -e "SELECT 1" >/dev/null 2>&1; then
+    log "Using Socket Auth to configure MariaDB..."
+    mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS'; FLUSH PRIVILEGES;"
+else
+    log "Socket Auth failed. Trying Safe Mode..."
+    systemctl stop mariadb
+    # Start safe mode in background, explicitly silenced
+    mysqld_safe --skip-grant-tables --skip-networking >/dev/null 2>&1 &
+    PID=$!
+    log "Waiting for Safe Mode (PID: $PID)..."
+    sleep 10
+    
+    mysql --no-defaults -u root -e "FLUSH PRIVILEGES; ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS'; FLUSH PRIVILEGES;"
+    
+    if kill -0 $PID 2>/dev/null; then
+        kill $PID
+        wait $PID 2>/dev/null || true
+    fi
+    
+    # Ensure it's dead
+    pkill -9 mysqld_safe 2>/dev/null || true
+    pkill -9 mariadbd 2>/dev/null || true
+    
+    systemctl start mariadb
+fi
 
 # Fix debian-sys-maint if it exists/user exists
 if [ -f /etc/mysql/debian.cnf ]; then

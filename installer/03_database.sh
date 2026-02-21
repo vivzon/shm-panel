@@ -25,6 +25,10 @@ setup_database() {
     apt-get update -qq
     apt-get install -y mariadb-server mariadb-client redis-server >/dev/null 2>&1
     
+    # WSL FIX: Disable Native AIO to prevent hanging on startup
+    mkdir -p /etc/mysql/mariadb.conf.d/
+    echo -e "[mysqld]\ninnodb_use_native_aio=0" > /etc/mysql/mariadb.conf.d/99-wsl.cnf
+    
     systemctl enable redis-server mariadb >/dev/null 2>&1
     systemctl start redis-server mariadb
 
