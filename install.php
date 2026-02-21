@@ -462,8 +462,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                                 <div>
                                     <strong>Apply Database Schema Fixes</strong><br>
                                     <code class="bg-slate-900 px-2 py-1 rounded text-xs">
-                                            mysql -u root -p shm_panel < migrations/003_fix_all_schema_issues.sql
-                                        </code>
+                                                mysql -u root -p shm_panel < migrations/003_fix_all_schema_issues.sql
+                                            </code>
                                 </div>
                             </li>
                             <li class="flex items-start">
@@ -479,8 +479,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                                 <div>
                                     <strong>Setup Subdomains</strong><br>
                                     <code class="bg-slate-900 px-2 py-1 rounded text-xs">
-                                            chmod +x setup_subdomains.sh && ./setup_subdomains.sh
-                                        </code>
+                                                chmod +x setup_subdomains.sh && ./setup_subdomains.sh
+                                            </code>
                                 </div>
                             </li>
                             <li class="flex items-start">
@@ -626,14 +626,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');
             if (form) {
-                form.addEventListener('submit', functio n(e) {
+                form.addEventListener('submit', function (e) {
                     const password = document.querySelector('input[name="admin_pass"]');
-                    if(password && password.value.length < 6) {
-                    e.preventDefault();
-                    alert('Admin password must be at least 6 characters long.');
-                    password.focus();
-                }
-            });
+                    if (password && password.value.length < 6) {
+                        e.preventDefault();
+                        alert('Admin password must be at least 6 characters long.');
+                        password.focus();
+                    }
+                });
             }
         });
     </script>
