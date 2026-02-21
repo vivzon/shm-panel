@@ -25,9 +25,9 @@ if (!isset($db_host))
 if (!isset($db_name))
     $db_name = 'shm_panel';
 if (!isset($db_user))
-    $db_user = 'shm_admin';
+    $db_user = 'shm_user';
 if (!isset($db_pass))
-    $db_pass = 'QwErTyUiOp@1';
+    $db_pass = 'bKp/8MLv5tC7fRo356UXS14Vp0MMDcZT';
 
 // 3. Database Connection
 try {
