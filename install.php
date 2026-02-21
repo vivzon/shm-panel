@@ -88,227 +88,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                 throw new Exception("Cannot write config file. Check directory permissions.");
             }
 
-            // 4. Import Schema (with error handling for each table)
-            $tables_sql = [
-                "clients" => "
-                    CREATE TABLE IF NOT EXISTS clients (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        username VARCHAR(32) UNIQUE NOT NULL,
-                        email VARCHAR(255) NOT NULL,
-                        password VARCHAR(255) NOT NULL,
-                        status ENUM('active','suspended') DEFAULT 'active',
-                        package_id INT DEFAULT 1,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                        last_login TIMESTAMP NULL,
-                        INDEX idx_username (username),
-                        INDEX idx_status (status)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "admins" => "
-                    CREATE TABLE IF NOT EXISTS admins (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        username VARCHAR(50) UNIQUE NOT NULL,
-                        password VARCHAR(255) NOT NULL,
-                        email VARCHAR(255) NOT NULL,
-                        role ENUM('superadmin','admin','support') DEFAULT 'admin',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        last_login TIMESTAMP NULL,
-                        INDEX idx_username (username)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "packages" => "
-                    CREATE TABLE IF NOT EXISTS packages (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        name VARCHAR(100) NOT NULL,
-                        price DECIMAL(10,2) DEFAULT 0.00,
-                        disk_mb INT DEFAULT 1000,
-                        max_domains INT DEFAULT 1,
-                        max_emails INT DEFAULT 10,
-                        max_databases INT DEFAULT 5,
-                        features TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "domains" => "
-                    CREATE TABLE IF NOT EXISTS domains (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        client_id INT NOT NULL,
-                        domain VARCHAR(255) UNIQUE NOT NULL,
-                        document_root VARCHAR(500),
-                        php_version VARCHAR(10) DEFAULT '8.2',
-                        ssl_active BOOLEAN DEFAULT 0,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_client_id (client_id),
-                        INDEX idx_domain (domain)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "databases" => "
-                    CREATE TABLE IF NOT EXISTS `databases` (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        client_id INT NOT NULL,
-                        db_name VARCHAR(64) UNIQUE NOT NULL,
-                        db_user VARCHAR(32) NOT NULL,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_client_id (client_id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "mail_users" => "
-                    CREATE TABLE IF NOT EXISTS mail_users (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        client_id INT NOT NULL,
-                        email VARCHAR(255) UNIQUE NOT NULL,
-                        password VARCHAR(255) NOT NULL,
-                        quota_mb INT DEFAULT 100,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_client_id (client_id),
-                        INDEX idx_email (email)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "mail_domains" => "
-                    CREATE TABLE IF NOT EXISTS mail_domains (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        client_id INT NOT NULL,
-                        domain VARCHAR(255) UNIQUE NOT NULL,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_client_id (client_id),
-                        INDEX idx_domain (domain)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "dns_records" => "
-                    CREATE TABLE IF NOT EXISTS dns_records (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        domain_id INT NOT NULL,
-                        type ENUM('A','AAAA','CNAME','MX','TXT','NS','SOA','SRV') NOT NULL,
-                        name VARCHAR(255) NOT NULL,
-                        value TEXT NOT NULL,
-                        ttl INT DEFAULT 3600,
-                        priority INT DEFAULT 10,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_domain_id (domain_id),
-                        INDEX idx_type (type)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "php_config" => "
-                    CREATE TABLE IF NOT EXISTS php_config (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        client_id INT NOT NULL,
-                        setting_name VARCHAR(100) NOT NULL,
-                        setting_value VARCHAR(255),
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_client_id (client_id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "cron_jobs" => "
-                    CREATE TABLE IF NOT EXISTS cron_jobs (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        client_id INT NOT NULL,
-                        command TEXT NOT NULL,
-                        schedule VARCHAR(100) NOT NULL,
-                        enabled BOOLEAN DEFAULT 1,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_client_id (client_id),
-                        INDEX idx_enabled (enabled)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "backups" => "
-                    CREATE TABLE IF NOT EXISTS backups (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        client_id INT NOT NULL,
-                        backup_type ENUM('full','files','database') NOT NULL,
-                        file_path VARCHAR(500),
-                        size_mb DECIMAL(10,2),
-                        status ENUM('pending','completed','failed') DEFAULT 'pending',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_client_id (client_id),
-                        INDEX idx_status (status)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                // NEW: Security Tables for enhanced security implementation
-                "security_logs" => "
-                    CREATE TABLE IF NOT EXISTS security_logs (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        event VARCHAR(255) NOT NULL,
-                        severity ENUM('info', 'warning', 'critical') DEFAULT 'info',
-                        ip VARCHAR(45),
-                        user VARCHAR(50),
-                        user_agent VARCHAR(500),
-                        context TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_created (created_at),
-                        INDEX idx_severity (severity),
-                        INDEX idx_user (user),
-                        INDEX idx_ip (ip)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "error_logs" => "
-                    CREATE TABLE IF NOT EXISTS error_logs (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        type VARCHAR(50) NOT NULL,
-                        message TEXT NOT NULL,
-                        file VARCHAR(500),
-                        line INT,
-                        user VARCHAR(50),
-                        trace TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_created (created_at),
-                        INDEX idx_type (type),
-                        INDEX idx_user (user)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "login_attempts" => "
-                    CREATE TABLE IF NOT EXISTS login_attempts (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        username VARCHAR(50),
-                        ip VARCHAR(45) NOT NULL,
-                        user_agent VARCHAR(500),
-                        success BOOLEAN DEFAULT 0,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_ip (ip),
-                        INDEX idx_username (username),
-                        INDEX idx_created (created_at)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                ",
-                "active_sessions" => "
-                    CREATE TABLE IF NOT EXISTS active_sessions (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        session_id VARCHAR(255) UNIQUE NOT NULL,
-                        user_id INT,
-                        user_type ENUM('client', 'admin') NOT NULL,
-                        ip VARCHAR(45),
-                        user_agent VARCHAR(500),
-                        last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        INDEX idx_user (user_id, user_type),
-                        INDEX idx_session (session_id),
-                        INDEX idx_last_activity (last_activity)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-                "
-            ];
-
-            // Execute each table creation separately
-            foreach ($tables_sql as $table_name => $sql) {
-                try {
-                    $pdo->exec($sql);
-                } catch (PDOException $e) {
-                    throw new Exception("Error creating table '$table_name': " . $e->getMessage());
-                }
+            // 4. Import Schema from unified schema.sql
+            $schema_file = __DIR__ . '/installer/schema.sql';
+            if (!file_exists($schema_file)) {
+                throw new Exception("Cannot find installer/schema.sql to initialize database.");
             }
-
-            // Insert default packages
-            $packages_data = [
-                [1, 'Starter', 0.00, 2000, 1, 5, 2, 'Basic hosting with 2GB storage'],
-                [2, 'Business', 9.99, 10000, 10, 50, 10, 'Advanced hosting with 10GB storage'],
-                [3, 'Premium', 19.99, 50000, 50, 200, 50, 'Premium hosting with 50GB storage']
-            ];
-
-            $stmt = $pdo->prepare("
-                INSERT IGNORE INTO packages (id, name, price, disk_mb, max_domains, max_emails, max_databases, features) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ");
-
-            foreach ($packages_data as $package) {
-                $stmt->execute($package);
+            $schema_sql = file_get_contents($schema_file);
+            try {
+                // PDO can execute multiple queries in a single string if emulate prepares is on,
+                // but for robust parsing across drivers, it's safer to just execute the block.
+                $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
+                $pdo->exec($schema_sql);
+            } catch (PDOException $e) {
+                throw new Exception("Error importing unified schema: " . $e->getMessage());
             }
 
             // 5. Create Admin User
@@ -462,8 +254,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                                 <div>
                                     <strong>Apply Database Schema Fixes</strong><br>
                                     <code class="bg-slate-900 px-2 py-1 rounded text-xs">
-                                                mysql -u root -p shm_panel < migrations/003_fix_all_schema_issues.sql
-                                            </code>
+                                                    mysql -u root -p shm_panel < migrations/003_fix_all_schema_issues.sql
+                                                </code>
                                 </div>
                             </li>
                             <li class="flex items-start">
@@ -479,8 +271,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$installed) {
                                 <div>
                                     <strong>Setup Subdomains</strong><br>
                                     <code class="bg-slate-900 px-2 py-1 rounded text-xs">
-                                                chmod +x setup_subdomains.sh && ./setup_subdomains.sh
-                                            </code>
+                                                    chmod +x setup_subdomains.sh && ./setup_subdomains.sh
+                                                </code>
                                 </div>
                             </li>
                             <li class="flex items-start">

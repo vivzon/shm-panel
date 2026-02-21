@@ -128,74 +128,17 @@ MYSQL_OPT
     
     # Step 5: Import Full Schema
     log "Step 5: Importing Table Schemas..."
-    mysql "$DB_NAME" << SQL
--- Core Tables
-CREATE TABLE IF NOT EXISTS clients (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(32) UNIQUE,
-    email VARCHAR(255),
-    password VARCHAR(255),
-    status ENUM('active','suspended') DEFAULT 'active',
-    package_id INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+    log "Step 5: Importing Table Schemas..."
+    if [ -f "installer/schema.sql" ]; then
+        mysql "$DB_NAME" < installer/schema.sql
+    elif [ -f "schema.sql" ]; then
+        mysql "$DB_NAME" < schema.sql
+    else
+        warn "Could not find schema.sql to import! Database initialized empty."
+    fi
 
-CREATE TABLE IF NOT EXISTS domains (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    client_id INT,
-    domain VARCHAR(255) UNIQUE,
-    document_root VARCHAR(255),
-    php_version VARCHAR(5) DEFAULT '8.2',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS packages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50),
-    price DECIMAL(10,2) DEFAULT 0.00,
-    disk_mb INT,
-    max_domains INT,
-    max_emails INT
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS admins (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE,
-    password VARCHAR(255),
-    email VARCHAR(255),
-    role ENUM('superadmin','admin','moderator') DEFAULT 'admin',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS mail_domains (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    domain VARCHAR(255) UNIQUE,
-    client_id INT,
-    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS ftp_users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    userid VARCHAR(32) UNIQUE,
-    passwd VARCHAR(255),
-    homedir VARCHAR(255),
-    client_id INT,
-    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS server_metrics (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    cpu_percent DECIMAL(5,2),
-    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- Initial Seed Data
-INSERT IGNORE INTO packages (name, price, disk_mb, max_domains, max_emails) VALUES 
-('Starter', 0.00, 2000, 1, 5),
-('Business', 9.99, 10000, 10, 50);
-
--- Default Admin (Password: password)
+    # Default Admin & Mail Domain seeding
+    cat << SQL | mysql "$DB_NAME"
 INSERT IGNORE INTO admins (username, password, email, role) VALUES 
 ('admin', '\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '$ADMIN_EMAIL', 'superadmin');
 

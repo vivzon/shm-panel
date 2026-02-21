@@ -147,24 +147,15 @@ mysql -e "CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PA
 mysql -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
 mysql -e "FLUSH PRIVILEGES;"
 
-# Import Schema (Embedded)
+# Import Schema (from centralized schema.sql)
+if [ -f "installer/schema.sql" ]; then
+    mysql $DB_NAME < installer/schema.sql
+else
+    warn "schema.sql not found! Required tables are missing."
+fi
+
+# Insert default admin (user: admin, pass: admin123)
 mysql $DB_NAME << SQL
-CREATE TABLE IF NOT EXISTS clients (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(32) UNIQUE,
-    email VARCHAR(255),
-    password VARCHAR(255),
-    status ENUM('active','suspended') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-CREATE TABLE IF NOT EXISTS admins (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE,
-    password VARCHAR(255),
-    email VARCHAR(255),
-    role ENUM('superadmin','admin') DEFAULT 'admin'
-);
--- Insert default admin (user: admin, pass: admin123)
 INSERT IGNORE INTO admins (username, password, email, role) VALUES 
 ('admin', '\$2y\$10\$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@vivzon.cloud', 'superadmin');
 SQL
