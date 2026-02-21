@@ -201,15 +201,71 @@ function escape_shell_arg_safe($arg)
 }
 
 /**
- * Rate limiting check
+ * Rate limiting check (Upgraded to Redis)
  * 
- * @param string $key Unique key for rate limit (e.g., 'login:' . $ip)
+ * Uses Redis for robust IP/Action-based rate limiting to prevent 
+ * session-dropping bypasses. Falls back to Database, then Session.
+ * 
+ * @param string $key Unique key for rate limit (e.g., 'login_' . $ip)
  * @param int $maxAttempts Maximum attempts allowed
  * @param int $timeWindow Time window in seconds
  * @return bool True if within rate limit
  */
 function check_rate_limit($key, $maxAttempts = 5, $timeWindow = 300)
 {
+    // Sanitize key for strict safety
+    $safeKey = 'shmpanel_ratelimit:' . preg_replace('/[^a-zA-Z0-9_\-\.:]/', '', $key);
+
+    // 1. Try Redis (Best option, prevents session dropping)
+    if (class_exists('Redis')) {
+        try {
+            $redis = new Redis();
+            // Default redis port from setup script
+            if (@$redis->connect('127.0.0.1', 6379, 1.0)) {
+                $current = $redis->get($safeKey);
+
+                if ($current === false) {
+                    $redis->setex($safeKey, $timeWindow, 1);
+                    return true;
+                }
+
+                if ($current >= $maxAttempts) {
+                    return false;
+                }
+
+                $redis->incr($safeKey);
+                return true;
+            }
+        } catch (Exception $e) {
+            error_log("Redis rate limit failed, falling back: " . $e->getMessage());
+        }
+    }
+
+    // 2. Try Database Fallback
+    try {
+        require_once __DIR__ . '/Database.php';
+        $db = Database::getInstance();
+
+        // Cleanup old entries
+        $db->execute("DELETE FROM login_attempts WHERE created_at < DATE_SUB(NOW(), INTERVAL ? SECOND)", [$timeWindow]);
+
+        // In our schema, login_attempts uses ip natively, so extract IP from key
+        $parts = explode(':', $key);
+        $ip = end($parts);
+        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+            $stmt = $db->query("SELECT COUNT(*) as count FROM login_attempts WHERE ip = ? AND success = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)", [$ip, $timeWindow]);
+            $result = $stmt->fetch();
+
+            if (($result['count'] ?? 0) >= $maxAttempts) {
+                return false;
+            }
+            return true; // The actual INSERT happens in internal login logic usually
+        }
+    } catch (Exception $e) {
+        // Silently continue to session fallback
+    }
+
+    // 3. Fallback to Session (Weakest, but better than nothing)
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -226,7 +282,6 @@ function check_rate_limit($key, $maxAttempts = 5, $timeWindow = 300)
 
     $data = $_SESSION['rate_limit'][$key];
 
-    // Reset if time window has passed
     if ($now - $data['first_attempt'] > $timeWindow) {
         $_SESSION['rate_limit'][$key] = [
             'attempts' => 1,
@@ -235,10 +290,8 @@ function check_rate_limit($key, $maxAttempts = 5, $timeWindow = 300)
         return true;
     }
 
-    // Increment attempts
     $_SESSION['rate_limit'][$key]['attempts']++;
 
-    // Check if exceeded
     if ($data['attempts'] >= $maxAttempts) {
         return false;
     }
