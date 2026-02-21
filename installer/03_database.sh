@@ -29,8 +29,39 @@ setup_database() {
     mkdir -p /etc/mysql/mariadb.conf.d/
     echo -e "[mysqld]\ninnodb_use_native_aio=0" > /etc/mysql/mariadb.conf.d/99-wsl.cnf
     
+    # Remove Apache2 now to prevent port 80 conflict with Nginx (installed later)
+    if dpkg -l apache2 &>/dev/null 2>&1; then
+        warn "Apache2 detected -- removing to prevent port 80 conflict with Nginx..."
+        systemctl stop apache2 2>/dev/null || true
+        apt-get purge -y apache2 apache2-utils apache2-bin libapache2-mod-php* >/dev/null 2>&1 || true
+        apt-get autoremove -y >/dev/null 2>&1 || true
+        log "Apache2 removed."
+    fi
+
     systemctl enable redis-server mariadb >/dev/null 2>&1
-    systemctl start redis-server mariadb
+    systemctl start redis-server || true
+    systemctl start mariadb || true
+
+    # Wait up to 30 seconds for MariaDB to actually become ready
+    log "Waiting for MariaDB to become ready..."
+    DB_READY=0
+    for i in $(seq 1 30); do
+        if mysqladmin ping --no-defaults -u root --silent 2>/dev/null || \
+           mysqladmin ping -u root --silent 2>/dev/null; then
+            log "MariaDB is ready (after ${i}s)."
+            DB_READY=1
+            break
+        fi
+        sleep 1
+    done
+    if [ "$DB_READY" -eq 0 ]; then
+        warn "MariaDB not ready after 30s — checking status..."
+        systemctl status mariadb --no-pager || true
+        journalctl -xeu mariadb --no-pager -n 30 || true
+        # Force restart attempt
+        systemctl restart mariadb || true
+        sleep 5
+    fi
 
     # Step 2: Set Root Password & Secure (NO-HANG Logic)
     log "Step 2: Securing MariaDB..."
@@ -58,7 +89,10 @@ EOF
         echo "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASS'; FLUSH PRIVILEGES;" > /tmp/db_init.sql
         systemctl stop mariadb
         # Bootstrap runs the SQL then exits immediately - NO HANGING
-        /usr/sbin/mariadbd --user=mysql --bootstrap --init-file=/tmp/db_init.sql >/dev/null 2>&1
+        # Use mariadbd (MariaDB 10.4+) with fallback to mysqld
+        local db_binary
+        db_binary=$(command -v mariadbd 2>/dev/null || command -v mysqld 2>/dev/null || echo "/usr/sbin/mariadbd")
+        "$db_binary" --user=mysql --bootstrap --init-file=/tmp/db_init.sql >/dev/null 2>&1
         rm /tmp/db_init.sql
         systemctl start mariadb
     fi

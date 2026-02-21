@@ -6,15 +6,24 @@
 
 setup_web() {
     log "Setting up Web Stack (Nginx + PHP)..."
-    
+
+    # Prevent interactive prompts and suppress post-install service restarts
+    export DEBIAN_FRONTEND=noninteractive
+
+    # 0. Purge Apache2 to prevent port 80 conflict with Nginx
+    log "Removing Apache2 (conflicts with Nginx on port 80)..."
+    systemctl stop apache2 2>/dev/null || true
+    apt-get purge -y apache2 apache2-utils apache2-bin libapache2-mod-php* >/dev/null 2>&1 || true
+    apt-get autoremove -y >/dev/null 2>&1 || true
+
     # 1. Add Repositories
     log "Adding PHP Repository..."
     add-apt-repository ppa:ondrej/php -y
     apt-get update
-    
+
     # 2. Install Nginx & Certbot
     apt-get install -y nginx certbot python3-certbot-nginx
-    
+
     # 3. Install PHP Versions
     log "Installing PHP Versions (8.1, 8.2, 8.3)..."
     for v in 8.1 8.2 8.3; do
