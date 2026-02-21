@@ -22,13 +22,9 @@ ini_set('memory_limit', '2048M');
 ini_set('max_execution_time', '3600');
 set_time_limit(3600);
 
-// Security: Disable dangerous PHP functions in file manager context
-$dangerous_functions = ['system', 'exec', 'passthru', 'shell_exec', 'proc_open', 'popen'];
-foreach ($dangerous_functions as $func) {
-    if (function_exists($func)) {
-        ini_set('disable_functions', ini_get('disable_functions') . ',' . $func);
-    }
-}
+// Security Note: `disable_functions` should be enforced in php.ini, as runtime 
+// ini_set() changes for this directive have no effect in modern PHP versions.
+// Ensure your server is safely configured.
 
 /**
  * PATH HELPERS
@@ -1165,7 +1161,8 @@ if (is_dir($full_path)) {
                                             class="truncate font-medium text-slate-300 group-hover:text-white"><?= htmlspecialchars($i['name']) ?></span>
                                     </div>
                                     <div class="col-span-2 text-sm text-slate-500 font-mono">
-                                        <?= htmlspecialchars($i['size']) ?></div>
+                                        <?= htmlspecialchars($i['size']) ?>
+                                    </div>
                                     <div class="col-span-2 text-sm text-slate-500 uppercase"><?= htmlspecialchars($type) ?>
                                     </div>
                                     <div class="col-span-2 text-right text-sm text-slate-500 font-mono">

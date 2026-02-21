@@ -138,21 +138,8 @@ safe_mysql_query() {
     shift
     local args=("$@")
     
-    # Escape arguments for MySQL
-    for ((i=0; i<${#args[@]}; i++)); do
-        args[i]=$(mysql -N -s -e "SELECT QUOTE('${args[i]}')" | sed "s/^'//;s/'$//")
-    done
-    
-    # Build command
-    local cmd="mysql"
-    if [ -n "$DB_USER" ] && [ -n "$DB_PASS" ]; then
-        cmd="$cmd -u$DB_USER -p$DB_PASS"
-    fi
-    cmd="$cmd $DB_NAME -e"
-    
-    # Execute with printf to handle special characters
-    printf -v formatted_query "$query" "${args[@]}"
-    eval "$cmd \"$formatted_query\""
+    # Execute securely
+    echo "$query" | mysql $( [ -n "$DB_USER" ] && [ -n "$DB_PASS" ] && echo "-u$DB_USER -p$DB_PASS" ) "$DB_NAME"
 }
 
 # Create Default Index Page
