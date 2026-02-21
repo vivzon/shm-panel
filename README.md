@@ -148,15 +148,16 @@ You can manage the server entirely from the command line using `shm-manage`.
 
 ## 🔒 **Security Recommendations**
 
-1.  **Firewall**: Ensure UFW allows ports 80, 443, 22, and Mail ports (25, 587, 993, 995).
+1.  **Firewall (UFW)**: strictly allow ports 80, 443, 22, and Mail ports (25, 587, 993, 995).
     ```bash
     ufw allow 80/tcp
     ufw allow 443/tcp
     ufw allow 22/tcp
     ufw enable
     ```
-2.  **SSH Hardening**: Disable root login via password in `/etc/ssh/sshd_config`.
-3.  **Backups**: Use `shm-manage backup create USER` to generate backups.
+2.  **Rate Limiting (New)**: The panel now utilizes **Redis** for IP-based rate limiting on all authentication routes, neutralizing session-dropping brute-force attacks automatically. Maintain your Redis server configuration to keep this active.
+3.  **SSH Hardening**: Disable root login via password in `/etc/ssh/sshd_config`.
+4.  **Backups**: Use `shm-manage backup create USER` to generate backups.
 
 ---
 
