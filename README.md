@@ -5,8 +5,9 @@ SHM Panel is a lightweight, secure, and modern web hosting control panel designe
 ## 🚀 Features
 - **Modern Stack:** Nginx, PHP (8.1, 8.2, 8.3), MariaDB, Redis.
 - **Mail Server:** Postfix & Dovecot with Roundcube webmail integration.
+- **Database Management:** Automated phpMyAdmin deployment.
 - **Security First:** Built-in CSRF protection, secure PDO prepared statements, and SSH key management.
-- **Automated SSL:** Let's Encrypt integration.
+- **Automated SSL:** Let's Encrypt integration for the panel and all subdomains.
 - **Performance:** Pre-configured OPCache, Nginx FastCGI caching, and system swap optimization.
 - **Beautiful UI:** Built with Tailwind CSS, Lucide Icons, and ApexCharts.
 
