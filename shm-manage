@@ -379,6 +379,9 @@ EOF
         ensure_safe_vhost_env "$USER" "$DOCROOT"
         
         cat > "/etc/nginx/sites-available/$DOM" << EOF
+# Global Rate Limit Zone for $DOM
+limit_req_zone \$binary_remote_addr zone=limit_${DOM//./_}:10m rate=10r/s;
+
 server {
     listen 80;
     server_name $DOM www.$DOM;
@@ -397,7 +400,7 @@ server {
     error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
     location / {
-        limit_req zone=limit_$DOM burst=20 nodelay;
+        limit_req zone=limit_${DOM//./_} burst=20 nodelay;
         try_files \$uri \$uri/ /index.php?\$args;
     }
 
@@ -428,11 +431,6 @@ EOF
         DOM_ID=$(mysql -N -s -e "SELECT id FROM domains WHERE domain='$DOM'" "$DB_NAME" 2>/dev/null || echo "")
         if [ -n "$DOM_ID" ]; then
             $0 dns-tool sync "$DOM_ID"
-        fi
-        
-        # 5. Global Rate Limit Registration
-        if ! grep -q "zone=limit_$DOM:" /etc/nginx/conf.d/shm_limits.conf 2>/dev/null; then
-            echo "limit_req_zone \$binary_remote_addr zone=limit_$DOM:10m rate=10r/s;" >> /etc/nginx/conf.d/shm_limits.conf
         fi
         
         # 6. Reload Services
@@ -514,6 +512,9 @@ EOF
         chmod g+s "/var/www/clients/$USER/domains/$DOM"
         
         cat > "/etc/nginx/sites-available/$DOM" << EOF
+# Global Rate Limit Zone for $DOM
+limit_req_zone \$binary_remote_addr zone=limit_${DOM//./_}:10m rate=10r/s;
+
 server {
     listen 80;
     server_name $DOM www.$DOM;
@@ -532,7 +533,7 @@ server {
     error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
     location / {
-        limit_req zone=limit_$DOM burst=20 nodelay;
+        limit_req zone=limit_${DOM//./_} burst=20 nodelay;
         try_files \$uri \$uri/ /index.php?\$args;
     }
 
@@ -548,11 +549,6 @@ server {
 EOF
         
         ln -sf "/etc/nginx/sites-available/$DOM" "/etc/nginx/sites-enabled/"
-        
-        # Registration Rate Limit
-        if ! grep -q "zone=limit_$DOM:" /etc/nginx/conf.d/shm_limits.conf 2>/dev/null; then
-            echo "limit_req_zone \$binary_remote_addr zone=limit_$DOM:10m rate=10r/s;" >> /etc/nginx/conf.d/shm_limits.conf
-        fi
         
         safe_nginx_reload
         
