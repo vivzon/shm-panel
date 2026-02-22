@@ -393,9 +393,6 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     
-    # Rate limiting
-    limit_req_zone \$binary_remote_addr zone=limit_$DOM:10m rate=10r/s;
-
     access_log /var/www/clients/$USER/logs/$DOM.access.log;
     error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
@@ -431,6 +428,11 @@ EOF
         DOM_ID=$(mysql -N -s -e "SELECT id FROM domains WHERE domain='$DOM'" "$DB_NAME" 2>/dev/null || echo "")
         if [ -n "$DOM_ID" ]; then
             $0 dns-tool sync "$DOM_ID"
+        fi
+        
+        # 5. Global Rate Limit Registration
+        if ! grep -q "zone=limit_$DOM:" /etc/nginx/conf.d/shm_limits.conf 2>/dev/null; then
+            echo "limit_req_zone \$binary_remote_addr zone=limit_$DOM:10m rate=10r/s;" >> /etc/nginx/conf.d/shm_limits.conf
         fi
         
         # 6. Reload Services
@@ -530,6 +532,7 @@ server {
     error_log /var/www/clients/$USER/logs/$DOM.error.log;
 
     location / {
+        limit_req zone=limit_$DOM burst=20 nodelay;
         try_files \$uri \$uri/ /index.php?\$args;
     }
 
@@ -545,6 +548,12 @@ server {
 EOF
         
         ln -sf "/etc/nginx/sites-available/$DOM" "/etc/nginx/sites-enabled/"
+        
+        # Registration Rate Limit
+        if ! grep -q "zone=limit_$DOM:" /etc/nginx/conf.d/shm_limits.conf 2>/dev/null; then
+            echo "limit_req_zone \$binary_remote_addr zone=limit_$DOM:10m rate=10r/s;" >> /etc/nginx/conf.d/shm_limits.conf
+        fi
+        
         safe_nginx_reload
         
         log_action "Added Domain: $DOM for $USER"
@@ -832,12 +841,6 @@ EOF
             cat > "$ZONE_FILE" << EOF
 \$TTL 86400
 @ IN SOA ns1.$MAIN_DOMAIN. $ADMIN_EMAIL. ( $(date +%Y%m%d)01 3600 900 604800 86400 )
-@ IN NS ns1.$MAIN_DOMAIN.
-@ IN NS ns2.$MAIN_DOMAIN.
-@ IN A $SERVER_IP
-www IN CNAME @
-mail IN A $SERVER_IP
-ftp IN CNAME @
 EOF
 
             # Add nameserver glue records for main domain
