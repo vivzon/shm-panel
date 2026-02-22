@@ -93,7 +93,7 @@ if (isset($_POST['ajax_action'])) {
             if ($has_parent_id && $parent_id) {
                 // It IS a subdomain of a managed parent. 
                 // We do NOT create a new Zone. We add an A record to the PARENT.
-                $host = str_replace("." . $possible_parent, "", $dom); // e.g. "blog"
+                $host = str_replace("." . $explicit_parent, "", $dom); // e.g. "blog"
 
                 // Add 'A' record to Parent
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, name, value) VALUES (?, 'A', ?, ?)")->execute([$parent_id, $host, $server_ip]);
@@ -102,8 +102,8 @@ if (isset($_POST['ajax_action'])) {
                 cmd("dns-tool sync $parent_id");
 
                 // Sync VHost (still needed for the sub)
-                cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
-                cmd("shm-manage vhost-tool sync $dom_id");
+                cmd("add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
+                cmd("vhost-tool sync $dom_id");
 
             } else {
                 // Standard Domain Logic
@@ -128,8 +128,8 @@ if (isset($_POST['ajax_action'])) {
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, name, value) VALUES (?, 'NS', '@', ?)")->execute([$dom_id, $ns2]);
 
                 // Syncs
-                cmd("shm-manage add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
-                cmd("shm-manage vhost-tool sync $dom_id");
+                cmd("add-domain " . escapeshellarg($username) . " " . escapeshellarg($dom));
+                cmd("vhost-tool sync $dom_id");
                 cmd("dns-tool sync $dom_id");
             }
 
@@ -240,7 +240,7 @@ if (isset($_POST['ajax_action'])) {
                 $pdo->commit();
 
                 // Execute system commands after successful DB deletion
-                cmd("shm-manage delete-domain " . escapeshellarg($username) . " " . escapeshellarg($domain_name));
+                cmd("delete-domain " . escapeshellarg($username) . " " . escapeshellarg($domain_name));
 
             } catch (Exception $e) {
                 $pdo->rollBack();
@@ -380,7 +380,7 @@ if (isset($_POST['ajax_action'])) {
             if (!$chk->fetch())
                 throw new Exception("Access Denied");
 
-            cmd("shm-manage malware-scan $did");
+            cmd("malware-scan $did");
             sendResponse($res);
             exit;
         }

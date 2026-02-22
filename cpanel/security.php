@@ -14,17 +14,17 @@ if (isset($_POST['ajax_action'])) {
 
     try {
         if ($action == 'add_ssh') {
-            cmd("shm-manage ssh-key add " . escapeshellarg($username) . " " . escapeshellarg($_POST['key']));
+            cmd("ssh-key add " . escapeshellarg($username) . " " . escapeshellarg($_POST['key']));
             sendResponse($res);
             exit;
         }
         if ($action == 'del_ssh') {
-            cmd("shm-manage ssh-key delete " . escapeshellarg($username) . " " . (int) $_POST['line']);
+            cmd("ssh-key delete " . escapeshellarg($username) . " " . (int) $_POST['line']);
             sendResponse($res);
             exit;
         }
         if ($action == 'list_ssh') {
-            $out = cmd("shm-manage ssh-key list " . escapeshellarg($username));
+            $out = cmd("ssh-key list " . escapeshellarg($username));
             $lines = array_filter(explode("\n", $out));
             echo json_encode(['status' => 'success', 'data' => array_values($lines)]);
             exit;

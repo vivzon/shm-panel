@@ -148,9 +148,15 @@ create_default_index() {
     local DOMNAME="$2"
     local OWNER="$3"
     
-    # Do not overwrite if index.html exists
-    if [ -f "$DIR/index.html" ] || [ -f "$DIR/index.php" ]; then
-        return
+    # Do not overwrite if any file exists in the directory (user uploaded files)
+    if [ "$(ls -A $DIR 2>/dev/null)" ]; then
+        # Check if the ONLY file is .nginx.conf, if so, we can proceed
+        if [ "$(ls -A $DIR 2>/dev/null)" == ".nginx.conf" ]; then
+            # Directory is effectively empty, proceed
+            :
+        else
+            return
+        fi
     fi
     
     # Create clean, responsive Coming Soon page
@@ -1851,16 +1857,14 @@ EOF
                     exit 1
                 fi
                 
-                # 1. Hide Default Pages
-                if [ -f "$DOCROOT/index.php" ] || [ -f "$DOCROOT/index.html" ]; then
+                # 1. Hide Default Pages if user uploaded custom files
+                # Count files ignoring .nginx.conf and the default.html itself
+                USER_FILES=$(find "$DOCROOT" -maxdepth 1 -type f ! -name ".nginx.conf" ! -name "default.html" ! -name "default.html.bak" | wc -l)
+                
+                if [ "$USER_FILES" -gt 0 ]; then
                     if [ -f "$DOCROOT/default.html" ]; then
                         mv "$DOCROOT/default.html" "$DOCROOT/default.html.bak"
-                        log_action "Hid default.html for $DOCROOT"
-                    fi
-                    
-                    if [ -f "$DOCROOT/index.html" ] && grep -q "Powered by SHM Panel" "$DOCROOT/index.html"; then
-                        mv "$DOCROOT/index.html" "$DOCROOT/index.html.bak"
-                        log_action "Hid default index.html for $DOCROOT"
+                        log_action "Hid default.html for $DOCROOT because custom files exist"
                     fi
                 fi
 

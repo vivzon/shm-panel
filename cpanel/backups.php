@@ -14,12 +14,12 @@ if (isset($_POST['ajax_action'])) {
 
     try {
         if ($action == 'create_backup') {
-            cmd("shm-manage backup create " . escapeshellarg($username));
+            cmd("backup create " . escapeshellarg($username));
             sendResponse($res);
             exit;
         }
         if ($action == 'list_backups') {
-            $out = cmd("shm-manage backup list " . escapeshellarg($username));
+            $out = cmd("backup list " . escapeshellarg($username));
             $backups = [];
             foreach (explode("\n", $out) as $line) {
                 if (!trim($line))
@@ -37,7 +37,7 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
         if ($action == 'restore_backup') {
-            cmd("shm-manage backup restore " . escapeshellarg($username) . " " . escapeshellarg($_POST['file']));
+            cmd("backup restore " . escapeshellarg($username) . " " . escapeshellarg($_POST['file']));
             sendResponse($res);
             exit;
         }

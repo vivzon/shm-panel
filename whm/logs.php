@@ -17,7 +17,7 @@ if (isset($_POST['ajax_action'])) {
             if (!in_array($type, ['auth', 'web', 'sys']))
                 throw new Exception("Invalid Log Type");
 
-            $output = cmd("shm-manage get-logs " . escapeshellarg($type) . " 50");
+            $output = cmd("get-logs " . escapeshellarg($type) . " 50");
             echo json_encode(['status' => 'success', 'data' => $output]);
             exit;
         }
