@@ -56,9 +56,9 @@ CONFIG
         echo "<h1>SHM Panel Installed</h1>" > /var/www/panel/landing/index.html
     fi
     
-    # Shared Config
-    if [ -f "shared/config.php" ]; then
-        cp shared/config.php /var/www/panel/shared/config.php
+    # Shared Config & Helpers
+    if [ -d "shared" ]; then
+        cp -r shared/* /var/www/panel/shared/
         sed -i "s|SHMPanel_Secure_Pass_2025|$DB_PASS|g" /var/www/panel/shared/config.php
         sed -i "s|yourdomain.com|$MAIN_DOMAIN|g" /var/www/panel/shared/config.php
     fi

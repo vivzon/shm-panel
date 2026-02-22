@@ -182,8 +182,10 @@ SERVER_IP='$SERVER_IP'
 CONFIG
 chmod 600 /etc/shm/config.sh
 
-# Update PHP Config
-if [ -f "$PANEL_ROOT/shared/config.php" ]; then
+# Copy Shared Config & Helpers
+if [ -d "shared" ]; then
+    mkdir -p $PANEL_ROOT/shared
+    cp -r shared/* $PANEL_ROOT/shared/
     sed -i "s|'shm_panel'|'$DB_NAME'|g" $PANEL_ROOT/shared/config.php
     sed -i "s|'shm_admin'|'$DB_USER'|g" $PANEL_ROOT/shared/config.php
     sed -i "s|QwErTyUiOp@1|$DB_PASS|g" $PANEL_ROOT/shared/config.php
