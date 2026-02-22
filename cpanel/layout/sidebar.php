@@ -34,6 +34,9 @@
             <a href="domains.php" class="nav-btn <?= $current_page == 'domains.php' ? 'active' : '' ?>">
                 <i data-lucide="globe" class="w-4"></i> Domains & DNS
             </a>
+            <a href="traffic.php" class="nav-btn <?= $current_page == 'traffic.php' ? 'active' : '' ?>">
+                <i data-lucide="activity" class="w-4"></i> Traffic & Stats
+            </a>
         </nav>
 
         <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-4 mb-3 mt-8">Tools</div>
