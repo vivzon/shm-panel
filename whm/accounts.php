@@ -118,6 +118,10 @@ if (isset($_POST['ajax_action'])) {
             $doms = $stmt->fetchAll();
 
             $pdo->beginTransaction();
+
+            // Execute system command first while DB records still exist for the bash script to query
+            cmd("delete-account " . escapeshellarg($user));
+
             foreach ($doms as $dm) {
                 $pdo->prepare("DELETE FROM dns_records WHERE domain_id = ?")->execute([$dm['id']]);
                 $pdo->prepare("DELETE FROM mail_domains WHERE domain = ?")->execute([$dm['domain']]);
@@ -130,7 +134,6 @@ if (isset($_POST['ajax_action'])) {
             echo json_encode($res);
             if (function_exists('fastcgi_finish_request'))
                 fastcgi_finish_request();
-            cmd("delete-account " . escapeshellarg($user));
             exit;
         }
 
