@@ -365,97 +365,95 @@ include 'layout/header.php';
     </div>
 </div>
 
-<?php include 'layout/footer.php'; ?>
+<script>
+    // Generic Tool Action Handler
+    async function handleToolAction(e, action, callback = null) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> Processing...`;
+        lucide.createIcons();
 
-// Generic Tool Action Handler
-async function handleToolAction(e, action, callback = null) {
-e.preventDefault();
-const btn = e.target.querySelector('button[type="submit"]');
-const originalText = btn.innerHTML;
-btn.disabled = true;
-btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> Processing...`;
-lucide.createIcons();
+        const fd = new FormData(e.target);
+        fd.append('ajax_action', action);
 
-const fd = new FormData(e.target);
-fd.append('ajax_action', action);
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success') {
+                showToast('success', res.msg || 'Success');
+                e.target.reset();
+                if (callback) callback();
+            } else {
+                showToast('error', res.msg || 'Error');
+            }
+        } catch (err) {
+            showToast('error', 'System Error');
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
 
-try {
-const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-if (res.status === 'success') {
-showToast('success', res.msg || 'Success');
-e.target.reset();
-if (callback) callback();
-} else {
-showToast('error', res.msg || 'Error');
-}
-} catch (err) {
-showToast('error', 'System Error');
-console.error(err);
-} finally {
-btn.disabled = false;
-btn.innerHTML = originalText;
-}
-}
+    // Apps Logic
+    function handleAppInstall(e) {
+        handleToolAction(e, 'install_app', () => {
+            loadApps();
+            // Start polling
+            if (!window.appPoll) window.appPoll = setInterval(loadApps, 5000);
+        });
+    }
 
-// Apps Logic
-function handleAppInstall(e) {
-handleToolAction(e, 'install_app', () => {
-loadApps();
-// Start polling
-if(!window.appPoll) window.appPoll = setInterval(loadApps, 5000);
-});
-}
+    async function loadApps() {
+        const tbody = document.getElementById('app-list');
+        try {
+            const fd = new FormData(); fd.append('ajax_action', 'list_apps');
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
 
-async function loadApps() {
-const tbody = document.getElementById('app-list');
-try {
-const fd = new FormData(); fd.append('ajax_action', 'list_apps');
-const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-
-if (res.status === 'success' && res.data.length > 0) {
-tbody.innerHTML = res.data.map(app => `
+            if (res.status === 'success' && res.data.length > 0) {
+                tbody.innerHTML = res.data.map(app => `
 <tr class="border-t border-white/5 hover:bg-white/5 transition">
     <td class="p-4 font-bold text-white capitalize">${app.app_type}</td>
     <td class="p-4 text-slate-400">${app.domain}</td>
     <td class="p-4">
-        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
-                                app.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
-                                (app.status === 'failed' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 
-                                'bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse')
-                            }">
+        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${app.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                        (app.status === 'failed' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                            'bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse')
+                    }">
             ${app.status}
         </span>
     </td>
     <td class="p-4 text-right">
         ${app.status === 'active' ?
-        `<a href="http://${app.domain}" target="_blank" class="text-blue-400 hover:text-white mr-2"><i
+                        `<a href="http://${app.domain}" target="_blank" class="text-blue-400 hover:text-white mr-2"><i
                 data-lucide="external-link" class="w-4 h-4"></i></a>` :
-        ''}
+                        ''}
     </td>
 </tr>
 `).join('');
-lucide.createIcons();
-} else {
-tbody.innerHTML = `<tr>
+                lucide.createIcons();
+            } else {
+                tbody.innerHTML = `<tr>
     <td colspan="4" class="p-6 text-center text-slate-500">No recent installations</td>
 </tr>`;
-}
-} catch (e) { console.error(e); }
-}
+            }
+        } catch (e) { console.error(e); }
+    }
 
-// FTP Logic
-function handleFTPAdd(e) {
-handleToolAction(e, 'add_ftp', loadFTP);
-}
+    // FTP Logic
+    function handleFTPAdd(e) {
+        handleToolAction(e, 'add_ftp', loadFTP);
+    }
 
-async function loadFTP() {
-const tbody = document.getElementById('ftp-list');
-try {
-const fd = new FormData(); fd.append('ajax_action', 'list_ftp');
-const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+    async function loadFTP() {
+        const tbody = document.getElementById('ftp-list');
+        try {
+            const fd = new FormData(); fd.append('ajax_action', 'list_ftp');
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
 
-if (res.status === 'success' && res.data.length > 0) {
-tbody.innerHTML = res.data.map(user => `
+            if (res.status === 'success' && res.data.length > 0) {
+                tbody.innerHTML = res.data.map(user => `
 <tr class="border-t border-white/5 hover:bg-white/5 transition">
     <td class="p-4 font-bold text-white">${user.userid}</td>
     <td class="p-4 text-slate-400 font-mono text-xs">${user.homedir}</td>
@@ -465,67 +463,69 @@ tbody.innerHTML = res.data.map(user => `
     </td>
 </tr>
 `).join('');
-lucide.createIcons();
-} else {
-tbody.innerHTML = `<tr>
+                lucide.createIcons();
+            } else {
+                tbody.innerHTML = `<tr>
     <td colspan="3" class="p-6 text-center text-slate-500">No FTP accounts found</td>
 </tr>`;
-}
-} catch (e) { console.error(e); }
-}
+            }
+        } catch (e) { console.error(e); }
+    }
 
-async function delFTP(user) {
-if(!confirm('Delete FTP user ' + user + '?')) return;
-const fd = new FormData();
-fd.append('ajax_action', 'del_ftp');
-fd.append('user', user);
-await fetch('', { method: 'POST', body: fd });
-showToast('success', 'FTP User Deleted');
-loadFTP();
-}
+    async function delFTP(user) {
+        if (!confirm('Delete FTP user ' + user + '?')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'del_ftp');
+        fd.append('user', user);
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'FTP User Deleted');
+        loadFTP();
+    }
 
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-if(document.getElementById('tab-apps') && !document.getElementById('tab-apps').classList.contains('hidden')) {
-loadApps();
-// Poll for status updates
-window.appPoll = setInterval(loadApps, 10000);
-}
-if(document.getElementById('tab-ftp') && !document.getElementById('tab-ftp').classList.contains('hidden')) {
-loadFTP();
-}
-});
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('tab-apps') && !document.getElementById('tab-apps').classList.contains('hidden')) {
+            loadApps();
+            // Poll for status updates
+            window.appPoll = setInterval(loadApps, 10000);
+        }
+        if (document.getElementById('tab-ftp') && !document.getElementById('tab-ftp').classList.contains('hidden')) {
+            loadFTP();
+        }
+    });
 
-// Utility: Prompt domain ID
-function getDomId() {
-let domList = "Available IDs:\n";
-<?php foreach ($domains as $d)
-    echo "domList += \"{$d['id']}: {$d['domain']}\\n\";\n"; ?>
-return prompt(`Select Domain ID:\n\n${domList}`);
-}
+    // Utility: Prompt domain ID
+    function getDomId() {
+        let domList = "Available IDs:\n";
+        <?php foreach ($domains as $d)
+            echo "domList += \"{$d['id']}: {$d['domain']}\\n\";\n"; ?>
+        return prompt(`Select Domain ID:\n\n${domList}`);
+    }
 
-// Troubleshoot AJAX
-async function fixWebsite() {
-const did = getDomId(); if (!did) return;
-if (!confirm("This will fix permissions and default pages for this domain. Continue?")) return;
-const fd = new FormData(); fd.append('ajax_action', 'fix_website'); fd.append('domain_id', did);
-await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-showToast('success', 'Website Fixed');
-}
-async function restartServices() {
-const did = getDomId(); if (!did) return;
-const fd = new FormData(); fd.append('ajax_action', 'restart_services'); fd.append('domain_id', did);
-await fetch('', { method: 'POST', body: fd });
-showToast('success', 'Services Restarted');
-}
+    // Troubleshoot AJAX
+    async function fixWebsite() {
+        const did = getDomId(); if (!did) return;
+        if (!confirm("This will fix permissions and default pages for this domain. Continue?")) return;
+        const fd = new FormData(); fd.append('ajax_action', 'fix_website'); fd.append('domain_id', did);
+        await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+        showToast('success', 'Website Fixed');
+    }
+    async function restartServices() {
+        const did = getDomId(); if (!did) return;
+        const fd = new FormData(); fd.append('ajax_action', 'restart_services'); fd.append('domain_id', did);
+        await fetch('', { method: 'POST', body: fd });
+        showToast('success', 'Services Restarted');
+    }
 
-// NEW: Fix Config
-async function fixConfig() {
-const did = getDomId(); if (!did) return;
-if (!confirm("This will fix server configuration issues for this domain. Continue?")) return;
-const fd = new FormData(); fd.append('ajax_action', 'fix_config'); fd.append('domain_id', did);
-const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-if (res.status === 'success') showToast('success', 'Config Fixed', res.msg);
-else showToast('error', 'Failed', res.msg);
-}
+    // NEW: Fix Config
+    async function fixConfig() {
+        const did = getDomId(); if (!did) return;
+        if (!confirm("This will fix server configuration issues for this domain. Continue?")) return;
+        const fd = new FormData(); fd.append('ajax_action', 'fix_config'); fd.append('domain_id', did);
+        const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+        if (res.status === 'success') showToast('success', 'Config Fixed', res.msg);
+        else showToast('error', 'Failed', res.msg);
+    }
 </script>
+
+<?php include 'layout/footer.php'; ?>
