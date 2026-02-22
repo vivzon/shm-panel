@@ -59,9 +59,33 @@ CONFIG
     # Shared Config & Helpers
     if [ -d "shared" ]; then
         cp -r shared/* /var/www/panel/shared/
-        sed -i "s|SHMPanel_Secure_Pass_2025|$DB_PASS|g" /var/www/panel/shared/config.php
+        sed -i "s|bKp/8MLv5tC7fRo356UXS14Vp0MMDcZT|$DB_PASS|g" /var/www/panel/shared/config.php
         sed -i "s|yourdomain.com|$MAIN_DOMAIN|g" /var/www/panel/shared/config.php
     fi
+    
+    # 2.5. Install Sub-Applications (phpMyAdmin & Roundcube)
+    log "Installing phpMyAdmin and Roundcube..."
+    export DEBIAN_FRONTEND=noninteractive
+    
+    # Pre-cleanup dummy directories from previous failed runs
+    [ -f "/usr/share/phpmyadmin/index.html" ] && rm -rf /usr/share/phpmyadmin
+    [ -f "/var/lib/roundcube/index.html" ] && rm -rf /var/lib/roundcube
+    
+    # phpMyAdmin
+    echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/mysql/admin-pass password $MYSQL_ROOT_PASS" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/mysql/app-pass password $DB_PASS" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/app-password-confirm password $DB_PASS" | debconf-set-selections
+    apt-get install -y phpmyadmin
+    
+    # Roundcube
+    echo "roundcube-core roundcube/dbconfig-install boolean true" | debconf-set-selections
+    echo "roundcube-core roundcube/database-type select mysql" | debconf-set-selections
+    echo "roundcube-core roundcube/mysql/admin-pass password $MYSQL_ROOT_PASS" | debconf-set-selections
+    echo "roundcube-core roundcube/mysql/app-pass password $DB_PASS" | debconf-set-selections
+    echo "roundcube-core roundcube/app-password-confirm password $DB_PASS" | debconf-set-selections
+    apt-get install -y roundcube roundcube-mysql
     
     # 3. FTP Setup (ProFTPD)
     apt-get install -y proftpd-basic proftpd-mod-mysql 
@@ -129,6 +153,7 @@ setup_nginx_domains() {
         ["filemanager.$MAIN_DOMAIN"]="/var/www/apps/filemanager"
         ["phpmyadmin.$MAIN_DOMAIN"]="/usr/share/phpmyadmin"
         ["webmail.$MAIN_DOMAIN"]="/var/lib/roundcube"
+        ["monitor.$MAIN_DOMAIN"]="/var/www/apps/monitor"
     )
 
     # Clean legacy defaults

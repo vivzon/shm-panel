@@ -187,8 +187,8 @@ if [ -d "shared" ]; then
     mkdir -p $PANEL_ROOT/shared
     cp -r shared/* $PANEL_ROOT/shared/
     sed -i "s|'shm_panel'|'$DB_NAME'|g" $PANEL_ROOT/shared/config.php
-    sed -i "s|'shm_admin'|'$DB_USER'|g" $PANEL_ROOT/shared/config.php
-    sed -i "s|QwErTyUiOp@1|$DB_PASS|g" $PANEL_ROOT/shared/config.php
+    sed -i "s|'shm_user'|'$DB_USER'|g" $PANEL_ROOT/shared/config.php
+    sed -i "s|bKp/8MLv5tC7fRo356UXS14Vp0MMDcZT|$DB_PASS|g" $PANEL_ROOT/shared/config.php
     sed -i "s|localhost|127.0.0.1|g" $PANEL_ROOT/shared/config.php
 fi
 
@@ -271,6 +271,8 @@ create_vhost "$ADMIN_DOMAIN" "$PANEL_ROOT/whm" "$ADMIN_IP"
 create_vhost "$CLIENT_DOMAIN" "$PANEL_ROOT/cpanel"
 create_vhost "$FILEMANAGER_DOMAIN" "$APPS_ROOT/filemanager"
 create_vhost "$PHPMYADMIN_DOMAIN" "/usr/share/phpmyadmin" "$ADMIN_IP"
+create_vhost "webmail.$MAIN_DOMAIN" "/var/lib/roundcube"
+create_vhost "monitor.$MAIN_DOMAIN" "$APPS_ROOT/monitor"
 
 # Validate
 nginx -t && systemctl reload nginx
