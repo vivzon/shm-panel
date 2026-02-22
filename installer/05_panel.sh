@@ -190,6 +190,10 @@ setup_nginx_domains() {
         rm -f /etc/nginx/sites-enabled/default
         rm -f /etc/nginx/sites-available/default
         
+        # Also purge 000-default which some Ubuntu installations use
+        rm -f /etc/nginx/sites-enabled/000-default
+        rm -f /etc/nginx/sites-available/000-default
+        
         # Needs a dummy cert to reject SNI requests cleanly
         if [ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]; then
             apt-get install -y ssl-cert
