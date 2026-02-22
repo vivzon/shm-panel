@@ -848,7 +848,7 @@ EOF
             fi
             
             # Append custom DNS records from DB
-            mysql -N -B -e "SELECT host, type, value, priority FROM dns_records WHERE domain_id=$DOM_ID" "$DB_NAME" 2>/dev/null | while IFS=$'\t' read -r host type value priority; do
+            mysql -N -B -e "SELECT name, type, value, priority FROM dns_records WHERE domain_id=$DOM_ID" "$DB_NAME" 2>/dev/null | while IFS=$'\t' read -r host type value priority; do
                 if [ -n "$host" ] && [ -n "$type" ] && [ -n "$value" ]; then
                     case "$type" in
                         MX)

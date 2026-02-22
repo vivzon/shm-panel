@@ -88,7 +88,7 @@ if (isset($_POST['ajax_action'])) {
                 throw $e;
             }
 
-            $server_ip = $_SERVER['SERVER_ADDR'];
+            $server_ip = $_SERVER['SERVER_ADDR'] ?? '127.0.0.1';
 
             if ($has_parent_id && $parent_id) {
                 // It IS a subdomain of a managed parent. 
@@ -108,8 +108,8 @@ if (isset($_POST['ajax_action'])) {
             } else {
                 // Standard Domain Logic
                 // Auto DNS
-                $host_parts = explode('.', $_SERVER['HTTP_HOST']);
-                $base_domain = implode('.', array_slice($host_parts, -2));
+                $host_parts = explode('.', $_SERVER['HTTP_HOST'] ?? 'localhost');
+                $base_domain = count($host_parts) >= 2 ? implode('.', array_slice($host_parts, -2)) : 'localhost';
                 $mail_host = "mail." . $base_domain;
 
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, name, value) VALUES (?, 'A', '@', ?)")->execute([$dom_id, $server_ip]);
