@@ -71,21 +71,49 @@ CONFIG
     [ -f "/usr/share/phpmyadmin/index.html" ] && rm -rf /usr/share/phpmyadmin
     [ -f "/var/lib/roundcube/index.html" ] && rm -rf /var/lib/roundcube
     
-    # phpMyAdmin
+    # phpMyAdmin (No DBConfig to avoid root socket auth issues)
     echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect none" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/mysql/admin-pass password $MYSQL_ROOT_PASS" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/mysql/app-pass password $DB_PASS" | debconf-set-selections
-    echo "phpmyadmin phpmyadmin/app-password-confirm password $DB_PASS" | debconf-set-selections
+    echo "phpmyadmin phpmyadmin/dbconfig-install boolean false" | debconf-set-selections
     apt-get install -y phpmyadmin
     
     # Roundcube
-    echo "roundcube-core roundcube/dbconfig-install boolean true" | debconf-set-selections
-    echo "roundcube-core roundcube/database-type select mysql" | debconf-set-selections
-    echo "roundcube-core roundcube/mysql/admin-pass password $MYSQL_ROOT_PASS" | debconf-set-selections
-    echo "roundcube-core roundcube/mysql/app-pass password $DB_PASS" | debconf-set-selections
-    echo "roundcube-core roundcube/app-password-confirm password $DB_PASS" | debconf-set-selections
+    echo "roundcube-core roundcube/dbconfig-install boolean false" | debconf-set-selections
     apt-get install -y roundcube roundcube-mysql
+    
+    # Manual Roundcube DB Setup
+    log "Configuring Roundcube Database manually..."
+    RC_DB_PASS=$(openssl rand -hex 16)
+    mysql -e "CREATE DATABASE IF NOT EXISTS roundcube CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+    mysql -e "CREATE USER IF NOT EXISTS 'roundcube'@'localhost' IDENTIFIED BY '${RC_DB_PASS}';"
+    mysql -e "GRANT ALL PRIVILEGES ON roundcube.* TO 'roundcube'@'localhost';"
+    mysql -e "FLUSH PRIVILEGES;"
+    
+    # Initialize Roundcube Schema if empty
+    if [ -f "/usr/share/roundcube/SQL/mysql.initial.sql" ]; then
+        if ! mysql roundcube -e "SELECT 1 FROM users LIMIT 1;" >/dev/null 2>&1; then
+            mysql roundcube < /usr/share/roundcube/SQL/mysql.initial.sql
+        fi
+    fi
+    
+    # Generate Roundcube Config
+    cat > /etc/roundcube/config.inc.php << RC_CONF
+<?php
+\$config = [];
+\$config['db_dsnw'] = 'mysql://roundcube:${RC_DB_PASS}@localhost/roundcube';
+\$config['default_host'] = 'localhost';
+\$config['default_port'] = 143;
+\$config['smtp_server'] = 'localhost';
+\$config['smtp_port'] = 587;
+\$config['smtp_user'] = '%u';
+\$config['smtp_pass'] = '%p';
+\$config['support_url'] = '';
+\$config['product_name'] = 'SHM Webmail';
+\$config['des_key'] = '$(openssl rand -base64 24)';
+\$config['plugins'] = ['archive', 'zipdownload'];
+\$config['skin'] = 'elastic';
+RC_CONF
+    chmod 640 /etc/roundcube/config.inc.php
+    chown root:www-data /etc/roundcube/config.inc.php
     
     # 3. FTP Setup (ProFTPD)
     apt-get install -y proftpd-basic proftpd-mod-mysql 

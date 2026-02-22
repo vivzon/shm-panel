@@ -468,7 +468,6 @@ EOF
         else
              DOCROOT="/var/www/clients/$USER/domains/$DOM/public_html"
         fi
-        fi
         
         # Ensure environment is safe
         ensure_safe_vhost_env "$USER" "$DOCROOT"
