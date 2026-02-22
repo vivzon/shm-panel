@@ -48,15 +48,16 @@ finalize_install() {
     # 2.5 Automated SSL Setup
     log "Configuring Automated SSL Setup via Let's Encrypt..."
     if systemctl is-active --quiet nginx; then
-        # The list of domains to secure
-        CERT_DOMAINS="-d $MAIN_DOMAIN -d admin.$MAIN_DOMAIN -d client.$MAIN_DOMAIN -d filemanager.$MAIN_DOMAIN -d phpmyadmin.$MAIN_DOMAIN -d webmail.$MAIN_DOMAIN -d monitor.$MAIN_DOMAIN"
-        
-        log "Requesting certificates: $CERT_DOMAINS"
-        if certbot --nginx $CERT_DOMAINS --non-interactive --agree-tos -m "$ADMIN_EMAIL" --redirect; then
-            log "✓ SSL Certificates installed successfully!"
-        else
-            warn "⚠ SSL Generation Failed! DNS might not be propagated yet. Retry manually later."
-        fi
+        log "Provisioning SSL Certificates locally..."
+        # Automate Certbot for all sites currently defined in sites-enabled
+        for site in /etc/nginx/sites-enabled/*; do
+            basename=$(basename "$site")
+            if [ "$basename" != "00-default-block" ] && [ "$basename" != "default" ] && [ "$basename" != "*" ]; then
+                log "Requesting SSL for $basename..."
+                certbot --nginx -d "$basename" --non-interactive --agree-tos --email "$ADMIN_EMAIL" --redirect || warn "SSL failed for $basename. DNS might not be propagated."
+            fi
+        done
+        log "✓ SSL Automation Cycle Complete!"
     else
         warn "⚠ Nginx is not running. Skipping SSL setup."
     fi

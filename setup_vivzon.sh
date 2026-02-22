@@ -246,30 +246,85 @@ chmod 640 /etc/roundcube/config.inc.php
 chown root:www-data /etc/roundcube/config.inc.php
 
 # ==============================================================================
-# 6. NGINX CONFIGURATION
+# 6. NGINX CONFIGURATION (Automated & Hardened)
 # ==============================================================================
 log "Step 6: Nginx Configuration..."
 
-# Remove default
-rm -f /etc/nginx/sites-enabled/default
+# 1. Block Unknown Domains (Return 444)
+create_default_block_server() {
+    log "Configuring Default Block Server..."
+    rm -f /etc/nginx/sites-enabled/default
+    rm -f /etc/nginx/sites-available/default
+    
+    # Needs a dummy cert to reject SNI requests cleanly
+    if [ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]; then
+        apt-get install -y ssl-cert
+        make-ssl-cert generate-default-snakeoil --force-overwrite
+    fi
 
-# Function to create vhost
+    cat > /etc/nginx/sites-available/00-default-block << 'EOF'
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    return 444; # Connection Closed Without Response
+}
+
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    server_name _;
+    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+    return 444; # Connection Closed Without Response
+}
+EOF
+    ln -sf /etc/nginx/sites-available/00-default-block /etc/nginx/sites-enabled/
+}
+
+# 2. Ensure Snippets Exist
+create_safe_snippets() {
+    log "Verifying Nginx Snippets..."
+    mkdir -p /etc/nginx/snippets
+    
+    if [ ! -f "/etc/nginx/snippets/fastcgi-php.conf" ]; then
+        cat > /etc/nginx/snippets/fastcgi-php.conf << 'EOF'
+fastcgi_split_path_info ^(.+\.php)(/.+)$;
+try_files $fastcgi_script_name =404;
+set $path_info $fastcgi_path_info;
+fastcgi_param PATH_INFO $path_info;
+fastcgi_index index.php;
+include fastcgi.conf;
+EOF
+    fi
+}
+
+# 3. Secure VHost Generator
 create_vhost() {
     local DOMAIN=$1
     local ROOT=$2
     local ALLOW_IP=$3 # Optional: IP restriction
+
+    log "Generating Secure VHost: $DOMAIN"
+    
+    # Strict directory validation
+    if [ ! -d "$ROOT" ]; then
+        mkdir -p "$ROOT"
+        log "Warning: Created missing directory $ROOT"
+    fi
 
     cat > /etc/nginx/sites-available/$DOMAIN << EOF
 server {
     listen 80;
     server_name $DOMAIN;
     root $ROOT;
-    index index.php index.html;
+    index index.php index.html index.htm;
 
     access_log /var/log/nginx/${DOMAIN}_access.log;
     error_log /var/log/nginx/${DOMAIN}_error.log;
 
     client_max_body_size 100M;
+    server_tokens off;
 
     $(if [ ! -z "$ALLOW_IP" ]; then
         echo "
@@ -292,19 +347,43 @@ server {
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
     }
 
-    location ~ /\.ht {
-        deny all;
-    }
+    location ~ /\.ht { deny all; }
+    location ~ /\.git { deny all; }
+    location ~ /\.env { deny all; }
 }
 EOF
     ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
+}
+
+# 4. Safe Reload & SSL Automation
+safe_nginx_reload() {
+    log "Validating Nginx Configuration..."
+    if ! nginx -t; then
+        error "CRITICAL: Nginx configuration is invalid! Aborting reload."
+        return 1
+    fi
+    systemctl reload nginx
+    log "Nginx reloaded successfully."
+    
+    log "Provisioning SSL Certificates..."
+    # Automate Certbot for all sites defined in sites-enabled (excluding 00-default-block)
+    for site in /etc/nginx/sites-enabled/*; do
+        basename=$(basename "$site")
+        if [ "$basename" != "00-default-block" ] && [ "$basename" != "default" ]; then
+            log "Requesting SSL for $basename..."
+            certbot --nginx -d "$basename" --non-interactive --agree-tos --email "$ADMIN_EMAIL" || log "SSL failed for $basename."
+        fi
+    done
 }
 
 # Admin IP (Current Connection IP)
 ADMIN_IP=$(echo $SSH_CLIENT | awk '{print $1}')
 log "Restricting Admin Panels to IP: $ADMIN_IP"
 
-# Create Server Blocks
+# Execute Nginx Pipeline
+create_default_block_server
+create_safe_snippets
+
 create_vhost "$MAIN_DOMAIN" "$PANEL_ROOT/landing"
 create_vhost "$ADMIN_DOMAIN" "$PANEL_ROOT/whm" "$ADMIN_IP"
 create_vhost "$CLIENT_DOMAIN" "$PANEL_ROOT/cpanel"
@@ -313,8 +392,8 @@ create_vhost "$PHPMYADMIN_DOMAIN" "/usr/share/phpmyadmin" "$ADMIN_IP"
 create_vhost "webmail.$MAIN_DOMAIN" "/var/lib/roundcube"
 create_vhost "monitor.$MAIN_DOMAIN" "$APPS_ROOT/monitor"
 
-# Validate
-nginx -t && systemctl reload nginx
+safe_nginx_reload
+
 
 # ==============================================================================
 # 7. DNS SERVER (BIND9)

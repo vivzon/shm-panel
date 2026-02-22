@@ -206,8 +206,34 @@ safe_reload_php() {
     nohup bash -c "sleep 5; systemctl reload php8.2-fpm" >/dev/null 2>&1 &
 }
 
+# Ensure Snippets Exist to prevent Nginx fatal errors
+create_safe_snippets() {
+    mkdir -p /etc/nginx/snippets
+    
+    if [ ! -f "/etc/nginx/snippets/fastcgi-php.conf" ]; then
+        cat > /etc/nginx/snippets/fastcgi-php.conf << 'EOF'
+fastcgi_split_path_info ^(.+\.php)(/.+)$;
+try_files $fastcgi_script_name =404;
+set $path_info $fastcgi_path_info;
+fastcgi_param PATH_INFO $path_info;
+fastcgi_index index.php;
+include fastcgi.conf;
+EOF
+    fi
+
+    if [ ! -f "/etc/nginx/snippets/panel-apps.conf" ]; then
+        cat > /etc/nginx/snippets/panel-apps.conf << 'EOF'
+# Global Webmail / PHPMyAdmin Routing
+location ^~ /webmail { alias /var/lib/roundcube; index index.php index.html; location ~ \.php$ { include snippets/fastcgi-php.conf; fastcgi_pass unix:/run/php/php8.2-fpm.sock; } }
+location ^~ /phpmyadmin { alias /usr/share/phpmyadmin; index index.php index.html; location ~ \.php$ { include snippets/fastcgi-php.conf; fastcgi_pass unix:/run/php/php8.2-fpm.sock; } }
+EOF
+    fi
+}
+
 # Safe Nginx Reload (Prevents Crash)
 safe_nginx_reload() {
+    create_safe_snippets
+
     # 1. Verify Config
     if ! nginx -t; then
         log_action "[CRITICAL] Nginx Config Check Failed! Aborting Reload."
@@ -493,6 +519,7 @@ server {
     index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
+    server_tokens off;
     
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -510,6 +537,10 @@ server {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.2-fpm-$USER.sock;
     }
+
+    location ~ /\.ht { deny all; }
+    location ~ /\.git { deny all; }
+    location ~ /\.env { deny all; }
 }
 EOF
         
@@ -917,6 +948,7 @@ server {
     index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
+    server_tokens off;
     
     # SSL Configuration
     ssl_certificate $CERT;
@@ -951,6 +983,10 @@ server {
         fastcgi_pass unix:$SOCK;
     }
     
+    location ~ /\.ht { deny all; }
+    location ~ /\.git { deny all; }
+    location ~ /\.env { deny all; }
+
     # Block sensitive files
     location ~ /\.(?!well-known) {
         deny all;
@@ -967,6 +1003,7 @@ server {
     index index.php index.html index.htm default.html;
 
     client_max_body_size 2048M;
+    server_tokens off;
     
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -991,6 +1028,10 @@ server {
         fastcgi_pass unix:$SOCK;
     }
     
+    location ~ /\.ht { deny all; }
+    location ~ /\.git { deny all; }
+    location ~ /\.env { deny all; }
+
     # Block sensitive files
     location ~ /\.(?!well-known) {
         deny all;

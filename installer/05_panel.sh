@@ -170,7 +170,7 @@ FAIL2BAN
 }
 
 setup_nginx_domains() {
-    log "Configuring Nginx Domains..."
+    log "Configuring Nginx Domains (Hardened)..."
 
     # Define Domain => Root Path Mapping
     declare -A DOMAINS
@@ -184,75 +184,158 @@ setup_nginx_domains() {
         ["monitor.$MAIN_DOMAIN"]="/var/www/apps/monitor"
     )
 
-    # Clean legacy defaults
-    rm -f /etc/nginx/sites-enabled/default
-
-    for DOM in "${!DOMAINS[@]}"; do
-        ROOT_DIR="${DOMAINS[$DOM]}"
+    # 1. Block Unknown Domains (Return 444)
+    create_default_block_server() {
+        log "Configuring Default Block Server..."
+        rm -f /etc/nginx/sites-enabled/default
+        rm -f /etc/nginx/sites-available/default
         
-        # Ensure root exists (mkdir if missing to prevent Nginx crash)
-        if [ ! -d "$ROOT_DIR" ]; then
-            mkdir -p "$ROOT_DIR"
-            # Create dummy index if empty
-            if [ -z "$(ls -A $ROOT_DIR)" ]; then
-                 echo "<h1>$DOM</h1>" > "$ROOT_DIR/index.html"
-            fi
+        # Needs a dummy cert to reject SNI requests cleanly
+        if [ ! -f /etc/ssl/certs/ssl-cert-snakeoil.pem ]; then
+            apt-get install -y ssl-cert
+            make-ssl-cert generate-default-snakeoil --force-overwrite
         fi
 
-        log "Creating VHost for: $DOM -> $ROOT_DIR"
+        cat > /etc/nginx/sites-available/00-default-block << 'EOF'
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    return 444; # Connection Closed Without Response
+}
 
-        cat > "/etc/nginx/sites-available/$DOM" <<EOF
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    server_name _;
+    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+    return 444; # Connection Closed Without Response
+}
+EOF
+        ln -sf /etc/nginx/sites-available/00-default-block /etc/nginx/sites-enabled/
+    }
+
+    # 2. Ensure Snippets Exist
+    create_safe_snippets() {
+        log "Verifying Nginx Snippets..."
+        mkdir -p /etc/nginx/snippets
+        
+        if [ ! -f "/etc/nginx/snippets/fastcgi-php.conf" ]; then
+            cat > /etc/nginx/snippets/fastcgi-php.conf << 'EOF'
+fastcgi_split_path_info ^(.+\.php)(/.+)$;
+try_files $fastcgi_script_name =404;
+set $path_info $fastcgi_path_info;
+fastcgi_param PATH_INFO $path_info;
+fastcgi_index index.php;
+include fastcgi.conf;
+EOF
+        fi
+    }
+
+    # 3. Secure VHost Generator
+    create_vhost() {
+        local DOMAIN=$1
+        local ROOT=$2
+        local ALLOW_IP=$3
+
+        log "Generating Secure VHost for: $DOMAIN"
+
+        if [ ! -d "$ROOT" ]; then
+            mkdir -p "$ROOT"
+            log "Created missing directory: $ROOT"
+        fi
+
+        cat > "/etc/nginx/sites-available/$DOMAIN" <<EOF
 server {
     listen 80;
-    server_name $DOM;
-    root $ROOT_DIR;
-    index index.php index.html;
+    server_name $DOMAIN;
+    root $ROOT;
+    index index.php index.html index.htm;
 
-    access_log /var/log/nginx/${DOM}_access.log;
-    error_log /var/log/nginx/${DOM}_error.log;
+    access_log /var/log/nginx/${DOMAIN}_access.log;
+    error_log /var/log/nginx/${DOMAIN}_error.log;
 
     client_max_body_size 100M;
+    server_tokens off;
 
+    $(if [ ! -z "$ALLOW_IP" ]; then
+        echo "
+    location / {
+        allow $ALLOW_IP;
+        deny all;
+        try_files \$uri \$uri/ /index.php?\$args;
+    }
+        "
+    else
+        echo "
     location / {
         try_files \$uri \$uri/ /index.php?\$args;
     }
+        "
+    fi)
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.2-fpm.sock;
     }
 
-    location ~ /\.ht {
-        deny all;
-    }
+    location ~ /\.ht { deny all; }
+    location ~ /\.git { deny all; }
+    location ~ /\.env { deny all; }
 }
 EOF
-        # Enable Site
-        ln -sf "/etc/nginx/sites-available/$DOM" "/etc/nginx/sites-enabled/"
+        ln -sf "/etc/nginx/sites-available/$DOMAIN" "/etc/nginx/sites-enabled/"
+    }
+
+    # 4. Safe Reload (SSL handled in step 06_finalize.sh for modular installs)
+    safe_nginx_reload() {
+        log "Validating Nginx Configuration..."
+        if ! nginx -t; then
+            error "CRITICAL: Nginx configuration is invalid! Aborting reload."
+            return 1
+        fi
+        systemctl reload nginx
+        log "Nginx reloaded successfully."
+    }
+
+    # Admin IP
+    ADMIN_IP=$(echo $SSH_CLIENT | awk '{print $1}')
+    log "Restricting Admin Panels to IP: $ADMIN_IP"
+
+    # Execute
+    create_default_block_server
+    create_safe_snippets
+
+    # Iterate over domains map to generate VHosts
+    for DOMAIN in "${!DOMAINS[@]}"; do
+        ROOT_DIR="${DOMAINS[$DOMAIN]}"
+        
+        # Determine if it requires an IP lock
+        case "$DOMAIN" in
+            "admin.$MAIN_DOMAIN"|"phpmyadmin.$MAIN_DOMAIN")
+                create_vhost "$DOMAIN" "$ROOT_DIR" "$ADMIN_IP"
+                ;;
+            *)
+                create_vhost "$DOMAIN" "$ROOT_DIR"
+                ;;
+        esac
     done
 
-    # 3. Fix Permissions
+    # Fix Web Permissions
     log "Fixing Web Permissions..."
     chown -R www-data:www-data /var/www
     chmod -R 755 /var/www
 
-    # 4. Validate Nginx
-    if ! nginx -t; then
-        error "Nginx configuration failed. Check logs."
-    fi
+    safe_nginx_reload
 
-    # 5. Reload Nginx
-    systemctl reload nginx
-    log "Nginx Reloaded."
-
-    # 6. Health Check (Local)
+    # Health Check (Local)
     log "Running Health Checks..."
-    for DOM in "${!DOMAINS[@]}"; do
-        # Use curl with resolving to localhost to bypass DNS propagation issues during install
-        if curl -s -I -H "Host: $DOM" "http://127.0.0.1" | grep -q "200 OK"; then
-             log "[OK] $DOM is reachable."
+    for DOMAIN in "${!DOMAINS[@]}"; do
+        if curl -s -I -H "Host: $DOMAIN" "http://127.0.0.1" | grep -q "200 OK"; then
+             log "[OK] $DOMAIN is reachable."
         else
-             warn "[FAIL] $DOM returned non-200 status."
+             warn "[FAIL] $DOMAIN returned non-200 status."
         fi
     done
 }
