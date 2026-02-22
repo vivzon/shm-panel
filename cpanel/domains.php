@@ -14,10 +14,13 @@ $search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
 if (isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
 
+    ob_start();
+
     // CSRF Protection
     try {
         verify_csrf();
     } catch (Exception $e) {
+        ob_end_clean();
         http_response_code(403);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
         exit;
@@ -133,6 +136,10 @@ if (isset($_POST['ajax_action'])) {
                 cmd("dns-tool sync $dom_id");
             }
 
+            $out = ob_get_clean();
+            if (!empty(trim($out))) {
+                throw new Exception("PHP Output Error: " . strip_tags($out));
+            }
             sendResponse($res);
             exit;
         }
@@ -385,9 +392,16 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
-    } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+    } catch (Throwable $e) {
+        $out = ob_get_clean();
+        // Return 200 so Nginx doesn't intercept it with 50x.html
+        // http_response_code(500);
+        $msg = $e->getMessage();
+        if (!empty(trim($out))) {
+            $msg .= " | Output: " . strip_tags($out);
+        }
+        $msg = mb_convert_encoding($msg, 'UTF-8', 'auto');
+        echo json_encode(['status' => 'error', 'msg' => $msg]);
     }
     exit;
 }
