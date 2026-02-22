@@ -59,8 +59,8 @@ CONFIG
     # Shared Config
     if [ -f "shared/config.php" ]; then
         cp shared/config.php /var/www/panel/shared/config.php
-        sed -i "s/SHMPanel_Secure_Pass_2025/$DB_PASS/g" /var/www/panel/shared/config.php
-        sed -i "s/yourdomain.com/$MAIN_DOMAIN/g" /var/www/panel/shared/config.php
+        sed -i "s|SHMPanel_Secure_Pass_2025|$DB_PASS|g" /var/www/panel/shared/config.php
+        sed -i "s|yourdomain.com|$MAIN_DOMAIN|g" /var/www/panel/shared/config.php
     fi
     
     # 3. FTP Setup (ProFTPD)
@@ -91,12 +91,11 @@ EOF
 CRON
     chmod +x /etc/cron.hourly/shm-traffic
     
-    # Metrics
-    cat > /etc/cron.minutely/shm-metrics << CRON_M
-#!/bin/bash
-# Logic to collect metrics would go here (simplified for refactor)
+    # Metrics (Minutely)
+    cat > /etc/cron.d/shm-metrics << CRON_M
+* * * * * root /usr/local/bin/shm-manage metrics 2>/dev/null || true
 CRON_M
-    chmod +x /etc/cron.minutely/shm-metrics
+    chmod 644 /etc/cron.d/shm-metrics
     
     # 5. Fail2ban Jails
     log "Configuring Fail2ban..."

@@ -66,12 +66,11 @@ Once the automated installation is complete, you must secure the panel by runnin
    ```
 
 2. **PHP Configuration (php.ini):**
-   To further harden the server, ensure that dangerous PHP functions are disabled at the server level. 
-   Edit your `php.ini` files (typically located in `/etc/php/8.x/fpm/php.ini`) and append the following to the `disable_functions` directive:
-   ```ini
-   disable_functions = system,exec,passthru,shell_exec,proc_open,popen
+   To further harden the server, ensure that dangerous PHP functions are disabled at the server level. Run the following command to automatically update all PHP versions:
+   ```bash
+   sed -i 's/^disable_functions =.*/disable_functions = system,exec,passthru,shell_exec,proc_open,popen/g' /etc/php/*/fpm/php.ini
+   systemctl restart php8.1-fpm php8.2-fpm php8.3-fpm 2>/dev/null || true
    ```
-   Then restart PHP: `systemctl restart php8.2-fpm` (adjust version as necessary).
 
 ---
 
