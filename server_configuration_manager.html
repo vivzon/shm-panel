@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Configuration Manager - SHM Panel</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            /* Light Theme */
+            --bg-body: #f5f7fa;
+            --bg-surface: #ffffff;
+            --bg-sidebar: #ffffff;
+            --bg-preview: #1e1e1e;
+
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --text-preview: #d4d4d4;
+
+            --border-color: #e5e7eb;
+            --input-border: #d1d5db;
+            --input-bg: #ffffff;
+
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #1d4ed8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-full: 9999px;
+
+            --transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --bg-body: #0f1115;
+            --bg-surface: #1e2128;
+            --bg-sidebar: #16181d;
+            --bg-preview: #0f1115;
+
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --text-preview: #d4d4d4;
+
+            --border-color: #2d313a;
+            --input-border: #374151;
+            --input-bg: #1e2128;
+
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #60a5fa;
+
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Layout Structure */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 0;
+            z-index: 10;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            height: 80px;
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 5;
+        }
+
+        .content-area {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .content-main {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .preview-panel {
+            width: 400px;
+            background-color: var(--bg-surface);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styling */
+        .logo {
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .nav-item {
+            padding: 0.25rem 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            background-color: rgba(37, 99, 235, 0.05);
+            color: var(--accent-blue);
+        }
+
+        .nav-link.active {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Header Styling */
+        .header-title-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-full);
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
+
+        .server-status.warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--accent-yellow);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        .status-dot.pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+            }
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-blue-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--bg-body);
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 50%;
+            color: var(--text-muted);
+            background: transparent;
+        }
+
+        .btn-icon:hover {
+            color: var(--text-main);
+            background: var(--bg-body);
+        }
+
+        /* Content Sections */
+        .section-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .card-icon.php {
+            background-color: rgba(119, 123, 179, 0.1);
+            color: #777bb3;
+        }
+
+        .card-icon.fpm {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .form-label-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: normal;
+            margin-left: 0.5rem;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .input-addon {
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            background-color: var(--bg-body);
+            border: 1px solid var(--input-border);
+            border-left: none;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .form-control.has-addon {
+            border-radius: var(--radius-md) 0 0 var(--radius-md);
+        }
+
+        /* Select styling */
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem top 50%;
+            background-size: 0.65rem auto;
+            padding-right: 2rem;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 0.5rem 0;
+        }
+
+        .toggle-switch-input {
+            width: 0;
+            height: 0;
+            opacity: 0;
+        }
+
+        .toggle-switch-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .toggle-switch-slider {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background-color: var(--input-border);
+            border-radius: 24px;
+            transition: var(--transition);
+        }
+
+        .toggle-switch-slider:before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: white;
+            top: 3px;
+            left: 3px;
+            transition: var(--transition);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch-input:checked+.toggle-switch-slider {
+            background-color: var(--accent-blue);
+        }
+
+        .toggle-switch-input:checked+.toggle-switch-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Presets Area */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .preset-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+        }
+
+        .preset-btn:hover,
+        .preset-btn.active {
+            border-color: var(--accent-blue);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+
+        .preset-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+
+        .preset-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Service Control Area */
+        .service-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        /* Range slider */
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .range-input {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: var(--input-border);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .range-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .range-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            min-width: 48px;
+            text-align: right;
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Live Preview Panel */
+        .preview-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .validation-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--accent-green);
+        }
+
+        .preview-tabs {
+            display: flex;
+            background-color: var(--bg-body);
+            padding: 0.5rem 1.5rem 0;
+        }
+
+        .preview-tab {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+        }
+
+        .preview-tab:hover {
+            color: var(--text-main);
+        }
+
+        .preview-tab.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+            background-color: var(--bg-preview);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-content {
+            flex: 1;
+            background-color: var(--bg-preview);
+            padding: 1.5rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .code-block {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            color: var(--text-preview);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .code-highlight {
+            color: #60a5fa;
+            background-color: rgba(96, 165, 250, 0.1);
+            padding: 0 0.25rem;
+            border-radius: 2px;
+            font-weight: 500;
+            transition: background-color 0.5s;
+        }
+
+        .code-highlight.pulse {
+            background-color: rgba(96, 165, 250, 0.4);
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: var(--bg-surface);
+            border-left: 4px solid var(--accent-green);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-icon {
+            color: var(--accent-green);
+            font-size: 1.25rem;
+        }
+
+        .toast-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .toast-message {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .preview-panel {
+                position: fixed;
+                right: -400px;
+                top: 80px;
+                bottom: 0;
+                z-index: 20;
+                transition: var(--transition);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .preview-panel.show {
+                right: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                top: 0;
+                bottom: 0;
+                transition: var(--transition);
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .preset-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 0 1rem;
+            }
+
+            .header-actions .btn span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-server"></i>
+            SHM Panel
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-globe"></i>
+                    Websites
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-folder-open"></i>
+                    File Manager
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-database"></i>
+                    Database
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-lock"></i>
+                    SSL Manager
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-sliders"></i>
+                    Server Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <i class="fa-solid fa-microchip"></i>
+                    Config Manager
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-file-lines"></i>
+                    Logs
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Security
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <label class="toggle-switch">
+                <span class="toggle-switch-label" style="font-size: 0.8125rem; color: var(--text-muted);"><i
+                        class="fa-solid fa-moon"></i> Dark Mode</span>
+                <input type="checkbox" id="theme-toggle" class="toggle-switch-input">
+                <div class="toggle-switch-slider"></div>
+            </label>
+        </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title-wrapper">
+                <h1 class="header-title">Server Configuration Manager</h1>
+                <span class="header-subtitle">Manage Nginx, PHP and Upload Settings</span>
+            </div>
+
+            <div class="header-actions">
+                <div class="server-status" id="serverStatusIndicator">
+                    <div class="status-dot"></div>
+                    <span>Running</span>
+                </div>
+
+                <button class="btn btn-outline" id="btnPreviewToggle" title="Toggle Code Preview">
+                    <i class="fa-solid fa-code"></i>
+                </button>
+
+                <button class="btn btn-outline" onclick="triggerRestart()">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Restart Services</span>
+                </button>
+
+                <button class="btn btn-primary" onclick="saveConfiguration()">
+                    <i class="fa-solid fa-check"></i>
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Main Content -->
+            <main class="content-main">
+
+                <div class="section-header">
+                    <h2 class="section-title">Nginx & PHP Settings</h2>
+                    <label class="toggle-switch">
+                        <span class="toggle-switch-label"
+                            style="margin-right: 10px; color: var(--text-muted); font-size: 0.875rem;">Auto-backup
+                            config</span>
+                        <input type="checkbox" checked class="toggle-switch-input">
+                        <div class="toggle-switch-slider"></div>
+                    </label>
+                </div>
+
+                <div class="grid-layout">
+                    <!-- SECTION 1: Nginx Upload Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <i class="fa-solid fa-server"></i>
+                            </div>
+                            <h3 class="card-title">Nginx Upload Settings</h3>
+                        </div>
+                        <div class="card-body">
+                            <label class="toggle-switch"
+                                style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                                <span class="toggle-switch-label">Unlimited Upload Size</span>
+                                <input type="checkbox" id="toggleUnlimited" class="toggle-switch-input"
+                                    onchange="toggleUnlimitedUploads()">
+                                <div class="toggle-switch-slider"></div>
+                            </label>
+
+                            <div class="form-group" id="grp-client-max-body">
+                                <label class="form-label">Client Max Body Size <span
+                                        class="form-label-hint">client_max_body_size</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="nginx_client_max_body_size" class="form-control has-addon"
+                                        value="50" oninput="updatePreview()">
+                                    <span class="input-addon">MB</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Client Body Timeout <span
+                                        class="form-label-hint">client_body_timeout</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="nginx_client_body_timeout" class="form-control has-addon"
+                                        value="60" oninput="updatePreview()">
+                                    <span class="input-addon">s</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Send Timeout <span
+                                        class="form-label-hint">send_timeout</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="nginx_send_timeout" class="form-control has-addon"
+                                        value="60" oninput="updatePreview()">
+                                    <span class="input-addon">s</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Keepalive Timeout <span
+                                        class="form-label-hint">keepalive_timeout</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="nginx_keepalive_timeout" class="form-control has-addon"
+                                        value="65" oninput="updatePreview()">
+                                    <span class="input-addon">s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2: PHP Configuration -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon php">
+                                <i class="fa-brands fa-php"></i>
+                            </div>
+                            <h3 class="card-title">PHP Configuration</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">PHP Version</label>
+                                <select id="php_version" class="form-control" onchange="updatePreview()">
+                                    <option value="8.3">PHP 8.3 (Default)</option>
+                                    <option value="8.2">PHP 8.2</option>
+                                    <option value="8.1">PHP 8.1</option>
+                                    <option value="8.0">PHP 8.0</option>
+                                    <option value="7.4">PHP 7.4 (Legacy)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Upload Max Filesize <span
+                                        class="form-label-hint">upload_max_filesize</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="php_upload_max_filesize" class="form-control has-addon"
+                                        value="50" oninput="updatePreview()">
+                                    <span class="input-addon">M</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Post Max Size <span
+                                        class="form-label-hint">post_max_size</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="php_post_max_size" class="form-control has-addon"
+                                        value="64" oninput="updatePreview()">
+                                    <span class="input-addon">M</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Memory Limit <span
+                                        class="form-label-hint">memory_limit</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="php_memory_limit" class="form-control has-addon"
+                                        value="256" oninput="updatePreview()">
+                                    <span class="input-addon">M</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Max Execution Time <span
+                                        class="form-label-hint">max_execution_time</span></label>
+                                <div class="range-container">
+                                    <input type="range" id="php_max_execution_time" min="30" max="600" step="30"
+                                        value="60" class="range-input"
+                                        oninput="updateRange('php_max_execution_time_val', this.value); updatePreview()">
+                                    <span class="range-value" id="php_max_execution_time_val">60s</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Max Input Time <span
+                                        class="form-label-hint">max_input_time</span></label>
+                                <div class="range-container">
+                                    <input type="range" id="php_max_input_time" min="60" max="600" step="60" value="60"
+                                        class="range-input"
+                                        oninput="updateRange('php_max_input_time_val', this.value); updatePreview()">
+                                    <span class="range-value" id="php_max_input_time_val">60s</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Default Socket Timeout <span
+                                        class="form-label-hint">default_socket_timeout</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="php_default_socket_timeout" class="form-control has-addon"
+                                        value="60" oninput="updatePreview()">
+                                    <span class="input-addon">s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 3: FastCGI / Proxy Timeout -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon fpm">
+                                <i class="fa-solid fa-network-wired"></i>
+                            </div>
+                            <h3 class="card-title">FastCGI / Proxy Timeout</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">FastCGI Read Timeout <span
+                                        class="form-label-hint">fastcgi_read_timeout</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="fcgi_read_timeout" class="form-control has-addon"
+                                        value="60" oninput="updatePreview()">
+                                    <span class="input-addon">s</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">FastCGI Send Timeout <span
+                                        class="form-label-hint">fastcgi_send_timeout</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="fcgi_send_timeout" class="form-control has-addon"
+                                        value="60" oninput="updatePreview()">
+                                    <span class="input-addon">s</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Proxy Read Timeout <span
+                                        class="form-label-hint">proxy_read_timeout</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="proxy_read_timeout" class="form-control has-addon"
+                                        value="60" oninput="updatePreview()">
+                                    <span class="input-addon">s</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">Proxy Connect Timeout <span
+                                        class="form-label-hint">proxy_connect_timeout</span></label>
+                                <div class="input-group">
+                                    <input type="number" id="proxy_connect_timeout" class="form-control has-addon"
+                                        value="60" oninput="updatePreview()">
+                                    <span class="input-addon">s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h2 class="section-title">Quick Presets & Operations</h2>
+                </div>
+
+                <div class="grid-layout">
+                    <!-- SECTION 4: Quick Presets -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title" style="margin-bottom: 1rem;">Configuration Presets</h3>
+                            <div class="preset-grid">
+                                <button class="preset-btn active" onclick="applyPreset('default', this)">
+                                    <span class="preset-title">Default Hosting</span>
+                                    <span class="preset-desc">Balanced settings for standard web sites (50MB up)</span>
+                                </button>
+                                <button class="preset-btn" onclick="applyPreset('large', this)">
+                                    <span class="preset-title">Large Uploads</span>
+                                    <span class="preset-desc">High limits for media heavy sites (500MB up)</span>
+                                </button>
+                                <button class="preset-btn" onclick="applyPreset('backup', this)">
+                                    <span class="preset-title">Backup Server mode</span>
+                                    <span class="preset-desc">Extended timeouts, huge file limits (2GB+ limit)</span>
+                                </button>
+                                <button class="preset-btn" onclick="applyPreset('unlimited', this)">
+                                    <span class="preset-title">Unlimited Mode</span>
+                                    <span class="preset-desc">Removes artificial limits (0 max body size)</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 5: Service Control Panel -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title" style="margin-bottom: 1rem;">Service Operations</h3>
+                            <div class="service-actions">
+                                <button class="btn btn-outline" style="flex: 1; min-width: 140px;"
+                                    onclick="simulateAction('Restarting Nginx...', true)">
+                                    <i class="fa-solid fa-server"></i> Restart Nginx
+                                </button>
+                                <button class="btn btn-outline" style="flex: 1; min-width: 140px;"
+                                    onclick="simulateAction('Restarting PHP-FPM...', true)">
+                                    <i class="fa-brands fa-php"></i> Restart PHP-FPM
+                                </button>
+                                <button class="btn btn-outline" style="flex: 1; min-width: 140px;"
+                                    onclick="simulateAction('Reloading Configuration...', false)">
+                                    <i class="fa-solid fa-rotate"></i> Reload Config
+                                </button>
+                                <button class="btn btn-outline" style="flex: 1; min-width: 140px;"
+                                    onclick="testSyntax()">
+                                    <i class="fa-solid fa-vial-circle-check"></i> Test Syntax
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- SECTION 6: Right Side Live Preview Panel -->
+            <aside class="preview-panel" id="previewPanel">
+                <div class="preview-tabs">
+                    <div class="preview-tab active" onclick="switchPreview('nginx', this)">nginx.conf</div>
+                    <div class="preview-tab" onclick="switchPreview('php', this)">php.ini</div>
+                </div>
+
+                <div class="preview-header">
+                    <div class="preview-title" id="previewTitle">
+                        <i class="fa-solid fa-file-code"></i> /etc/nginx/nginx.conf
+                    </div>
+                    <div class="validation-indicator">
+                        <i class="fa-solid fa-circle-check"></i> Syntax Valid
+                    </div>
+                </div>
+
+                <div class="preview-content">
+                    <div id="preview-nginx" class="code-block" style="display: block;"></div>
+                    <div id="preview-php" class="code-block" style="display: none;"></div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // DOM Elements
+        const inputs = {
+            nginx_client_max_body_size: document.getElementById('nginx_client_max_body_size'),
+            nginx_client_body_timeout: document.getElementById('nginx_client_body_timeout'),
+            nginx_send_timeout: document.getElementById('nginx_send_timeout'),
+            nginx_keepalive_timeout: document.getElementById('nginx_keepalive_timeout'),
+
+            php_upload_max_filesize: document.getElementById('php_upload_max_filesize'),
+            php_post_max_size: document.getElementById('php_post_max_size'),
+            php_memory_limit: document.getElementById('php_memory_limit'),
+            php_max_execution_time: document.getElementById('php_max_execution_time'),
+            php_max_input_time: document.getElementById('php_max_input_time'),
+            php_default_socket_timeout: document.getElementById('php_default_socket_timeout'),
+
+            fcgi_read_timeout: document.getElementById('fcgi_read_timeout'),
+            fcgi_send_timeout: document.getElementById('fcgi_send_timeout'),
+            proxy_read_timeout: document.getElementById('proxy_read_timeout'),
+            proxy_connect_timeout: document.getElementById('proxy_connect_timeout')
+        };
+
+        let needRestart = false;
+        let previewActive = 'nginx';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updatePreview();
+
+            // Dark mode toggle
+            const themeToggle = document.getElementById('theme-toggle');
+            themeToggle.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+            });
+
+            // Check system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                themeToggle.checked = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+
+            // Mobile preview toggle
+            document.getElementById('btnPreviewToggle').addEventListener('click', () => {
+                const panel = document.getElementById('previewPanel');
+                panel.classList.toggle('show');
+            });
+        });
+
+        // Toggle Unlimited Uploads
+        function toggleUnlimitedUploads() {
+            const isUnlimited = document.getElementById('toggleUnlimited').checked;
+            const sizeInput = inputs.nginx_client_max_body_size;
+
+            if (isUnlimited) {
+                sizeInput.value = 0;
+                sizeInput.disabled = true;
+                document.getElementById('grp-client-max-body').style.opacity = '0.5';
+            } else {
+                sizeInput.value = 50;
+                sizeInput.disabled = false;
+                document.getElementById('grp-client-max-body').style.opacity = '1';
+            }
+
+            setRestartWarning();
+            updatePreview();
+        }
+
+        // Update Range Labels
+        function updateRange(id, val) {
+            document.getElementById(id).textContent = val + 's';
+        }
+
+        // Live Preview Generator
+        function updatePreview() {
+            setRestartWarning();
+
+            // Generate Nginx Config
+            const client_max = inputs.nginx_client_max_body_size.value == 0 ? "0" : inputs.nginx_client_max_body_size.value + "M";
+
+            const nginxConfig = `http {
+    # Basic Settings
+    sendfile on;
+    tcp_nopush on;
+    types_hash_max_size 2048;
+    server_tokens off;
+
+    # Client Variables
+    <span class="code-highlight" id="hl-nginx-client-body">client_max_body_size ${client_max};</span>
+    client_body_buffer_size 128k;
+
+    # Timeouts
+    <span class="code-highlight">client_body_timeout ${inputs.nginx_client_body_timeout.value}s;</span>
+    <span class="code-highlight">send_timeout ${inputs.nginx_send_timeout.value}s;</span>
+    <span class="code-highlight">keepalive_timeout ${inputs.nginx_keepalive_timeout.value}s;</span>
+
+    # FastCGI Settings
+    <span class="code-highlight">fastcgi_read_timeout ${inputs.fcgi_read_timeout.value}s;</span>
+    <span class="code-highlight">fastcgi_send_timeout ${inputs.fcgi_send_timeout.value}s;</span>
+    fastcgi_buffers 8 16k;
+    fastcgi_buffer_size 32k;
+
+    # Proxy Settings
+    <span class="code-highlight">proxy_read_timeout ${inputs.proxy_read_timeout.value}s;</span>
+    <span class="code-highlight">proxy_connect_timeout ${inputs.proxy_connect_timeout.value}s;</span>
+    proxy_send_timeout ${inputs.fcgi_send_timeout.value}s;
+    proxy_buffer_size 128k;
+    proxy_buffers 4 256k;
+}`;
+
+            // Generate PHP Config
+            const phpConfig = `[PHP]
+engine = On
+short_open_tag = Off
+precision = 14
+output_buffering = 4096
+zlib.output_compression = Off
+
+; Resource Limits
+<span class="code-highlight">max_execution_time = ${inputs.php_max_execution_time.value}</span>
+<span class="code-highlight">max_input_time = ${inputs.php_max_input_time.value}</span>
+<span class="code-highlight">memory_limit = ${inputs.php_memory_limit.value}M</span>
+
+; Error handling and logging
+error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
+display_errors = Off
+display_startup_errors = Off
+log_errors = On
+
+; Data Handling
+<span class="code-highlight">post_max_size = ${inputs.php_post_max_size.value}M</span>
+default_mimetype = "text/html"
+default_charset = "UTF-8"
+
+; File Uploads
+file_uploads = On
+<span class="code-highlight">upload_max_filesize = ${inputs.php_upload_max_filesize.value}M</span>
+max_file_uploads = 20
+
+; Default timeout
+<span class="code-highlight">default_socket_timeout = ${inputs.php_default_socket_timeout.value}</span>`;
+
+            document.getElementById('preview-nginx').innerHTML = nginxConfig;
+            document.getElementById('preview-php').innerHTML = phpConfig;
+
+            // Trigger code highlight animation
+            const highlights = document.querySelectorAll('.code-highlight');
+            highlights.forEach(el => {
+                el.classList.remove('pulse');
+                void el.offsetWidth; // trigger reflow
+                el.classList.add('pulse');
+            });
+        }
+
+        // Switch Preview Tabs
+        function switchPreview(type, btnTab) {
+            document.querySelectorAll('.preview-tab').forEach(el => el.classList.remove('active'));
+            btnTab.classList.add('active');
+
+            const phpVersion = document.getElementById('php_version').value;
+
+            if (type === 'nginx') {
+                document.getElementById('preview-nginx').style.display = 'block';
+                document.getElementById('preview-php').style.display = 'none';
+                document.getElementById('previewTitle').innerHTML = '<i class="fa-solid fa-file-code"></i> /etc/nginx/nginx.conf';
+                previewActive = 'nginx';
+            } else {
+                document.getElementById('preview-nginx').style.display = 'none';
+                document.getElementById('preview-php').style.display = 'block';
+                document.getElementById('previewTitle').innerHTML = '<i class="fa-brands fa-php"></i> /etc/php/' + phpVersion + '/fpm/php.ini';
+                previewActive = 'php';
+            }
+        }
+
+        // Presets Logic
+        function applyPreset(type, btnElement) {
+            // Update active state
+            document.querySelectorAll('.preset-btn').forEach(el => el.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            // Turn off unlimited first
+            document.getElementById('toggleUnlimited').checked = false;
+            inputs.nginx_client_max_body_size.disabled = false;
+            document.getElementById('grp-client-max-body').style.opacity = '1';
+
+            switch (type) {
+                case 'default':
+                    inputs.nginx_client_max_body_size.value = 50;
+                    inputs.nginx_client_body_timeout.value = 60;
+                    inputs.nginx_send_timeout.value = 60;
+
+                    inputs.php_upload_max_filesize.value = 50;
+                    inputs.php_post_max_size.value = 64;
+                    inputs.php_memory_limit.value = 256;
+                    inputs.php_max_execution_time.value = 60;
+                    inputs.php_max_input_time.value = 60;
+
+                    inputs.fcgi_read_timeout.value = 60;
+                    inputs.fcgi_send_timeout.value = 60;
+                    break;
+
+                case 'large':
+                    inputs.nginx_client_max_body_size.value = 500;
+                    inputs.nginx_client_body_timeout.value = 300;
+                    inputs.nginx_send_timeout.value = 300;
+
+                    inputs.php_upload_max_filesize.value = 500;
+                    inputs.php_post_max_size.value = 512;
+                    inputs.php_memory_limit.value = 1024;
+                    inputs.php_max_execution_time.value = 300;
+                    inputs.php_max_input_time.value = 300;
+
+                    inputs.fcgi_read_timeout.value = 300;
+                    inputs.fcgi_send_timeout.value = 300;
+                    break;
+
+                case 'backup':
+                    inputs.nginx_client_max_body_size.value = 2048;
+                    inputs.nginx_client_body_timeout.value = 600;
+                    inputs.nginx_send_timeout.value = 600;
+
+                    inputs.php_upload_max_filesize.value = 2048;
+                    inputs.php_post_max_size.value = 2048;
+                    inputs.php_memory_limit.value = 2048;
+                    inputs.php_max_execution_time.value = 600;
+                    inputs.php_max_input_time.value = 600;
+
+                    inputs.fcgi_read_timeout.value = 600;
+                    inputs.fcgi_send_timeout.value = 600;
+                    break;
+
+                case 'unlimited':
+                    document.getElementById('toggleUnlimited').checked = true;
+                    toggleUnlimitedUploads();
+                    inputs.nginx_client_body_timeout.value = 3600;
+                    inputs.nginx_send_timeout.value = 3600;
+
+                    inputs.php_upload_max_filesize.value = 9999;
+                    inputs.php_post_max_size.value = 9999;
+                    inputs.php_memory_limit.value = 4096;
+                    inputs.php_max_execution_time.value = 3600;
+                    inputs.php_max_input_time.value = 3600;
+
+                    inputs.fcgi_read_timeout.value = 3600;
+                    inputs.fcgi_send_timeout.value = 3600;
+                    break;
+            }
+
+            // Sync ranges
+            updateRange('php_max_execution_time_val', inputs.php_max_execution_time.value);
+            updateRange('php_max_input_time_val', inputs.php_max_input_time.value);
+
+            updatePreview();
+            showToast('Preset Applied', `Configuration updated to ${type} template`, 'success');
+        }
+
+        // Server Status and Actions
+        function setRestartWarning() {
+            needRestart = true;
+            const status = document.getElementById('serverStatusIndicator');
+            status.className = 'server-status warning';
+            status.innerHTML = `<div class="status-dot pulse"></div><span>Restart Required</span>`;
+        }
+
+        function triggerRestart() {
+            if (!needRestart) {
+                showToast('Services Running', 'No restart required at this time.', 'info');
+                return;
+            }
+
+            simulateAction('Restarting all services...', true, () => {
+                needRestart = false;
+                const status = document.getElementById('serverStatusIndicator');
+                status.className = 'server-status';
+                status.innerHTML = `<div class="status-dot"></div><span>Running</span>`;
+                showToast('Services Restarted', 'Nginx and PHP-FPM restarted successfully.', 'success');
+            });
+        }
+
+        function saveConfiguration() {
+            showToast('Saving Configuration', 'Writing changes to configuration files...', 'success');
+            setTimeout(() => {
+                setRestartWarning();
+                showToast('Configuration Saved', 'You need to restart services to apply changes.', 'warning');
+            }, 800);
+        }
+
+        function testSyntax() {
+            showToast('Testing Syntax', 'Running nginx -t && php-fpm -t...', 'info');
+            setTimeout(() => {
+                showToast('Syntax Valid OK', 'Configuration files check passed successfully.', 'success');
+            }, 1000);
+        }
+
+        function simulateAction(msg, showLoader, callback) {
+            showToast('Operation in Progress', msg, 'info');
+            if (callback) {
+                setTimeout(callback, 1500);
+            }
+        }
+
+        // Custom Toast Notification System
+        function showToast(title, message, type = 'success') {
+            const icons = {
+                success: '<i class="fa-solid fa-circle-check"></i>',
+                warning: '<i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-yellow);"></i>',
+                info: '<i class="fa-solid fa-circle-info" style="color: var(--accent-blue);"></i>',
+                error: '<i class="fa-solid fa-circle-xmark" style="color: var(--accent-red);"></i>'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+
+            // Override border color based on type
+            let borderColor = 'var(--accent-green)';
+            if (type === 'warning') borderColor = 'var(--accent-yellow)';
+            if (type === 'info') borderColor = 'var(--accent-blue)';
+            if (type === 'error') borderColor = 'var(--accent-red)';
+            toast.style.borderLeftColor = borderColor;
+
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    ${icons[type]}
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+
+            document.getElementById('toastContainer').appendChild(toast);
+
+            // Entrance
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // Auto dismiss
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+    </script>
+</body>
+
+</html>

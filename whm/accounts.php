@@ -162,8 +162,8 @@ if (isset($_POST['ajax_action'])) {
             $_SESSION['client'] = $_POST['user'];
             $_SESSION['cid'] = $_POST['cid'];
             $host = $_SERVER['HTTP_HOST'];
-            $host = str_replace('admin.', 'cpanel.', $host);
-            $host = str_replace('whm.', 'cpanel.', $host);
+            $host = str_replace('admin.', 'client.', $host);
+            $host = str_replace('whm.', 'client.', $host);
             echo json_encode(['status' => 'success', 'redirect' => (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $host]);
             exit;
         }
