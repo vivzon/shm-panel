@@ -9,6 +9,7 @@ $cid = $_SESSION['cid'];
 $username = $_SESSION['client'];
 
 if (isset($_POST['ajax_action']) && $_POST['ajax_action'] == 'update_stats') {
+    verify_csrf();
     if (function_exists('cmd')) {
         cmd("update-traffic-stats");
     }
@@ -49,7 +50,8 @@ include 'layout/header.php';
             <h2 class="text-3xl font-bold text-white font-heading tracking-tight mb-2">Traffic & Stats</h2>
             <p class="text-slate-400">Monitor website activity and bandwidth consumption across your domains.</p>
         </div>
-        <button onclick="syncTraffic(this)" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
+        <button onclick="syncTraffic(this)"
+            class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
             <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sync Statistics
         </button>
     </div>
@@ -137,30 +139,31 @@ include 'layout/header.php';
 </div>
 
 <script>
-async function syncTraffic(btn) {
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Syncing...`;
-    lucide.createIcons();
-    
-    try {
-        const fd = new FormData();
-        fd.append('ajax_action', 'update_stats');
-        const res = await fetch('traffic.php', { method: 'POST', body: fd }).then(r => r.json());
-        
-        if (res.status === 'success') {
-            showToast('success', 'Success', res.msg);
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showToast('error', 'Error', res.msg);
+    async function syncTraffic(btn) {
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Syncing...`;
+        lucide.createIcons();
+
+        try {
+            const fd = new FormData();
+            fd.append('ajax_action', 'update_stats');
+            fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+            const res = await fetch('traffic.php', { method: 'POST', body: fd }).then(r => r.json());
+
+            if (res.status === 'success') {
+                showToast('success', 'Success', res.msg);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('error', 'Error', res.msg);
+            }
+        } catch (e) {
+            showToast('error', 'Error', 'Failed to connect to server');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
         }
-    } catch (e) {
-        showToast('error', 'Error', 'Failed to connect to server');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
     }
-}
 </script>
 
 <?php include 'layout/footer.php'; ?>

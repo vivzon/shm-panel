@@ -13,6 +13,7 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
 
     try {
+        verify_csrf();
         if ($action == 'install_app') {
             $app = $_POST['app'];
             $dom_id = $_POST['domain_id'];
@@ -168,6 +169,7 @@ include 'layout/header.php';
         fd.append('ajax_action', 'install_app');
         fd.append('app', app);
         fd.append('domain_id', domainId);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
         showToast('info', 'Installation Started', 'Creating database and installing files. Please wait...');
 
@@ -186,6 +188,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'uninstall_app');
         fd.append('install_id', id);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
         try {
             const res = await fetch('', { method: 'POST', body: fd });

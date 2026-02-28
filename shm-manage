@@ -1179,7 +1179,9 @@ EOF
             
             # Config
             cp "$APPS_ROOT/roundcube/config/config.inc.php.sample" "$APPS_ROOT/roundcube/config/config.inc.php"
-            # We would need to SED the db config here...
+            echo "\$config['db_dsnw'] = 'mysqli://roundcube:roundcube_pass@localhost/roundcube';" >> "$APPS_ROOT/roundcube/config/config.inc.php"
+            echo "\$config['default_host'] = 'localhost';" >> "$APPS_ROOT/roundcube/config/config.inc.php"
+            echo "\$config['smtp_server'] = 'localhost';" >> "$APPS_ROOT/roundcube/config/config.inc.php"
             
             # Fix permissions
             chown -R www-data:www-data "$APPS_ROOT/roundcube/temp" "$APPS_ROOT/roundcube/logs"
@@ -1303,6 +1305,7 @@ EOF
                     
                     if [ -d "$TMP/wordpress" ]; then
                         cp -r "$TMP/wordpress/"* "$DOCROOT/"
+                        cp -r "$TMP/wordpress/."* "$DOCROOT/" 2>/dev/null || true
                         
                         # WordPress Configuration
                         WP_CONFIG="$DOCROOT/wp-config.php"
@@ -1336,8 +1339,9 @@ EOF
                         
                         # Set Permissions
                         chown -R "$USER:www-data" "$DOCROOT"
-                        find "$DOCROOT" -type d -exec chmod 755 {} \;
-                        find "$DOCROOT" -type f -exec chmod 644 {} \;
+                        find "$DOCROOT" -type d -exec chmod 775 {} \;
+                        find "$DOCROOT" -type f -exec chmod 664 {} \;
+                        chmod g+s "$DOCROOT"
                         chmod 640 "$WP_CONFIG"
                         
                         mysql -e "UPDATE app_installations SET status='active' WHERE db_name='$DB_NAME_VAL'" "$DB_NAME" 2>/dev/null || true
@@ -1377,6 +1381,9 @@ EOF
                         
                         # Set Permissions
                         chown -R "$USER:www-data" "$DOCROOT"
+                        find "$DOCROOT" -type d -exec chmod 775 {} \;
+                        find "$DOCROOT" -type f -exec chmod 664 {} \;
+                        chmod g+s "$DOCROOT"
                         chmod -R 775 "$DOCROOT/storage" "$DOCROOT/bootstrap/cache"
                         
                         # Update Nginx to point to public directory
@@ -2270,6 +2277,72 @@ EOF
         
         log_action "Service $OP completed: $SERVICE"
         echo "Service $OP completed successfully"
+        ;;
+
+    reload-all-services)
+        safe_nginx_reload
+        for php_ver in "8.1" "8.2" "8.3"; do
+            systemctl reload "php${php_ver}-fpm" 2>/dev/null || true
+        done
+        echo "Services Reloaded"
+        ;;
+
+    test-config)
+        nginx -t > /tmp/nginx_test_log 2>&1
+        if [ $? -eq 0 ]; then
+            echo "OK"
+        else
+            cat /tmp/nginx_test_log | grep -v "nginx: the configuration file" | sed 's/nginx: \[.*\] //' | head -n 3
+        fi
+        rm -f /tmp/nginx_test_log
+        ;;
+
+    set-server-config)
+        N_C_MAX=$2
+        N_C_BODY_TO=$3
+        N_SEND_TO=$4
+        F_READ_TO=$5
+        F_SEND_TO=$6
+        P_READ_TO=$7
+        PHP_VER=$8
+        P_UP_MAX=$9
+        P_POST_MAX=${10}
+        P_MEM=${11}
+        P_MAX_EXEC=${12}
+        P_MAX_IN=${13}
+        P_SOCK_TO=${14}
+
+        mkdir -p /etc/nginx/conf.d
+        
+        if [ "$N_C_MAX" == "0" ]; then
+            CMAX="0"
+        else
+            CMAX="${N_C_MAX}m"
+        fi
+        
+        cat > /etc/nginx/conf.d/shm_panel_limits.conf <<EOF
+client_max_body_size ${CMAX};
+client_body_timeout ${N_C_BODY_TO}s;
+send_timeout ${N_SEND_TO}s;
+fastcgi_read_timeout ${F_READ_TO}s;
+fastcgi_send_timeout ${F_SEND_TO}s;
+proxy_read_timeout ${P_READ_TO}s;
+EOF
+
+        mkdir -p /etc/php/${PHP_VER}/fpm/conf.d
+        cat > /etc/php/${PHP_VER}/fpm/conf.d/99-shm-panel.ini <<EOF
+upload_max_filesize = ${P_UP_MAX}M
+post_max_size = ${P_POST_MAX}M
+memory_limit = ${P_MEM}M
+max_execution_time = ${P_MAX_EXEC}
+max_input_time = ${P_MAX_IN}
+default_socket_timeout = ${P_SOCK_TO}
+EOF
+        
+        mkdir -p /etc/php/${PHP_VER}/cli/conf.d
+        cp /etc/php/${PHP_VER}/fpm/conf.d/99-shm-panel.ini /etc/php/${PHP_VER}/cli/conf.d/99-shm-panel.ini
+        
+        echo "Config written successfully"
         ;;
 
     # --------------------------------------------------------------------------

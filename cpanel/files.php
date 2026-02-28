@@ -289,6 +289,7 @@ function formatBytes($bytes, $precision = 2)
 
 // -------- POST ACTIONS --------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $is_ajax = isset($_POST['ajax']) || isset($_POST['ajax_action']);
 
     // ============================================
@@ -1751,6 +1752,7 @@ if (is_dir($full_path)) {
                 fd.append(action, '1');
                 fd.append('domain_id', CONFIG.domainId);
                 fd.append('path', CONFIG.currentPath);
+                fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
                 for (let k in data) {
                     if (Array.isArray(data[k])) data[k].forEach(v => fd.append(`${k}[]`, v));
                     else fd.append(k, data[k]);

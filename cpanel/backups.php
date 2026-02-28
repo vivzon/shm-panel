@@ -13,6 +13,7 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
 
     try {
+        verify_csrf();
         if ($action == 'create_backup') {
             cmd("backup create " . escapeshellarg($username));
             sendResponse($res);
@@ -84,6 +85,7 @@ include 'layout/header.php';
     async function loadBackups() {
         const list = document.getElementById('backup-list');
         const fd = new FormData(); fd.append('ajax_action', 'list_backups');
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             list.innerHTML = '';
@@ -112,6 +114,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'restore_backup');
         fd.append('file', file);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
         showToast('info', 'Processing...', 'Restore job started.');
         await fetch('', { method: 'POST', body: fd });

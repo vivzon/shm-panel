@@ -12,6 +12,7 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Action processed'];
 
     try {
+        verify_csrf();
         // --- FTP HANDLERS ---
         if ($action == 'add_ftp') {
             if ($_POST['pass'] !== $_POST['pass2'])
@@ -356,6 +357,7 @@ include 'layout/header.php';
 
         const fd = new FormData(e.target);
         fd.append('ajax_action', action);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
@@ -378,6 +380,7 @@ include 'layout/header.php';
         const list = document.getElementById('ftp-list');
         if (!list || list.offsetParent === null) return; // Only load if visible
         const fd = new FormData(); fd.append('ajax_action', 'list_ftp');
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             list.innerHTML = '';
@@ -405,6 +408,7 @@ include 'layout/header.php';
         const list = document.getElementById('mail-list');
         if (!list || list.offsetParent === null) return; // Only load if visible
         const fd = new FormData(); fd.append('ajax_action', 'list_mail');
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             list.innerHTML = '';
@@ -434,6 +438,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'del_ftp');
         fd.append('user', user);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         await fetch('', { method: 'POST', body: fd });
         showToast('success', 'FTP Account Deleted');
         loadFTP();
@@ -444,6 +449,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'del_mail');
         fd.append('id', id);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         await fetch('', { method: 'POST', body: fd });
         showToast('success', 'Mailbox Deleted');
         loadMail();

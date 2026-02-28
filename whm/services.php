@@ -12,6 +12,7 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Action processed'];
 
     try {
+        verify_csrf();
         if ($action == 'get_service_status') {
             $services = ['nginx' => 'Web Server', 'mariadb' => 'MariaDB SQL', 'php8.2-fpm' => 'PHP 8.2 Engine', 'proftpd' => 'FTP Server', 'postfix' => 'Mail Delivery'];
             $statuses = [];
@@ -104,6 +105,7 @@ include 'layout/header.php';
     async function updateServiceStatus() {
         const fd = new FormData();
         fd.append('ajax_action', 'get_service_status');
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
         try {
             const res = await fetch('', { method: 'POST', body: fd });
@@ -155,6 +157,7 @@ include 'layout/header.php';
         fd.append('ajax_action', 'service_action');
         fd.append('service', srv);
         fd.append('op', op);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
         try {
             const res = await fetch('', { method: 'POST', body: fd });

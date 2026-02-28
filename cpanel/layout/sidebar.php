@@ -41,9 +41,6 @@
 
         <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-4 mb-3 mt-8">Tools</div>
         <nav class="space-y-1">
-            <a href="server_config.php" class="nav-btn <?= $current_page == 'server_config.php' ? 'active' : '' ?>">
-                <i data-lucide="server-cog" class="w-4"></i> Server Config
-            </a>
             <a href="tools.php?tab=apps"
                 class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? 'apps') == 'apps') ? 'active' : '' ?>">
                 <i data-lucide="box" class="w-4"></i> App Installer

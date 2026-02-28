@@ -10,6 +10,7 @@ $username = $_SESSION['client'];
 
 // AJax Actions
 if (isset($_POST['ajax_action'])) {
+    verify_csrf();
     if ($_POST['ajax_action'] == 'clear_logs') {
         cmd("clear-client-logs " . escapeshellarg($username));
         echo json_encode(['status' => 'success']);
@@ -359,6 +360,7 @@ include 'layout/header.php';
         try {
             const fd = new FormData();
             fd.append('ajax_action', 'get_logs');
+            fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
             const res = await fetch('', { method: 'POST', body: fd });
             const text = await res.text();
             const cont = document.getElementById('log-container');
@@ -377,6 +379,7 @@ include 'layout/header.php';
         try {
             const fd = new FormData();
             fd.append('ajax_action', 'clear_logs');
+            fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
             await fetch('', { method: 'POST', body: fd });
             fetchLogs();
         } catch (e) { console.error(e); }

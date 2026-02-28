@@ -392,6 +392,21 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        if ($action == 'toggle_maintenance') {
+            $did = (int) $_POST['domain_id'];
+            $status = $_POST['status'] === 'on' ? 'on' : 'off';
+
+            $chk = $pdo->prepare("SELECT domain FROM domains WHERE id = ? AND client_id = ?");
+            $chk->execute([$did, $cid]);
+            $d_info = $chk->fetch();
+            if (!$d_info)
+                throw new Exception("Access Denied");
+
+            cmd("maintenance $status " . escapeshellarg($d_info['domain']));
+            sendResponse($res);
+            exit;
+        }
+
     } catch (Throwable $e) {
         $out = ob_get_clean();
         // Return 200 so Nginx doesn't intercept it with 50x.html
@@ -619,6 +634,12 @@ include 'layout/header.php';
                             <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>
                                 class="w-4 h-4 text-emerald-500 accent-emerald-500">
                             <span class="text-[10px] font-bold uppercase text-emerald-400">SSL</span>
+                        </div>
+                        <?php $is_maint = file_exists("/etc/nginx/sites-available/{$d['domain']}.backup"); ?>
+                        <div class="flex items-center gap-2 px-3 border-l border-slate-700">
+                            <input type="checkbox" onchange="toggleMaintenance(event, <?= $d['id'] ?>, this.checked)"
+                                <?= $is_maint ? 'checked' : '' ?> class="w-4 h-4 text-orange-500 accent-orange-500">
+                            <span class="text-[10px] font-bold uppercase text-orange-400">Maintenance</span>
                         </div>
                         <button
                             class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500 transition text-xs font-bold ml-auto">
@@ -960,6 +981,33 @@ include 'layout/header.php';
                 showToast('error', res.msg);
             }
         } catch (e) { showToast('error', 'Network Error'); }
+    }
+
+    async function toggleMaintenance(e, did, isChecked) {
+        e.preventDefault();
+        if (!confirm(`Are you sure you want to turn maintenance mode ${isChecked ? 'ON' : 'OFF'}?`)) {
+            e.target.checked = !isChecked;
+            return;
+        }
+
+        const fd = new FormData();
+        fd.append('ajax_action', 'toggle_maintenance');
+        fd.append('domain_id', did);
+        fd.append('status', isChecked ? 'on' : 'off');
+        fd.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success') {
+                showToast('success', 'Maintenance Mode', `Maintenance mode is now ${isChecked ? 'ON' : 'OFF'}.`);
+            } else {
+                showToast('error', 'Failed', res.msg || 'Could not toggle maintenance mode.');
+                e.target.checked = !isChecked; // Revert
+            }
+        } catch (err) {
+            showToast('error', 'Error', 'System error.');
+            e.target.checked = !isChecked; // Revert
+        }
     }
 
     const dnsTemplates = {

@@ -12,6 +12,7 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Action processed'];
 
     try {
+        verify_csrf();
         if ($action == 'save_package') {
             $id = $_POST['id'] ?? null;
             $name = trim($_POST['name']);
@@ -102,6 +103,7 @@ include 'layout/header.php';
         class="glass-panel p-10 rounded-3xl w-full max-w-md relative">
         <h3 id="pkg-title" class="text-2xl font-bold mb-8 text-white font-heading">Plan Configuration</h3>
         <input type="hidden" name="id" id="pkg-id">
+        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
         <div class="space-y-5">
             <input name="name" id="pkg-name" placeholder="Package Name" required
@@ -159,6 +161,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'delete_package');
         fd.append('id', id);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         fetch('', { method: 'POST', body: fd }).then(() => location.reload());
     }
 </script>

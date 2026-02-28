@@ -31,6 +31,9 @@
             <a href="services.php" class="nav-link <?= $current_page == 'services.php' ? 'active' : '' ?>">
                 <i data-lucide="cpu" class="w-4"></i> Service Node
             </a>
+            <a href="server_config.php" class="nav-link <?= $current_page == 'server_config.php' ? 'active' : '' ?>">
+                <i data-lucide="server-cog" class="w-4"></i> Server Config
+            </a>
             <a href="tools.php" class="nav-link <?= $current_page == 'tools.php' ? 'active' : '' ?>">
                 <i data-lucide="wrench" class="w-4"></i> Tools
             </a>

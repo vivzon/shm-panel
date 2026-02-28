@@ -13,6 +13,7 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Applied Successfully'];
 
     try {
+        verify_csrf();
         if ($action == 'add_ssh') {
             cmd("ssh-key add " . escapeshellarg($username) . " " . escapeshellarg($_POST['key']));
             sendResponse($res);
@@ -71,6 +72,7 @@ include 'layout/header.php';
     async function loadSSH() {
         const list = document.getElementById('ssh-list');
         const fd = new FormData(); fd.append('ajax_action', 'list_ssh');
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             list.innerHTML = '';
@@ -101,6 +103,7 @@ include 'layout/header.php';
             const fd = new FormData();
             fd.append('ajax_action', 'del_ssh');
             fd.append('line', data.line);
+            fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
             await fetch('', { method: 'POST', body: fd });
             showToast('success', 'Deleted', 'Key deleted.');
             loadSSH();

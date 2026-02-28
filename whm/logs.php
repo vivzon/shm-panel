@@ -12,6 +12,7 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Action processed'];
 
     try {
+        verify_csrf();
         if ($action == 'get_logs') {
             $type = $_POST['type'];
             if (!in_array($type, ['auth', 'web', 'sys']))
@@ -71,6 +72,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'get_logs');
         fd.append('type', type);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());

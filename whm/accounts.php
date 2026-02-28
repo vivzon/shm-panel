@@ -50,6 +50,7 @@ if (isset($_POST['ajax_action'])) {
     $res = ['status' => 'success', 'msg' => 'Action processed'];
 
     try {
+        verify_csrf();
         if ($action == 'search_clients') {
             echo json_encode(getClientsData($pdo, $_POST['query'] ?? '', (int) ($_POST['page'] ?? 1)));
             exit;
@@ -280,6 +281,7 @@ include 'layout/header.php';
         fd.append('ajax_action', 'search_clients');
         fd.append('query', query);
         fd.append('page', currentPage);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
         const res = await fetch('', { method: 'POST', body: fd });
         const data = await res.json();
@@ -359,6 +361,7 @@ include 'layout/header.php';
         e.preventDefault();
         const fd = new FormData(e.target);
         fd.append('ajax_action', action);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         const res = await fetch('', { method: 'POST', body: fd });
         const d = await res.json();
         if (d.status === 'success') { showToast('success', 'Changes applied'); loadClients(); closeModal('modal-acc'); }
@@ -370,6 +373,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'suspend_account');
         fd.append('user', user); fd.append('suspend', active);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         fetch('', { method: 'POST', body: fd }).then(() => loadClients());
     }
 
@@ -378,6 +382,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'reset_account');
         fd.append('user', user);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         fetch('', { method: 'POST', body: fd }).then(() => showToast('success', 'Reset process started'));
     }
 
@@ -386,6 +391,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'delete_account');
         fd.append('id', id); fd.append('user', user);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         fetch('', { method: 'POST', body: fd }).then(() => loadClients());
     }
 
@@ -393,6 +399,7 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'login_as_client');
         fd.append('user', user); fd.append('cid', cid);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
         fetch('', { method: 'POST', body: fd }).then(r => r.json()).then(d => window.location.href = d.redirect);
     }
 

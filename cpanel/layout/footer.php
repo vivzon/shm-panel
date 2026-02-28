@@ -44,6 +44,8 @@
 
         const fd = new FormData(e.target);
         fd.append('ajax_action', action);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) fd.append('csrf_token', csrfToken);
 
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
