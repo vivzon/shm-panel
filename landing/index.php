@@ -43,9 +43,9 @@ try {
     <style>
         :root {
             --blue: #2563eb;
-            --blue-glow: rgba(37, 99, 235, 0.5);
+            --blue-glow: rgba(37, 99, 235, 0.35);
             --purple: #7c3aed;
-            --glass: rgba(15, 23, 42, 0.6);
+            --glass: rgba(248, 250, 252, 0.85);
         }
 
         * {
@@ -58,8 +58,8 @@ try {
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #020617;
-            color: #f1f5f9;
+            background: #f8fafc;
+            color: #1e293b;
             overflow-x: hidden;
         }
 
@@ -69,7 +69,7 @@ try {
 
         /* ── Gradient Text ── */
         .gradient-text {
-            background: linear-gradient(135deg, #fff 0%, #93c5fd 50%, #818cf8 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #4f46e5 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -77,25 +77,23 @@ try {
 
         /* ── Glass Components ── */
         .glass {
-            background: rgba(30, 41, 59, 0.45);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(226, 232, 240, 0.9);
         }
 
         .glass-card {
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.7) 100%);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(100, 116, 139, 0.1), 0 1px 4px rgba(0, 0, 0, 0.05);
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
         .glass-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2);
-            border-color: rgba(59, 130, 246, 0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 48px rgba(100, 116, 139, 0.18), 0 0 0 1px rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.25);
         }
 
         /* ── Ambient Blobs ── */
@@ -210,15 +208,15 @@ try {
 
         /* ── Navbar ── */
         .navbar-scrolled {
-            background: rgba(2, 6, 23, 0.95) !important;
-            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), 0 4px 24px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.97) !important;
+            box-shadow: 0 1px 0 #e2e8f0, 0 4px 24px rgba(100, 116, 139, 0.12);
         }
 
         /* ── Hero Badge ── */
         .hero-badge {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.15));
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(124, 58, 237, 0.08));
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.08);
         }
 
         /* ── CTA Buttons ── */
@@ -238,26 +236,29 @@ try {
         }
 
         .btn-secondary {
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.04);
+            border: 1.5px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
             transition: all 0.3s ease;
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
+            background: #f8fafc;
+            border-color: #94a3b8;
             transform: translateY(-2px);
         }
 
         /* ── Stats ── */
         .stat-card {
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.5));
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(100, 116, 139, 0.08);
             transition: all 0.3s;
         }
 
         .stat-card:hover {
             border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.1);
         }
 
         /* ── Feature Icon ── */
@@ -277,13 +278,14 @@ try {
             position: absolute;
             inset: -1px;
             border-radius: 17px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.9);
         }
 
         /* ── Pricing ── */
         .pricing-card {
-            background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.8));
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(100, 116, 139, 0.08);
             border-radius: 24px;
             transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
@@ -444,35 +446,35 @@ try {
 
     <!-- Ambient Background -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div class="blob w-[900px] h-[900px] bg-blue-600/20 top-[-20%] left-[-15%] animate-float"></div>
-        <div class="blob w-[700px] h-[700px] bg-purple-600/15 bottom-[-15%] right-[-10%]"
+        <div class="blob w-[900px] h-[900px] bg-blue-100/50 top-[-20%] left-[-15%] animate-float"></div>
+        <div class="blob w-[700px] h-[700px] bg-purple-100/40 bottom-[-15%] right-[-10%]"
             style="animation: float 9s ease-in-out infinite reverse;"></div>
-        <div class="blob w-[400px] h-[400px] bg-indigo-500/10 top-[40%] left-[50%]"
+        <div class="blob w-[400px] h-[400px] bg-indigo-100/40 top-[40%] left-[50%]"
             style="animation: float 11s 2s ease-in-out infinite;"></div>
 
         <!-- Grid overlay -->
         <div
-            style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:60px 60px;">
+            style="position:absolute;inset:0;background-image:linear-gradient(rgba(148,163,184,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,0.1) 1px,transparent 1px);background-size:60px 60px;">
         </div>
     </div>
 
     <!-- ══════════════════════════════════════
          NAVIGATION
     ══════════════════════════════════════ -->
-    <nav id="navbar" class="fixed w-full z-50 transition-all duration-500 backdrop-blur-md border-b border-white/5"
-        style="background: rgba(2,6,23,0.7);">
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-500 backdrop-blur-md border-b border-slate-200/50"
+        style="background: rgba(255,255,255,0.7);">
         <div class="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between" style="height:72px;">
 
             <!-- Logo -->
             <a href="#" class="flex items-center gap-3 group">
                 <div class="relative">
                     <div
-                        class="bg-gradient-to-br from-blue-500 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/30 transition group-hover:shadow-blue-500/50 group-hover:scale-105">
+                        class="bg-gradient-to-br from-blue-500 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition group-hover:shadow-blue-500/40 group-hover:scale-105">
                         <i data-lucide="cloud" class="w-5 h-5 text-white"></i>
                     </div>
                 </div>
                 <span
-                    class="text-lg font-bold font-heading tracking-tight text-white"><?= e(strtoupper($brandName)) ?></span>
+                    class="text-lg font-bold font-heading tracking-tight text-slate-800"><?= e(strtoupper($brandName)) ?></span>
             </a>
 
             <!-- Desktop Nav Links -->
@@ -486,7 +488,7 @@ try {
             <!-- CTA -->
             <div class="flex items-center gap-3">
                 <a href="<?= e($clientUrl) ?>"
-                    class="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition px-4 py-2">
+                    class="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition px-4 py-2">
                     <i data-lucide="log-in" class="w-4 h-4"></i> Login
                 </a>
                 <a href="#pricing"
@@ -515,13 +517,13 @@ try {
                 <h1
                     class="animate-fade-up delay-100 font-heading text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mb-8">
                     <span class="gradient-text">Hosting Built</span><br>
-                    <span class="text-white">For Builders.</span>
+                    <span class="text-slate-900">For Builders.</span>
                 </h1>
 
                 <!-- Sub-headline -->
                 <p
-                    class="animate-fade-up delay-200 text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-light">
-                    Deploy on <span class="text-white font-semibold">NVMe-powered cloud</span> in seconds.
+                    class="animate-fade-up delay-200 text-slate-600 text-lg sm:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-light">
+                    Deploy on <span class="text-slate-800 font-semibold">NVMe-powered cloud</span> in seconds.
                     Automatic SSL, DDoS protection, and a control panel that actually makes sense.
                 </p>
 
@@ -534,7 +536,7 @@ try {
                         <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition"></i>
                     </a>
                     <a href="<?= e($clientUrl) ?>"
-                        class="btn-secondary w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 text-slate-300">
+                        class="btn-secondary w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2">
                         <i data-lucide="layout-dashboard" class="w-5 h-5 text-slate-500"></i>
                         Client Portal
                     </a>
@@ -559,15 +561,16 @@ try {
 
                 <!-- Hero Dashboard Preview -->
                 <div class="relative max-w-4xl mx-auto">
-                    <div class="absolute inset-0 rounded-3xl bg-gradient-to-t from-[#020617] via-transparent to-transparent z-10"
+                    <div class="absolute inset-0 rounded-3xl bg-gradient-to-t from-[#f8fafc] via-transparent to-transparent z-10"
                         style="top:60%;"></div>
-                    <div class="glass rounded-3xl p-5 shadow-2xl shadow-blue-500/10 border border-white/[0.05]">
+                    <div class="glass rounded-3xl p-5 shadow-2xl shadow-blue-500/10 border border-slate-200/60">
                         <!-- Fake dashboard preview bar -->
                         <div class="flex items-center gap-2 mb-4">
-                            <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
-                            <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
-                            <div class="w-3 h-3 rounded-full bg-green-500/70"></div>
-                            <div class="flex-1 ml-3 h-6 rounded-lg bg-slate-800/60 flex items-center px-3">
+                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                            <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+                            <div
+                                class="flex-1 ml-3 h-6 rounded-lg bg-slate-100 flex items-center px-3 border border-slate-200">
                                 <span
                                     class="text-[10px] font-mono text-slate-500">https://client.<?= e($base) ?>/dashboard</span>
                             </div>
@@ -583,12 +586,12 @@ try {
                             ];
                             foreach ($metrics as $m):
                                 ?>
-                                <div class="bg-slate-900/60 rounded-xl p-4 border border-white/[0.04]">
+                                <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
                                     <div class="text-[10px] text-slate-500 uppercase tracking-widest mb-2"><?= $m[0] ?>
                                     </div>
-                                    <div class="text-xl font-bold text-white mb-3"><?= $m[1] ?></div>
-                                    <div class="h-1 bg-slate-800 rounded-full overflow-hidden">
-                                        <div class="h-full <?= $m[2] ?>/80 rounded-full" style="width:<?= $m[3] ?>%"></div>
+                                    <div class="text-xl font-bold text-slate-800 mb-3"><?= $m[1] ?></div>
+                                    <div class="h-1 bg-slate-100 rounded-full overflow-hidden">
+                                        <div class="h-full <?= $m[2] ?> rounded-full" style="width:<?= $m[3] ?>%"></div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -640,7 +643,7 @@ try {
                         <div class="<?= $s[3] ?> mb-2 flex justify-center">
                             <i data-lucide="<?= $s[2] ?>" class="w-6 h-6"></i>
                         </div>
-                        <div class="text-3xl font-bold font-heading text-white mb-1"><?= $s[0] ?></div>
+                        <div class="text-3xl font-bold font-heading text-slate-800 mb-1"><?= $s[0] ?></div>
                         <div class="text-xs text-slate-500 font-semibold uppercase tracking-widest"><?= $s[1] ?></div>
                     </div>
                 <?php endforeach; ?>
@@ -661,9 +664,9 @@ try {
                 <span
                     class="text-xs font-bold tracking-widest uppercase text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-4 py-2 rounded-full">Why
                     <?= e($brandName) ?></span>
-                <h2 class="font-heading text-4xl md:text-5xl font-bold mt-6 mb-5 text-white">Enterprise-Grade, <br
+                <h2 class="font-heading text-4xl md:text-5xl font-bold mt-6 mb-5 text-slate-900">Enterprise-Grade, <br
                         class="hidden md:block">Developer-Friendly</h2>
-                <p class="text-slate-400 max-w-xl mx-auto leading-relaxed">
+                <p class="text-slate-600 max-w-xl mx-auto leading-relaxed">
                     All the power of a dedicated server, with the simplicity of a managed platform.
                 </p>
             </div>
@@ -688,8 +691,8 @@ try {
                         <div class="feature-icon-wrap bg-gradient-to-br <?= $f[1] ?>">
                             <i data-lucide="<?= $f[0] ?>" class="w-6 h-6 <?= $f[2] ?>"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-white mb-3"><?= $f[3] ?></h3>
-                        <p class="text-slate-400 text-sm leading-relaxed"><?= $f[4] ?></p>
+                        <h3 class="text-lg font-bold text-slate-800 mb-3"><?= $f[3] ?></h3>
+                        <p class="text-slate-500 text-sm leading-relaxed"><?= $f[4] ?></p>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -708,9 +711,10 @@ try {
                 <span
                     class="text-xs font-bold tracking-widest uppercase text-blue-400 bg-blue-400/10 border border-blue-400/20 px-4 py-2 rounded-full">Simple
                     Pricing</span>
-                <h2 class="font-heading text-4xl md:text-5xl font-bold mt-6 mb-5 text-white">Plans That Scale With You
+                <h2 class="font-heading text-4xl md:text-5xl font-bold mt-6 mb-5 text-slate-900">Plans That Scale With
+                    You
                 </h2>
-                <p class="text-slate-400 max-w-lg mx-auto">No hidden fees. Upgrade or downgrade anytime. Cancel with one
+                <p class="text-slate-600 max-w-lg mx-auto">No hidden fees. Upgrade or downgrade anytime. Cancel with one
                     click.</p>
             </div>
 
@@ -730,13 +734,13 @@ try {
                             <?php endif; ?>
 
                             <div class="mb-6">
-                                <h3 class="text-xl font-bold text-white mb-1"><?= e($plan['name'] ?? 'Plan') ?></h3>
+                                <h3 class="text-xl font-bold text-slate-900 mb-1"><?= e($plan['name'] ?? 'Plan') ?></h3>
                                 <p class="text-slate-500 text-sm">Everything you need to get started</p>
                             </div>
 
                             <div class="mb-8">
-                                <span class="text-5xl font-bold font-heading text-white">₹<?= $price ?></span>
-                                <span class="text-slate-400 text-sm ml-2">/ month</span>
+                                <span class="text-5xl font-bold font-heading text-slate-900">₹<?= $price ?></span>
+                                <span class="text-slate-500 text-sm ml-2">/ month</span>
                             </div>
 
                             <div class="space-y-3 mb-8">
@@ -753,8 +757,8 @@ try {
                                 foreach ($perks as $perk):
                                     ?>
                                     <div class="check-item">
-                                        <div class="check-icon"><i data-lucide="check" class="w-3 h-3 text-emerald-400"></i></div>
-                                        <span class="text-sm text-slate-300"><?= e($perk) ?></span>
+                                        <div class="check-icon"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i></div>
+                                        <span class="text-sm text-slate-600"><?= e($perk) ?></span>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -762,7 +766,7 @@ try {
                             <a href="<?= e($clientUrl) ?>/checkout.php?plan=<?= (int) ($plan['id'] ?? 0) ?>" class="block text-center py-3.5 rounded-xl font-bold text-sm transition
                               <?= $featured
                                   ? 'btn-primary text-white'
-                                  : 'btn-secondary text-slate-300 hover:text-white' ?>">
+                                  : 'btn-secondary text-slate-600 hover:text-slate-900' ?>">
                                 Get Started →
                             </a>
                         </div>
@@ -790,7 +794,7 @@ try {
                                 </div>
                             <?php endif; ?>
                             <div class="mb-6">
-                                <h3 class="text-xl font-bold text-white mb-1"><?= $dp[0] ?></h3>
+                                <h3 class="text-xl font-bold text-slate-900 mb-1"><?= $dp[0] ?></h3>
                                 <p class="text-slate-500 text-sm">Perfect for
                                     <?= $pi === 0 ? 'small projects' : ($pi === 1 ? 'growing businesses' : 'large-scale apps') ?>
                                 </p>
@@ -843,7 +847,8 @@ try {
                 <span
                     class="text-xs font-bold tracking-widest uppercase text-purple-400 bg-purple-400/10 border border-purple-400/20 px-4 py-2 rounded-full">Loved
                     By Developers</span>
-                <h2 class="font-heading text-4xl md:text-5xl font-bold mt-6 mb-5 text-white">Don't Take Our Word For It
+                <h2 class="font-heading text-4xl md:text-5xl font-bold mt-6 mb-5 text-slate-900">Don't Take Our Word For
+                    It
                 </h2>
             </div>
 
@@ -862,14 +867,14 @@ try {
                             <?php for ($s = 0; $s < 5; $s++): ?><i data-lucide="star"
                                     class="w-4 h-4 text-amber-400 fill-amber-400"></i><?php endfor; ?>
                         </div>
-                        <p class="text-slate-300 text-sm leading-relaxed mb-6">"<?= $t[0] ?>"</p>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">"<?= $t[0] ?>"</p>
                         <div class="flex items-center gap-3">
                             <div
                                 class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white">
                                 <?= $t[3] ?>
                             </div>
                             <div>
-                                <div class="font-bold text-sm text-white"><?= $t[1] ?></div>
+                                <div class="font-bold text-sm text-slate-900"><?= $t[1] ?></div>
                                 <div class="text-xs text-slate-500"><?= $t[2] ?></div>
                             </div>
                         </div>
@@ -885,12 +890,12 @@ try {
     <section class="relative z-10 py-28 px-6">
         <div class="max-w-4xl mx-auto text-center">
             <div class="glass-card rounded-3xl p-14 relative overflow-hidden">
-                <div class="blob w-[600px] h-[600px] bg-blue-600/20 top-[-50%] left-[50%] -translate-x-1/2 animate-float"
-                    style="filter:blur(80px);opacity:0.4;"></div>
+                <div class="blob w-[600px] h-[600px] bg-blue-100/50 top-[-50%] left-[50%] -translate-x-1/2 animate-float"
+                    style="filter:blur(80px);opacity:0.6;"></div>
                 <div class="relative z-10">
-                    <h2 class="font-heading text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">Ready
+                    <h2 class="font-heading text-4xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">Ready
                         to<br><span class="gradient-text">Launch Faster?</span></h2>
-                    <p class="text-slate-400 text-lg mb-10 max-w-lg mx-auto">
+                    <p class="text-slate-600 text-lg mb-10 max-w-lg mx-auto">
                         Join thousands of developers who deploy on <?= e($brandName) ?> every day.
                     </p>
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -899,7 +904,7 @@ try {
                             Start For Free <i data-lucide="rocket" class="w-5 h-5 group-hover:rotate-12 transition"></i>
                         </a>
                         <a href="<?= e($clientUrl) ?>"
-                            class="btn-secondary px-10 py-4 rounded-2xl font-bold text-slate-300 text-base flex items-center gap-2">
+                            class="btn-secondary px-10 py-4 rounded-2xl font-bold text-slate-600 hover:text-slate-900 text-base flex items-center gap-2">
                             <i data-lucide="log-in" class="w-5 h-5"></i> Login to Portal
                         </a>
                     </div>
@@ -911,7 +916,7 @@ try {
     <!-- ══════════════════════════════════════
          FOOTER
     ══════════════════════════════════════ -->
-    <footer class="relative z-10 border-t border-white/5 bg-[#01030d] pt-16 pb-8 px-6">
+    <footer class="relative z-10 border-t border-slate-200 bg-slate-50 pt-16 pb-8 px-6">
         <div class="max-w-7xl mx-auto">
 
             <!-- Top row -->
@@ -922,7 +927,8 @@ try {
                         <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-2.5 rounded-xl">
                             <i data-lucide="cloud" class="w-5 h-5 text-white"></i>
                         </div>
-                        <span class="text-lg font-bold font-heading"><?= e(strtoupper($brandName)) ?></span>
+                        <span
+                            class="text-lg font-bold font-heading text-slate-900"><?= e(strtoupper($brandName)) ?></span>
                     </div>
                     <p class="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
                         Enterprise-grade cloud hosting trusted by developers and agencies across India and beyond.
@@ -938,12 +944,13 @@ try {
                     <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-5">Platform</h4>
                     <div class="space-y-3">
                         <a href="#features"
-                            class="block text-sm text-slate-400 hover:text-white transition">Features</a>
-                        <a href="#pricing" class="block text-sm text-slate-400 hover:text-white transition">Pricing</a>
+                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Features</a>
+                        <a href="#pricing"
+                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Pricing</a>
                         <a href="#testimonials"
-                            class="block text-sm text-slate-400 hover:text-white transition">Reviews</a>
+                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Reviews</a>
                         <a href="<?= e($clientUrl) ?>"
-                            class="block text-sm text-slate-400 hover:text-white transition">Client Portal</a>
+                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Client Portal</a>
                     </div>
                 </div>
 
@@ -952,11 +959,12 @@ try {
                     <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-5">Support</h4>
                     <div class="space-y-3">
                         <a href="mailto:support@<?= e($base) ?>"
-                            class="block text-sm text-slate-400 hover:text-white transition">Email Support</a>
-                        <a href="#" class="block text-sm text-slate-400 hover:text-white transition">Privacy Policy</a>
-                        <a href="#" class="block text-sm text-slate-400 hover:text-white transition">Terms of
+                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Email Support</a>
+                        <a href="#" class="block text-sm text-slate-500 hover:text-slate-900 transition">Privacy
+                            Policy</a>
+                        <a href="#" class="block text-sm text-slate-500 hover:text-slate-900 transition">Terms of
                             Service</a>
-                        <a href="#" class="block text-sm text-slate-400 hover:text-white transition">SLA</a>
+                        <a href="#" class="block text-sm text-slate-500 hover:text-slate-900 transition">SLA</a>
                     </div>
                 </div>
             </div>

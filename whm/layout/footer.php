@@ -1,25 +1,30 @@
 </div>
 </main>
+</div>
 
 <script>
-    // Init Icons
     lucide.createIcons();
 
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    // --- TOAST SYSTEM ---
+    // --- TOAST SYSTEM (light theme) ---
     function showToast(type, msg) {
+        const colors = {
+            success: 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-emerald-100/80',
+            error: 'bg-red-50 text-red-700 border border-red-200 shadow-red-100/80',
+            info: 'bg-blue-50 text-blue-700 border border-blue-200 shadow-blue-100/80',
+        };
+        const icons = { success: 'check-circle', error: 'alert-circle', info: 'info' };
         const toast = document.createElement('div');
-        toast.className = `fixed bottom-5 right-5 z-[100] px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-300 ${type === 'success' ? 'bg-emerald-600 text-white shadow-emerald-900/50' : 'bg-red-600 text-white shadow-red-900/50'}`;
-        toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i> <span class="font-bold">${msg}</span>`;
+        toast.className = `fixed bottom-5 right-5 z-[100] px-5 py-3.5 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-4 opacity-0 transition-all duration-300 ${colors[type] || colors.info}`;
+        toast.innerHTML = `<i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0"></i><span class="font-semibold text-sm">${msg}</span>`;
         document.body.appendChild(toast);
         lucide.createIcons();
-
-        requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
+        requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
         setTimeout(() => {
-            toast.classList.add('translate-y-10', 'opacity-0');
+            toast.classList.add('translate-y-4', 'opacity-0');
             setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        }, 3500);
     }
 
     async function handleGeneric(e, action) {
@@ -36,19 +41,15 @@
 
         try {
             const res = await fetch('', { method: 'POST', body: fd });
-
-            // Handle 502/504 Service Reloads
             if ([502, 504].includes(res.status)) {
-                btn.innerHTML = "Reloading Node...";
+                btn.innerHTML = "Reloading...";
                 showToast('success', 'Service Reload Triggered');
                 setTimeout(() => location.reload(), 2000);
                 return;
             }
-
             const data = await res.json();
-
             if (data.status === 'success') {
-                showToast('success', 'Operation Successful');
+                showToast('success', data.msg || 'Operation Successful');
                 if (data.redirect) setTimeout(() => location.href = data.redirect, 1000);
                 else setTimeout(() => location.reload(), 1000);
             } else {
@@ -57,7 +58,7 @@
                 btn.innerHTML = originalText;
             }
         } catch (err) {
-            showToast('error', 'Server Error or Service Restarting...');
+            showToast('error', 'Server error — retrying...');
             setTimeout(() => location.reload(), 2000);
         }
     }

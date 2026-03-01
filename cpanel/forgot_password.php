@@ -115,14 +115,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div
                     class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 mb-6 group transition-transform hover:rotate-6">
                     <svg xmlns="http://www.w3.org/2000/svg"
-                        class="w-8 h-8 text-white transition-transform group-hover:scale-110" viewBox="0 0 24 24"
+                        class="w-8 h-8 text-slate-900 transition-transform group-hover:scale-110" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-white font-heading tracking-tight mb-2">Reset Password</h1>
-                <p class="text-slate-400 text-sm">Enter your credentials to recover access</p>
+                <h1 class="text-2xl font-bold text-slate-900 font-heading tracking-tight mb-2">Reset Password</h1>
+                <p class="text-slate-600 text-sm">Enter your credentials to recover access</p>
             </div>
 
             <?php if ($error): ?>
@@ -148,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
                 <button onclick="window.location.href='login.php'"
-                    class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3.5 rounded-xl transition shadow-lg">
+                    class="w-full bg-slate-700 hover:bg-slate-600 text-slate-900 font-bold py-3.5 rounded-xl transition shadow-lg">
                     Return to Login
                 </button>
             <?php else: ?>
@@ -157,11 +157,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="input-group">
                         <label for="u">Username or Email</label>
                         <input id="u" name="u" type="text" required placeholder="Enter username or email"
-                            class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50">
+                            class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50">
                     </div>
 
                     <button type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-slate-900 font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
                         <span>Send Reset Link</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="mt-6 text-center">
                     <a href="login.php"
-                        class="text-sm text-slate-400 hover:text-white transition flex items-center justify-center gap-2 group">
+                        class="text-sm text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-2 group">
                         <svg class="w-4 h-4 group-hover:-translate-x-1 transition" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

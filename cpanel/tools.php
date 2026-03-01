@@ -185,25 +185,25 @@ include 'layout/header.php';
 
 <!-- Dashboard Header -->
 <div class="mb-8">
-    <h2 class="text-2xl font-bold text-white mb-2">System Tools</h2>
-    <p class="text-slate-400 text-sm">Manage applications, security, and backups.</p>
+    <h2 class="text-2xl font-bold text-slate-900 mb-2">System Tools</h2>
+    <p class="text-slate-600 text-sm">Manage applications, security, and backups.</p>
 </div>
 
 <!-- TABS -->
 <div class="flex border-b border-slate-800 mb-8 overflow-x-auto">
     <a href="?tab=apps"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'apps' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">App
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'apps' ? 'border-blue-500 text-slate-900' : 'border-transparent text-slate-600 hover:text-slate-700' ?>">App
         Installer</a>
     <a href="?tab=ftp"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'ftp' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">FTP
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'ftp' ? 'border-blue-500 text-slate-900' : 'border-transparent text-slate-600 hover:text-slate-700' ?>">FTP
         Manager</a>
     <a href="?tab=security"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'security' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">Security
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'security' ? 'border-blue-500 text-slate-900' : 'border-transparent text-slate-600 hover:text-slate-700' ?>">Security
         (SSH)</a>
     <a href="?tab=backups"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'backups' ? 'border-blue-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">Backups</a>
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'backups' ? 'border-blue-500 text-slate-900' : 'border-transparent text-slate-600 hover:text-slate-700' ?>">Backups</a>
     <a href="?tab=troubleshoot"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'troubleshoot' ? 'border-emerald-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">Troubleshoot</a>
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'troubleshoot' ? 'border-emerald-500 text-slate-900' : 'border-transparent text-slate-600 hover:text-slate-700' ?>">Troubleshoot</a>
 </div>
 
 <!-- APPS TAB -->
@@ -211,21 +211,21 @@ include 'layout/header.php';
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Install Form -->
         <div class="glass-card p-6 h-fit">
-            <h3 class="font-bold text-white mb-4">Install Application</h3>
+            <h3 class="font-bold text-slate-900 mb-4">Install Application</h3>
             <form onsubmit="handleAppInstall(event)" class="space-y-4">
                 <div>
-                    <label class="text-xs text-slate-400 uppercase font-bold">Select Domain</label>
+                    <label class="text-xs text-slate-600 uppercase font-bold">Select Domain</label>
                     <select name="domain_id"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none">
+                        class="w-full bg-white border border-slate-700 rounded-lg p-3 text-slate-900 focus:border-blue-500 outline-none">
                         <?php foreach ($domains as $d): ?>
                             <option value="<?= $d['id'] ?>"><?= $d['domain'] ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-400 uppercase font-bold">Application</label>
+                    <label class="text-xs text-slate-600 uppercase font-bold">Application</label>
                     <select name="app"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none">
+                        class="w-full bg-white border border-slate-700 rounded-lg p-3 text-slate-900 focus:border-blue-500 outline-none">
                         <option value="wordpress">WordPress</option>
                         <option value="laravel">Laravel</option>
                         <option value="codeigniter">CodeIgniter 4</option>
@@ -233,7 +233,7 @@ include 'layout/header.php';
                     </select>
                 </div>
                 <button type="submit"
-                    class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
+                    class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-slate-900 rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
                     Install Now
                 </button>
             </form>
@@ -241,13 +241,13 @@ include 'layout/header.php';
 
         <!-- Recent Installations -->
         <div class="lg:col-span-2 glass-card p-0 overflow-hidden">
-            <div class="p-4 border-b border-white/5 bg-slate-900/50 flex justify-between items-center">
-                <h3 class="font-bold text-white">Recent Installations</h3>
-                <button onclick="loadApps()" class="text-slate-400 hover:text-white"><i data-lucide="refresh-cw"
+            <div class="p-4 border-b border-slate-200 bg-white/50 flex justify-between items-center">
+                <h3 class="font-bold text-slate-900">Recent Installations</h3>
+                <button onclick="loadApps()" class="text-slate-600 hover:text-slate-900"><i data-lucide="refresh-cw"
                         class="w-4 h-4"></i></button>
             </div>
             <table class="w-full text-left">
-                <thead class="bg-slate-900/50 text-[10px] uppercase text-slate-400 font-bold">
+                <thead class="bg-white/50 text-[10px] uppercase text-slate-600 font-bold">
                     <tr>
                         <th class="p-4">App</th>
                         <th class="p-4">Domain</th>
@@ -255,9 +255,9 @@ include 'layout/header.php';
                         <th class="p-4 text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody id="app-list" class="divide-y divide-white/5 text-sm text-slate-300">
+                <tbody id="app-list" class="divide-y divide-white/5 text-sm text-slate-700">
                     <tr>
-                        <td colspan="4" class="p-6 text-center text-slate-500">Loading...</td>
+                        <td colspan="4" class="p-6 text-center text-slate-600">Loading...</td>
                     </tr>
                 </tbody>
             </table>
@@ -270,33 +270,33 @@ include 'layout/header.php';
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Add FTP Form -->
         <div class="glass-card p-6 h-fit">
-            <h3 class="font-bold text-white mb-4">Create FTP Account</h3>
+            <h3 class="font-bold text-slate-900 mb-4">Create FTP Account</h3>
             <form onsubmit="handleFTPAdd(event)" class="space-y-4">
                 <div>
-                    <label class="text-xs text-slate-400 uppercase font-bold">Username</label>
-                    <div class="flex items-center bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
+                    <label class="text-xs text-slate-600 uppercase font-bold">Username</label>
+                    <div class="flex items-center bg-white border border-slate-700 rounded-lg overflow-hidden">
                         <input name="ftp_user" required placeholder="user"
-                            class="bg-transparent p-3 w-full text-white outline-none">
+                            class="bg-transparent p-3 w-full text-slate-900 outline-none">
                         <span
-                            class="px-3 text-slate-500 bg-slate-800 border-l border-slate-700 py-3">@<?= $username ?></span>
+                            class="px-3 text-slate-600 bg-slate-50 border-l border-slate-700 py-3">@<?= $username ?></span>
                     </div>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-400 uppercase font-bold">Password</label>
+                    <label class="text-xs text-slate-600 uppercase font-bold">Password</label>
                     <input type="password" name="pass" required
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none mb-2"
+                        class="w-full bg-white border border-slate-700 rounded-lg p-3 text-slate-900 outline-none mb-2"
                         placeholder="Password">
                     <input type="password" name="pass2" required
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none"
+                        class="w-full bg-white border border-slate-700 rounded-lg p-3 text-slate-900 outline-none"
                         placeholder="Confirm Password">
                 </div>
                 <div>
-                    <label class="text-xs text-slate-400 uppercase font-bold">Directory (Optional)</label>
+                    <label class="text-xs text-slate-600 uppercase font-bold">Directory (Optional)</label>
                     <input name="dir" placeholder="/public_html"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none">
+                        class="w-full bg-white border border-slate-700 rounded-lg p-3 text-slate-900 outline-none">
                 </div>
                 <button type="submit"
-                    class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
+                    class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-slate-900 rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
                     Create FTP User
                 </button>
             </form>
@@ -304,22 +304,22 @@ include 'layout/header.php';
 
         <!-- FTP List -->
         <div class="lg:col-span-2 glass-card p-0 overflow-hidden">
-            <div class="p-4 border-b border-white/5 bg-slate-900/50 flex justify-between items-center">
-                <h3 class="font-bold text-white">FTP Accounts</h3>
-                <button onclick="loadFTP()" class="text-slate-400 hover:text-white"><i data-lucide="refresh-cw"
+            <div class="p-4 border-b border-slate-200 bg-white/50 flex justify-between items-center">
+                <h3 class="font-bold text-slate-900">FTP Accounts</h3>
+                <button onclick="loadFTP()" class="text-slate-600 hover:text-slate-900"><i data-lucide="refresh-cw"
                         class="w-4 h-4"></i></button>
             </div>
             <table class="w-full text-left">
-                <thead class="bg-slate-900/50 text-[10px] uppercase text-slate-400 font-bold">
+                <thead class="bg-white/50 text-[10px] uppercase text-slate-600 font-bold">
                     <tr>
                         <th class="p-4">Username</th>
                         <th class="p-4">Home Directory</th>
                         <th class="p-4 text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody id="ftp-list" class="divide-y divide-white/5 text-sm text-slate-300">
+                <tbody id="ftp-list" class="divide-y divide-white/5 text-sm text-slate-700">
                     <tr>
-                        <td colspan="3" class="p-6 text-center text-slate-500">Loading...</td>
+                        <td colspan="3" class="p-6 text-center text-slate-600">Loading...</td>
                     </tr>
                 </tbody>
             </table>
@@ -329,36 +329,36 @@ include 'layout/header.php';
 
 <!-- SECURITY & BACKUPS (Placeholders for now, to be implemented similarly) -->
 <div id="tab-security" class="<?= $active_tab == 'security' ? '' : 'hidden' ?>">
-    <div class="text-center p-12 text-slate-500">SSH Key Management coming soon.</div>
+    <div class="text-center p-12 text-slate-600">SSH Key Management coming soon.</div>
 </div>
 <div id="tab-backups" class="<?= $active_tab == 'backups' ? '' : 'hidden' ?>">
-    <div class="text-center p-12 text-slate-500">Backup Management coming soon.</div>
+    <div class="text-center p-12 text-slate-600">Backup Management coming soon.</div>
 </div>
 
 <div id="tab-troubleshoot" class="<?= $active_tab == 'troubleshoot' ? '' : 'hidden' ?>">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- Existing Troubleshoot Buttons -->
         <div class="glass-card p-8 bg-gradient-to-br from-indigo-900/20 to-indigo-900/5 border-indigo-500/20">
-            <h3 class="font-bold text-white mb-4">Display Doctor</h3>
+            <h3 class="font-bold text-slate-900 mb-4">Display Doctor</h3>
             <button onclick="fixWebsite()"
-                class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
+                class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-slate-900 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
                 <i data-lucide="wand-2" class="w-5 h-5"></i> Fix Website Display
             </button>
         </div>
 
         <div class="glass-card p-8 bg-gradient-to-br from-slate-900/50 to-slate-900/20">
-            <h3 class="font-bold text-white mb-4">Restart Services</h3>
+            <h3 class="font-bold text-slate-900 mb-4">Restart Services</h3>
             <button onclick="restartServices()"
-                class="w-full py-4 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
+                class="w-full py-4 bg-slate-700 hover:bg-slate-600 text-slate-900 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
                 <i data-lucide="power" class="w-5 h-5"></i> Restart Services
             </button>
         </div>
 
         <!-- NEW FIX CONFIG BUTTON -->
         <div class="glass-card p-8 bg-gradient-to-br from-rose-900/20 to-rose-900/5 border-rose-500/20 mt-6">
-            <h3 class="font-bold text-white mb-4">Fix Config Issues</h3>
+            <h3 class="font-bold text-slate-900 mb-4">Fix Config Issues</h3>
             <button onclick="fixConfig()"
-                class="w-full py-4 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
+                class="w-full py-4 bg-rose-600 hover:bg-rose-500 text-slate-900 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
                 <i data-lucide="wrench" class="w-5 h-5"></i> Fix Config
             </button>
         </div>
@@ -413,9 +413,9 @@ include 'layout/header.php';
 
             if (res.status === 'success' && res.data.length > 0) {
                 tbody.innerHTML = res.data.map(app => `
-<tr class="border-t border-white/5 hover:bg-white/5 transition">
-    <td class="p-4 font-bold text-white capitalize">${app.app_type}</td>
-    <td class="p-4 text-slate-400">${app.domain}</td>
+<tr class="border-t border-slate-200 hover:bg-white/5 transition">
+    <td class="p-4 font-bold text-slate-900 capitalize">${app.app_type}</td>
+    <td class="p-4 text-slate-600">${app.domain}</td>
     <td class="p-4">
         <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${app.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
                         (app.status === 'failed' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
@@ -426,7 +426,7 @@ include 'layout/header.php';
     </td>
     <td class="p-4 text-right">
         ${app.status === 'active' ?
-                        `<a href="http://${app.domain}" target="_blank" class="text-blue-400 hover:text-white mr-2"><i
+                        `<a href="http://${app.domain}" target="_blank" class="text-blue-400 hover:text-slate-900 mr-2"><i
                 data-lucide="external-link" class="w-4 h-4"></i></a>` :
                         ''}
     </td>
@@ -435,7 +435,7 @@ include 'layout/header.php';
                 lucide.createIcons();
             } else {
                 tbody.innerHTML = `<tr>
-    <td colspan="4" class="p-6 text-center text-slate-500">No recent installations</td>
+    <td colspan="4" class="p-6 text-center text-slate-600">No recent installations</td>
 </tr>`;
             }
         } catch (e) { console.error(e); }
@@ -454,9 +454,9 @@ include 'layout/header.php';
 
             if (res.status === 'success' && res.data.length > 0) {
                 tbody.innerHTML = res.data.map(user => `
-<tr class="border-t border-white/5 hover:bg-white/5 transition">
-    <td class="p-4 font-bold text-white">${user.userid}</td>
-    <td class="p-4 text-slate-400 font-mono text-xs">${user.homedir}</td>
+<tr class="border-t border-slate-200 hover:bg-white/5 transition">
+    <td class="p-4 font-bold text-slate-900">${user.userid}</td>
+    <td class="p-4 text-slate-600 font-mono text-xs">${user.homedir}</td>
     <td class="p-4 text-right">
         <button onclick="delFTP('${user.userid}')" class="text-red-400 hover:bg-red-500/10 p-2 rounded transition"><i
                 data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -466,7 +466,7 @@ include 'layout/header.php';
                 lucide.createIcons();
             } else {
                 tbody.innerHTML = `<tr>
-    <td colspan="3" class="p-6 text-center text-slate-500">No FTP accounts found</td>
+    <td colspan="3" class="p-6 text-center text-slate-600">No FTP accounts found</td>
 </tr>`;
             }
         } catch (e) { console.error(e); }
@@ -529,3 +529,4 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
+

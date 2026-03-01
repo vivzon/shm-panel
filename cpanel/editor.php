@@ -83,7 +83,7 @@ $content = file_get_contents($abs_path);
     </style>
 </head>
 
-<body class="bg-[#0f172a] text-slate-300 overflow-hidden font-sans">
+<body class="bg-[#0f172a] text-slate-700 overflow-hidden font-sans">
 
     <header class="h-[70px] glass-panel flex items-center justify-between px-6 z-50 relative">
         <div class="flex items-center gap-4">
@@ -91,12 +91,12 @@ $content = file_get_contents($abs_path);
             if ($parent_dir == '.' || $parent_dir == '\\')
                 $parent_dir = '/'; ?>
             <a href="files.php?domain_id=<?= $domain_id ?>&path=<?= $parent_dir ?>"
-                class="p-2 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition">
+                class="p-2 hover:bg-white/10 rounded-xl text-slate-600 hover:text-slate-900 transition">
                 <i data-lucide="arrow-left" class="w-5"></i>
             </a>
             <div class="flex flex-col">
-                <span class="font-bold text-white text-sm"><?= basename($cleaned_file) ?></span>
-                <span class="font-mono text-xs text-slate-500"><?= $cleaned_file ?></span>
+                <span class="font-bold text-slate-900 text-sm"><?= basename($cleaned_file) ?></span>
+                <span class="font-mono text-xs text-slate-600"><?= $cleaned_file ?></span>
             </div>
 
             <?php if ($msg): ?>
@@ -107,7 +107,7 @@ $content = file_get_contents($abs_path);
             <?php endif; ?>
         </div>
         <button onclick="saveFile()"
-            class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition shadow-lg shadow-blue-600/20 text-sm">
+            class="bg-blue-600 hover:bg-blue-500 text-slate-900 px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition shadow-lg shadow-blue-600/20 text-sm">
             <i data-lucide="save" class="w-4"></i> Save Changes
         </button>
     </header>
@@ -160,3 +160,4 @@ $content = file_get_contents($abs_path);
 </body>
 
 </html>
+

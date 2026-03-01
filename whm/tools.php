@@ -131,26 +131,26 @@ include 'layout/header.php';
 ?>
 
 <div class="mb-8">
-    <h2 class="text-2xl font-bold text-white mb-2">System Tools</h2>
-    <p class="text-slate-400 text-sm">Configure system services and accounts.</p>
+    <h2 class="text-2xl font-bold text-slate-900 mb-2">System Tools</h2>
+    <p class="text-slate-600 text-sm">Configure system services and accounts.</p>
 </div>
 
 <!-- TABS -->
 <div class="flex border-b border-slate-800 mb-8 overflow-x-auto">
     <a href="?tab=ftp"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'ftp' ? 'border-indigo-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'ftp' ? 'border-indigo-500 text-slate-900' : 'border-transparent text-slate-600 hover:text-slate-700' ?>">
         FTP Manager
     </a>
     <a href="?tab=mail"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'mail' ? 'border-indigo-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'mail' ? 'border-indigo-500 text-slate-900' : 'border-transparent text-slate-600 hover:text-slate-700' ?>">
         Mail Manager
     </a>
     <a href="?tab=php"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'php' ? 'border-indigo-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'php' ? 'border-indigo-500 text-slate-900' : 'border-transparent text-slate-600 hover:text-slate-700' ?>">
         PHP Config
     </a>
     <a href="?tab=network"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'network' ? 'border-indigo-500 text-white' : 'border-transparent text-slate-500 hover:text-slate-300' ?>">
+        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'network' ? 'border-indigo-500 text-slate-900' : 'border-transparent text-slate-600 hover:text-slate-700' ?>">
         Network Settings
     </a>
 </div>
@@ -161,7 +161,7 @@ include 'layout/header.php';
         <!-- CREATE FTP -->
         <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl"></div>
-            <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
+            <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-slate-900 font-heading">
                 <div class="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20 text-blue-500">
                     <i data-lucide="folder-up" class="w-5 h-5"></i>
                 </div>
@@ -170,9 +170,9 @@ include 'layout/header.php';
             <form onsubmit="handleToolAction(event, 'add_ftp', loadFTP)" class="space-y-4 relative z-10">
                 <div class="grid grid-cols-2 gap-4">
                     <input name="ftp_user" required placeholder="Pre-fix (e.g. dev)"
-                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                        class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-600 focus:bg-white transition">
                     <select name="sys_user" required
-                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-indigo-500 focus:bg-slate-900 transition">
+                        class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition">
                         <?php foreach ($clients as $c): ?>
                             <option value="<?= $c['username'] ?>">@<?= $c['username'] ?></option>
                         <?php endforeach; ?>
@@ -180,12 +180,12 @@ include 'layout/header.php';
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <input name="pass" required type="password" placeholder="Password"
-                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                        class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-600 focus:bg-white transition">
                     <input name="pass2" required type="password" placeholder="Confirm"
-                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition">
+                        class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-600 focus:bg-white transition">
                 </div>
                 <button type="submit"
-                    class="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-indigo-600/20 text-white transition border border-indigo-500/50">
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-indigo-600/20 text-slate-900 transition border border-indigo-500/50">
                     Create FTP User
                 </button>
             </form>
@@ -193,11 +193,11 @@ include 'layout/header.php';
 
         <!-- LIST FTP -->
         <div class="glass-panel p-8 rounded-3xl relative overflow-hidden flex flex-col h-full">
-            <h3 class="text-xl font-bold mb-6 text-white font-heading">Existing Accounts</h3>
+            <h3 class="text-xl font-bold mb-6 text-slate-900 font-heading">Existing Accounts</h3>
             <div class="overflow-y-auto flex-1 custom-scrollbar max-h-[400px]">
                 <table class="w-full text-left">
                     <thead
-                        class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400 sticky top-0 backdrop-blur-md">
+                        class="bg-white/50 text-[10px] font-bold uppercase text-slate-600 sticky top-0 backdrop-blur-md">
                         <tr>
                             <th class="p-3">User</th>
                             <th class="p-3">Home</th>
@@ -206,7 +206,7 @@ include 'layout/header.php';
                     </thead>
                     <tbody id="ftp-list" class="divide-y divide-slate-700/50">
                         <tr>
-                            <td colspan="3" class="p-4 text-center text-slate-500">Loading...</td>
+                            <td colspan="3" class="p-4 text-center text-slate-600">Loading...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -221,7 +221,7 @@ include 'layout/header.php';
         <!-- CREATE MAIL -->
         <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-600/10 rounded-full blur-3xl"></div>
-            <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
+            <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-slate-900 font-heading">
                 <div class="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20 text-emerald-500">
                     <i data-lucide="mail-plus" class="w-5 h-5"></i>
                 </div>
@@ -230,10 +230,10 @@ include 'layout/header.php';
             <form onsubmit="handleToolAction(event, 'add_mail', loadMail)" class="space-y-4 relative z-10">
                 <div class="flex gap-2">
                     <input name="prefix" required placeholder="user"
-                        class="flex-1 bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition text-right">
-                    <div class="flex items-center text-slate-500 font-bold">@</div>
+                        class="flex-1 bg-white/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-600 focus:bg-white transition text-right">
+                    <div class="flex items-center text-slate-600 font-bold">@</div>
                     <select name="domain" required
-                        class="flex-1 bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-indigo-500 focus:bg-slate-900 transition">
+                        class="flex-1 bg-white/50 p-4 rounded-xl border border-slate-700 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition">
                         <?php foreach ($mail_domains as $d): ?>
                             <option value="<?= $d['domain'] ?>"><?= $d['domain'] ?></option>
                         <?php endforeach; ?>
@@ -244,20 +244,20 @@ include 'layout/header.php';
                 <input style="display:none" type="password" name="fakepasswordremembered" />
 
                 <input name="mail_pass" required type="password" placeholder="Password" autocomplete="new-password"
-                    class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-white placeholder:text-slate-600 focus:bg-slate-900 transition mb-2">
+                    class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-600 focus:bg-white transition mb-2">
                 <button type="submit"
-                    class="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-indigo-600/20 text-white transition border border-indigo-500/50">Create
+                    class="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-indigo-600/20 text-slate-900 transition border border-indigo-500/50">Create
                     Mailbox</button>
             </form>
         </div>
 
         <!-- LIST MAIL -->
         <div class="glass-panel p-8 rounded-3xl relative overflow-hidden flex flex-col h-full">
-            <h3 class="text-xl font-bold mb-6 text-white font-heading">Existing Mailboxes</h3>
+            <h3 class="text-xl font-bold mb-6 text-slate-900 font-heading">Existing Mailboxes</h3>
             <div class="overflow-y-auto flex-1 custom-scrollbar max-h-[400px]">
                 <table class="w-full text-left">
                     <thead
-                        class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400 sticky top-0 backdrop-blur-md">
+                        class="bg-white/50 text-[10px] font-bold uppercase text-slate-600 sticky top-0 backdrop-blur-md">
                         <tr>
                             <th class="p-3">Email Address</th>
                             <th class="p-3 text-right">Action</th>
@@ -265,7 +265,7 @@ include 'layout/header.php';
                     </thead>
                     <tbody id="mail-list" class="divide-y divide-slate-700/50">
                         <tr>
-                            <td colspan="2" class="p-4 text-center text-slate-500">Loading...</td>
+                            <td colspan="2" class="p-4 text-center text-slate-600">Loading...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -278,7 +278,7 @@ include 'layout/header.php';
 <div class="<?= $active_tab == 'php' ? '' : 'hidden' ?>">
     <div class="glass-panel p-8 rounded-3xl relative overflow-hidden max-w-2xl">
         <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-600/10 rounded-full blur-3xl"></div>
-        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
+        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-slate-900 font-heading">
             <div class="p-2 bg-purple-500/10 rounded-lg border border-purple-500/20 text-purple-500">
                 <i data-lucide="code" class="w-5 h-5"></i>
             </div>
@@ -287,18 +287,18 @@ include 'layout/header.php';
         <form onsubmit="handleToolAction(event, 'set_php_handler')" class="space-y-4 relative z-10">
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">User / Site</label>
+                    <label class="text-xs text-slate-600 font-bold uppercase mb-1 block">User / Site</label>
                     <select name="sys_user" required
-                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-indigo-500 focus:bg-slate-900 transition font-mono text-sm">
+                        class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition font-mono text-sm">
                         <?php foreach ($clients as $c): ?>
                             <option value="<?= $c['username'] ?>"><?= $c['username'] ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-500 font-bold uppercase mb-1 block">PHP Version</label>
+                    <label class="text-xs text-slate-600 font-bold uppercase mb-1 block">PHP Version</label>
                     <select name="php_version" required
-                        class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-indigo-500 focus:bg-slate-900 transition font-mono text-sm">
+                        class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition font-mono text-sm">
                         <?php foreach ($php_versions as $v): ?>
                             <option value="<?= $v ?>">PHP <?= $v ?></option>
                         <?php endforeach; ?>
@@ -306,7 +306,7 @@ include 'layout/header.php';
                 </div>
             </div>
             <button type="submit"
-                class="w-full bg-purple-600 hover:bg-purple-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-purple-600/20 text-white transition border border-purple-500/50">
+                class="w-full bg-purple-600 hover:bg-purple-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-purple-600/20 text-slate-900 transition border border-purple-500/50">
                 Update Handlers
             </button>
         </form>
@@ -317,7 +317,7 @@ include 'layout/header.php';
 <div class="<?= $active_tab == 'network' ? '' : 'hidden' ?>">
     <div class="glass-panel p-8 rounded-3xl relative overflow-hidden max-w-2xl">
         <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-600/10 rounded-full blur-3xl"></div>
-        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-white font-heading">
+        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-slate-900 font-heading">
             <div class="p-2 bg-orange-500/10 rounded-lg border border-orange-500/20 text-orange-500">
                 <i data-lucide="network" class="w-5 h-5"></i>
             </div>
@@ -331,14 +331,14 @@ include 'layout/header.php';
                 </p>
             </div>
             <select name="interface"
-                class="w-full bg-slate-900/50 p-4 rounded-xl border border-slate-700 text-slate-300 outline-none focus:border-indigo-500 focus:bg-slate-900 transition font-mono">
+                class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition font-mono">
                 <option value="eth0">eth0 (Standard Cloud)</option>
                 <option value="eth1">eth1 (Secondary)</option>
                 <option value="ens3">ens3 (KVM)</option>
                 <option value="ens18">ens18 (Proxmox)</option>
             </select>
             <button type="submit"
-                class="w-full bg-orange-600 hover:bg-orange-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-orange-600/20 text-white transition border border-orange-500/50">Update
+                class="w-full bg-orange-600 hover:bg-orange-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-orange-600/20 text-slate-900 transition border border-orange-500/50">Update
                 Interface</button>
         </form>
     </div>
@@ -387,9 +387,9 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(u => {
                     list.innerHTML += `
-                        <tr class="hover:bg-slate-800/30 transition group border-b border-slate-800/50 last:border-0">
+                        <tr class="hover:bg-slate-50/30 transition group border-b border-slate-800/50 last:border-0">
                             <td class="p-4 font-mono text-xs text-blue-300 font-bold">${u.userid}</td>
-                            <td class="p-4 text-slate-500 text-xs truncate max-w-[150px] font-mono">${u.homedir}</td>
+                            <td class="p-4 text-slate-600 text-xs truncate max-w-[150px] font-mono">${u.homedir}</td>
                             <td class="p-4 text-right">
                                 <button onclick="delFTP('${u.userid}')" class="p-2 rounded-lg hover:bg-red-500/10 text-red-400 opacity-50 group-hover:opacity-100 hover:text-red-500 transition"><i data-lucide="trash-2" class="w-4"></i></button>
                             </td>
@@ -398,7 +398,7 @@ include 'layout/header.php';
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-500 italic text-sm">No FTP accounts found.</td></tr>';
+                list.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-600 italic text-sm">No FTP accounts found.</td></tr>';
             }
         } catch (e) { list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-red-400">Error loading data.</td></tr>'; }
     }
@@ -415,10 +415,10 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(u => {
                     list.innerHTML += `
-                        <tr class="hover:bg-slate-800/30 transition group border-b border-slate-800/50 last:border-0">
-                            <td class="p-4 text-sm text-white font-medium">
+                        <tr class="hover:bg-slate-50/30 transition group border-b border-slate-800/50 last:border-0">
+                            <td class="p-4 text-sm text-slate-900 font-medium">
                                 ${u.email}
-                                <div class="text-[10px] text-slate-500 font-mono mt-0.5">${u.domain}</div>
+                                <div class="text-[10px] text-slate-600 font-mono mt-0.5">${u.domain}</div>
                             </td>
                             <td class="p-4 text-right">
                                 <button onclick="delMail(${u.id}, '${u.email}')" class="p-2 rounded-lg hover:bg-red-500/10 text-red-400 opacity-50 group-hover:opacity-100 hover:text-red-500 transition"><i data-lucide="trash-2" class="w-4"></i></button>
@@ -428,7 +428,7 @@ include 'layout/header.php';
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<tr><td colspan="2" class="p-8 text-center text-slate-500 italic text-sm">No mailboxes found.</td></tr>';
+                list.innerHTML = '<tr><td colspan="2" class="p-8 text-center text-slate-600 italic text-sm">No mailboxes found.</td></tr>';
             }
         } catch (e) { list.innerHTML = '<tr><td colspan="2" class="p-4 text-center text-red-400">Error loading data.</td></tr>'; }
     }
@@ -462,3 +462,4 @@ include 'layout/header.php';
     });
 
 </script>
+

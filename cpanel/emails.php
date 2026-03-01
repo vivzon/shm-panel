@@ -104,13 +104,13 @@ include 'layout/header.php';
 <div class="space-y-10">
     <!-- CREATE EMAIL -->
     <div class="glass-card p-10">
-        <h2 class="text-2xl font-bold mb-8 text-white">Create Email Account</h2>
+        <h2 class="text-2xl font-bold mb-8 text-slate-900">Create Email Account</h2>
         <form onsubmit="handleGeneric(event, 'add_email')" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <?= csrf_field() ?>
             <input name="user" required placeholder="mailbox name"
-                class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
+                class="bg-white/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 placeholder-slate-600 transition">
             <select name="domain"
-                class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-300">
+                class="bg-white/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-700">
                 <?php foreach ($domains as $d): ?>
                     <option value="<?= $d['domain'] ?>">@
                         <?= $d['domain'] ?>
@@ -118,9 +118,9 @@ include 'layout/header.php';
                 <?php endforeach; ?>
             </select>
             <input name="pass" type="password" required placeholder="Password"
-                class="bg-slate-900/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-white placeholder-slate-600 transition">
+                class="bg-white/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 placeholder-slate-600 transition">
             <button
-                class="bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition">Create
+                class="bg-blue-600 text-slate-900 rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition">Create
                 Mailbox</button>
         </form>
     </div>
@@ -128,7 +128,7 @@ include 'layout/header.php';
     <!-- LIST -->
     <div class="glass-card overflow-hidden">
         <table class="w-full text-left">
-            <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+            <thead class="bg-white/50 text-[10px] font-bold uppercase text-slate-600">
                 <tr>
                     <th class="p-6">Active Email Account</th>
                     <th class="p-6 text-right">Webmail / Action</th>
@@ -136,8 +136,8 @@ include 'layout/header.php';
             </thead>
             <tbody>
                 <?php foreach ($my_emails as $mail): ?>
-                    <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
-                        <td class="p-6 font-bold text-slate-300">
+                    <tr class="border-t border-slate-700/50 hover:bg-slate-50/30 transition">
+                        <td class="p-6 font-bold text-slate-700">
                             <?= $mail['email'] ?>
                         </td>
                         <td class="p-6 text-right">
@@ -158,17 +158,17 @@ include 'layout/header.php';
 
     <?php if ($total_pages > 1): ?>
         <div class="flex justify-between items-center mt-6">
-            <div class="text-xs text-slate-500 font-bold">
+            <div class="text-xs text-slate-600 font-bold">
                 Page <?= $page ?> of <?= $total_pages ?>
             </div>
             <div class="flex gap-2">
                 <?php if ($page > 1): ?>
                     <a href="?page=<?= $page - 1 ?>"
-                        class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Previous</a>
+                        class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition">Previous</a>
                 <?php endif; ?>
                 <?php if ($page < $total_pages): ?>
                     <a href="?page=<?= $page + 1 ?>"
-                        class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition">Next</a>
+                        class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition">Next</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -218,3 +218,4 @@ include 'layout/header.php';
         }
     }
 </script>
+

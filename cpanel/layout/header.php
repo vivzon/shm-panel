@@ -20,7 +20,7 @@ $username = $_SESSION['client'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= csrf_token() ?>">
-    <title><?= get_branding() ?> | SHM Client Portal</title>
+    <title><?= get_branding() ?> | Client Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link
@@ -29,65 +29,106 @@ $username = $_SESSION['client'];
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #020617;
-            color: #f1f5f9;
+            background: #f8fafc;
+            color: #1e293b;
         }
 
         .font-heading {
             font-family: 'Outfit', sans-serif;
         }
 
-        /* Glass Cards */
+        /* ── Cards ── */
         .glass-card {
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
             border-radius: 1rem;
         }
 
-        /* Sidebar Nav */
+        .glass-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            border-radius: 1rem;
+        }
+
+        /* ── Sidebar nav ── */
         .nav-btn {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 10px;
             font-weight: 500;
             font-size: 13px;
-            transition: all 0.2s;
-            color: #94a3b8;
+            transition: all 0.18s;
+            color: #64748b;
             margin-bottom: 2px;
             text-decoration: none;
         }
 
         .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.03);
-            color: #e2e8f0;
+            background: #f1f5f9;
+            color: #1e293b;
         }
 
         .nav-btn.active {
-            background: rgba(37, 99, 235, 0.1);
-            color: #60a5fa;
+            background: #eff6ff;
+            color: #2563eb;
             font-weight: 600;
         }
 
+        .nav-btn.active svg,
         .nav-btn.active i {
-            color: #60a5fa;
+            color: #2563eb;
         }
 
-        /* Scrollbar */
+        /* ── Scrollbar ── */
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
+            background: #f1f5f9;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
+            background: #cbd5e1;
             border-radius: 20px;
+        }
+
+        /* ── Global light overrides ── */
+        [class*="bg-slate-9"],
+        [class*="bg-slate-8"] {
+            background-color: #f1f5f9 !important;
+        }
+
+        [class*="border-slate-9"],
+        [class*="border-slate-8"] {
+            border-color: #e2e8f0 !important;
+        }
+
+        [class*="text-white"]:not(button):not(.btn):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-violet"]) {
+            color: #1e293b !important;
+        }
+
+        input[type=text],
+        input[type=number],
+        input[type=email],
+        input[type=password],
+        select,
+        textarea {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
     </style>
 </head>
@@ -97,30 +138,28 @@ $username = $_SESSION['client'];
     <!-- Sidebar -->
     <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <main class="flex-1 flex flex-col h-full bg-[#020617] relative overflow-hidden">
+    <main class="flex-1 flex flex-col h-full bg-[#f8fafc] relative overflow-hidden">
         <!-- Top Header -->
         <header
-            class="h-16 px-8 flex items-center justify-between border-b border-slate-900 bg-slate-950/50 backdrop-blur-md sticky top-0 z-10 w-full">
-            <div class="flex items-center gap-4">
-                <span class="relative flex h-2.5 w-2.5">
+            class="h-14 px-8 flex items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-10 shadow-sm w-full">
+            <div class="flex items-center gap-3">
+                <span class="relative flex h-2 w-2">
                     <span
                         class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span class="text-[10px] font-bold text-emerald-500 font-mono tracking-widest uppercase">System
+                <span class="text-[10px] font-bold text-emerald-600 font-mono tracking-widest uppercase">System
                     Online</span>
             </div>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
                 <div
-                    class="flex items-center gap-2 px-3 py-1.5 bg-slate-900/50 rounded-full border border-slate-800 hover:border-slate-700 transition cursor-pointer">
+                    class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full border border-slate-200 hover:border-slate-300 transition cursor-pointer">
                     <div
-                        class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-blue-500/20">
+                        class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shadow">
                         <?= strtoupper(substr($username, 0, 1)) ?>
                     </div>
-                    <span class="text-xs font-semibold text-slate-300 pr-1">
-                        <?= $username ?>
-                    </span>
-                    <i data-lucide="chevron-down" class="w-3 h-3 text-slate-500"></i>
+                    <span class="text-xs font-semibold text-slate-700 pr-1"><?= htmlspecialchars($username) ?></span>
+                    <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
                 </div>
             </div>
         </header>

@@ -18,7 +18,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= csrf_token() ?>">
-    <title><?= get_branding() ?> | SHM Admin System</title>
+    <title><?= get_branding() ?> | Admin Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link
@@ -27,61 +27,146 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #020617;
-            color: #f1f5f9;
+            background: #f8fafc;
+            color: #1e293b;
         }
 
         .font-heading {
             font-family: 'Outfit', sans-serif;
         }
 
-        /* Glass Panes */
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        /* ── Cards ── */
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            border-radius: 1rem;
         }
 
-        /* Sidebar Nav */
+        .glass-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            border-radius: 1rem;
+        }
+
+        /* ── Sidebar Nav ── */
         .nav-link {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 10px;
             font-weight: 500;
             font-size: 13px;
             color: #64748b;
-            transition: all 0.2s;
-            border: 1px solid transparent;
+            transition: all 0.18s;
             margin-bottom: 2px;
+            text-decoration: none;
         }
 
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.03);
-            color: #e2e8f0;
+            background: #f1f5f9;
+            color: #1e293b;
         }
 
         .nav-link.active {
-            background: rgba(37, 99, 235, 0.1);
-            color: #60a5fa;
-            border-color: rgba(59, 130, 246, 0.15);
+            background: #eff6ff;
+            color: #2563eb;
             font-weight: 600;
         }
 
-        /* Scrollbar */
+        .nav-link.active svg {
+            color: #2563eb;
+        }
+
+        /* ── Scrollbar ── */
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
+            background: #f1f5f9;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
+            background: #cbd5e1;
             border-radius: 20px;
+        }
+
+        /* ── Utility overrides for light theme ── */
+        /* Tables */
+        table {
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* Inputs */
+        input[type=text],
+        input[type=number],
+        input[type=email],
+        input[type=password],
+        select,
+        textarea {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Badges */
+        .badge-active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-warning {
+            background: #fef9c3;
+            color: #ca8a04;
+        }
+
+        .badge-error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Slate-X overrides — force light bg on panels that hardcode slate-9xx */
+        [class*="bg-slate-9"],
+        [class*="bg-slate-8"] {
+            background-color: #f1f5f9 !important;
+        }
+
+        [class*="border-slate-9"],
+        [class*="border-slate-8"] {
+            border-color: #e2e8f0 !important;
+        }
+
+        [class*="text-slate-4"],
+        [class*="text-slate-5"] {
+            color: #64748b !important;
+        }
+
+        [class*="text-white"]:not(button):not(.btn):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-violet"]) {
+            color: #1e293b !important;
         }
     </style>
 </head>
@@ -91,23 +176,23 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- Sidebar -->
     <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <main class="flex-1 flex flex-col h-full bg-[#020617] relative overflow-hidden">
+    <main class="flex-1 flex flex-col h-full bg-[#f8fafc] relative overflow-hidden">
         <!-- Top Header -->
         <header
-            class="h-16 px-8 flex items-center justify-between border-b border-slate-900 bg-slate-950/50 backdrop-blur-md sticky top-0 z-10">
-            <div class="flex items-center gap-4">
-                <span class="relative flex h-2.5 w-2.5">
+            class="h-14 px-8 flex items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
+            <div class="flex items-center gap-3">
+                <span class="relative flex h-2 w-2">
                     <span
                         class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span class="text-[10px] font-bold text-emerald-500 font-mono tracking-widest uppercase">System
+                <span class="text-[10px] font-bold text-emerald-600 font-mono tracking-widest uppercase">System
                     Online</span>
             </div>
             <div class="flex items-center gap-2">
                 <span
-                    class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-400">v5.0-STABLE</span>
+                    class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-500">v5.0-STABLE</span>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-10 pb-24 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto p-8 pb-24 custom-scrollbar">

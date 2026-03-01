@@ -172,47 +172,47 @@ include 'layout/header.php';
     <div class="space-y-8">
         <!-- CREATE DATABASE -->
         <div>
-            <h3 class="font-bold mb-4 text-white">Create Database</h3>
+            <h3 class="font-bold mb-4 text-slate-900">Create Database</h3>
             <form onsubmit="handleSubmit(event, 'add_db')" class="glass-card p-6 space-y-4">
-                <div class="flex items-center bg-slate-900/50 rounded-xl border border-slate-700 overflow-hidden">
-                    <div class="px-4 py-4 bg-slate-800 text-slate-400 font-mono text-sm border-r border-slate-700">
+                <div class="flex items-center bg-white/50 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="px-4 py-4 bg-slate-50 text-slate-600 font-mono text-sm border-r border-slate-700">
                         <?= htmlspecialchars($username) ?>_</div>
                     <input name="db_name" required placeholder="dbname"
-                        class="w-full bg-transparent p-4 outline-none text-white placeholder-slate-600">
+                        class="w-full bg-transparent p-4 outline-none text-slate-900 placeholder-slate-600">
                 </div>
                 <select name="domain_id"
-                    class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-slate-300">
+                    class="w-full bg-white/50 border border-slate-700 p-4 rounded-xl text-slate-700">
                     <option value="">Global (No Domain)</option>
                     <?php foreach ($domains as $d): ?>
                         <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['domain']) ?></option>
                     <?php endforeach; ?>
                 </select>
                 <button type="submit"
-                    class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold hover:bg-blue-500 transition">Create
+                    class="w-full bg-blue-600 text-slate-900 p-4 rounded-xl font-bold hover:bg-blue-500 transition">Create
                     Database</button>
             </form>
         </div>
 
         <!-- CREATE USER -->
         <div>
-            <h3 class="font-bold mb-4 text-white">Create User</h3>
+            <h3 class="font-bold mb-4 text-slate-900">Create User</h3>
             <form onsubmit="handleSubmit(event, 'add_db_user')" class="glass-card p-6 space-y-4">
-                <div class="flex items-center bg-slate-900/50 rounded-xl border border-slate-700 overflow-hidden">
-                    <div class="px-4 py-4 bg-slate-800 text-slate-400 font-mono text-sm border-r border-slate-700">
+                <div class="flex items-center bg-white/50 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="px-4 py-4 bg-slate-50 text-slate-600 font-mono text-sm border-r border-slate-700">
                         <?= htmlspecialchars($username) ?>_</div>
                     <input name="db_user" required placeholder="dbuser"
-                        class="w-full bg-transparent p-4 outline-none text-white placeholder-slate-600">
+                        class="w-full bg-transparent p-4 outline-none text-slate-900 placeholder-slate-600">
                 </div>
                 <input name="db_pass" type="password" required placeholder="Password"
-                    class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-white">
+                    class="w-full bg-white/50 border border-slate-700 p-4 rounded-xl text-slate-900">
                 <select name="target_db"
-                    class="w-full bg-slate-900/50 border border-slate-700 p-4 rounded-xl text-slate-300">
+                    class="w-full bg-white/50 border border-slate-700 p-4 rounded-xl text-slate-700">
                     <?php foreach ($my_dbs as $db): ?>
                         <option value="<?= $db['db_name'] ?>"><?= $db['db_name'] ?></option>
                     <?php endforeach; ?>
                 </select>
                 <button type="submit"
-                    class="w-full bg-slate-800 text-white p-4 rounded-xl font-bold border border-slate-700">Create
+                    class="w-full bg-slate-50 text-slate-900 p-4 rounded-xl font-bold border border-slate-700">Create
                     User</button>
             </form>
         </div>
@@ -222,10 +222,10 @@ include 'layout/header.php';
     <div class="md:col-span-2 space-y-8">
         <!-- DATABASE LIST -->
         <div>
-            <h3 class="font-bold mb-4 text-white">Your Databases</h3>
+            <h3 class="font-bold mb-4 text-slate-900">Your Databases</h3>
             <div class="glass-card overflow-hidden">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+                    <thead class="bg-white/50 text-[10px] font-bold uppercase text-slate-600">
                         <tr>
                             <th class="p-6">Name</th>
                             <th class="p-6 text-right">Action</th>
@@ -233,7 +233,7 @@ include 'layout/header.php';
                     </thead>
                     <tbody>
                         <?php foreach ($my_dbs as $db): ?>
-                            <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
+                            <tr class="border-t border-slate-700/50 hover:bg-slate-50/30 transition">
                                 <td class="p-6">
                                     <div class="font-bold text-slate-200"><?= htmlspecialchars($db['db_name']) ?></div>
                                     <div class="text-xs text-blue-400">
@@ -255,10 +255,10 @@ include 'layout/header.php';
 
         <!-- USER LIST -->
         <div>
-            <h3 class="font-bold mb-4 text-white">Database Users</h3>
+            <h3 class="font-bold mb-4 text-slate-900">Database Users</h3>
             <div class="glass-card overflow-hidden">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-900/50 text-[10px] font-bold uppercase text-slate-400">
+                    <thead class="bg-white/50 text-[10px] font-bold uppercase text-slate-600">
                         <tr>
                             <th class="p-6">Username</th>
                             <th class="p-6 text-right">Action</th>
@@ -269,8 +269,8 @@ include 'layout/header.php';
                         $db_users = $pdo->prepare("SELECT * FROM client_db_users WHERE client_id = ?");
                         $db_users->execute([$cid]);
                         foreach ($db_users->fetchAll() as $u): ?>
-                            <tr class="border-t border-slate-700/50 hover:bg-slate-800/30 transition">
-                                <td class="p-6 font-bold text-slate-300"><?= htmlspecialchars($u['db_user']) ?></td>
+                            <tr class="border-t border-slate-700/50 hover:bg-slate-50/30 transition">
+                                <td class="p-6 font-bold text-slate-700"><?= htmlspecialchars($u['db_user']) ?></td>
                                 <td class="p-6 text-right flex justify-end gap-2">
                                     <button onclick="handleResetPass('<?= $u['db_user'] ?>', this)"
                                         class="text-orange-400 p-2" title="Reset Password"><i data-lucide="key"

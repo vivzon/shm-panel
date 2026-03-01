@@ -45,13 +45,13 @@ include 'layout/header.php';
 
 <div class="space-y-8">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-white/5 pb-6">
+    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-6">
         <div>
-            <h2 class="text-3xl font-bold text-white font-heading tracking-tight mb-2">Traffic & Stats</h2>
-            <p class="text-slate-400">Monitor website activity and bandwidth consumption across your domains.</p>
+            <h2 class="text-3xl font-bold text-slate-900 font-heading tracking-tight mb-2">Traffic & Stats</h2>
+            <p class="text-slate-600">Monitor website activity and bandwidth consumption across your domains.</p>
         </div>
         <button onclick="syncTraffic(this)"
-            class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
+            class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-slate-900 rounded-xl font-bold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
             <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sync Statistics
         </button>
     </div>
@@ -64,11 +64,11 @@ include 'layout/header.php';
                     <i data-lucide="activity" class="w-6 h-6 text-blue-400"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-white text-lg">Total Hits</h3>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">All Time</p>
+                    <h3 class="font-bold text-slate-900 text-lg">Total Hits</h3>
+                    <p class="text-xs text-slate-600 font-bold uppercase tracking-wider">All Time</p>
                 </div>
             </div>
-            <div class="text-3xl font-bold font-heading text-white">
+            <div class="text-3xl font-bold font-heading text-slate-900">
                 <?= number_format($monthly_total_hits) ?>
             </div>
         </div>
@@ -79,25 +79,25 @@ include 'layout/header.php';
                     <i data-lucide="hard-drive" class="w-6 h-6 text-purple-400"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-white text-lg">Total Bandwidth</h3>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">All Time</p>
+                    <h3 class="font-bold text-slate-900 text-lg">Total Bandwidth</h3>
+                    <p class="text-xs text-slate-600 font-bold uppercase tracking-wider">All Time</p>
                 </div>
             </div>
-            <div class="text-3xl font-bold font-heading text-white">
+            <div class="text-3xl font-bold font-heading text-slate-900">
                 <?= round($monthly_total_bytes / 1024 / 1024, 2) ?> MB
             </div>
         </div>
     </div>
 
     <div class="glass-card overflow-hidden text-sm">
-        <div class="p-4 border-b border-slate-700/50 bg-slate-900/50 flex justify-between items-center">
-            <h3 class="font-bold text-white">Domain Traffic</h3>
-            <button onclick="location.reload()" class="text-slate-400 hover:text-white transition group">
+        <div class="p-4 border-b border-slate-700/50 bg-white/50 flex justify-between items-center">
+            <h3 class="font-bold text-slate-900">Domain Traffic</h3>
+            <button onclick="location.reload()" class="text-slate-600 hover:text-slate-900 transition group">
                 <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition duration-500"></i>
             </button>
         </div>
         <table class="w-full text-left">
-            <thead class="bg-slate-900/50 text-[10px] uppercase text-slate-500 font-bold tracking-wider">
+            <thead class="bg-white/50 text-[10px] uppercase text-slate-600 font-bold tracking-wider">
                 <tr>
                     <th class="p-5 font-bold">Domain Name</th>
                     <th class="p-5 font-bold">Hits Count</th>
@@ -107,16 +107,16 @@ include 'layout/header.php';
             <tbody class="divide-y divide-slate-800">
                 <?php if (empty($domains_traffic)): ?>
                     <tr>
-                        <td colspan="3" class="p-8 text-center text-slate-500">No domains found</td>
+                        <td colspan="3" class="p-8 text-center text-slate-600">No domains found</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($domains_traffic as $t): ?>
-                        <tr class="hover:bg-slate-800/20 transition group">
+                        <tr class="hover:bg-slate-50/20 transition group">
                             <td class="p-5">
-                                <div class="font-bold text-white">
+                                <div class="font-bold text-slate-900">
                                     <?= htmlspecialchars($t['domain']) ?>
                                 </div>
-                                <div class="text-[10px] text-slate-500 mt-1 uppercase tracking-wider font-bold">
+                                <div class="text-[10px] text-slate-600 mt-1 uppercase tracking-wider font-bold">
                                     Last Activity:
                                     <?= $t['last_activity'] ? date('M j, Y', strtotime($t['last_activity'])) : 'Never' ?>
                                 </div>
@@ -167,3 +167,4 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
+

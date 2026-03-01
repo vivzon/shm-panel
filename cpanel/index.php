@@ -103,16 +103,16 @@ include 'layout/header.php';
 <div class="space-y-8">
 
     <!-- Welcome Section -->
-    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-white/5 pb-6">
+    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-6">
         <div>
-            <h2 class="text-3xl font-bold text-white font-heading tracking-tight mb-2">Dashboard</h2>
-            <p class="text-slate-400">Welcome back, <span
+            <h2 class="text-3xl font-bold text-slate-900 font-heading tracking-tight mb-2">Dashboard</h2>
+            <p class="text-slate-600">Welcome back, <span
                     class="text-blue-400 font-bold"><?= htmlspecialchars($username) ?></span>. System is running
                 smoothly.</p>
         </div>
         <div class="flex gap-3">
             <a href="files.php"
-                class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2">
+                class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-slate-900 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2">
                 <i data-lucide="folder-up" class="w-4 h-4"></i> Upload Files
             </a>
         </div>
@@ -128,12 +128,12 @@ include 'layout/header.php';
             <div class="flex justify-between items-start mb-4 relative z-10">
                 <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl"><i data-lucide="globe" class="w-6 h-6"></i>
                 </div>
-                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-400"><?= $usage_dom ?> /
+                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-600"><?= $usage_dom ?> /
                     <?= $clientData['max_domains'] ?></span>
             </div>
-            <h3 class="text-3xl font-bold text-white mb-1 relative z-10"><?= $usage_dom ?></h3>
-            <p class="text-sm text-slate-400 font-medium relative z-10">Active Domains</p>
-            <div class="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+            <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $usage_dom ?></h3>
+            <p class="text-sm text-slate-600 font-medium relative z-10">Active Domains</p>
+            <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
                 <div class="bg-blue-500 h-full rounded-full"
                     style="width: <?= ($usage_dom / max(1, $clientData['max_domains'])) * 100 ?>%"></div>
             </div>
@@ -147,12 +147,12 @@ include 'layout/header.php';
             <div class="flex justify-between items-start mb-4 relative z-10">
                 <div class="p-3 bg-purple-500/10 text-purple-400 rounded-xl"><i data-lucide="database"
                         class="w-6 h-6"></i></div>
-                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-400"><?= $usage_db ?> /
+                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-600"><?= $usage_db ?> /
                     <?= $clientData['max_databases'] ?></span>
             </div>
-            <h3 class="text-3xl font-bold text-white mb-1 relative z-10"><?= $usage_db ?></h3>
-            <p class="text-sm text-slate-400 font-medium relative z-10">MySQL Databases</p>
-            <div class="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+            <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $usage_db ?></h3>
+            <p class="text-sm text-slate-600 font-medium relative z-10">MySQL Databases</p>
+            <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
                 <div class="bg-purple-500 h-full rounded-full"
                     style="width: <?= ($usage_db / max(1, $clientData['max_databases'])) * 100 ?>%"></div>
             </div>
@@ -166,12 +166,12 @@ include 'layout/header.php';
             <div class="flex justify-between items-start mb-4 relative z-10">
                 <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl"><i data-lucide="mail"
                         class="w-6 h-6"></i></div>
-                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-400"><?= $usage_mail ?> /
+                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-600"><?= $usage_mail ?> /
                     <?= $clientData['max_emails'] ?></span>
             </div>
-            <h3 class="text-3xl font-bold text-white mb-1 relative z-10"><?= $usage_mail ?></h3>
-            <p class="text-sm text-slate-400 font-medium relative z-10">Email Accounts</p>
-            <div class="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+            <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $usage_mail ?></h3>
+            <p class="text-sm text-slate-600 font-medium relative z-10">Email Accounts</p>
+            <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
                 <div class="bg-emerald-500 h-full rounded-full"
                     style="width: <?= ($usage_mail / max(1, $clientData['max_emails'])) * 100 ?>%"></div>
             </div>
@@ -188,9 +188,9 @@ include 'layout/header.php';
                 <span
                     class="text-xs font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-1 rounded"><?= htmlspecialchars($clientData['pkg_name']) ?></span>
             </div>
-            <h3 class="text-3xl font-bold text-white mb-1 relative z-10"><?= $used_mb ?> MB</h3>
-            <p class="text-sm text-slate-400 font-medium relative z-10">of <?= $clientData['disk_mb'] ?> MB Used</p>
-            <div class="w-full bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+            <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $used_mb ?> MB</h3>
+            <p class="text-sm text-slate-600 font-medium relative z-10">of <?= $clientData['disk_mb'] ?> MB Used</p>
+            <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
                 <div class="bg-orange-500 h-full rounded-full" style="width: <?= $disk_percent ?>%"></div>
             </div>
         </div>
@@ -204,12 +204,12 @@ include 'layout/header.php';
             <div class="glass-card p-6">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-lg font-bold text-white">Network Traffic</h3>
-                        <p class="text-xs text-slate-400">Hits & Bandwidth (Last 7 Days)</p>
+                        <h3 class="text-lg font-bold text-slate-900">Network Traffic</h3>
+                        <p class="text-xs text-slate-600">Hits & Bandwidth (Last 7 Days)</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="flex h-2 w-2 rounded-full bg-blue-500"></span>
-                        <span class="text-xs text-slate-400">Flow</span>
+                        <span class="text-xs text-slate-600">Flow</span>
                     </div>
                 </div>
                 <!-- Chart Container -->
@@ -219,32 +219,36 @@ include 'layout/header.php';
             <!-- Quick Actions -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <a href="emails.php"
-                    class="p-4 bg-slate-800/40 hover:bg-slate-700/50 border border-white/5 hover:border-blue-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
-                    <div class="p-3 bg-slate-900 rounded-full group-hover:bg-blue-600 transition duration-300">
-                        <i data-lucide="mail-plus" class="w-5 h-5 text-blue-400 group-hover:text-white transition"></i>
+                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-200 hover:border-blue-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
+                    <div class="p-3 bg-white rounded-full group-hover:bg-blue-600 transition duration-300">
+                        <i data-lucide="mail-plus"
+                            class="w-5 h-5 text-blue-400 group-hover:text-slate-900 transition"></i>
                     </div>
-                    <span class="font-bold text-sm text-slate-300 group-hover:text-white">New Email</span>
+                    <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">New Email</span>
                 </a>
                 <a href="databases.php"
-                    class="p-4 bg-slate-800/40 hover:bg-slate-700/50 border border-white/5 hover:border-purple-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
-                    <div class="p-3 bg-slate-900 rounded-full group-hover:bg-purple-600 transition duration-300">
-                        <i data-lucide="database" class="w-5 h-5 text-purple-400 group-hover:text-white transition"></i>
+                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-200 hover:border-purple-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
+                    <div class="p-3 bg-white rounded-full group-hover:bg-purple-600 transition duration-300">
+                        <i data-lucide="database"
+                            class="w-5 h-5 text-purple-400 group-hover:text-slate-900 transition"></i>
                     </div>
-                    <span class="font-bold text-sm text-slate-300 group-hover:text-white">Add DB</span>
+                    <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">Add DB</span>
                 </a>
                 <a href="domains.php"
-                    class="p-4 bg-slate-800/40 hover:bg-slate-700/50 border border-white/5 hover:border-emerald-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
-                    <div class="p-3 bg-slate-900 rounded-full group-hover:bg-emerald-600 transition duration-300">
-                        <i data-lucide="globe" class="w-5 h-5 text-emerald-400 group-hover:text-white transition"></i>
+                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-200 hover:border-emerald-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
+                    <div class="p-3 bg-white rounded-full group-hover:bg-emerald-600 transition duration-300">
+                        <i data-lucide="globe"
+                            class="w-5 h-5 text-emerald-400 group-hover:text-slate-900 transition"></i>
                     </div>
-                    <span class="font-bold text-sm text-slate-300 group-hover:text-white">Add Domain</span>
+                    <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">Add Domain</span>
                 </a>
                 <a href="tools.php"
-                    class="p-4 bg-slate-800/40 hover:bg-slate-700/50 border border-white/5 hover:border-orange-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
-                    <div class="p-3 bg-slate-900 rounded-full group-hover:bg-orange-600 transition duration-300">
-                        <i data-lucide="wrench" class="w-5 h-5 text-orange-400 group-hover:text-white transition"></i>
+                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-200 hover:border-orange-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
+                    <div class="p-3 bg-white rounded-full group-hover:bg-orange-600 transition duration-300">
+                        <i data-lucide="wrench"
+                            class="w-5 h-5 text-orange-400 group-hover:text-slate-900 transition"></i>
                     </div>
-                    <span class="font-bold text-sm text-slate-300 group-hover:text-white">Tools</span>
+                    <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">Tools</span>
                 </a>
             </div>
         </div>
@@ -253,26 +257,26 @@ include 'layout/header.php';
         <div class="space-y-8">
             <!-- Server Info -->
             <div class="glass-card p-6">
-                <h3 class="text-lg font-bold text-white mb-4">Server Info</h3>
+                <h3 class="text-lg font-bold text-slate-900 mb-4">Server Info</h3>
                 <div class="space-y-3">
-                    <div class="flex justify-between text-sm py-2 border-b border-white/5">
-                        <span class="text-slate-400">IP Address</span>
-                        <span class="font-mono text-white"><?= $_SERVER['SERVER_ADDR'] ?></span>
+                    <div class="flex justify-between text-sm py-2 border-b border-slate-200">
+                        <span class="text-slate-600">IP Address</span>
+                        <span class="font-mono text-slate-900"><?= $_SERVER['SERVER_ADDR'] ?></span>
                     </div>
-                    <div class="flex justify-between text-sm py-2 border-b border-white/5">
-                        <span class="text-slate-400">PHP Version</span>
+                    <div class="flex justify-between text-sm py-2 border-b border-slate-200">
+                        <span class="text-slate-600">PHP Version</span>
                         <span class="font-mono text-blue-400">8.2 (Default)</span>
                     </div>
-                    <div class="flex justify-between text-sm py-2 border-b border-white/5">
-                        <span class="text-slate-400">Web Server</span>
+                    <div class="flex justify-between text-sm py-2 border-b border-slate-200">
+                        <span class="text-slate-600">Web Server</span>
                         <span class="font-mono text-emerald-400">Nginx</span>
                     </div>
                     <div class="mt-4 pt-2">
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-slate-500">System Load</span>
+                            <span class="text-slate-600">System Load</span>
                             <span class="text-green-400">Healthy</span>
                         </div>
-                        <div class="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-1.5 bg-slate-50 rounded-full overflow-hidden">
                             <div class="h-full bg-green-500 w-1/4 animate-pulse"></div>
                         </div>
                     </div>
@@ -281,19 +285,19 @@ include 'layout/header.php';
 
             <!-- Error Logs -->
             <div class="glass-card overflow-hidden flex flex-col h-[300px]">
-                <div class="p-4 border-b border-white/5 flex justify-between items-center bg-slate-900/50">
-                    <h3 class="font-bold text-white text-sm flex items-center gap-2">
-                        <i data-lucide="terminal" class="w-4 h-4 text-slate-400"></i> Error Stream
+                <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4 text-slate-600"></i> Error Stream
                     </h3>
-                    <button onclick="fetchLogs()" class="text-slate-500 hover:text-white transition"><i
+                    <button onclick="fetchLogs()" class="text-slate-600 hover:text-slate-900 transition"><i
                             data-lucide="refresh-cw" class="w-3 h-3"></i></button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4 bg-[#050912] font-mono text-[11px] text-slate-400 leading-relaxed scrollbar-hide"
+                <div class="flex-1 overflow-y-auto p-4 bg-slate-900 font-mono text-[11px] text-slate-300 leading-relaxed scrollbar-hide"
                     id="log-container">
-                    <div class="flex items-center justify-center h-full text-slate-600 animate-pulse">Connecting to
+                    <div class="flex items-center justify-center h-full text-slate-500 animate-pulse">Connecting to
                         stream...</div>
                 </div>
-                <div class="p-2 bg-slate-900/50 border-t border-white/5 flex justify-between items-center px-4">
+                <div class="p-2 bg-white/50 border-t border-slate-200 flex justify-between items-center px-4">
                     <span
                         class="flex items-center gap-2 text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
                         <span class="relative flex h-2 w-2">
@@ -304,100 +308,103 @@ include 'layout/header.php';
                         Live
                     </span>
                     <button onclick="clearLogs()"
-                        class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold uppercase">Clear</button>
+                        class="px-3 py-1 bg-red-500/10 text-red-600 border border-red-500/20 rounded hover:bg-red-500 hover:text-white transition font-bold leading-none">
+                        Clear
+                    </button>
+
                 </div>
+
             </div>
+
         </div>
 
     </div>
 
-</div>
-
-<script>
-    // 1. Water Flow Graph (ApexCharts)
-    const options = {
-        series: [{
-            name: 'Web Hits',
-            data: <?= json_encode($hits) ?>
-        }],
-        chart: {
-            type: 'area',
-            height: 300,
-            toolbar: { show: false },
-            fontFamily: 'Plus Jakarta Sans, sans-serif',
-            background: 'transparent'
-        },
-        colors: ['#3b82f6'],
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.7,
-                opacityTo: 0.1, // Water fade effect
-                stops: [0, 90, 100]
+    <script>
+        // 1. Water Flow Graph (ApexCharts)
+        const options = {
+            series: [{
+                name: 'Web Hits',
+                data: <?= json_encode($hits) ?>
+            }],
+            chart: {
+                type: 'area',
+                height: 300,
+                toolbar: { show: false },
+                fontFamily: 'Plus Jakarta Sans, sans-serif',
+                background: 'transparent'
+            },
+            colors: ['#3b82f6'],
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.7,
+                    opacityTo: 0.1, // Water fade effect
+                    stops: [0, 90, 100]
+                }
+            },
+            dataLabels: { enabled: false },
+            stroke: {
+                curve: 'smooth',
+                width: 3
+            },
+            xaxis: {
+                categories: <?= json_encode($dates) ?>,
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                labels: { style: { colors: '#64748b' } }
+            },
+            yaxis: {
+                labels: { style: { colors: '#64748b' } }
+            },
+            grid: {
+                borderColor: 'rgba(255, 255, 255, 0.05)',
+                strokeDashArray: 4,
+            },
+            theme: { mode: 'dark' },
+            tooltip: {
+                theme: 'dark',
+                x: { show: true },
             }
-        },
-        dataLabels: { enabled: false },
-        stroke: {
-            curve: 'smooth',
-            width: 3
-        },
-        xaxis: {
-            categories: <?= json_encode($dates) ?>,
-            axisBorder: { show: false },
-            axisTicks: { show: false },
-            labels: { style: { colors: '#64748b' } }
-        },
-        yaxis: {
-            labels: { style: { colors: '#64748b' } }
-        },
-        grid: {
-            borderColor: 'rgba(255, 255, 255, 0.05)',
-            strokeDashArray: 4,
-        },
-        theme: { mode: 'dark' },
-        tooltip: {
-            theme: 'dark',
-            x: { show: true },
+        };
+
+        const chart = new ApexCharts(document.querySelector("#trafficChart"), options);
+        chart.render();
+
+        // 2. Log Viewer Logic
+        async function fetchLogs() {
+            try {
+                const fd = new FormData();
+                fd.append('ajax_action', 'get_logs');
+                fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                const res = await fetch('', { method: 'POST', body: fd });
+                const text = await res.text();
+                const cont = document.getElementById('log-container');
+
+                if (text.trim() === "") {
+                    cont.innerHTML = '<div class="flex items-center justify-center h-full text-slate-600">No recent errors.</div>';
+                } else {
+                    cont.innerHTML = `<pre class="whitespace-pre-wrap">${text}</pre>`;
+                    cont.scrollTop = cont.scrollHeight;
+                }
+            } catch (e) { console.error(e); }
         }
-    };
 
-    const chart = new ApexCharts(document.querySelector("#trafficChart"), options);
-    chart.render();
+        async function clearLogs() {
+            if (!confirm("Clear logs?")) return;
+            try {
+                const fd = new FormData();
+                fd.append('ajax_action', 'clear_logs');
+                fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                await fetch('', { method: 'POST', body: fd });
+                fetchLogs();
+            } catch (e) { console.error(e); }
+        }
 
-    // 2. Log Viewer Logic
-    async function fetchLogs() {
-        try {
-            const fd = new FormData();
-            fd.append('ajax_action', 'get_logs');
-            fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-            const res = await fetch('', { method: 'POST', body: fd });
-            const text = await res.text();
-            const cont = document.getElementById('log-container');
+        // Init
+        fetchLogs();
+        setInterval(fetchLogs, 5000);
+    </script>
 
-            if (text.trim() === "") {
-                cont.innerHTML = '<div class="flex items-center justify-center h-full text-slate-600">No recent errors.</div>';
-            } else {
-                cont.innerHTML = `<pre class="whitespace-pre-wrap">${text}</pre>`;
-                cont.scrollTop = cont.scrollHeight;
-            }
-        } catch (e) { console.error(e); }
-    }
-
-    async function clearLogs() {
-        if (!confirm("Clear logs?")) return;
-        try {
-            const fd = new FormData();
-            fd.append('ajax_action', 'clear_logs');
-            fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-            await fetch('', { method: 'POST', body: fd });
-            fetchLogs();
-        } catch (e) { console.error(e); }
-    }
-
-    // Init
-    fetchLogs();
-    setInterval(fetchLogs, 5000);
-</script>
-
-<?php include 'layout/footer.php'; ?>
+    <?php include 'layout/footer.php'; ?>

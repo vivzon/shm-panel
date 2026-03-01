@@ -8,22 +8,25 @@
     // --- TOAST SYSTEM ---
     function showToast(type, title, message) {
         const toast = document.createElement('div');
-        toast.className = `fixed bottom-5 right-5 z-[100] w-96 glass-card p-4 rounded-xl shadow-2xl flex items-start gap-4 transform transition-all duration-500 translate-x-full opacity-0 border-l-4 ${type === 'success' ? 'border-l-emerald-500' : (type === 'error' ? 'border-l-red-500' : 'border-l-blue-500')}`;
+        const colors = {
+            success: 'border-l-emerald-500 bg-white',
+            error: 'border-l-red-500 bg-white',
+            info: 'border-l-blue-500 bg-white',
+        };
+        toast.className = `fixed bottom-5 right-5 z-[100] w-96 p-4 rounded-xl shadow-lg border border-slate-200 flex items-start gap-4 transform transition-all duration-500 translate-x-full opacity-0 border-l-4 ${colors[type] || colors.info}`;
 
-        // Icon
-        let iconHtml = '';
-        if (type === 'success') iconHtml = `<div class="bg-emerald-500/20 text-emerald-400 p-2 rounded-lg"><i data-lucide="check-circle" class="w-5 h-5"></i></div>`;
-        else if (type === 'error') iconHtml = `<div class="bg-red-500/20 text-red-400 p-2 rounded-lg"><i data-lucide="x-circle" class="w-5 h-5"></i></div>`;
-        else iconHtml = `<div class="bg-blue-500/20 text-blue-400 p-2 rounded-lg"><i data-lucide="info" class="w-5 h-5"></i></div>`;
+        const iconBgs = { success: 'bg-emerald-100 text-emerald-600', error: 'bg-red-100 text-red-600', info: 'bg-blue-100 text-blue-600' };
+        const iconNames = { success: 'check-circle', error: 'x-circle', info: 'info' };
+        const iconHtml = `<div class="${iconBgs[type] || iconBgs.info} p-2 rounded-lg shrink-0"><i data-lucide="${iconNames[type] || 'info'}" class="w-4 h-4"></i></div>`;
 
         toast.innerHTML = `
-                ${iconHtml}
-                <div class="flex-1">
-                    <h4 class="font-bold text-white text-sm">${title}</h4>
-                    <p class="text-xs text-slate-400 mt-1 leading-relaxed">${message}</p>
-                </div>
-                <button onclick="this.parentElement.remove()" class="text-slate-500 hover:text-white transition"><i data-lucide="x" class="w-4 h-4"></i></button>
-            `;
+            ${iconHtml}
+            <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-slate-800 text-sm">${title}</h4>
+                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">${message}</p>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 transition shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
+        `;
 
         document.body.appendChild(toast);
         lucide.createIcons({ root: toast });

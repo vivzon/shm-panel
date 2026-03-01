@@ -121,8 +121,8 @@ include 'layout/header.php';
         <!-- Header area -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-                <h2 class="text-2xl font-bold text-white font-heading">Server Config Manager</h2>
-                <p class="text-slate-400 text-sm">Manage Nginx, PHP and Upload Settings</p>
+                <h2 class="text-2xl font-bold text-slate-900 font-heading">Server Config Manager</h2>
+                <p class="text-slate-600 text-sm">Manage Nginx, PHP and Upload Settings</p>
             </div>
 
             <div class="flex items-center gap-3">
@@ -133,7 +133,7 @@ include 'layout/header.php';
                 </div>
 
                 <button onclick="saveChanges()"
-                    class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2 text-sm">
+                    class="bg-blue-600 hover:bg-blue-500 text-slate-900 px-5 py-2 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2 text-sm">
                     <i data-lucide="save" class="w-4 h-4"></i> Save
                 </button>
             </div>
@@ -147,11 +147,11 @@ include 'layout/header.php';
                     <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
                         <i data-lucide="server" class="w-4 h-4"></i>
                     </div>
-                    <h3 class="font-bold text-white">Nginx Upload Settings</h3>
+                    <h3 class="font-bold text-slate-900">Nginx Upload Settings</h3>
                 </div>
 
                 <div class="mb-5 flex items-center justify-between">
-                    <label class="text-sm font-medium text-slate-300">Unlimited Upload Size</label>
+                    <label class="text-sm font-medium text-slate-700">Unlimited Upload Size</label>
                     <div
                         class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
                         <input type="checkbox" id="toggleUnlimited" onchange="toggleUnlimitedUploads()"
@@ -163,38 +163,38 @@ include 'layout/header.php';
 
                 <div class="space-y-4">
                     <div id="grp-client-max-body">
-                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">Client Max
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Client Max
                             Body Size <span
-                                class="text-slate-500 normal-case tracking-normal ml-1">client_max_body_size</span></label>
+                                class="text-slate-600 normal-case tracking-normal ml-1">client_max_body_size</span></label>
                         <div class="flex">
                             <input type="number" id="nginx_client_max_body_size" value="50" oninput="updatePreview()"
-                                class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                             <div
-                                class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                 MB</div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">Client Body
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Client Body
                             Timeout</label>
                         <div class="flex">
                             <input type="number" id="nginx_client_body_timeout" value="60" oninput="updatePreview()"
-                                class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                             <div
-                                class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                 s</div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">Send
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Send
                             Timeout</label>
                         <div class="flex">
                             <input type="number" id="nginx_send_timeout" value="60" oninput="updatePreview()"
-                                class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                             <div
-                                class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                 s</div>
                         </div>
                     </div>
@@ -207,42 +207,42 @@ include 'layout/header.php';
                     <div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">
                         <i data-lucide="network" class="w-4 h-4"></i>
                     </div>
-                    <h3 class="font-bold text-white">FastCGI & Proxy</h3>
+                    <h3 class="font-bold text-slate-900">FastCGI & Proxy</h3>
                 </div>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">FastCGI Read
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">FastCGI Read
                             Timeout</label>
                         <div class="flex">
                             <input type="number" id="fcgi_read_timeout" value="60" oninput="updatePreview()"
-                                class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                             <div
-                                class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                 s</div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">FastCGI Send
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">FastCGI Send
                             Timeout</label>
                         <div class="flex">
                             <input type="number" id="fcgi_send_timeout" value="60" oninput="updatePreview()"
-                                class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                             <div
-                                class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                 s</div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">Proxy Read
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Proxy Read
                             Timeout</label>
                         <div class="flex">
                             <input type="number" id="proxy_read_timeout" value="60" oninput="updatePreview()"
-                                class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                             <div
-                                class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                 s</div>
                         </div>
                     </div>
@@ -255,11 +255,11 @@ include 'layout/header.php';
                     <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400">
                         <i data-lucide="file-code" class="w-4 h-4"></i>
                     </div>
-                    <h3 class="font-bold text-white">PHP Configuration</h3>
+                    <h3 class="font-bold text-slate-900">PHP Configuration</h3>
 
                     <div class="ml-auto">
                         <select id="php_version" onchange="updatePreview()"
-                            class="bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-blue-500">
+                            class="bg-white/50 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-700 outline-none focus:border-blue-500">
                             <option value="8.3">PHP 8.3 (Default)</option>
                             <option value="8.2">PHP 8.2</option>
                             <option value="8.1">PHP 8.1</option>
@@ -272,37 +272,37 @@ include 'layout/header.php';
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">Upload
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Upload
                                 Max Filesize</label>
                             <div class="flex">
                                 <input type="number" id="php_upload_max_filesize" value="50" oninput="updatePreview()"
-                                    class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                    class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                                 <div
-                                    class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                    class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                     M</div>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">Post Max
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Post Max
                                 Size</label>
                             <div class="flex">
                                 <input type="number" id="php_post_max_size" value="64" oninput="updatePreview()"
-                                    class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                    class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                                 <div
-                                    class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                    class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                     M</div>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">Memory
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Memory
                                 Limit</label>
                             <div class="flex">
                                 <input type="number" id="php_memory_limit" value="256" oninput="updatePreview()"
-                                    class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                    class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                                 <div
-                                    class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                    class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                     M</div>
                             </div>
                         </div>
@@ -311,9 +311,9 @@ include 'layout/header.php';
                     <div class="space-y-6">
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Max Execution
+                                <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Max Execution
                                     Time</label>
-                                <span class="text-white text-sm font-fira bg-slate-800 px-2 py-0.5 rounded"
+                                <span class="text-slate-900 text-sm font-fira bg-slate-50 px-2 py-0.5 rounded"
                                     id="php_max_execution_time_val">60s</span>
                             </div>
                             <input type="range" id="php_max_execution_time" min="30" max="600" step="30" value="60"
@@ -322,9 +322,9 @@ include 'layout/header.php';
 
                         <div>
                             <div class="flex justify-between mb-1">
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Max Input
+                                <label class="text-xs font-bold text-slate-600 uppercase tracking-wide">Max Input
                                     Time</label>
-                                <span class="text-white text-sm font-fira bg-slate-800 px-2 py-0.5 rounded"
+                                <span class="text-slate-900 text-sm font-fira bg-slate-50 px-2 py-0.5 rounded"
                                     id="php_max_input_time_val">60s</span>
                             </div>
                             <input type="range" id="php_max_input_time" min="60" max="600" step="60" value="60"
@@ -332,14 +332,14 @@ include 'layout/header.php';
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wide">Default
+                            <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wide">Default
                                 Socket Timeout</label>
                             <div class="flex">
                                 <input type="number" id="php_default_socket_timeout" value="60"
                                     oninput="updatePreview()"
-                                    class="w-full bg-slate-900/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-white text-sm transition">
+                                    class="w-full bg-white/50 border border-slate-700 border-r-0 rounded-l-xl p-2.5 outline-none focus:border-blue-500 text-slate-900 text-sm transition">
                                 <div
-                                    class="bg-slate-800 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-400 text-sm font-medium">
+                                    class="bg-slate-50 border border-slate-700 border-l-0 rounded-r-xl px-4 flex items-center text-slate-600 text-sm font-medium">
                                     s</div>
                             </div>
                         </div>
@@ -349,38 +349,38 @@ include 'layout/header.php';
 
             <!-- Operations & Presets -->
             <div class="glass-card p-6 md:col-span-2">
-                <h3 class="font-bold text-white mb-4">Operations & Presets</h3>
+                <h3 class="font-bold text-slate-900 mb-4">Operations & Presets</h3>
 
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <button onclick="applyPreset('default', this)"
-                        class="preset-btn p-4 rounded-xl border border-slate-700 bg-slate-800/30 hover:bg-slate-800 hover:border-blue-500 transition text-left group">
-                        <div class="text-white font-bold text-sm mb-1 group-hover:text-blue-400">Default</div>
-                        <div class="text-slate-500 text-xs">Standard (50MB)</div>
+                        class="preset-btn p-4 rounded-xl border border-slate-700 bg-slate-50/30 hover:bg-slate-50 hover:border-blue-500 transition text-left group">
+                        <div class="text-slate-900 font-bold text-sm mb-1 group-hover:text-blue-400">Default</div>
+                        <div class="text-slate-600 text-xs">Standard (50MB)</div>
                     </button>
                     <button onclick="applyPreset('large', this)"
-                        class="preset-btn p-4 rounded-xl border border-slate-700 bg-slate-800/30 hover:bg-slate-800 hover:border-blue-500 transition text-left group">
-                        <div class="text-white font-bold text-sm mb-1 group-hover:text-blue-400">Large Media</div>
-                        <div class="text-slate-500 text-xs">Videos (500MB)</div>
+                        class="preset-btn p-4 rounded-xl border border-slate-700 bg-slate-50/30 hover:bg-slate-50 hover:border-blue-500 transition text-left group">
+                        <div class="text-slate-900 font-bold text-sm mb-1 group-hover:text-blue-400">Large Media</div>
+                        <div class="text-slate-600 text-xs">Videos (500MB)</div>
                     </button>
                     <button onclick="applyPreset('backup', this)"
-                        class="preset-btn p-4 rounded-xl border border-slate-700 bg-slate-800/30 hover:bg-slate-800 hover:border-blue-500 transition text-left group">
-                        <div class="text-white font-bold text-sm mb-1 group-hover:text-blue-400">Backup Mode</div>
-                        <div class="text-slate-500 text-xs">Massive (2GB)</div>
+                        class="preset-btn p-4 rounded-xl border border-slate-700 bg-slate-50/30 hover:bg-slate-50 hover:border-blue-500 transition text-left group">
+                        <div class="text-slate-900 font-bold text-sm mb-1 group-hover:text-blue-400">Backup Mode</div>
+                        <div class="text-slate-600 text-xs">Massive (2GB)</div>
                     </button>
                     <button onclick="applyPreset('unlimited', this)"
-                        class="preset-btn p-4 rounded-xl border border-slate-700 bg-slate-800/30 hover:bg-slate-800 hover:border-blue-500 transition text-left group">
-                        <div class="text-white font-bold text-sm mb-1 group-hover:text-blue-400">Unlimited</div>
-                        <div class="text-slate-500 text-xs">No Limits</div>
+                        class="preset-btn p-4 rounded-xl border border-slate-700 bg-slate-50/30 hover:bg-slate-50 hover:border-blue-500 transition text-left group">
+                        <div class="text-slate-900 font-bold text-sm mb-1 group-hover:text-blue-400">Unlimited</div>
+                        <div class="text-slate-600 text-xs">No Limits</div>
                     </button>
                 </div>
 
                 <div class="flex flex-wrap gap-3 pt-6 border-t border-slate-700/50">
                     <button onclick="simulateAction('restart_services', 'Restarting Nginx & PHP-FPM...', true)"
-                        class="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                        class="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600 hover:text-slate-900 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i> Restart Services
                     </button>
                     <button onclick="simulateAction('test_config', 'Testing Configuration Syntax...', false)"
-                        class="bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 hover:text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                        class="bg-slate-50 text-slate-700 border border-slate-700 hover:bg-slate-200 hover:text-slate-900 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
                         <i data-lucide="check-circle" class="w-4 h-4"></i> Test Syntax
                     </button>
                 </div>
@@ -393,21 +393,21 @@ include 'layout/header.php';
     <div class="w-full lg:w-96 flex flex-col gap-4">
 
         <!-- Tabs -->
-        <div class="flex gap-2 p-1 bg-slate-900/80 rounded-xl border border-slate-800">
+        <div class="flex gap-2 p-1 bg-white/80 rounded-xl border border-slate-800">
             <button onclick="switchPreview('nginx', this)"
-                class="preview-tab active flex-1 py-2 rounded-lg text-sm font-bold transition bg-slate-800 text-white shadow-sm">
+                class="preview-tab active flex-1 py-2 rounded-lg text-sm font-bold transition bg-slate-50 text-slate-900 shadow-sm">
                 nginx.conf
             </button>
             <button onclick="switchPreview('php', this)"
-                class="preview-tab flex-1 py-2 rounded-lg text-sm font-bold text-slate-500 hover:text-slate-300 transition">
+                class="preview-tab flex-1 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-700 transition">
                 php.ini
             </button>
         </div>
 
         <!-- Code Windows -->
         <div class="glass-card flex-1 flex flex-col overflow-hidden min-h-[500px]">
-            <div class="px-4 py-3 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
-                <div class="flex items-center gap-2 text-slate-300 text-xs font-fira" id="previewTitle">
+            <div class="px-4 py-3 border-b border-slate-800 bg-white/50 flex justify-between items-center">
+                <div class="flex items-center gap-2 text-slate-700 text-xs font-fira" id="previewTitle">
                     <i data-lucide="file-code" class="w-3.5 h-3.5"></i> /etc/nginx/nginx.conf
                 </div>
                 <div class="text-emerald-500 text-[10px] uppercase font-bold tracking-widest flex items-center gap-1">
@@ -415,11 +415,11 @@ include 'layout/header.php';
                 </div>
             </div>
 
-            <div class="flex-1 bg-slate-950/80 p-4 overflow-y-auto custom-scrollbar">
+            <div class="flex-1 bg-white/80 p-4 overflow-y-auto custom-scrollbar">
                 <pre id="preview-nginx"
-                    class="font-fira text-xs leading-relaxed text-slate-400 whitespace-pre-wrap word-break"></pre>
+                    class="font-fira text-xs leading-relaxed text-slate-600 whitespace-pre-wrap word-break"></pre>
                 <pre id="preview-php"
-                    class="font-fira text-xs leading-relaxed text-slate-400 whitespace-pre-wrap word-break hidden"></pre>
+                    class="font-fira text-xs leading-relaxed text-slate-600 whitespace-pre-wrap word-break hidden"></pre>
             </div>
         </div>
 
@@ -531,12 +531,12 @@ file_uploads = On
 
     function switchPreview(type, btnObj) {
         document.querySelectorAll('.preview-tab').forEach(b => {
-            b.classList.remove('bg-slate-800', 'text-white', 'shadow-sm', 'active');
-            b.classList.add('text-slate-500');
+            b.classList.remove('bg-slate-50', 'text-slate-900', 'shadow-sm', 'active');
+            b.classList.add('text-slate-600');
         });
 
-        btnObj.classList.remove('text-slate-500');
-        btnObj.classList.add('bg-slate-800', 'text-white', 'shadow-sm', 'active');
+        btnObj.classList.remove('text-slate-600');
+        btnObj.classList.add('bg-slate-50', 'text-slate-900', 'shadow-sm', 'active');
 
         const phpVer = document.getElementById('php_version').value;
         const icon = '<i data-lucide="file-code" class="w-3.5 h-3.5 inline-block mr-1"></i>';
@@ -554,8 +554,8 @@ file_uploads = On
     }
 
     function applyPreset(type, btnElement) {
-        document.querySelectorAll('.preset-btn').forEach(el => el.classList.remove('border-blue-500', 'bg-slate-800'));
-        btnElement.classList.add('border-blue-500', 'bg-slate-800');
+        document.querySelectorAll('.preset-btn').forEach(el => el.classList.remove('border-blue-500', 'bg-slate-50'));
+        btnElement.classList.add('border-blue-500', 'bg-slate-50');
 
         document.getElementById('toggleUnlimited').checked = false;
         inputs.nginx_client_max_body_size.disabled = false;
@@ -684,3 +684,4 @@ file_uploads = On
             .catch(e => showToast('error', 'Error', 'Failed to communicate with server.'));
     }
 </script>
+
