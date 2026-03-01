@@ -53,85 +53,104 @@ $packages = $pdo->query("SELECT * FROM packages")->fetchAll(PDO::FETCH_ASSOC);
 include 'layout/header.php';
 ?>
 
-<div class="flex justify-between items-center mb-8">
-    <h2 class="text-2xl font-bold text-slate-900 font-heading">Service Packages</h2>
-    <button onclick="openPkgModal()"
-        class="bg-emerald-600 hover:bg-emerald-500 text-slate-900 px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-900/20 text-sm flex items-center gap-2 transition border border-emerald-500/50">
-        <i data-lucide="plus" class="w-4"></i> Add Package
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); font-family: var(--font-heading);">Service
+        Packages</h2>
+    <button onclick="openPkgModal()" class="btn btn-primary"
+        style="background: var(--emerald-600); border-color: var(--emerald-600); display: flex; align-items: center; gap: 0.5rem;"
+        onmouseover="this.style.background='var(--emerald-500)'; this.style.borderColor='var(--emerald-500)';"
+        onmouseout="this.style.background='var(--emerald-600)'; this.style.borderColor='var(--emerald-600)';">
+        <i data-lucide="plus" style="width: 1rem; height: 1rem;"></i> Add Package
     </button>
 </div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
     <?php foreach ($packages as $p): ?>
-        <div class="glass-panel p-6 rounded-2xl relative group hover:border-blue-400 transition">
-            <div class="flex justify-between items-start mb-6">
-                <h3 class="text-lg font-bold text-slate-900">
+        <div class="glass-card"
+            style="padding: 1.5rem; border-radius: 1rem; position: relative; transition: border-color 0.2s; border: 1px solid var(--border-color);"
+            onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='var(--border-color)'">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900);">
                     <?= $p['name'] ?>
                 </h3>
-                <div class="p-2 bg-slate-50 rounded-lg text-slate-700"><i data-lucide="box" class="w-4"></i></div>
+                <div style="padding: 0.5rem; background: var(--slate-50); border-radius: 0.5rem; color: var(--slate-700);">
+                    <i data-lucide="box" style="width: 1rem; height: 1rem;"></i></div>
             </div>
-            <div class="space-y-4 text-sm text-slate-700 mb-8 font-medium">
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-300">
-                    <i data-lucide="hard-drive" class="w-4 text-blue-400"></i>
+            <div
+                style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.875rem; color: var(--slate-700); margin-bottom: 2rem; font-weight: 500;">
+                <div
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: var(--slate-50); border: 1px solid var(--border-color);">
+                    <i data-lucide="hard-drive" style="width: 1rem; height: 1rem; color: #60a5fa;"></i>
                     <?= $p['disk_mb'] ?> MB
                     Storage
                 </div>
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-300">
-                    <i data-lucide="globe" class="w-4 text-emerald-400"></i>
+                <div
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: var(--slate-50); border: 1px solid var(--border-color);">
+                    <i data-lucide="globe" style="width: 1rem; height: 1rem; color: #34d399;"></i>
                     <?= $p['max_domains'] ?>
                     Domains
                 </div>
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-300">
-                    <i data-lucide="mail" class="w-4 text-purple-400"></i>
+                <div
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: var(--slate-50); border: 1px solid var(--border-color);">
+                    <i data-lucide="mail" style="width: 1rem; height: 1rem; color: #c084fc;"></i>
                     <?= $p['max_emails'] ?> Emails
                 </div>
             </div>
-            <div class="flex gap-3">
-                <button onclick='openPkgModal(<?= json_encode($p) ?>)'
-                    class="flex-1 bg-slate-50 hover:bg-slate-200 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-700 transition border border-slate-300">Edit</button>
+            <div style="display: flex; gap: 0.75rem;">
+                <button onclick='openPkgModal(<?= json_encode($p) ?>)' class="btn btn-outline"
+                    style="flex: 1; padding: 0.625rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border-radius: 0.75rem;">Edit</button>
                 <button onclick="delPkg(<?= $p['id'] ?>)"
-                    class="bg-red-500/10 hover:bg-red-500/20 p-2.5 rounded-xl text-red-400 border border-red-500/20 transition"><i
-                        data-lucide="trash-2" class="w-4"></i></button>
+                    style="background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 0.75rem; padding: 0.625rem; transition: background-color 0.2s;"
+                    onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'"
+                    onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'"><i data-lucide="trash-2"
+                        style="width: 1rem; height: 1rem;"></i></button>
             </div>
         </div>
     <?php endforeach; ?>
 </div>
 
 <!-- PACKAGE MODAL -->
-<div id="modal-pkg"
-    class="fixed inset-0 bg-white/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
-    <form id="form-pkg" onsubmit="handleGeneric(event, 'save_package')"
-        class="glass-panel p-10 rounded-3xl w-full max-w-md relative">
-        <h3 id="pkg-title" class="text-2xl font-bold mb-8 text-slate-900 font-heading">Plan Configuration</h3>
+<div id="modal-pkg" class="modal hidden"
+    style="position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1.5rem;">
+    <form id="form-pkg" onsubmit="handleGeneric(event, 'save_package')" class="glass-card"
+        style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 28rem; position: relative;">
+        <h3 id="pkg-title"
+            style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--slate-900); font-family: var(--font-heading);">
+            Plan Configuration</h3>
         <input type="hidden" name="id" id="pkg-id">
         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
-        <div class="space-y-5">
-            <input name="name" id="pkg-name" placeholder="Package Name" required
-                class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-emerald-500 text-slate-900 placeholder:text-slate-700 focus:bg-white transition">
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <input name="name" id="pkg-name" placeholder="Package Name" required class="form-input"
+                style="width: 100%; padding: 1rem; border-radius: 0.75rem;">
 
-            <div class="grid grid-cols-3 gap-4">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest pl-1">Disk</label>
-                    <input name="disk" id="pkg-disk" type="number" placeholder="MB" required
-                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-emerald-500 text-slate-900 focus:bg-white transition text-center">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label
+                        style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.25rem;">Disk</label>
+                    <input name="disk" id="pkg-disk" type="number" placeholder="MB" required class="form-input"
+                        style="width: 100%; padding: 1rem; border-radius: 0.75rem; text-align: center;">
                 </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest pl-1">Doms</label>
-                    <input name="doms" id="pkg-doms" type="number" placeholder="#" required
-                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-emerald-500 text-slate-900 focus:bg-white transition text-center">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label
+                        style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.25rem;">Doms</label>
+                    <input name="doms" id="pkg-doms" type="number" placeholder="#" required class="form-input"
+                        style="width: 100%; padding: 1rem; border-radius: 0.75rem; text-align: center;">
                 </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest pl-1">Mail</label>
-                    <input name="mails" id="pkg-mails" type="number" placeholder="#" required
-                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-emerald-500 text-slate-900 focus:bg-white transition text-center">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label
+                        style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.25rem;">Mail</label>
+                    <input name="mails" id="pkg-mails" type="number" placeholder="#" required class="form-input"
+                        style="width: 100%; padding: 1rem; border-radius: 0.75rem; text-align: center;">
                 </div>
             </div>
 
-            <div class="flex gap-4 pt-4">
-                <button type="button" onclick="closeModal('modal-pkg')"
-                    class="flex-1 p-4 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
-                <button type="submit"
-                    class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-4 rounded-xl font-bold text-slate-900 shadow-lg shadow-emerald-600/20 transition">Save
+            <div style="display: flex; gap: 1rem; padding-top: 1rem;">
+                <button type="button" onclick="closeModal('modal-pkg')" class="btn btn-outline"
+                    style="flex: 1; padding: 1rem; border-radius: 0.75rem;">Cancel</button>
+                <button type="submit" class="btn btn-primary"
+                    style="flex: 1; padding: 1rem; border-radius: 0.75rem; background: var(--emerald-600); border-color: var(--emerald-600);"
+                    onmouseover="this.style.background='var(--emerald-500)'; this.style.borderColor='var(--emerald-500)';"
+                    onmouseout="this.style.background='var(--emerald-600)'; this.style.borderColor='var(--emerald-600)';">Save
                     Plan</button>
             </div>
         </div>
@@ -165,6 +184,3 @@ include 'layout/header.php';
         fetch('', { method: 'POST', body: fd }).then(() => location.reload());
     }
 </script>
-
-
-

@@ -130,83 +130,103 @@ $active_tab = $_GET['tab'] ?? 'ftp';
 include 'layout/header.php';
 ?>
 
-<div class="mb-8">
-    <h2 class="text-2xl font-bold text-slate-900 mb-2">System Tools</h2>
-    <p class="text-slate-700 text-sm">Configure system services and accounts.</p>
+<div style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem;">System Tools</h2>
+    <p style="color: var(--slate-700); font-size: 0.875rem;">Configure system services and accounts.</p>
 </div>
 
 <!-- TABS -->
-<div class="flex border-b border-slate-300 mb-8 overflow-x-auto">
+<div
+    style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none;">
     <a href="?tab=ftp"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'ftp' ? 'border-indigo-500 text-slate-900' : 'border-transparent text-slate-700 hover:text-slate-700' ?>">
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'ftp' ? '#6366f1' : 'transparent' ?>; color: <?= $active_tab == 'ftp' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--slate-900)'"
+        onmouseout="this.style.color='<?= $active_tab == 'ftp' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">
         FTP Manager
     </a>
     <a href="?tab=mail"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'mail' ? 'border-indigo-500 text-slate-900' : 'border-transparent text-slate-700 hover:text-slate-700' ?>">
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'mail' ? '#6366f1' : 'transparent' ?>; color: <?= $active_tab == 'mail' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--slate-900)'"
+        onmouseout="this.style.color='<?= $active_tab == 'mail' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">
         Mail Manager
     </a>
     <a href="?tab=php"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'php' ? 'border-indigo-500 text-slate-900' : 'border-transparent text-slate-700 hover:text-slate-700' ?>">
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'php' ? '#6366f1' : 'transparent' ?>; color: <?= $active_tab == 'php' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--slate-900)'"
+        onmouseout="this.style.color='<?= $active_tab == 'php' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">
         PHP Config
     </a>
     <a href="?tab=network"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'network' ? 'border-indigo-500 text-slate-900' : 'border-transparent text-slate-700 hover:text-slate-700' ?>">
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'network' ? '#6366f1' : 'transparent' ?>; color: <?= $active_tab == 'network' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--slate-900)'"
+        onmouseout="this.style.color='<?= $active_tab == 'network' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">
         Network Settings
     </a>
 </div>
 
 <!-- CONTENT: FTP -->
-<div class="<?= $active_tab == 'ftp' ? '' : 'hidden' ?>">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div style="display: <?= $active_tab == 'ftp' ? 'block' : 'none' ?>;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
         <!-- CREATE FTP -->
-        <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl"></div>
-            <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-slate-900 font-heading">
-                <div class="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20 text-blue-500">
-                    <i data-lucide="folder-up" class="w-5 h-5"></i>
+        <div class="glass-card" style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden;">
+            <div
+                style="position: absolute; right: -2.5rem; top: -2.5rem; width: 10rem; height: 10rem; background: rgba(37, 99, 235, 0.1); border-radius: 9999px; filter: blur(24px);">
+            </div>
+            <h3
+                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--slate-900); font-family: var(--font-heading);">
+                <div
+                    style="padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.5rem; border: 1px solid rgba(59, 130, 246, 0.2); color: #3b82f6;">
+                    <i data-lucide="folder-up" style="width: 1.25rem; height: 1.25rem;"></i>
                 </div>
                 Create FTP Account
             </h3>
-            <form onsubmit="handleToolAction(event, 'add_ftp', loadFTP)" class="space-y-4 relative z-10">
-                <div class="grid grid-cols-2 gap-4">
-                    <input name="ftp_user" required placeholder="Pre-fix (e.g. dev)"
-                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-700 focus:bg-white transition">
-                    <select name="sys_user" required
-                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition">
+            <form onsubmit="handleToolAction(event, 'add_ftp', loadFTP)"
+                style="display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 10;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <input name="ftp_user" required placeholder="Pre-fix (e.g. dev)" class="form-input"
+                        style="width: 100%; border-radius: 0.75rem;">
+                    <select name="sys_user" required class="form-input"
+                        style="width: 100%; border-radius: 0.75rem; cursor: pointer;">
                         <?php foreach ($clients as $c): ?>
                             <option value="<?= $c['username'] ?>">@<?= $c['username'] ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <input name="pass" required type="password" placeholder="Password"
-                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-700 focus:bg-white transition">
-                    <input name="pass2" required type="password" placeholder="Confirm"
-                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-700 focus:bg-white transition">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <input name="pass" required type="password" placeholder="Password" class="form-input"
+                        style="width: 100%; border-radius: 0.75rem;">
+                    <input name="pass2" required type="password" placeholder="Confirm" class="form-input"
+                        style="width: 100%; border-radius: 0.75rem;">
                 </div>
-                <button type="submit"
-                    class="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-indigo-600/20 text-slate-900 transition border border-indigo-500/50">
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); background: #4f46e5; border-color: #4f46e5;"
+                    onmouseover="this.style.background='#6366f1'; this.style.borderColor='#6366f1';"
+                    onmouseout="this.style.background='#4f46e5'; this.style.borderColor='#4f46e5';">
                     Create FTP User
                 </button>
             </form>
         </div>
 
         <!-- LIST FTP -->
-        <div class="glass-panel p-8 rounded-3xl relative overflow-hidden flex flex-col h-full">
-            <h3 class="text-xl font-bold mb-6 text-slate-900 font-heading">Existing Accounts</h3>
-            <div class="overflow-y-auto flex-1 custom-scrollbar max-h-[400px]">
-                <table class="w-full text-left">
+        <div class="glass-card"
+            style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%;">
+            <h3
+                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+                Existing Accounts</h3>
+            <div style="overflow-y: auto; flex: 1; max-height: 400px;" class="custom-scrollbar">
+                <table style="width: 100%; text-align: left; border-collapse: collapse;">
                     <thead
-                        class="bg-slate-50 text-[10px] font-bold uppercase text-slate-700 sticky top-0 backdrop-blur-md">
+                        style="background: var(--slate-50); font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--slate-700); position: sticky; top: 0; backdrop-filter: blur(12px);">
                         <tr>
-                            <th class="p-3">User</th>
-                            <th class="p-3">Home</th>
-                            <th class="p-3 text-right"></th>
+                            <th style="padding: 0.75rem;">User</th>
+                            <th style="padding: 0.75rem;">Home</th>
+                            <th style="padding: 0.75rem; text-align: right;"></th>
                         </tr>
                     </thead>
                     <tbody id="ftp-list" class="divide-y divide-slate-700/50">
                         <tr>
-                            <td colspan="3" class="p-4 text-center text-slate-700">Loading...</td>
+                            <td colspan="3" style="padding: 1rem; text-align: center; color: var(--slate-700);">
+                                Loading...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -216,24 +236,29 @@ include 'layout/header.php';
 </div>
 
 <!-- CONTENT: MAIL -->
-<div class="<?= $active_tab == 'mail' ? '' : 'hidden' ?>">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div style="display: <?= $active_tab == 'mail' ? 'block' : 'none' ?>;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
         <!-- CREATE MAIL -->
-        <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-600/10 rounded-full blur-3xl"></div>
-            <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-slate-900 font-heading">
-                <div class="p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20 text-emerald-500">
-                    <i data-lucide="mail-plus" class="w-5 h-5"></i>
+        <div class="glass-card" style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden;">
+            <div
+                style="position: absolute; right: -2.5rem; top: -2.5rem; width: 10rem; height: 10rem; background: rgba(16, 185, 129, 0.1); border-radius: 9999px; filter: blur(24px);">
+            </div>
+            <h3
+                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--slate-900); font-family: var(--font-heading);">
+                <div
+                    style="padding: 0.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; border: 1px solid rgba(16, 185, 129, 0.2); color: #10b981;">
+                    <i data-lucide="mail-plus" style="width: 1.25rem; height: 1.25rem;"></i>
                 </div>
                 Create Email Account
             </h3>
-            <form onsubmit="handleToolAction(event, 'add_mail', loadMail)" class="space-y-4 relative z-10">
-                <div class="flex gap-2">
-                    <input name="prefix" required placeholder="user"
-                        class="flex-1 bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-700 focus:bg-white transition text-right">
-                    <div class="flex items-center text-slate-700 font-bold">@</div>
-                    <select name="domain" required
-                        class="flex-1 bg-slate-50 p-4 rounded-xl border border-slate-300 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition">
+            <form onsubmit="handleToolAction(event, 'add_mail', loadMail)"
+                style="display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 10;">
+                <div style="display: flex; gap: 0.5rem;">
+                    <input name="prefix" required placeholder="user" class="form-input"
+                        style="flex: 1; border-radius: 0.75rem; text-align: right;">
+                    <div style="display: flex; align-items: center; color: var(--slate-700); font-weight: 700;">@</div>
+                    <select name="domain" required class="form-input"
+                        style="flex: 1; border-radius: 0.75rem; cursor: pointer;">
                         <?php foreach ($mail_domains as $d): ?>
                             <option value="<?= $d['domain'] ?>"><?= $d['domain'] ?></option>
                         <?php endforeach; ?>
@@ -244,28 +269,34 @@ include 'layout/header.php';
                 <input style="display:none" type="password" name="fakepasswordremembered" />
 
                 <input name="mail_pass" required type="password" placeholder="Password" autocomplete="new-password"
-                    class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-700 focus:bg-white transition mb-2">
-                <button type="submit"
-                    class="w-full bg-indigo-600 hover:bg-indigo-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-indigo-600/20 text-slate-900 transition border border-indigo-500/50">Create
+                    class="form-input" style="width: 100%; border-radius: 0.75rem; margin-bottom: 0.5rem;">
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); background: #4f46e5; border-color: #4f46e5;"
+                    onmouseover="this.style.background='#6366f1'; this.style.borderColor='#6366f1';"
+                    onmouseout="this.style.background='#4f46e5'; this.style.borderColor='#4f46e5';">Create
                     Mailbox</button>
             </form>
         </div>
 
         <!-- LIST MAIL -->
-        <div class="glass-panel p-8 rounded-3xl relative overflow-hidden flex flex-col h-full">
-            <h3 class="text-xl font-bold mb-6 text-slate-900 font-heading">Existing Mailboxes</h3>
-            <div class="overflow-y-auto flex-1 custom-scrollbar max-h-[400px]">
-                <table class="w-full text-left">
+        <div class="glass-card"
+            style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%;">
+            <h3
+                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+                Existing Mailboxes</h3>
+            <div style="overflow-y: auto; flex: 1; max-height: 400px;" class="custom-scrollbar">
+                <table style="width: 100%; text-align: left; border-collapse: collapse;">
                     <thead
-                        class="bg-slate-50 text-[10px] font-bold uppercase text-slate-700 sticky top-0 backdrop-blur-md">
+                        style="background: var(--slate-50); font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--slate-700); position: sticky; top: 0; backdrop-filter: blur(12px);">
                         <tr>
-                            <th class="p-3">Email Address</th>
-                            <th class="p-3 text-right">Action</th>
+                            <th style="padding: 0.75rem;">Email Address</th>
+                            <th style="padding: 0.75rem; text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="mail-list" class="divide-y divide-slate-700/50">
                         <tr>
-                            <td colspan="2" class="p-4 text-center text-slate-700">Loading...</td>
+                            <td colspan="2" style="padding: 1rem; text-align: center; color: var(--slate-700);">
+                                Loading...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -275,38 +306,50 @@ include 'layout/header.php';
 </div>
 
 <!-- CONTENT: PHP -->
-<div class="<?= $active_tab == 'php' ? '' : 'hidden' ?>">
-    <div class="glass-panel p-8 rounded-3xl relative overflow-hidden max-w-2xl">
-        <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-600/10 rounded-full blur-3xl"></div>
-        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-slate-900 font-heading">
-            <div class="p-2 bg-purple-500/10 rounded-lg border border-purple-500/20 text-purple-500">
-                <i data-lucide="code" class="w-5 h-5"></i>
+<div style="display: <?= $active_tab == 'php' ? 'block' : 'none' ?>;">
+    <div class="glass-card"
+        style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; max-width: 42rem;">
+        <div
+            style="position: absolute; right: -2.5rem; top: -2.5rem; width: 10rem; height: 10rem; background: rgba(147, 51, 234, 0.1); border-radius: 9999px; filter: blur(24px);">
+        </div>
+        <h3
+            style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--slate-900); font-family: var(--font-heading);">
+            <div
+                style="padding: 0.5rem; background: rgba(168, 85, 247, 0.1); border-radius: 0.5rem; border: 1px solid rgba(168, 85, 247, 0.2); color: #a855f7;">
+                <i data-lucide="code" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             PHP Handlers
         </h3>
-        <form onsubmit="handleToolAction(event, 'set_php_handler')" class="space-y-4 relative z-10">
-            <div class="grid grid-cols-2 gap-4">
+        <form onsubmit="handleToolAction(event, 'set_php_handler')"
+            style="display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 10;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div>
-                    <label class="text-xs text-slate-700 font-bold uppercase mb-1 block">User / Site</label>
-                    <select name="sys_user" required
-                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition font-mono text-sm">
+                    <label
+                        style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; margin-bottom: 0.25rem; display: block;">User
+                        / Site</label>
+                    <select name="sys_user" required class="form-input"
+                        style="width: 100%; border-radius: 0.75rem; font-family: monospace; font-size: 0.875rem;">
                         <?php foreach ($clients as $c): ?>
                             <option value="<?= $c['username'] ?>"><?= $c['username'] ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-700 font-bold uppercase mb-1 block">PHP Version</label>
-                    <select name="php_version" required
-                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition font-mono text-sm">
+                    <label
+                        style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; margin-bottom: 0.25rem; display: block;">PHP
+                        Version</label>
+                    <select name="php_version" required class="form-input"
+                        style="width: 100%; border-radius: 0.75rem; font-family: monospace; font-size: 0.875rem;">
                         <?php foreach ($php_versions as $v): ?>
                             <option value="<?= $v ?>">PHP <?= $v ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
             </div>
-            <button type="submit"
-                class="w-full bg-purple-600 hover:bg-purple-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-purple-600/20 text-slate-900 transition border border-purple-500/50">
+            <button type="submit" class="btn btn-primary"
+                style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.2); background: #9333ea; border-color: #9333ea;"
+                onmouseover="this.style.background='#a855f7'; this.style.borderColor='#a855f7';"
+                onmouseout="this.style.background='#9333ea'; this.style.borderColor='#9333ea';">
                 Update Handlers
             </button>
         </form>
@@ -314,31 +357,40 @@ include 'layout/header.php';
 </div>
 
 <!-- CONTENT: NETWORK -->
-<div class="<?= $active_tab == 'network' ? '' : 'hidden' ?>">
-    <div class="glass-panel p-8 rounded-3xl relative overflow-hidden max-w-2xl">
-        <div class="absolute -right-10 -top-10 w-40 h-40 bg-orange-600/10 rounded-full blur-3xl"></div>
-        <h3 class="text-xl font-bold mb-8 flex items-center gap-3 text-slate-900 font-heading">
-            <div class="p-2 bg-orange-500/10 rounded-lg border border-orange-500/20 text-orange-500">
-                <i data-lucide="network" class="w-5 h-5"></i>
+<div style="display: <?= $active_tab == 'network' ? 'block' : 'none' ?>;">
+    <div class="glass-card"
+        style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; max-width: 42rem;">
+        <div
+            style="position: absolute; right: -2.5rem; top: -2.5rem; width: 10rem; height: 10rem; background: rgba(234, 88, 12, 0.1); border-radius: 9999px; filter: blur(24px);">
+        </div>
+        <h3
+            style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--slate-900); font-family: var(--font-heading);">
+            <div
+                style="padding: 0.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 0.5rem; border: 1px solid rgba(249, 115, 22, 0.2); color: #f97316;">
+                <i data-lucide="network" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             Network Config
         </h3>
-        <form onsubmit="handleToolAction(event, 'set_network_card')" class="space-y-4 relative z-10">
-            <div class="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 mb-4">
-                <p class="text-xs text-orange-300/80 leading-relaxed">
-                    <strong class="text-orange-400">Warning:</strong> Incorrect network settings may lock you out of the
+        <form onsubmit="handleToolAction(event, 'set_network_card')"
+            style="display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 10;">
+            <div
+                style="padding: 1rem; border-radius: 0.75rem; background: rgba(249, 115, 22, 0.05); border: 1px solid rgba(249, 115, 22, 0.1); margin-bottom: 1rem;">
+                <p style="font-size: 0.75rem; color: rgba(253, 186, 116, 0.8); line-height: 1.625;">
+                    <strong style="color: #fb923c;">Warning:</strong> Incorrect network settings may lock you out of the
                     admin panel. Proceed with caution.
                 </p>
             </div>
-            <select name="interface"
-                class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 text-slate-700 outline-none focus:border-indigo-500 focus:bg-white transition font-mono">
+            <select name="interface" class="form-input"
+                style="width: 100%; border-radius: 0.75rem; font-family: monospace;">
                 <option value="eth0">eth0 (Standard Cloud)</option>
                 <option value="eth1">eth1 (Secondary)</option>
                 <option value="ens3">ens3 (KVM)</option>
                 <option value="ens18">ens18 (Proxmox)</option>
             </select>
-            <button type="submit"
-                class="w-full bg-orange-600 hover:bg-orange-500 py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-orange-600/20 text-slate-900 transition border border-orange-500/50">Update
+            <button type="submit" class="btn btn-primary"
+                style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.2); background: #ea580c; border-color: #ea580c;"
+                onmouseover="this.style.background='#f97316'; this.style.borderColor='#f97316';"
+                onmouseout="this.style.background='#ea580c'; this.style.borderColor='#ea580c';">Update
                 Interface</button>
         </form>
     </div>
@@ -387,20 +439,20 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(u => {
                     list.innerHTML += `
-                        <tr class="hover:bg-slate-50/30 transition group border-b border-slate-300 last:border-0">
-                            <td class="p-4 font-mono text-xs text-blue-300 font-bold">${u.userid}</td>
-                            <td class="p-4 text-slate-700 text-xs truncate max-w-[150px] font-mono">${u.homedir}</td>
-                            <td class="p-4 text-right">
-                                <button onclick="delFTP('${u.userid}')" class="p-2 rounded-lg hover:bg-red-500/10 text-red-400 opacity-50 group-hover:opacity-100 hover:text-red-500 transition"><i data-lucide="trash-2" class="w-4"></i></button>
+                        <tr style="transition: all 0.2s; border-bottom: 1px solid var(--border-color);" onmouseover="this.style.background='rgba(248, 250, 252, 0.3)'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 1rem; font-family: monospace; font-size: 0.75rem; color: #93c5fd; font-weight: 700;">${u.userid}</td>
+                            <td style="padding: 1rem; color: var(--slate-700); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; font-family: monospace;">${u.homedir}</td>
+                            <td style="padding: 1rem; text-align: right;">
+                                <button onclick="delFTP('${u.userid}')" style="padding: 0.5rem; border-radius: 0.5rem; color: #f87171; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.color='#ef4444';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f87171';"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
                             </td>
                         </tr>
                      `;
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<tr><td colspan="3" class="p-8 text-center text-slate-700 italic text-sm">No FTP accounts found.</td></tr>';
+                list.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--slate-700); font-style: italic; font-size: 0.875rem;">No FTP accounts found.</td></tr>';
             }
-        } catch (e) { list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-red-400">Error loading data.</td></tr>'; }
+        } catch (e) { list.innerHTML = '<tr><td colspan="3" style="padding: 1rem; text-align: center; color: #f87171;">Error loading data.</td></tr>'; }
     }
 
     // Mail Loader
@@ -415,22 +467,22 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(u => {
                     list.innerHTML += `
-                        <tr class="hover:bg-slate-50/30 transition group border-b border-slate-300 last:border-0">
-                            <td class="p-4 text-sm text-slate-900 font-medium">
+                        <tr style="transition: all 0.2s; border-bottom: 1px solid var(--border-color);" onmouseover="this.style.background='rgba(248, 250, 252, 0.3)'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 1rem; font-size: 0.875rem; color: var(--slate-900); font-weight: 500;">
                                 ${u.email}
-                                <div class="text-[10px] text-slate-700 font-mono mt-0.5">${u.domain}</div>
+                                <div style="font-size: 0.625rem; color: var(--slate-700); font-family: monospace; margin-top: 0.125rem;">${u.domain}</div>
                             </td>
-                            <td class="p-4 text-right">
-                                <button onclick="delMail(${u.id}, '${u.email}')" class="p-2 rounded-lg hover:bg-red-500/10 text-red-400 opacity-50 group-hover:opacity-100 hover:text-red-500 transition"><i data-lucide="trash-2" class="w-4"></i></button>
+                            <td style="padding: 1rem; text-align: right;">
+                                <button onclick="delMail(${u.id}, '${u.email}')" style="padding: 0.5rem; border-radius: 0.5rem; color: #f87171; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.color='#ef4444';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f87171';"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
                             </td>
                         </tr>
                      `;
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<tr><td colspan="2" class="p-8 text-center text-slate-700 italic text-sm">No mailboxes found.</td></tr>';
+                list.innerHTML = '<tr><td colspan="2" style="padding: 2rem; text-align: center; color: var(--slate-700); font-style: italic; font-size: 0.875rem;">No mailboxes found.</td></tr>';
             }
-        } catch (e) { list.innerHTML = '<tr><td colspan="2" class="p-4 text-center text-red-400">Error loading data.</td></tr>'; }
+        } catch (e) { list.innerHTML = '<tr><td colspan="2" style="padding: 1rem; text-align: center; color: #f87171;">Error loading data.</td></tr>'; }
     }
 
     async function delFTP(user) {
@@ -462,6 +514,3 @@ include 'layout/header.php';
     });
 
 </script>
-
-
-

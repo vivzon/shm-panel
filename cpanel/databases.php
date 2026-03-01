@@ -167,84 +167,94 @@ include 'layout/header.php';
     }
 </style>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div style="display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2rem;">
     <!-- LEFT SIDE: FORMS -->
-    <div class="space-y-8">
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
         <!-- CREATE DATABASE -->
         <div>
-            <h3 class="font-bold mb-4 text-slate-900">Create Database</h3>
-            <form onsubmit="handleSubmit(event, 'add_db')" class="glass-card p-6 space-y-4">
-                <div class="flex items-center bg-slate-50 rounded-xl border border-slate-300 overflow-hidden">
-                    <div class="px-4 py-4 bg-slate-50 text-slate-700 font-mono text-sm border-r border-slate-300">
-                        <?= htmlspecialchars($username) ?>_</div>
+            <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Create
+                Database</h3>
+            <form onsubmit="handleSubmit(event, 'add_db')" class="glass-card"
+                style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                <div
+                    style="display: flex; align-items: center; background: var(--slate-50); border-radius: var(--radius-md); border: 1px solid var(--border-color); overflow: hidden;">
+                    <div
+                        style="padding: 0.75rem 1rem; background: var(--slate-50); color: var(--slate-700); font-family: monospace; font-size: 0.875rem; border-right: 1px solid var(--border-color);">
+                        <?= htmlspecialchars($username) ?>_
+                    </div>
                     <input name="db_name" required placeholder="dbname"
-                        class="w-full bg-transparent p-4 outline-none text-slate-900 placeholder-slate-600">
+                        style="width: 100%; background: transparent; padding: 0.75rem; outline: none; color: var(--slate-900);">
                 </div>
-                <select name="domain_id"
-                    class="w-full bg-slate-50 border border-slate-300 p-4 rounded-xl text-slate-700">
+                <select name="domain_id" class="form-select" style="width: 100%;">
                     <option value="">Global (No Domain)</option>
                     <?php foreach ($domains as $d): ?>
                         <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['domain']) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <button type="submit"
-                    class="w-full bg-blue-600 text-slate-900 p-4 rounded-xl font-bold hover:bg-blue-500 transition">Create
-                    Database</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Create Database</button>
             </form>
         </div>
 
         <!-- CREATE USER -->
         <div>
-            <h3 class="font-bold mb-4 text-slate-900">Create User</h3>
-            <form onsubmit="handleSubmit(event, 'add_db_user')" class="glass-card p-6 space-y-4">
-                <div class="flex items-center bg-slate-50 rounded-xl border border-slate-300 overflow-hidden">
-                    <div class="px-4 py-4 bg-slate-50 text-slate-700 font-mono text-sm border-r border-slate-300">
-                        <?= htmlspecialchars($username) ?>_</div>
+            <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Create User
+            </h3>
+            <form onsubmit="handleSubmit(event, 'add_db_user')" class="glass-card"
+                style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                <div
+                    style="display: flex; align-items: center; background: var(--slate-50); border-radius: var(--radius-md); border: 1px solid var(--border-color); overflow: hidden;">
+                    <div
+                        style="padding: 0.75rem 1rem; background: var(--slate-50); color: var(--slate-700); font-family: monospace; font-size: 0.875rem; border-right: 1px solid var(--border-color);">
+                        <?= htmlspecialchars($username) ?>_
+                    </div>
                     <input name="db_user" required placeholder="dbuser"
-                        class="w-full bg-transparent p-4 outline-none text-slate-900 placeholder-slate-600">
+                        style="width: 100%; background: transparent; padding: 0.75rem; outline: none; color: var(--slate-900);">
                 </div>
-                <input name="db_pass" type="password" required placeholder="Password"
-                    class="w-full bg-slate-50 border border-slate-300 p-4 rounded-xl text-slate-900">
-                <select name="target_db"
-                    class="w-full bg-slate-50 border border-slate-300 p-4 rounded-xl text-slate-700">
+                <input name="db_pass" type="password" required placeholder="Password" class="form-input"
+                    style="width: 100%;">
+                <select name="target_db" class="form-select" style="width: 100%;">
                     <?php foreach ($my_dbs as $db): ?>
                         <option value="<?= $db['db_name'] ?>"><?= $db['db_name'] ?></option>
                     <?php endforeach; ?>
                 </select>
-                <button type="submit"
-                    class="w-full bg-slate-50 text-slate-900 p-4 rounded-xl font-bold border border-slate-300">Create
-                    User</button>
+                <button type="submit" class="btn btn-secondary" style="width: 100%;">Create User</button>
             </form>
         </div>
     </div>
 
     <!-- RIGHT SIDE: TABLES -->
-    <div class="md:col-span-2 space-y-8">
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
         <!-- DATABASE LIST -->
         <div>
-            <h3 class="font-bold mb-4 text-slate-900">Your Databases</h3>
-            <div class="glass-card overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-700">
+            <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Your
+                Databases</h3>
+            <div class="glass-card" style="overflow-x: auto;">
+                <table class="table" style="width: 100%;">
+                    <thead>
                         <tr>
-                            <th class="p-6">Name</th>
-                            <th class="p-6 text-right">Action</th>
+                            <th>Name</th>
+                            <th style="text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($my_dbs as $db): ?>
-                            <tr class="border-t border-slate-300 hover:bg-slate-50/30 transition">
-                                <td class="p-6">
-                                    <div class="font-bold text-slate-200"><?= htmlspecialchars($db['db_name']) ?></div>
-                                    <div class="text-xs text-blue-400">
-                                        <?= $db['domain'] ? htmlspecialchars($db['domain']) : 'Global' ?></div>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--slate-900);">
+                                        <?= htmlspecialchars($db['db_name']) ?>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: var(--primary);">
+                                        <?= $db['domain'] ? htmlspecialchars($db['domain']) : 'Global' ?>
+                                    </div>
                                 </td>
-                                <td class="p-6 text-right">
+                                <td style="text-align: right; white-space: nowrap;">
                                     <a href="http://phpmyadmin.<?= $base_domain ?>" target="_blank"
-                                        class="text-xs font-bold text-blue-400 mr-4 uppercase">Login</a>
+                                        style="font-size: 0.75rem; font-weight: 700; color: var(--primary); margin-right: 1rem; text-transform: uppercase; text-decoration: none;">Login</a>
                                     <button
                                         onclick="handleDeleteAction('delete_db', 'db_name', '<?= $db['db_name'] ?>', this)"
-                                        class="text-red-400 p-2"><i data-lucide="trash-2" class="w-4"></i></button>
+                                        style="background: transparent; border: none; cursor: pointer; color: var(--accent-red); opacity: 0.7; transition: opacity 0.2s;"
+                                        onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'"><i
+                                            data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -255,13 +265,14 @@ include 'layout/header.php';
 
         <!-- USER LIST -->
         <div>
-            <h3 class="font-bold mb-4 text-slate-900">Database Users</h3>
-            <div class="glass-card overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-700">
+            <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Database
+                Users</h3>
+            <div class="glass-card" style="overflow-x: auto;">
+                <table class="table" style="width: 100%;">
+                    <thead>
                         <tr>
-                            <th class="p-6">Username</th>
-                            <th class="p-6 text-right">Action</th>
+                            <th>Username</th>
+                            <th style="text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -269,16 +280,22 @@ include 'layout/header.php';
                         $db_users = $pdo->prepare("SELECT * FROM client_db_users WHERE client_id = ?");
                         $db_users->execute([$cid]);
                         foreach ($db_users->fetchAll() as $u): ?>
-                            <tr class="border-t border-slate-300 hover:bg-slate-50/30 transition">
-                                <td class="p-6 font-bold text-slate-700"><?= htmlspecialchars($u['db_user']) ?></td>
-                                <td class="p-6 text-right flex justify-end gap-2">
+                            <tr>
+                                <td style="font-weight: 700; color: var(--slate-900);">
+                                    <?= htmlspecialchars($u['db_user']) ?>
+                                </td>
+                                <td style="text-align: right; display: flex; justify-content: flex-end; gap: 0.5rem;">
                                     <button onclick="handleResetPass('<?= $u['db_user'] ?>', this)"
-                                        class="text-orange-400 p-2" title="Reset Password"><i data-lucide="key"
-                                            class="w-4"></i></button>
+                                        style="background: transparent; border: none; cursor: pointer; color: var(--accent-orange); opacity: 0.7; transition: opacity 0.2s;"
+                                        title="Reset Password" onmouseover="this.style.opacity='1'"
+                                        onmouseout="this.style.opacity='0.7'"><i data-lucide="key"
+                                            style="width: 16px; height: 16px;"></i></button>
                                     <button
                                         onclick="handleDeleteAction('delete_db_user', 'db_user', '<?= $u['db_user'] ?>', this)"
-                                        class="text-red-400 p-2" title="Delete User"><i data-lucide="trash-2"
-                                            class="w-4"></i></button>
+                                        style="background: transparent; border: none; cursor: pointer; color: var(--accent-red); opacity: 0.7; transition: opacity 0.2s;"
+                                        title="Delete User" onmouseover="this.style.opacity='1'"
+                                        onmouseout="this.style.opacity='0.7'"><i data-lucide="trash-2"
+                                            style="width: 16px; height: 16px;"></i></button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -288,6 +305,14 @@ include 'layout/header.php';
         </div>
     </div>
 </div>
+
+<style>
+    @media (min-width: 768px) {
+        div[style*="display: grid; grid-template-columns: 1fr;"] {
+            grid-template-columns: 1fr 2fr !important;
+        }
+    }
+</style>
 
 <script>
     /**
@@ -328,7 +353,7 @@ include 'layout/header.php';
 
         const originalHtml = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 animate-spin"></i>';
+        btn.innerHTML = '<i data-lucide="loader-2" style="width: 16px; height: 16px; animation: spin 1s linear infinite;"></i>';
         if (window.lucide) lucide.createIcons();
 
         const fd = new FormData();
@@ -358,7 +383,7 @@ include 'layout/header.php';
         if (!newPass) return;
 
         const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 animate-spin"></i>';
+        btn.innerHTML = '<i data-lucide="loader-2" style="width: 16px; height: 16px; animation: spin 1s linear infinite;"></i>';
         if (window.lucide) lucide.createIcons();
 
         const fd = new FormData();
@@ -378,5 +403,3 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
-
-

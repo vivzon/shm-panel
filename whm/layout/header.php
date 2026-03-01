@@ -203,30 +203,34 @@ $current_page = basename($_SERVER['PHP_SELF']);
             color: #1e293b !important;
         }
     </style>
+    </style>
 </head>
 
-<body class="flex h-screen overflow-hidden text-sm">
+<body style="display: flex; height: 100vh; overflow: hidden; font-size: 0.875rem;">
 
     <!-- Sidebar -->
     <?php include __DIR__ . '/sidebar.php'; ?>
 
-    <main class="flex-1 flex flex-col h-full bg-[#f8fafc] relative overflow-hidden">
+    <main
+        style="flex: 1; display: flex; flex-direction: column; height: 100%; background: #f8fafc; position: relative; overflow: hidden;">
         <!-- Top Header -->
         <header
-            class="h-14 px-8 flex items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
-            <div class="flex items-center gap-3">
-                <span class="relative flex h-2 w-2">
+            style="height: 3.5rem; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 10; box-shadow: var(--shadow-sm);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="position: relative; display: flex; height: 0.5rem; width: 0.5rem;">
                     <span
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        style="animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background: #34d399; opacity: 0.75;"></span>
+                    <span
+                        style="position: relative; display: inline-flex; border-radius: 9999px; height: 0.5rem; width: 0.5rem; background: var(--success);"></span>
                 </span>
-                <span class="text-[10px] font-bold text-emerald-600 font-mono tracking-widest uppercase">System
+                <span
+                    style="font-size: 0.625rem; font-weight: 700; color: #059669; font-family: monospace; letter-spacing: 0.1em; text-transform: uppercase;">System
                     Online</span>
             </div>
-            <div class="flex items-center gap-2">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <span
-                    class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-500">v5.0-STABLE</span>
+                    style="padding: 0.125rem 0.5rem; border-radius: 0.375rem; background: var(--slate-100); border: 1px solid var(--slate-200); font-size: 0.625rem; font-weight: 700; color: var(--slate-500);">v5.0-STABLE</span>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-8 pb-24 custom-scrollbar">
+        <div style="flex: 1; overflow-y: auto; padding: 2rem; padding-bottom: 6rem;" class="custom-scrollbar">

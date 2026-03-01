@@ -41,49 +41,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password | Vivzon Cloud</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        blue: {
-                            50: '#f0f5ff',
-                            100: '#e0ebff',
-                            200: '#cce0ff',
-                            300: '#99c2ff',
-                            400: '#66a3ff',
-                            500: '#4880ed',
-                            600: '#2563eb', /* Primary */
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        indigo: {
-                            50: '#f2f4fb',
-                            100: '#e6ebfb',
-                            200: '#cdcdfa',
-                            300: '#9ea6eb',
-                            400: '#6f7ee1',
-                            500: '#3f51b5', /* Secondary */
-                            600: '#36469b',
-                            700: '#2c397e',
-                            800: '#242f67',
-                            900: '#1f2752',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Lexend:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="/shared/assets/css/modern-design.css">
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: #0f172a;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #e2e8f0;
         }
 
         .font-heading {
@@ -95,18 +66,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.05);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            transition: transform 0.5s;
+        }
+
+        .glass-panel:hover {
+            transform: scale(1.005);
         }
 
         .input-field {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
+            width: 100%;
+            border-radius: 0.75rem;
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+            color: #0f172a;
+            outline: none;
         }
 
         .input-field:focus {
             background: rgba(15, 23, 42, 0.8);
-            border-color: #3b82f6;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
         }
 
         .input-group label {
@@ -122,47 +106,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Ambient Glows */
         .glow-1 {
             background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 50%;
+            height: 50%;
+            border-radius: 50%;
+            filter: blur(64px);
         }
 
         .glow-2 {
             background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+            position: absolute;
+            bottom: -10%;
+            right: -10%;
+            width: 50%;
+            height: 50%;
+            border-radius: 50%;
+            filter: blur(64px);
+            animation-delay: 2s;
         }
     </style>
 </head>
 
-<body class="flex items-center justify-center min-h-screen relative text-slate-200">
+<body>
 
     <!-- Background Effects -->
-    <div class="fixed inset-0 z-0 pointer-events-none">
-        <div
-            class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] glow-1 blur-3xl rounded-full opacity-60 animate-pulse">
-        </div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] glow-2 blur-3xl rounded-full opacity-60 animate-pulse"
-            style="animation-delay: 2s"></div>
+    <div style="position: fixed; inset: 0; z-index: 0; pointer-events: none;">
+        <div class="glow-1 animate-pulse"></div>
+        <div class="glow-2 animate-pulse"></div>
     </div>
 
-    <div class="w-full max-w-[420px] p-6 relative z-10 perspective-[1000px]">
-        <div class="glass-panel p-8 md:p-10 rounded-3xl transform transition-all duration-500 hover:scale-[1.005]">
+    <div style="width: 100%; max-width: 420px; padding: 1.5rem; position: relative; z-index: 10;">
+        <div class="glass-panel">
 
             <!-- Header -->
-            <div class="text-center mb-10">
-                <div
-                    class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30 mb-6 group transition-transform hover:rotate-6">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                        class="w-8 h-8 text-slate-900 transition-transform group-hover:scale-110" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            <div style="text-align: center; margin-bottom: 2.5rem;">
+                <div style="display: inline-flex; align-items: center; justify-content: center; width: 4rem; height: 4rem; border-radius: 1rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); box-shadow: var(--shadow-lg); margin-bottom: 1.5rem; transition: transform 0.2s;"
+                    onmouseover="this.style.transform='rotate(6deg)'" onmouseout="this.style.transform='rotate(0deg)'">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width: 2rem; height: 2rem; color: #fff;"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-900 font-heading tracking-tight mb-2">Reset Password</h1>
-                <p class="text-slate-600 text-sm">Enter your credentials to recover access</p>
+                <h1 style="font-size: 1.5rem; font-weight: 700; color: #e2e8f0; font-family: 'Lexend', sans-serif; letter-spacing: -0.025em; margin-bottom: 0.5rem;"
+                    class="font-heading">Reset Password</h1>
+                <p style="color: #94a3b8; font-size: 0.875rem;">Enter your credentials to recover access</p>
             </div>
 
             <?php if ($error): ?>
                 <div
-                    class="mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold flex items-center gap-3">
-                    <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    style="margin-bottom: 2rem; padding: 1rem; border-radius: 0.75rem; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem;">
+                    <svg style="width: 1rem; height: 1rem; flex-shrink: 0;" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
@@ -172,8 +169,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <?php if ($success): ?>
                 <div
-                    class="mb-8 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-start gap-3">
-                    <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    style="margin-bottom: 2rem; padding: 1rem; border-radius: 0.75rem; background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.875rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+                    <svg style="width: 1.25rem; height: 1.25rem; flex-shrink: 0; margin-top: 0.125rem;" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -181,23 +179,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?= $success ?>
                     </div>
                 </div>
-                <button onclick="window.location.href='login.php'"
-                    class="w-full bg-slate-700 hover:bg-slate-600 text-slate-900 font-bold py-3.5 rounded-xl transition shadow-lg">
+                <button onclick="window.location.href='login.php'" class="btn btn-secondary" style="width: 100%;">
                     Return to Login
                 </button>
             <?php else: ?>
 
-                <form method="POST" class="space-y-6">
+                <form method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
                     <div class="input-group">
                         <label for="u">Username or Email</label>
                         <input id="u" name="u" type="text" required placeholder="Enter username or email"
-                            class="input-field w-full rounded-xl px-4 py-3.5 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-blue-500/50">
+                            class="input-field" style="color: #e2e8f0;">
                     </div>
 
-                    <button type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-500 text-slate-900 font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+                    <button type="submit" class="btn btn-primary"
+                        style="width: 100%; padding: 0.875rem; border-radius: 0.75rem;">
                         <span>Send Reset Link</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
                             </path>
@@ -205,11 +202,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </button>
                 </form>
 
-                <div class="mt-6 text-center">
+                <div style="margin-top: 1.5rem; text-align: center;">
                     <a href="login.php"
-                        class="text-sm text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-2 group">
-                        <svg class="w-4 h-4 group-hover:-translate-x-1 transition" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
+                        style="font-size: 0.875rem; color: #cbd5e1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; transition: color 0.2s;"
+                        onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#cbd5e1'">
+                        <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
@@ -225,5 +222,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 
 </html>
-
-

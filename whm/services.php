@@ -57,41 +57,54 @@ $services = ['nginx' => 'Web Server', 'mariadb' => 'MariaDB SQL', 'php8.2-fpm' =
 include 'layout/header.php';
 ?>
 
-<h2 class="text-2xl font-bold mb-8 text-slate-900 font-heading">Service Engine</h2>
-<div id="services-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<h2
+    style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--slate-900); font-family: var(--font-heading);">
+    Service Engine</h2>
+<div id="services-container"
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
     <?php foreach ($services as $id => $name): ?>
-        <div data-service="<?= $id ?>"
-            class="glass-panel p-6 rounded-2xl flex justify-between items-center group hover:border-blue-500/30 transition">
-            <div class="flex items-center gap-4">
-                <div class="relative">
-                    <div class="status-dot w-3 h-3 rounded-full bg-slate-500 shadow-[0_0_10px_#64748b]">
+        <div data-service="<?= $id ?>" class="glass-card"
+            style="padding: 1.5rem; border-radius: 1rem; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.2s; border: 1px solid var(--border-color);"
+            onmouseover="this.style.borderColor='rgba(59, 130, 246, 0.3)'"
+            onmouseout="this.style.borderColor='var(--border-color)'">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="position: relative;">
+                    <div class="status-dot"
+                        style="width: 0.75rem; height: 0.75rem; border-radius: 9999px; background: var(--slate-500); box-shadow: 0 0 10px #64748b;">
                     </div>
-                    <div class="status-dot-ping w-3 h-3 rounded-full bg-slate-500 absolute top-0 animate-ping opacity-75">
+                    <div class="status-dot-ping"
+                        style="width: 0.75rem; height: 0.75rem; border-radius: 9999px; background: var(--slate-500); position: absolute; top: 0; animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.75;">
                     </div>
                 </div>
                 <div>
-                    <p class="font-bold text-lg text-slate-900 group-hover:text-blue-400 transition">
+                    <p style="font-weight: 700; font-size: 1.125rem; color: var(--slate-900); transition: color 0.2s;"
+                        onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--slate-900)'">
                         <?= $name ?>
                     </p>
-                    <div class="flex items-center gap-2 mt-1">
-                        <p class="text-[10px] font-mono text-slate-700 uppercase tracking-widest">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                        <p
+                            style="font-size: 0.625rem; font-family: monospace; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">
                             <?= $id ?>
                         </p>
-                        <span
-                            class="status-badge px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-slate-500/10 text-slate-700 border border-slate-500/20">
+                        <span class="status-badge"
+                            style="padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(100, 116, 139, 0.1); color: var(--slate-700); border: 1px solid rgba(100, 116, 139, 0.2);">
                             CHECKING...
                         </span>
                     </div>
                 </div>
             </div>
-            <div class="flex gap-2">
+            <div style="display: flex; gap: 0.5rem;">
                 <button onclick="servAction('<?= $id ?>','restart')" title="Restart"
-                    class="p-3 bg-slate-50 rounded-xl text-blue-400 hover:text-slate-900 hover:bg-blue-600 transition-all border border-slate-300 shadow-lg">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    style="padding: 0.75rem; background: var(--slate-50); border-radius: 0.75rem; color: #60a5fa; border: 1px solid var(--slate-300); transition: all 0.2s; box-shadow: var(--shadow-lg); cursor: pointer;"
+                    onmouseover="this.style.color='var(--slate-900)'; this.style.backgroundColor='#2563eb'"
+                    onmouseout="this.style.color='#60a5fa'; this.style.backgroundColor='var(--slate-50)'">
+                    <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i>
                 </button>
                 <button onclick="servAction('<?= $id ?>','stop')" title="Stop"
-                    class="p-3 bg-slate-50 rounded-xl text-red-500 hover:text-slate-900 hover:bg-red-600 transition-all border border-slate-300 shadow-lg">
-                    <i data-lucide="power" class="w-4 h-4"></i>
+                    style="padding: 0.75rem; background: var(--slate-50); border-radius: 0.75rem; color: #ef4444; border: 1px solid var(--slate-300); transition: all 0.2s; box-shadow: var(--shadow-lg); cursor: pointer;"
+                    onmouseover="this.style.color='var(--slate-900)'; this.style.backgroundColor='#dc2626'"
+                    onmouseout="this.style.color='#ef4444'; this.style.backgroundColor='var(--slate-50)'">
+                    <i data-lucide="power" style="width: 1rem; height: 1rem;"></i>
                 </button>
             </div>
         </div>
@@ -123,15 +136,21 @@ include 'layout/header.php';
 
                         if (service.active) {
                             // Active state - green
-                            dot.className = 'status-dot w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]';
-                            dotPing.className = 'status-dot-ping w-3 h-3 rounded-full bg-emerald-500 absolute top-0 animate-ping opacity-75';
-                            badge.className = 'status-badge px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                            dot.style.background = '#10b981';
+                            dot.style.boxShadow = '0 0 10px #10b981';
+                            dotPing.style.background = '#10b981';
+                            badge.style.background = 'rgba(16, 185, 129, 0.1)';
+                            badge.style.color = '#34d399';
+                            badge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
                             badge.textContent = 'ACTIVE';
                         } else {
                             // Inactive state - red
-                            dot.className = 'status-dot w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_#ef4444]';
-                            dotPing.className = 'status-dot-ping w-3 h-3 rounded-full bg-red-500 absolute top-0 animate-ping opacity-75';
-                            badge.className = 'status-badge px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20';
+                            dot.style.background = '#ef4444';
+                            dot.style.boxShadow = '0 0 10px #ef4444';
+                            dotPing.style.background = '#ef4444';
+                            badge.style.background = 'rgba(239, 68, 68, 0.1)';
+                            badge.style.color = '#f87171';
+                            badge.style.borderColor = 'rgba(239, 68, 68, 0.2)';
                             badge.textContent = 'INACTIVE';
                         }
                     }
@@ -144,7 +163,7 @@ include 'layout/header.php';
 
     async function servAction(srv, op) {
         // Find all buttons for this service and disable them
-        const buttons = event.target.closest('.glass-panel').querySelectorAll('button');
+        const buttons = event.target.closest('.glass-card').querySelectorAll('button');
         buttons.forEach(btn => {
             btn.disabled = true;
             btn.style.opacity = '0.5';
@@ -201,5 +220,3 @@ include 'layout/header.php';
         setInterval(updateServiceStatus, 5000);
     });
 </script>
-
-

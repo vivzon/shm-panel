@@ -40,6 +40,19 @@ CREATE TABLE IF NOT EXISTS packages (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    client_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_gateway VARCHAR(50) NOT NULL,
+    transaction_id VARCHAR(255) UNIQUE NOT NULL,
+    status ENUM('pending', 'paid', 'failed') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_client_id (client_id),
+    INDEX idx_transaction (transaction_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS domains (
     id INT AUTO_INCREMENT PRIMARY KEY,
     client_id INT NOT NULL,
@@ -269,6 +282,7 @@ CREATE TABLE IF NOT EXISTS server_metrics (
 
 -- Initial Seed Data
 INSERT IGNORE INTO packages (id, name, price, disk_mb, max_domains, max_emails, max_databases, features) VALUES 
-(1, 'Starter', 0.00, 2000, 1, 5, 2, 'Basic hosting with 2GB storage'),
-(2, 'Business', 9.99, 10000, 10, 50, 10, 'Advanced hosting with 10GB storage'),
-(3, 'Premium', 19.99, 50000, 50, 200, 50, 'Premium hosting with 50GB storage');
+(1, 'Basic Plan', 49.00, 1000, 1, 2, 1, 'Standard Speed, Beginner Friendly'),
+(2, 'Smart Plan', 149.00, 5000, 3, 10, 5, 'Faster Performance, Priority Support'),
+(3, 'Pro Plan', 249.00, 15000, 10, 25, 10, 'Free Backup, High Performance, Developer Friendly'),
+(4, 'Agency Plan', 399.00, 40000, 9999, 100, 9999, 'Free Backup, Priority Resources, 24/7 Support');

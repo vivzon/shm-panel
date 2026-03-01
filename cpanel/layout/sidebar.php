@@ -1,67 +1,81 @@
-<aside
-    class="w-64 bg-white border-r border-slate-300 flex flex-col z-20 shadow-md h-screen overflow-y-auto custom-scrollbar <?= isset($collapse_sidebar) && $collapse_sidebar ? 'hidden' : '' ?>">
-    <div class="p-6 pb-4">
+<aside class="dashboard-sidebar custom-scrollbar <?= isset($collapse_sidebar) && $collapse_sidebar ? 'hidden' : '' ?>"
+    style="width: 260px; background: white; border-right: 1px solid var(--slate-200); display: flex; flex-direction: column; z-index: 20; height: 100vh; overflow-y: auto;">
+    <div style="padding: 1.5rem 1.5rem 1rem;">
         <!-- Brand -->
-        <div class="flex items-center gap-3 mb-8">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem;">
             <div
-                class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/25">
-                <i data-lucide="layers" class="w-4 h-4"></i>
+                style="width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; box-shadow: var(--shadow-sm);">
+                <i data-lucide="layers" style="width: 16px; height: 16px;"></i>
             </div>
             <div>
-                <h1 class="text-sm font-bold text-slate-900 font-heading tracking-tight leading-none">Vivzon Cloud</h1>
-                <span class="text-[10px] font-semibold text-blue-600 uppercase tracking-widest">Client Area</span>
+                <h1
+                    style="font-size: 1rem; font-weight: 700; color: var(--slate-900); font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; line-height: 1;">
+                    Vivzon Cloud</h1>
+                <span
+                    style="font-size: 0.625rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em;">Client
+                    Area</span>
             </div>
         </div>
 
-        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-3 mb-2">Core</div>
-        <nav class="space-y-0.5">
+        <div
+            style="font-size: 0.625rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.75rem; margin-bottom: 0.5rem;">
+            Core</div>
+        <nav style="display: flex; flex-direction: column; gap: 2px;">
             <a href="index.php" class="nav-btn <?= $current_page == 'index.php' ? 'active' : '' ?>">
-                <i data-lucide="layout-dashboard" class="w-4 shrink-0"></i> Overview
+                <i data-lucide="layout-dashboard" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Overview
             </a>
             <a href="files.php" target="_blank" class="nav-btn <?= $current_page == 'files.php' ? 'active' : '' ?>">
-                <i data-lucide="folder-open" class="w-4 shrink-0"></i> File Manager
+                <i data-lucide="folder-open" style="width: 16px; height: 16px; flex-shrink: 0;"></i> File Manager
+            </a>
+            <a href="billing.php" class="nav-btn <?= $current_page == 'billing.php' ? 'active' : '' ?>">
+                <i data-lucide="credit-card" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Billing History
             </a>
         </nav>
 
-        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-3 mb-2 mt-6">Hosting Services
-        </div>
-        <nav class="space-y-0.5">
+        <div
+            style="font-size: 0.625rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.75rem; margin-bottom: 0.5rem; margin-top: 1.5rem;">
+            Hosting Services</div>
+        <nav style="display: flex; flex-direction: column; gap: 2px;">
             <a href="databases.php" class="nav-btn <?= $current_page == 'databases.php' ? 'active' : '' ?>">
-                <i data-lucide="database" class="w-4 shrink-0"></i> Databases
+                <i data-lucide="database" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Databases
             </a>
             <a href="emails.php" class="nav-btn <?= $current_page == 'emails.php' ? 'active' : '' ?>">
-                <i data-lucide="mail" class="w-4 shrink-0"></i> Email Accounts
+                <i data-lucide="mail" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Email Accounts
             </a>
             <a href="domains.php" class="nav-btn <?= $current_page == 'domains.php' ? 'active' : '' ?>">
-                <i data-lucide="globe" class="w-4 shrink-0"></i> Domains &amp; DNS
+                <i data-lucide="globe" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Domains &amp; DNS
             </a>
             <a href="traffic.php" class="nav-btn <?= $current_page == 'traffic.php' ? 'active' : '' ?>">
-                <i data-lucide="activity" class="w-4 shrink-0"></i> Traffic &amp; Stats
+                <i data-lucide="activity" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Traffic &amp; Stats
             </a>
         </nav>
 
-        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-3 mb-2 mt-6">Tools</div>
-        <nav class="space-y-0.5">
+        <div
+            style="font-size: 0.625rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.75rem; margin-bottom: 0.5rem; margin-top: 1.5rem;">
+            Tools</div>
+        <nav style="display: flex; flex-direction: column; gap: 2px;">
             <a href="tools.php?tab=apps"
                 class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? 'apps') == 'apps') ? 'active' : '' ?>">
-                <i data-lucide="box" class="w-4 shrink-0"></i> App Installer
+                <i data-lucide="box" style="width: 16px; height: 16px; flex-shrink: 0;"></i> App Installer
             </a>
             <a href="tools.php?tab=security"
                 class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? '') == 'security') ? 'active' : '' ?>">
-                <i data-lucide="shield" class="w-4 shrink-0"></i> Security (SSH)
+                <i data-lucide="shield" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Security (SSH)
             </a>
             <a href="tools.php?tab=backups"
                 class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? '') == 'backups') ? 'active' : '' ?>">
-                <i data-lucide="save" class="w-4 shrink-0"></i> Backups
+                <i data-lucide="save" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Backups
             </a>
         </nav>
     </div>
 
-    <div class="mt-auto p-4 border-t border-slate-200">
+    <div style="margin-top: auto; padding: 1rem; border-top: 1px solid var(--slate-200);">
         <a href="logout.php"
-            class="flex items-center gap-3 text-slate-500 hover:text-red-600 transition group p-3 rounded-lg hover:bg-red-50">
-            <i data-lucide="log-out" class="w-4 group-hover:-translate-x-1 transition shrink-0"></i>
-            <span class="font-semibold text-xs">Sign Out</span>
+            style="display: flex; align-items: center; gap: 0.75rem; color: var(--slate-500); padding: 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; text-decoration: none;"
+            onmouseover="this.style.color='var(--accent-red)'; this.style.backgroundColor='rgba(239, 68, 68, 0.1)';"
+            onmouseout="this.style.color='var(--slate-500)'; this.style.backgroundColor='transparent';">
+            <i data-lucide="log-out" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+            <span style="font-weight: 600; font-size: 0.75rem;">Sign Out</span>
         </a>
     </div>
 </aside>

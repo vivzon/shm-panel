@@ -52,31 +52,36 @@ if (isset($_POST['ajax_action'])) {
 include 'layout/header.php';
 ?>
 
-<div class="flex justify-between items-center mb-8">
-    <h2 class="text-2xl font-bold text-slate-900">Backups</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2
+        style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; color: var(--slate-900); font-family: 'Lexend', sans-serif;">
+        Backups</h2>
     <form onsubmit="handleGeneric(event, 'create_backup')">
-        <button
-            class="bg-blue-600 hover:bg-blue-500 text-slate-900 px-5 py-3 rounded-xl font-bold shadow-lg shadow-blue-600/20 flex items-center gap-2 transition">
-            <i data-lucide="plus-circle" class="w-4"></i> Create Backup
+        <button class="btn btn-primary"
+            style="padding: 0.75rem 1.25rem; font-weight: 700; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="plus-circle" style="width: 1rem; height: 1rem;"></i> Create Backup
         </button>
     </form>
 </div>
 
-<div class="glass-card overflow-hidden">
-    <table class="w-full text-left">
-        <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-700">
-            <tr>
-                <th class="p-4">Filename</th>
-                <th class="p-4">Size</th>
-                <th class="p-4 text-right">Actions</th>
-            </tr>
-        </thead>
-        <tbody id="backup-list" class="divide-y divide-slate-700/50">
-            <tr>
-                <td class="p-4 text-center text-slate-700" colspan="3">Loading...</td>
-            </tr>
-        </tbody>
-    </table>
+<div class="glass-panel" style="padding: 0; overflow: hidden;">
+    <div class="table-container">
+        <table class="modern-table" style="width: 100%; text-align: left;">
+            <thead
+                style="background-color: var(--slate-50); font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--slate-700); letter-spacing: 0.05em; border-bottom: 1px solid var(--slate-300);">
+                <tr>
+                    <th style="padding: 1rem;">Filename</th>
+                    <th style="padding: 1rem;">Size</th>
+                    <th style="padding: 1rem; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="backup-list">
+                <tr>
+                    <td style="padding: 1rem; text-align: center; color: var(--slate-700);" colspan="3">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <?php include 'layout/footer.php'; ?>
@@ -93,20 +98,20 @@ include 'layout/header.php';
                 res.data.forEach(b => {
                     const safeName = b.name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
                     list.innerHTML += `
-                            <tr class="hover:bg-slate-50/30 transition">
-                                <td class="p-4 font-bold text-slate-700">${safeName}</td>
-                                <td class="p-4 text-slate-700 text-xs">${b.size}</td>
-                                <td class="p-4 text-right">
-                                    <button onclick="restoreBackup('${safeName}')" class="text-blue-400 font-bold text-xs uppercase hover:text-slate-900 mr-4 transition">Restore</button>
+                            <tr style="border-bottom: 1px solid var(--slate-200); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(248, 250, 252, 0.5)'" onmouseout="this.style.backgroundColor='transparent'">
+                                <td style="padding: 1rem; font-weight: 700; color: var(--slate-700);">${safeName}</td>
+                                <td style="padding: 1rem; color: var(--slate-700); font-size: 0.75rem;">${b.size}</td>
+                                <td style="padding: 1rem; text-align: right;">
+                                    <button onclick="restoreBackup('${safeName}')" style="color: #60a5fa; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; margin-right: 1rem; transition: color 0.2s; background: transparent; border: none; cursor: pointer;" onmouseover="this.style.color='var(--slate-900)'" onmouseout="this.style.color='#60a5fa'">Restore</button>
                                 </td>
                             </tr>
                         `;
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-700">No backups found.</td></tr>';
+                list.innerHTML = '<tr><td colspan="3" style="padding: 1rem; text-align: center; color: var(--slate-700);">No backups found.</td></tr>';
             }
-        } catch (e) { list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-red-400">Error loading.</td></tr>'; }
+        } catch (e) { list.innerHTML = '<tr><td colspan="3" style="padding: 1rem; text-align: center; color: #f87171;">Error loading.</td></tr>'; }
     }
 
     async function restoreBackup(file) {
@@ -130,5 +135,3 @@ include 'layout/header.php';
 
     loadBackups();
 </script>
-
-

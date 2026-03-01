@@ -74,72 +74,74 @@ $installations = $pdo->query("SELECT i.*, d.domain FROM app_installations i JOIN
 include 'layout/header.php';
 ?>
 
-<h2 class="text-2xl font-bold mb-8 text-slate-900">Application Installer</h2>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; mb-8; color: var(--slate-900); font-family: 'Lexend', sans-serif; margin-bottom: 2rem;">Application Installer</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
     <?php
     $apps = [
-        'wordpress' => ['WordPress', 'The world\'s most popular CMS.', 'bg-blue-600'],
-        'laravel' => ['Laravel', 'The PHP Framework for Web Artisans.', 'bg-red-600'],
-        'codeigniter' => ['CodeIgniter', 'Powerful PHP framework with a small footprint.', 'bg-orange-600'],
-        'react' => ['React App', 'Create React App boilerplate.', 'bg-cyan-500']
+        'wordpress' => ['WordPress', 'The world\'s most popular CMS.', '#2563eb'],
+        'laravel' => ['Laravel', 'The PHP Framework for Web Artisans.', '#dc2626'],
+        'codeigniter' => ['CodeIgniter', 'Powerful PHP framework with a small footprint.', '#ea580c'],
+        'react' => ['React App', 'Create React App boilerplate.', '#06b6d4']
     ];
     foreach ($apps as $key => $info): ?>
-        <div class="glass-card p-8 relative overflow-hidden group hover:-translate-y-1 transition duration-500">
-            <div
-                class="absolute -right-6 -top-6 w-32 h-32 <?= $info[2] ?>/20 rounded-full blur-3xl group-hover:bg-opacity-40 transition">
+        <div class="glass-panel" style="padding: 2rem; position: relative; overflow: hidden; transition: transform 0.5s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div style="position: absolute; right: -1.5rem; top: -1.5rem; width: 8rem; height: 8rem; border-radius: 9999px; filter: blur(24px); transition: opacity 0.3s; opacity: 0.2; background-color: <?= $info[2] ?>;">
             </div>
-            <h3 class="text-xl font-bold text-slate-900 mb-2 relative z-10">
+            <h3 style="font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem; position: relative; z-index: 10;">
                 <?= $info[0] ?>
             </h3>
-            <p class="text-slate-700 text-sm mb-6 relative z-10 h-10">
+            <p style="color: var(--slate-700); font-size: 0.875rem; margin-bottom: 1.5rem; position: relative; z-index: 10; height: 2.5rem;">
                 <?= $info[1] ?>
             </p>
             <button onclick="openAppModal('<?= $key ?>', '<?= $info[0] ?>')"
-                class="w-full py-3 <?= $info[2] ?> hover:opacity-90 text-slate-900 font-bold rounded-xl shadow-lg transition relative z-10">
+                style="width: 100%; padding: 0.75rem; background-color: <?= $info[2] ?>; color: #fff; font-weight: 700; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: opacity 0.2s; position: relative; z-index: 10; border: none; cursor: pointer;"
+                onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
                 Install
             </button>
         </div>
     <?php endforeach; ?>
 </div>
 
-<div class="mt-12">
-    <h2 class="text-2xl font-bold mb-6 text-slate-900">Installed Applications</h2>
-    <div class="glass-card overflow-hidden">
-        <table class="w-full text-left text-slate-900">
-            <thead class="bg-white/10 text-xs uppercase">
-                <tr>
-                    <th class="p-4">Application</th>
-                    <th class="p-4">Domain</th>
-                    <th class="p-4">Database</th>
-                    <th class="p-4">Status</th>
-                    <th class="p-4">Date</th>
-                    <th class="p-4 text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-white/10">
-                <?php if (empty($installations)): ?>
-                    <tr><td colspan="6" class="p-6 text-center text-slate-700">No applications installed yet.</td></tr>
-                <?php else: ?>
-                    <?php foreach ($installations as $inst): ?>
-                        <tr class="hover:bg-white/5 transition">
-                            <td class="p-4 font-medium capitalize"><?= $inst['app_type'] ?></td>
-                            <td class="p-4"><a href="http://<?= $inst['domain'] ?>" target="_blank" class="text-blue-400 hover:text-blue-300"><?= $inst['domain'] ?></a></td>
-                            <td class="p-4">
-                                <span class="text-xs bg-slate-700 px-2 py-1 rounded"><?= $inst['db_name'] ?></span>
-                            </td>
-                            <td class="p-4">
-                                <span class="text-xs <?= $inst['status']=='active'?'bg-green-600':'bg-yellow-600' ?> px-2 py-1 rounded capitalize"><?= $inst['status'] ?></span>
-                            </td>
-                            <td class="p-4 text-slate-700 text-sm"><?= date('M d, Y', strtotime($inst['created_at'])) ?></td>
-                            <td class="p-4 text-right">
-                                <button onclick="uninstallApp(<?= $inst['id'] ?>, '<?= $inst['app_type'] ?>', '<?= $inst['domain'] ?>')" 
-                                        class="text-red-400 hover:text-red-300 text-sm font-bold">Uninstall</button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+<div style="margin-top: 3rem;">
+    <h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; color: var(--slate-900); font-family: 'Lexend', sans-serif; margin-bottom: 1.5rem;">Installed Applications</h2>
+    <div class="glass-panel" style="padding: 0; overflow: hidden;">
+        <div class="table-container">
+            <table class="modern-table" style="width: 100%; text-align: left; color: var(--slate-900);">
+                <thead style="background-color: var(--slate-50); font-size: 0.75rem; text-transform: uppercase; color: var(--slate-700); border-bottom: 1px solid var(--slate-300);">
+                    <tr>
+                        <th style="padding: 1rem; font-weight: 700;">Application</th>
+                        <th style="padding: 1rem; font-weight: 700;">Domain</th>
+                        <th style="padding: 1rem; font-weight: 700;">Database</th>
+                        <th style="padding: 1rem; font-weight: 700;">Status</th>
+                        <th style="padding: 1rem; font-weight: 700;">Date</th>
+                        <th style="padding: 1rem; font-weight: 700; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($installations)): ?>
+                        <tr><td colspan="6" style="padding: 1.5rem; text-align: center; color: var(--slate-700);">No applications installed yet.</td></tr>
+                    <?php else: ?>
+                        <?php foreach ($installations as $inst): ?>
+                            <tr style="border-bottom: 1px solid var(--slate-200); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(248, 250, 252, 0.5)'" onmouseout="this.style.backgroundColor='transparent'">
+                                <td style="padding: 1rem; font-weight: 500; text-transform: capitalize;"><?= $inst['app_type'] ?></td>
+                                <td style="padding: 1rem;"><a href="http://<?= $inst['domain'] ?>" target="_blank" style="color: #60a5fa; transition: color 0.2s;" onmouseover="this.style.color='var(--slate-900)'" onmouseout="this.style.color='#60a5fa'"><?= $inst['domain'] ?></a></td>
+                                <td style="padding: 1rem;">
+                                    <span style="font-size: 0.75rem; background-color: rgba(51, 65, 85, 0.1); color: var(--slate-700); padding: 0.25rem 0.5rem; border-radius: 0.25rem;"><?= $inst['db_name'] ?></span>
+                                </td>
+                                <td style="padding: 1rem;">
+                                    <span style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; text-transform: capitalize; <?= $inst['status'] == 'active' ? 'background-color: rgba(16, 185, 129, 0.1); color: #34d399;' : 'background-color: rgba(202, 138, 4, 0.1); color: #ca8a04;' ?>"><?= $inst['status'] ?></span>
+                                </td>
+                                <td style="padding: 1rem; color: var(--slate-700); font-size: 0.875rem;"><?= date('M d, Y', strtotime($inst['created_at'])) ?></td>
+                                <td style="padding: 1rem; text-align: right;">
+                                    <button onclick="uninstallApp(<?= $inst['id'] ?>, '<?= $inst['app_type'] ?>', '<?= $inst['domain'] ?>')" 
+                                            style="color: #f87171; font-size: 0.875rem; font-weight: 700; transition: color 0.2s; background: transparent; border: none; cursor: pointer;" onmouseover="this.style.color='#fca5a5'" onmouseout="this.style.color='#f87171'">Uninstall</button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

@@ -184,82 +184,87 @@ include 'layout/header.php';
 ?>
 
 <!-- HEADER & REAL-TIME SEARCH -->
-<div class="flex justify-between items-center mb-8 gap-4">
-    <div class="flex items-center gap-4">
-        <h2 class="text-2xl font-bold text-slate-900 font-heading">Clients <span id="client-count"
-                class="text-slate-700 text-lg ml-2"></span></h2>
-        <div class="relative">
-            <i data-lucide="search" class="w-4 absolute left-3 top-3 text-slate-700"></i>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); font-family: var(--font-heading);">
+            Clients <span id="client-count"
+                style="color: var(--slate-700); font-size: 1.125rem; margin-left: 0.5rem;"></span></h2>
+        <div style="position: relative;">
+            <i data-lucide="search"
+                style="width: 1rem; height: 1rem; position: absolute; left: 0.75rem; top: 0.75rem; color: var(--slate-700);"></i>
             <input id="live-search" onkeyup="debounceSearch()" placeholder="Search username, email or domain..."
-                class="bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm w-80 outline-none focus:border-blue-500 text-slate-900 transition-all">
+                class="form-input" style="padding-left: 2.5rem; width: 20rem; border-radius: 0.75rem;">
         </div>
     </div>
-    <button onclick="openAccModal()"
-        class="bg-blue-600 hover:bg-blue-500 text-slate-900 px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-lg shadow-blue-900/20">
-        <i data-lucide="plus-circle" class="w-4"></i> Create Account
+    <button onclick="openAccModal()" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="plus-circle" style="width: 1rem; height: 1rem;"></i> Create Account
     </button>
 </div>
 
 <!-- DATA TABLE -->
-<div class="glass-panel rounded-2xl overflow-hidden">
-    <table class="w-full text-left border-collapse">
-        <thead
-            class="bg-slate-50 text-slate-700 text-[10px] font-bold uppercase tracking-widest border-b border-slate-300">
-            <tr>
-                <th class="p-5">Client / Primary Domain</th>
-                <th class="p-5">Plan</th>
-                <th class="p-5">Status</th>
-                <th class="p-5 text-right">Actions</th>
-            </tr>
-        </thead>
-        <tbody id="client-table-body" class="divide-y divide-slate-800/50"></tbody>
-    </table>
+<div class="glass-card" style="border-radius: 1rem; overflow: hidden; padding: 0;">
+    <div class="table-container" style="margin: 0;">
+        <table class="modern-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="padding: 1.25rem;">Client / Primary Domain</th>
+                    <th style="padding: 1.25rem;">Plan</th>
+                    <th style="padding: 1.25rem;">Status</th>
+                    <th style="padding: 1.25rem; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="client-table-body" style="border-top: 1px solid var(--border-color);"></tbody>
+        </table>
+    </div>
 </div>
 
-<div id="pagination-container" class="flex justify-between items-center mt-6"></div>
+<div id="pagination-container"
+    style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;"></div>
 
 <!-- CRUD MODAL -->
-<div id="modal-acc"
-    class="fixed inset-0 bg-white/80 backdrop-blur-md hidden flex items-center justify-center z-50 p-6">
-    <form id="form-acc" onsubmit="handleGeneric(event, 'save_account')"
-        class="glass-panel p-10 rounded-3xl w-full max-w-lg">
-        <h3 id="acc-title" class="text-2xl font-bold mb-8 text-slate-900">Client Details</h3>
+<div id="modal-acc" class="modal hidden"
+    style="position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1.5rem;">
+    <form id="form-acc" onsubmit="handleGeneric(event, 'save_account')" class="glass-card"
+        style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 32rem; background: white; box-shadow: var(--shadow-2xl); border: 1px solid var(--border-color);">
+        <h3 id="acc-title" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--slate-900);">
+            Client Details</h3>
         <input type="hidden" name="id" id="acc-id">
-        <div class="space-y-4">
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
             <div>
-                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Username</label>
-                <input name="user" id="acc-user" required
-                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500">
+                <label
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Username</label>
+                <input name="user" id="acc-user" required class="form-input" style="width: 100%;">
             </div>
             <div>
-                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Domain</label>
-                <input name="dom" id="acc-dom" required placeholder="domain.com"
-                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500">
+                <label
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Domain</label>
+                <input name="dom" id="acc-dom" required placeholder="domain.com" class="form-input"
+                    style="width: 100%;">
             </div>
             <div>
-                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Email</label>
-                <input name="email" id="acc-email" type="email" required
-                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500">
+                <label
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Email</label>
+                <input name="email" id="acc-email" type="email" required class="form-input" style="width: 100%;">
             </div>
             <div>
-                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Password (Leave blank to keep
+                <label
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Password
+                    (Leave blank to keep
                     current)</label>
-                <input name="pass" type="password"
-                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500">
+                <input name="pass" type="password" class="form-input" style="width: 100%;">
             </div>
             <div>
-                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Plan</label>
-                <select name="package_id" id="acc-pkg"
-                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none">
+                <label
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Plan</label>
+                <select name="package_id" id="acc-pkg" class="form-input" style="width: 100%;">
                     <?php foreach ($packages as $p): ?>
                         <option value="<?= $p['id'] ?>"><?= $p['name'] ?></option><?php endforeach; ?>
                 </select>
             </div>
-            <div class="flex gap-4 pt-4">
-                <button type="button" onclick="closeModal('modal-acc')"
-                    class="flex-1 p-3 text-slate-700 font-bold hover:bg-slate-50 rounded-xl transition">Cancel</button>
-                <button type="submit"
-                    class="flex-1 bg-blue-600 text-slate-900 p-3 rounded-xl font-bold transition hover:bg-blue-500">Save</button>
+            <div style="display: flex; gap: 1rem; padding-top: 1rem;">
+                <button type="button" onclick="closeModal('modal-acc')" class="btn btn-outline"
+                    style="flex: 1;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Save</button>
             </div>
         </div>
     </form>
@@ -293,25 +298,25 @@ include 'layout/header.php';
         tbody.innerHTML = data.rows.map(c => {
             const safeUsername = c.username.replace(/'/g, "\\'");
             return `
-            <tr class="hover:bg-slate-50/30 transition-colors">
-                <td class="p-5">
-                    <div class="font-bold text-slate-900 text-sm">${c.username}</div>
-                    <div class="text-xs text-blue-400">${c.domain || 'No domain'}</div>
+            <tr style="transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--slate-50)'" onmouseout="this.style.backgroundColor='transparent'">
+                <td style="padding: 1.25rem;">
+                    <div style="font-weight: 700; color: var(--slate-900); font-size: 0.875rem;">${c.username}</div>
+                    <div style="font-size: 0.75rem; color: #60a5fa;">${c.domain || 'No domain'}</div>
                 </td>
-                <td class="p-5">
-                    <span class="bg-slate-50 border border-slate-300 px-3 py-1 rounded-full text-[10px] font-bold text-slate-700">${c.pkg_name}</span>
+                <td style="padding: 1.25rem;">
+                    <span style="background: var(--slate-100); border: 1px solid var(--slate-300); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 700; color: var(--slate-700);">${c.pkg_name}</span>
                 </td>
-                <td class="p-5">
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${c.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}">
+                <td style="padding: 1.25rem;">
+                    <span style="padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 700; border: 1px solid ${c.status === 'active' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; background: ${c.status === 'active' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${c.status === 'active' ? '#10b981' : '#ef4444'};">
                         ${c.status.toUpperCase()}
                     </span>
                 </td>
-                <td class="p-5 text-right flex justify-end gap-1">
-                    <button onclick="loginAs('${safeUsername}', ${c.id})" class="p-2 text-slate-700 hover:text-blue-400" title="Login"><i data-lucide="key" class="w-4"></i></button>
-                    <button onclick="toggleSus('${safeUsername}', ${c.status === 'active'})" class="p-2 text-slate-700 hover:text-orange-400" title="Suspend"><i data-lucide="${c.status === 'active' ? 'pause-circle' : 'play-circle'}" class="w-4"></i></button>
-                    <button onclick="editClient(${c.id})" class="p-2 text-slate-700 hover:text-slate-900" title="Edit"><i data-lucide="edit-3" class="w-4"></i></button>
-                    <button onclick="resetAcc('${safeUsername}')" class="p-2 text-slate-700 hover:text-red-400" title="Reset Files"><i data-lucide="rotate-ccw" class="w-4"></i></button>
-                    <button onclick="delAcc(${c.id}, '${safeUsername}')" class="p-2 text-slate-700 hover:text-red-500" title="Delete"><i data-lucide="trash-2" class="w-4"></i></button>
+                <td style="padding: 1.25rem; text-align: right; display: flex; justify-content: flex-end; gap: 0.25rem;">
+                    <button onclick="loginAs('${safeUsername}', ${c.id})" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--slate-700)'" title="Login"><i data-lucide="key" style="width: 1rem; height: 1rem;"></i></button>
+                    <button onclick="toggleSus('${safeUsername}', ${c.status === 'active'})" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#fb923c'" onmouseout="this.style.color='var(--slate-700)'" title="Suspend"><i data-lucide="${c.status === 'active' ? 'pause-circle' : 'play-circle'}" style="width: 1rem; height: 1rem;"></i></button>
+                    <button onclick="editClient(${c.id})" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--slate-900)'" onmouseout="this.style.color='var(--slate-700)'" title="Edit"><i data-lucide="edit-3" style="width: 1rem; height: 1rem;"></i></button>
+                    <button onclick="resetAcc('${safeUsername}')" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='var(--slate-700)'" title="Reset Files"><i data-lucide="rotate-ccw" style="width: 1rem; height: 1rem;"></i></button>
+                    <button onclick="delAcc(${c.id}, '${safeUsername}')" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--slate-700)'" title="Delete"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
                 </td>
             </tr>
         `}).join('');
@@ -324,10 +329,10 @@ include 'layout/header.php';
         const container = document.getElementById('pagination-container');
         if (totalPages <= 1) { container.innerHTML = ''; return; }
         container.innerHTML = `
-            <div class="text-xs text-slate-700 font-bold uppercase">Page ${currentPage} / ${totalPages}</div>
-            <div class="flex gap-2">
-                <button onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''} class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs disabled:opacity-30">Prev</button>
-                <button onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''} class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs disabled:opacity-30">Next</button>
+            <div style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Page ${currentPage} / ${totalPages}</div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''} class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.5rem;" ${currentPage === 1 ? 'style="opacity: 0.5; cursor: not-allowed;"' : ''}>Prev</button>
+                <button onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''} class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.5rem;" ${currentPage === totalPages ? 'style="opacity: 0.5; cursor: not-allowed;"' : ''}>Next</button>
             </div>`;
     }
 
@@ -407,6 +412,3 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
-
-
-

@@ -30,44 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login | Vivzon Cloud</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        blue: {
-                            50: '#f0f5ff',
-                            100: '#e0ebff',
-                            200: '#cce0ff',
-                            300: '#99c2ff',
-                            400: '#66a3ff',
-                            500: '#4880ed',
-                            600: '#2563eb', /* Primary */
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        indigo: {
-                            50: '#f2f4fb',
-                            100: '#e6ebfb',
-                            200: '#cdcdfa',
-                            300: '#9ea6eb',
-                            400: '#6f7ee1',
-                            500: '#3f51b5', /* Secondary */
-                            600: '#36469b',
-                            700: '#2c397e',
-                            800: '#242f67',
-                            900: '#1f2752',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="layout/modern-design.css">
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -286,51 +251,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="bg-grid"></div>
 
-    <div class="relative z-10 w-full max-w-[400px] px-5">
+    <div style="position: relative; z-index: 10; width: 100%; max-width: 400px; padding: 0 1.25rem;">
 
         <!-- Brand pill -->
-        <div class="text-center mb-6 fade-up">
+        <div style="text-align: center; margin-bottom: 1.5rem;" class="fade-up">
             <div
-                class="inline-flex items-center gap-2 bg-white border border-slate-200 shadow-sm rounded-full px-4 py-1.5">
-                <div class="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
-                <span class="text-[11px] font-bold text-slate-600 tracking-wider uppercase">Vivzon Cloud</span>
+                style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); border-radius: 9999px; padding: 0.375rem 1rem;">
+                <div style="width: 0.375rem; height: 0.375rem; border-radius: 9999px; background: #2563eb;"></div>
+                <span
+                    style="font-size: 11px; font-weight: 700; color: #475569; letter-spacing: 0.05em; text-transform: uppercase;">Vivzon
+                    Cloud</span>
             </div>
         </div>
 
-        <div class="login-card p-8 fade-up d1">
+        <div class="login-card fade-up d1" style="padding: 2rem;">
 
             <!-- Icon + Title -->
-            <div class="flex flex-col items-center mb-7">
-                <div class="logo-ring w-14 h-14 rounded-2xl flex items-center justify-center mb-4">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2"
-                        viewBox="0 0 24 24">
+            <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 1.75rem;">
+                <div class="logo-ring"
+                    style="width: 3.5rem; height: 3.5rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                    <svg style="width: 1.75rem; height: 1.75rem; color: white;" fill="none" stroke="currentColor"
+                        stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>
                 </div>
-                <h1 class="text-xl font-bold font-heading text-slate-900 mb-1">Admin Console</h1>
-                <p class="text-slate-400 text-xs font-medium">Authorized personnel only</p>
+                <h1 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem;"
+                    class="font-heading">Admin Console</h1>
+                <p style="color: #94a3b8; font-size: 0.75rem; font-weight: 500;">Authorized personnel only</p>
             </div>
 
             <!-- Error -->
             <?php if ($error): ?>
-                <div class="error-box mb-5">
-                    <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="2">
+                <div class="error-box" style="margin-bottom: 1.25rem;">
+                    <svg style="width: 1rem; height: 1rem; color: #ef4444; flex-shrink: 0;" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                     </svg>
-                    <span class="text-red-600 text-xs font-semibold"><?= htmlspecialchars($error) ?></span>
+                    <span
+                        style="color: #dc2626; font-size: 0.75rem; font-weight: 600;"><?= htmlspecialchars($error) ?></span>
                 </div>
             <?php endif; ?>
 
             <!-- Form -->
-            <form method="POST" class="space-y-4" onsubmit="this.querySelector('.btn-signin').classList.add('loading')">
+            <form method="POST" style="display: flex; flex-direction: column; gap: 1rem;"
+                onsubmit="this.querySelector('.btn-signin').classList.add('loading')">
 
-                <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Username</label>
+                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <label
+                        style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block;">Username</label>
                     <div class="input-wrap">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                         </svg>
@@ -339,18 +312,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Password</label>
+                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <label
+                        style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.25rem;">Password</label>
                     <div class="input-wrap">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                         </svg>
                         <input id="pwd" name="p" type="password" required placeholder="••••••••••"
                             autocomplete="current-password">
-                        <button type="button" class="eye-btn" onclick="togglePwd()">
-                            <svg id="eye-icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                stroke-width="2">
+                        <button type="button" class="eye-btn" onclick="togglePwd()"
+                            style="background: none; border: none; padding: 0;">
+                            <svg id="eye-icon" style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z" />
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -360,8 +336,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <button type="submit" class="btn-signin mt-1">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <button type="submit" class="btn-signin" style="margin-top: 0.25rem;">
+                    <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                     </svg>
@@ -370,17 +347,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
 
             <!-- Security -->
-            <div class="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-3">
+            <div
+                style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
                 <div class="sec-badge">
-                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>TLS Secured
+                    <div style="width: 0.375rem; height: 0.375rem; border-radius: 9999px; background: #10b981;"></div>
+                    TLS Secured
                 </div>
                 <div class="sec-badge">
-                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>Session Protected
+                    <div style="width: 0.375rem; height: 0.375rem; border-radius: 9999px; background: #10b981;"></div>
+                    Session Protected
                 </div>
             </div>
         </div>
 
-        <p class="text-center text-[10px] text-slate-400 mt-5 fade-up d2">&copy; <?= date('Y') ?> Vivzon Cloud.
+        <p class="fade-up d2" style="text-align: center; font-size: 10px; color: #94a3b8; margin-top: 1.25rem;">&copy;
+            <?= date('Y') ?> Vivzon Cloud.
             All rights reserved.</p>
     </div>
 

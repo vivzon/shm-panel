@@ -63,9 +63,12 @@ try {
     $stmt->execute([$client_id, $full_domain, $doc_root]);
 
     // C. Log Transaction
+    $stmt = $pdo->prepare("SELECT price FROM packages WHERE id = ?");
+    $stmt->execute([$pkg_id]);
+    $pkg_price = $stmt->fetchColumn() ?: 0.00;
+
     $stmt = $pdo->prepare("INSERT INTO transactions (client_id, amount, payment_gateway, transaction_id, status) VALUES (?, ?, ?, ?, 'paid')");
-    // amount would fetched from pkg, defaulting 0 for demo
-    $stmt->execute([$client_id, 0.00, $gateway, $tx_id]);
+    $stmt->execute([$client_id, $pkg_price, $gateway, $tx_id]);
 
     $pdo->commit();
 

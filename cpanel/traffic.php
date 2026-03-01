@@ -43,98 +43,119 @@ foreach ($domains_traffic as $t) {
 include 'layout/header.php';
 ?>
 
-<div class="space-y-8">
+<div style="display: flex; flex-direction: column; gap: 2rem;">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-300 pb-6">
+    <div
+        style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; border-bottom: 1px solid var(--slate-300); padding-bottom: 1.5rem;">
         <div>
-            <h2 class="text-3xl font-bold text-slate-900 font-heading tracking-tight mb-2">Traffic & Stats</h2>
-            <p class="text-slate-700">Monitor website activity and bandwidth consumption across your domains.</p>
+            <h2
+                style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; color: var(--slate-900); font-family: 'Lexend', sans-serif; letter-spacing: -0.025em; margin-bottom: 0.5rem;">
+                Traffic & Stats</h2>
+            <p style="color: var(--slate-700);">Monitor website activity and bandwidth consumption across your domains.
+            </p>
         </div>
-        <button onclick="syncTraffic(this)"
-            class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-slate-900 rounded-xl font-bold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
-            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sync Statistics
+        <button onclick="syncTraffic(this)" class="btn btn-primary"
+            style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i> Sync Statistics
         </button>
     </div>
 
     <!-- Summary Widgets -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="glass-card p-6 border-blue-500/20">
-            <div class="flex items-center gap-4 mb-4">
-                <div class="p-3 bg-blue-500/10 rounded-xl">
-                    <i data-lucide="activity" class="w-6 h-6 text-blue-400"></i>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div class="glass-panel" style="padding: 1.5rem; border-color: rgba(59, 130, 246, 0.2);">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="padding: 0.75rem; background-color: rgba(59, 130, 246, 0.1); border-radius: 0.75rem;">
+                    <i data-lucide="activity" style="width: 1.5rem; height: 1.5rem; color: #60a5fa;"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-900 text-lg">Total Hits</h3>
-                    <p class="text-xs text-slate-700 font-bold uppercase tracking-wider">All Time</p>
+                    <h3 style="font-weight: 700; color: var(--slate-900); font-size: 1.125rem;">Total Hits</h3>
+                    <p
+                        style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                        All Time</p>
                 </div>
             </div>
-            <div class="text-3xl font-bold font-heading text-slate-900">
+            <div
+                style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; font-family: 'Lexend', sans-serif; color: var(--slate-900);">
                 <?= number_format($monthly_total_hits) ?>
             </div>
         </div>
 
-        <div class="glass-card p-6 border-purple-500/20">
-            <div class="flex items-center gap-4 mb-4">
-                <div class="p-3 bg-purple-500/10 rounded-xl">
-                    <i data-lucide="hard-drive" class="w-6 h-6 text-purple-400"></i>
+        <div class="glass-panel" style="padding: 1.5rem; border-color: rgba(168, 85, 247, 0.2);">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="padding: 0.75rem; background-color: rgba(168, 85, 247, 0.1); border-radius: 0.75rem;">
+                    <i data-lucide="hard-drive" style="width: 1.5rem; height: 1.5rem; color: #c084fc;"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-900 text-lg">Total Bandwidth</h3>
-                    <p class="text-xs text-slate-700 font-bold uppercase tracking-wider">All Time</p>
+                    <h3 style="font-weight: 700; color: var(--slate-900); font-size: 1.125rem;">Total Bandwidth</h3>
+                    <p
+                        style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                        All Time</p>
                 </div>
             </div>
-            <div class="text-3xl font-bold font-heading text-slate-900">
+            <div
+                style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; font-family: 'Lexend', sans-serif; color: var(--slate-900);">
                 <?= round($monthly_total_bytes / 1024 / 1024, 2) ?> MB
             </div>
         </div>
     </div>
 
-    <div class="glass-card overflow-hidden text-sm">
-        <div class="p-4 border-b border-slate-300 bg-slate-50 flex justify-between items-center">
-            <h3 class="font-bold text-slate-900">Domain Traffic</h3>
-            <button onclick="location.reload()" class="text-slate-700 hover:text-slate-900 transition group">
-                <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition duration-500"></i>
+    <div class="glass-panel" style="padding: 0; overflow: hidden; font-size: 0.875rem;">
+        <div
+            style="padding: 1rem; border-bottom: 1px solid var(--slate-300); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-weight: 700; color: var(--slate-900);">Domain Traffic</h3>
+            <button onclick="location.reload()" style="color: var(--slate-700); transition: color 0.2s;"
+                onmouseover="this.style.color='var(--slate-900)'" onmouseout="this.style.color='var(--slate-700)'">
+                <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i>
             </button>
         </div>
-        <table class="w-full text-left">
-            <thead class="bg-slate-50 text-[10px] uppercase text-slate-700 font-bold tracking-wider">
-                <tr>
-                    <th class="p-5 font-bold">Domain Name</th>
-                    <th class="p-5 font-bold">Hits Count</th>
-                    <th class="p-5 font-bold text-right" style="width: 250px;">Bandwidth Sent</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800">
-                <?php if (empty($domains_traffic)): ?>
+        <div class="table-container">
+            <table class="modern-table" style="width: 100%; text-align: left;">
+                <thead
+                    style="background-color: var(--slate-50); font-size: 0.625rem; text-transform: uppercase; color: var(--slate-700); font-weight: 700; letter-spacing: 0.05em;">
                     <tr>
-                        <td colspan="3" class="p-8 text-center text-slate-700">No domains found</td>
+                        <th style="padding: 1.25rem; font-weight: 700;">Domain Name</th>
+                        <th style="padding: 1.25rem; font-weight: 700;">Hits Count</th>
+                        <th style="padding: 1.25rem; font-weight: 700; text-align: right; width: 250px;">Bandwidth Sent
+                        </th>
                     </tr>
-                <?php else: ?>
-                    <?php foreach ($domains_traffic as $t): ?>
-                        <tr class="hover:bg-slate-50/20 transition group">
-                            <td class="p-5">
-                                <div class="font-bold text-slate-900">
-                                    <?= htmlspecialchars($t['domain']) ?>
-                                </div>
-                                <div class="text-[10px] text-slate-700 mt-1 uppercase tracking-wider font-bold">
-                                    Last Activity:
-                                    <?= $t['last_activity'] ? date('M j, Y', strtotime($t['last_activity'])) : 'Never' ?>
-                                </div>
-                            </td>
-                            <td class="p-5">
-                                <span
-                                    class="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
-                                    <?= number_format((float) $t['total_hits']) ?>
-                                </span>
-                            </td>
-                            <td class="p-5 text-right font-mono text-xs text-blue-400">
-                                <?= round((float) $t['total_bytes'] / 1024 / 1024, 2) ?> MB
-                            </td>
+                </thead>
+                <tbody>
+                    <?php if (empty($domains_traffic)): ?>
+                        <tr>
+                            <td colspan="3" style="padding: 2rem; text-align: center; color: var(--slate-700);">No domains
+                                found</td>
                         </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    <?php else: ?>
+                        <?php foreach ($domains_traffic as $t): ?>
+                            <tr style="transition: background-color 0.2s;"
+                                onmouseover="this.style.backgroundColor='rgba(248, 250, 252, 0.5)'"
+                                onmouseout="this.style.backgroundColor='transparent'">
+                                <td style="padding: 1.25rem; border-bottom: 1px solid var(--slate-200);">
+                                    <div style="font-weight: 700; color: var(--slate-900);">
+                                        <?= htmlspecialchars($t['domain']) ?>
+                                    </div>
+                                    <div
+                                        style="font-size: 0.625rem; color: var(--slate-700); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
+                                        Last Activity:
+                                        <?= $t['last_activity'] ? date('M j, Y', strtotime($t['last_activity'])) : 'Never' ?>
+                                    </div>
+                                </td>
+                                <td style="padding: 1.25rem; border-bottom: 1px solid var(--slate-200);">
+                                    <span
+                                        style="font-weight: 700; color: #34d399; background-color: rgba(16, 185, 129, 0.1); padding: 0.25rem 0.5rem; border-radius: 9999px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                        <?= number_format((float) $t['total_hits']) ?>
+                                    </span>
+                                </td>
+                                <td
+                                    style="padding: 1.25rem; text-align: right; font-family: monospace; font-size: 0.75rem; color: #60a5fa; border-bottom: 1px solid var(--slate-200);">
+                                    <?= round((float) $t['total_bytes'] / 1024 / 1024, 2) ?> MB
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -142,7 +163,7 @@ include 'layout/header.php';
     async function syncTraffic(btn) {
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Syncing...`;
+        btn.innerHTML = `<i data-lucide="loader-2" style="width: 1rem; height: 1rem; animation: spin 1s linear infinite;"></i> Syncing...`;
         lucide.createIcons();
 
         try {
@@ -167,6 +188,3 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
-
-
-

@@ -819,41 +819,7 @@ if (is_dir($full_path)) {
 <head>
     <meta charset="UTF-8">
     <title>File Manager | Vivzon Cloud</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        blue: {
-                            50: '#f0f5ff',
-                            100: '#e0ebff',
-                            200: '#cce0ff',
-                            300: '#99c2ff',
-                            400: '#66a3ff',
-                            500: '#4880ed',
-                            600: '#2563eb', /* Primary */
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        indigo: {
-                            50: '#f2f4fb',
-                            100: '#e6ebfb',
-                            200: '#cdcdfa',
-                            300: '#9ea6eb',
-                            400: '#6f7ee1',
-                            500: '#3f51b5', /* Secondary */
-                            600: '#36469b',
-                            700: '#2c397e',
-                            800: '#242f67',
-                            900: '#1f2752',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300 ;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -862,6 +828,107 @@ if (is_dir($full_path)) {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: #f8fafc;
             color: #0f172a;
+        }
+
+        /* Vanilla utility classes replacing Tailwind */
+        .hidden {
+            display: none !important;
+        }
+
+        .opacity-0 {
+            opacity: 0 !important;
+        }
+
+        .opacity-100 {
+            opacity: 1 !important;
+        }
+
+        .scale-95 {
+            transform: scale(0.95) !important;
+        }
+
+        .-translate-y-full {
+            transform: translateY(-100%) !important;
+        }
+
+        .bg-slate-100 {
+            background-color: #f1f5f9 !important;
+        }
+
+        .text-slate-900 {
+            color: #0f172a !important;
+        }
+
+        .text-slate-700 {
+            color: #334155 !important;
+        }
+
+        .text-blue-400 {
+            color: #60a5fa !important;
+        }
+
+        .text-amber-400 {
+            color: #fbbf24 !important;
+        }
+
+        .text-purple-400 {
+            color: #c084fc !important;
+        }
+
+        .text-red-400 {
+            color: #f87171 !important;
+        }
+
+        .text-pink-400 {
+            color: #f472b6 !important;
+        }
+
+        .text-orange-400 {
+            color: #fb923c !important;
+        }
+
+        .max-h-full {
+            max-height: 100% !important;
+        }
+
+        .max-w-full {
+            max-width: 100% !important;
+        }
+
+        .rounded {
+            border-radius: 0.25rem !important;
+        }
+
+        .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .text-xs {
+            font-size: 0.75rem !important;
+        }
+
+        .font-mono {
+            font-family: monospace !important;
+        }
+
+        .p-4 {
+            padding: 1rem !important;
+        }
+
+        .w-full {
+            width: 100% !important;
+        }
+
+        .h-full {
+            height: 100% !important;
+        }
+
+        .overflow-auto {
+            overflow: auto !important;
+        }
+
+        .text-left {
+            text-align: left !important;
         }
 
         .glass-panel {
@@ -967,7 +1034,8 @@ if (is_dir($full_path)) {
     </style>
 </head>
 
-<body class="flex h-screen overflow-hidden text-sm">
+<body
+    style="display: flex; height: 100vh; overflow: hidden; font-size: 0.875rem; background: var(--slate-50); color: var(--slate-900);">
 
     <?php
     $current_page = 'files.php';
@@ -975,27 +1043,33 @@ if (is_dir($full_path)) {
     include 'layout/sidebar.php';
     ?>
 
-    <main class="flex-1 flex flex-col h-screen relative bg-[#f8fafc] overflow-hidden">
+    <main
+        style="flex: 1; display: flex; flex-direction: column; height: 100vh; position: relative; background: var(--slate-50); overflow: hidden;">
         <!-- TOP NAVIGATION & ACTION BAR -->
-        <header class="h-16 shrink-0 glass-panel border-b border-slate-300 flex items-center justify-between px-6 z-20">
-            <div class="flex items-center gap-6">
+        <header class="glass-card"
+            style="height: 4rem; flex-shrink: 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; z-index: 20; border-radius: 0;">
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
                 <!-- Toggle Sidebar for Mobile (optional, but good to have space for) -->
 
-                <div class="flex items-center gap-3">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
                     <div
-                        class="p-2 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-lg shadow-blue-500/20">
-                        <i data-lucide="folder-kanban" class="w-5 h-5 text-slate-900"></i>
+                        style="padding: 0.5rem; background: linear-gradient(to bottom right, var(--primary), #1d4ed8); border-radius: var(--radius-md); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.1);">
+                        <i data-lucide="folder-kanban" style="width: 20px; height: 20px; color: white;"></i>
                     </div>
-                    <h1 class="font-bold text-lg text-slate-900 tracking-tight">File Manager</h1>
+                    <h1
+                        style="font-weight: 700; font-size: 1.125rem; color: var(--slate-900); letter-spacing: -0.025em;">
+                        File Manager</h1>
                 </div>
 
-                <div class="h-6 w-px bg-slate-100"></div>
+                <div style="height: 1.5rem; width: 1px; background: var(--border-color);"></div>
 
                 <!-- Breadcrumbs -->
-                <nav class="flex items-center text-sm font-medium">
+                <nav style="display: flex; align-items: center; font-size: 0.875rem; font-weight: 500;">
                     <a href="?domain_id=<?= $domain_id ?>&path=/"
-                        class="hover:text-slate-900 transition flex items-center gap-1 group">
-                        <i data-lucide="hard-drive" class="w-4 group-hover:text-blue-400 transition"></i>
+                        style="display: flex; align-items: center; gap: 0.25rem; color: var(--slate-700); text-decoration: none; transition: color 0.2s;"
+                        onmouseover="this.style.color='var(--primary)'"
+                        onmouseout="this.style.color='var(--slate-700)'">
+                        <i data-lucide="hard-drive" style="width: 16px; height: 16px;"></i>
                     </a>
                     <?php
                     $crumbs = array_filter(explode('/', $current_path));
@@ -1003,145 +1077,202 @@ if (is_dir($full_path)) {
                     foreach ($crumbs as $c):
                         $acc .= '/' . $c;
                         ?>
-                        <i data-lucide="chevron-right" class="w-4 text-slate-700 mx-1"></i>
+                        <i data-lucide="chevron-right"
+                            style="width: 16px; height: 16px; color: var(--slate-700); margin: 0 0.25rem;"></i>
                         <a href="?domain_id=<?= $domain_id ?>&path=<?= $acc ?>"
-                            class="hover:text-slate-900 transition hover:bg-slate-50 px-2 py-1 rounded-md"><?= $c ?></a>
+                            style="color: var(--slate-700); text-decoration: none; padding: 0.25rem 0.5rem; border-radius: var(--radius-md); transition: background 0.2s, color 0.2s;"
+                            onmouseover="this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--slate-900)'"
+                            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)'"><?= $c ?></a>
                     <?php endforeach; ?>
                 </nav>
             </div>
 
-            <div class="flex items-center gap-4">
+            <div style="display: flex; align-items: center; gap: 1rem;">
                 <!-- Search -->
-                <div class="relative group">
+                <div style="position: relative;">
                     <i data-lucide="search"
-                        class="w-4 absolute left-3 top-2.5 text-slate-700 group-focus-within:text-blue-400 transition"></i>
+                        style="width: 16px; height: 16px; position: absolute; left: 0.75rem; top: 0.625rem; color: var(--slate-700);"></i>
                     <input id="file-search" onkeyup="FM.filter()" placeholder="Search current folder..."
-                        class="bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2 text-sm w-64 focus:w-80 transition-all outline-none focus:border-blue-500/50 focus:bg-white">
+                        class="form-input" style="padding-left: 2.5rem; width: 16rem; transition: width 0.3s;"
+                        onfocus="this.style.width='20rem'" onblur="this.style.width='16rem'">
                 </div>
 
                 <!-- View Toggles -->
-                <div class="flex p-1 bg-slate-50 rounded-lg border border-slate-300">
+                <div
+                    style="display: flex; padding: 0.25rem; background: var(--slate-50); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
                     <button onclick="FM.setView('list')" id="btn-list"
-                        class="p-1.5 rounded-md hover:text-slate-900 transition text-blue-400 bg-slate-100"><i
-                            data-lucide="list" class="w-4"></i></button>
+                        style="padding: 0.375rem; border-radius: var(--radius-sm); border: none; background: #f1f5f9; color: var(--primary); cursor: pointer; transition: color 0.2s;"><i
+                            data-lucide="list" style="width: 16px; height: 16px;"></i></button>
                     <button onclick="FM.setView('grid')" id="btn-grid"
-                        class="p-1.5 rounded-md hover:text-slate-900 transition text-slate-700"><i
-                            data-lucide="layout-grid" class="w-4"></i></button>
+                        style="padding: 0.375rem; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--slate-700); cursor: pointer; transition: color 0.2s;"><i
+                            data-lucide="layout-grid" style="width: 16px; height: 16px;"></i></button>
                 </div>
 
-                <div class="h-6 w-px bg-slate-100"></div>
+                <div style="height: 1.5rem; width: 1px; background: var(--border-color);"></div>
 
-                <button onclick="FM.openUpload()"
-                    class="bg-whitelue-600 hover:bg-whitelue-500 text-slate-900 px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2">
-                    <i data-lucide="upload-cloud" class="w-4"></i> Upload
+                <button onclick="FM.openUpload()" class="btn btn-primary"
+                    style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i> Upload
                 </button>
             </div>
         </header>
 
-        <div class="flex flex-1 overflow-hidden">
+        <div style="display: flex; flex: 1; overflow: hidden;">
             <!-- SIDEBAR (File System Nav) -->
-            <aside class="w-64 border-r border-slate-300 bg-slate-50 flex flex-col hidden md:flex">
-                <div class="p-4">
+            <aside class="glass-card"
+                style="width: 16rem; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; display: none; border-radius: 0;">
+                <div style="padding: 1rem;">
                     <button onclick="FM.openCreate()"
-                        class="w-full py-3 rounded-xl border border-dashed border-slate-600 hover:border-blue-500 hover:bg-whitelue-500/5 hover:text-blue-400 transition text-sm font-bold flex items-center justify-center gap-2 text-slate-700">
-                        <i data-lucide="plus" class="w-4"></i> New Item
+                        style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px dashed var(--slate-300); background: transparent; color: var(--slate-700); font-size: 0.875rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.borderColor='var(--primary)'; this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--primary)'"
+                        onmouseout="this.style.borderColor='var(--slate-300)'; this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)'">
+                        <i data-lucide="plus" style="width: 16px; height: 16px;"></i> New Item
                     </button>
                 </div>
-                <div class="flex-1 overflow-y-auto px-2 space-y-1">
-                    <div class="px-3 py-2 text-xs font-bold text-slate-700 uppercase tracking-wider">Locations</div>
+                <div
+                    style="flex: 1; overflow-y: auto; padding: 0 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                    <div
+                        style="padding: 0.5rem 0.75rem; font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.05em;">
+                        Locations</div>
                     <a href="?domain_id=<?= $domain_id ?>&path=/"
-                        class="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-400 font-medium text-sm">
-                        <i data-lucide="home" class="w-4"></i> Home Root
+                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); background: rgba(37, 99, 235, 0.1); color: var(--primary); font-weight: 500; font-size: 0.875rem; text-decoration: none;">
+                        <i data-lucide="home" style="width: 16px; height: 16px;"></i> Home Root
                     </a>
 
-                    <div class="mt-6 px-3 py-2 text-xs font-bold text-slate-700 uppercase tracking-wider">Domains</div>
+                    <div
+                        style="margin-top: 1.5rem; padding: 0.5rem 0.75rem; font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.05em;">
+                        Domains</div>
                     <?php
                     $doms = $pdo->prepare("SELECT id, domain FROM domains WHERE client_id = ?");
                     $doms->execute([$user_id]);
                     while ($d = $doms->fetch()):
+                        $isActive = $d['id'] == $domain_id;
+                        $bg = $isActive ? 'var(--slate-100)' : 'transparent';
+                        $color = $isActive ? 'var(--slate-900)' : 'var(--slate-700)';
                         ?>
                         <a href="?domain_id=<?= $d['id'] ?>"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition text-sm <?= $d['id'] == $domain_id ? '!text-slate-900 !bg-slate-100' : '' ?>">
-                            <i data-lucide="globe" class="w-4"></i> <?= $d['domain'] ?>
+                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); background: <?= $bg ?>; color: <?= $color ?>; transition: background 0.2s, color 0.2s; font-size: 0.875rem; text-decoration: none;"
+                            onmouseover="this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--slate-900)'"
+                            onmouseout="this.style.backgroundColor='<?= $bg ?>'; this.style.color='<?= $color ?>'">
+                            <i data-lucide="globe" style="width: 16px; height: 16px;"></i> <?= $d['domain'] ?>
                         </a>
                     <?php endwhile; ?>
                 </div>
 
                 <!-- Storage Status -->
-                <div class="p-4 border-t border-slate-300">
-                    <div class="flex justify-between text-xs mb-2">
-                        <span class="text-slate-700">Storage</span>
-                        <span class="font-bold text-slate-900"><?= $domain['disk_usage'] ?? '0' ?> MB</span>
+                <div style="padding: 1rem; border-top: 1px solid var(--border-color);">
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.5rem;">
+                        <span style="color: var(--slate-700);">Storage</span>
+                        <span style="font-weight: 700; color: var(--slate-900);"><?= $domain['disk_usage'] ?? '0' ?>
+                            MB</span>
                     </div>
-                    <div class="h-1.5 bg-slate-50 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-500 w-3/4"></div> <!-- Placeholder for real % -->
+                    <div
+                        style="height: 0.375rem; background: var(--slate-50); border-radius: 9999px; overflow: hidden;">
+                        <div style="height: 100%; background: var(--primary); width: 75%;"></div>
+                        <!-- Placeholder for real % -->
                     </div>
                 </div>
             </aside>
 
+            <style>
+                @media (min-width: 768px) {
+                    aside.glass-card {
+                        display: flex !important;
+                    }
+                }
+            </style>
+
             <!-- MAIN FILE AREA -->
-            <main class="flex-1 relative bg-white" id="drop-zone-global">
+            <main style="flex: 1; position: relative; background: white;" id="drop-zone-global">
 
                 <!-- ACTION BAR (Contextual) -->
-                <div id="action-bar"
-                    class="h-12 flex items-center justify-between px-6 transition-all duration-300 transform -translate-y-full absolute w-full z-10 hidden">
-                    <div class="flex items-center gap-4 text-sm font-medium">
-                        <span class="text-blue-400 font-bold" id="selection-count">0 Selected</span>
-                        <div class="h-4 w-px bg-slate-100"></div>
+                <div id="action-bar" class="hidden"
+                    style="position: absolute; width: 100%; height: 3rem; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; transition: all 0.3s; transform: translateY(-100%); z-index: 10; background: #354264d1; color: white;">
+                    <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; font-weight: 500;">
+                        <span style="color: #93c5fd; font-weight: 700;" id="selection-count">0 Selected</span>
+                        <div style="height: 1rem; width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
                         <!-- FIX: Select All / Unselect All buttons -->
                         <button onclick="FM.selectAll(true)" id="btn-select-all"
-                            class="hover:text-slate-900 flex items-center gap-2 transition text-slate-700"
-                            title="Select All (Ctrl+A)"><i data-lucide="check-square" class="w-4"></i> Select
+                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'" title="Select All (Ctrl+A)"><i
+                                data-lucide="check-square" style="width: 16px; height: 16px;"></i> Select
                             All</button>
                         <button onclick="FM.selectAll(false)" id="btn-unselect-all"
-                            class="hover:text-slate-900 flex items-center gap-2 transition text-slate-700 hidden"
-                            title="Unselect All"><i data-lucide="square" class="w-4"></i> Unselect All</button>
+                            style="display: none; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'" title="Unselect All"><i
+                                data-lucide="square" style="width: 16px; height: 16px;"></i> Unselect All</button>
                         <button onclick="FM.bulk('download')"
-                            class="hover:text-slate-900 flex items-center gap-2 transition"><i data-lucide="download"
-                                class="w-4"></i> Download</button>
+                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i data-lucide="download"
+                                style="width: 16px; height: 16px;"></i> Download</button>
                         <button onclick="FM.bulk('zip')"
-                            class="hover:text-slate-900 flex items-center gap-2 transition"><i data-lucide="archive"
-                                class="w-4"></i> Archive</button>
+                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i data-lucide="archive"
+                                style="width: 16px; height: 16px;"></i> Archive</button>
                         <button onclick="FM.bulk('copy')"
-                            class="hover:text-slate-900 flex items-center gap-2 transition"><i data-lucide="copy"
-                                class="w-4"></i> Copy</button>
+                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i data-lucide="copy"
+                                style="width: 16px; height: 16px;"></i> Copy</button>
                         <button onclick="FM.bulk('move')"
-                            class="hover:text-slate-900 flex items-center gap-2 transition"><i data-lucide="move"
-                                class="w-4"></i> Move</button>
-                        <div class="h-4 w-px bg-slate-100"></div>
+                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i data-lucide="move"
+                                style="width: 16px; height: 16px;"></i> Move</button>
+                        <div style="height: 1rem; width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
                         <button onclick="FM.bulk('delete')"
-                            class="text-red-400 hover:text-red-300 flex items-center gap-2 transition"
-                            title="Delete (Del key)"><i data-lucide="trash-2" class="w-4"></i> Delete</button>
+                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: #f87171; background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='#fca5a5'" onmouseout="this.style.color='#f87171'"
+                            title="Delete (Del key)"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                            Delete</button>
                     </div>
-                    <button onclick="FM.clearSelection()" class="text-slate-700 hover:text-slate-900"
-                        title="Clear Selection"><i data-lucide="x" class="w-4"></i></button>
+                    <button onclick="FM.clearSelection()"
+                        style="color: rgba(255, 255, 255, 0.8); transition: color 0.2s; background: transparent; border: none; cursor: pointer;"
+                        onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"
+                        title="Clear Selection"><i data-lucide="x" style="width: 16px; height: 16px;"></i></button>
                 </div>
 
-                <div id="file-view" class="h-full overflow-y-auto p-6 view-list custom-scrollbar">
+                <div id="file-view" class="view-list custom-scrollbar"
+                    style="height: 100%; overflow-y: auto; padding: 1.5rem;">
 
                     <!-- LIST HEADER -->
-                    <div
-                        class="grid grid-cols-12 gap-4 px-4 py-2 border-b border-slate-300 text-xs font-bold uppercase text-slate-700 tracking-wider mb-2 list-header sticky top-0 bg-white z-10 hidden">
-                        <div class="col-span-6 pl-8 flex items-center gap-3">
-                            <div class="w-5 flex justify-center">
+                    <div class="list-header hidden"
+                        style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; padding: 0.5rem 1rem; border-bottom: 1px solid var(--border-color); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--slate-700); letter-spacing: 0.05em; margin-bottom: 0.5rem; position: sticky; top: 0; background: white; z-index: 10;">
+                        <div
+                            style="grid-column: span 6 / span 6; padding-left: 2rem; display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 1.25rem; display: flex; justify-content: center;">
                                 <input type="checkbox" id="header-select-all" onchange="FM.selectAll(this.checked)"
-                                    class="accent-blue-500 w-4 h-4 cursor-pointer" title="Select All">
+                                    style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;"
+                                    title="Select All">
                             </div>
                             Name
                         </div>
-                        <div class="col-span-2">Size</div>
-                        <div class="col-span-2">Type</div>
-                        <div class="col-span-2 text-right">Modified</div>
+                        <div style="grid-column: span 2 / span 2;">Size</div>
+                        <div style="grid-column: span 2 / span 2;">Type</div>
+                        <div style="grid-column: span 2 / span 2; text-align: right;">Modified</div>
                     </div>
+
+                    <style>
+                        #file-view.view-list .list-header {
+                            display: grid !important;
+                        }
+                    </style>
 
                     <!-- PARENT DIR -->
                     <?php if ($current_path != '/'): ?>
                         <div onclick="location.href='?domain_id=<?= $domain_id ?>&path=<?= dirname($current_path) ?>'"
-                            class="grid grid-cols-12 gap-4 px-4 py-3 rounded-xl hover:bg-slate-50 cursor-pointer items-center text-slate-700 hover:text-slate-900 transition group mb-1">
-                            <div class="col-span-6 flex items-center gap-4">
+                            style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; padding: 0.75rem 1rem; border-radius: var(--radius-xl); cursor: pointer; align-items: center; color: var(--slate-700); transition: background 0.2s, color 0.2s; margin-bottom: 0.25rem;"
+                            onmouseover="this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--slate-900)'"
+                            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)'">
+                            <div style="grid-column: span 6 / span 6; display: flex; align-items: center; gap: 1rem;">
                                 <i data-lucide="corner-left-up"
-                                    class="w-5 text-slate-700 group-hover:text-blue-400 transition"></i>
-                                <span class="font-bold">..</span>
+                                    style="width: 20px; height: 20px; transition: color 0.2s;"></i>
+                                <span style="font-weight: 700;">..</span>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -1177,52 +1308,73 @@ if (is_dir($full_path)) {
                             }
                         }
                         ?>
-                        <div class="file-item group select-none transition-all duration-200 cursor-pointer"
+                        <div class="file-item" style="user-select: none; transition: all 0.2s; cursor: pointer;"
                             data-name="<?= strtolower(htmlspecialchars($i['name'])) ?>"
                             data-path="<?= htmlspecialchars($i['rel']) ?>" data-type="<?= $i['is_dir'] ? 'dir' : 'file' ?>"
                             onclick="FM.toggleSelect(this, event)"
-                            ondblclick="FM.open('<?= htmlspecialchars($i['rel']) ?>', '<?= $i['is_dir'] ? 'dir' : 'file' ?>')">
+                            ondblclick="FM.open('<?= htmlspecialchars($i['rel']) ?>', '<?= $i['is_dir'] ? 'dir' : 'file' ?>')"
+                            onmouseover="if(!this.classList.contains('selected')) { this.style.backgroundColor='var(--slate-50)'; }"
+                            onmouseout="if(!this.classList.contains('selected')) { this.style.backgroundColor='transparent'; }">
 
                             <!-- Inner Content (CSS handles List/Grid layout) -->
                             <div
-                                class="file-inner px-4 py-3 rounded-xl border border-transparent group-hover:bg-slate-50 group-hover:border-slate-300">
+                                style="padding: 0.75rem 1rem; border-radius: var(--radius-xl); border: 1px solid transparent; transition: background 0.2s, border-color 0.2s;">
                                 <!-- List Layout -->
-                                <div class="grid grid-cols-12 gap-4 items-center list-layout">
-                                    <div class="col-span-6 flex items-center gap-4 overflow-hidden">
-                                        <div class="w-5 flex justify-center" onclick="event.stopPropagation();">
-                                            <input type="checkbox"
-                                                class="accent-blue-500 w-4 h-4 opacity-0 group-hover:opacity-100 group-[.selected]:opacity-100 transition file-check cursor-pointer"
+                                <div class="list-layout"
+                                    style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; align-items: center;">
+                                    <div
+                                        style="grid-column: span 6 / span 6; display: flex; align-items: center; gap: 1rem; overflow: hidden;">
+                                        <div style="width: 1.25rem; display: flex; justify-content: center;"
+                                            onclick="event.stopPropagation();">
+                                            <input type="checkbox" class="file-check"
+                                                style="accent-color: var(--primary); width: 16px; height: 16px; opacity: 0; transition: opacity 0.2s; cursor: pointer;"
                                                 onclick="event.stopPropagation();">
                                         </div>
-                                        <i data-lucide="<?= $icon ?>" class="w-5 h-5 <?= $color ?> shrink-0"></i>
+                                        <i data-lucide="<?= $icon ?>" class="<?= $color ?>"
+                                            style="width: 20px; height: 20px; flex-shrink: 0;"></i>
                                         <span
-                                            class="truncate font-medium text-slate-700 group-hover:text-slate-900"><?= htmlspecialchars($i['name']) ?></span>
+                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; color: var(--slate-700); transition: color 0.2s;"
+                                            onmouseover="this.style.color='var(--slate-900)'"
+                                            onmouseout="this.style.color='var(--slate-700)'"><?= htmlspecialchars($i['name']) ?></span>
                                     </div>
-                                    <div class="col-span-2 text-sm text-slate-700 font-mono">
+                                    <div
+                                        style="grid-column: span 2 / span 2; font-size: 0.875rem; color: var(--slate-700); font-family: monospace;">
                                         <?= htmlspecialchars($i['size']) ?>
                                     </div>
-                                    <div class="col-span-2 text-sm text-slate-700 uppercase"><?= htmlspecialchars($type) ?>
+                                    <div
+                                        style="grid-column: span 2 / span 2; font-size: 0.875rem; color: var(--slate-700); text-transform: uppercase;">
+                                        <?= htmlspecialchars($type) ?>
                                     </div>
-                                    <div class="col-span-2 text-right text-sm text-slate-700 font-mono">
+                                    <div
+                                        style="grid-column: span 2 / span 2; text-align: right; font-size: 0.875rem; color: var(--slate-700); font-family: monospace;">
                                         <?= htmlspecialchars($i['date']) ?>
                                     </div>
                                 </div>
 
                                 <!-- Grid Layout -->
-                                <div class="hidden flex-col items-center text-center gap-3 py-4 grid-layout relative">
-                                    <div class="absolute top-2 left-2 opacity-0 group-hover:opacity-100 group-[.selected]:opacity-100 transition"
-                                        onclick="event.stopPropagation();">
-                                        <input type="checkbox" class="accent-blue-500 w-4 h-4 file-check cursor-pointer"
+                                <div class="grid-layout"
+                                    style="display: none; flex-direction: column; align-items: center; text-align: center; gap: 0.75rem; padding: 1rem 0; position: relative;">
+                                    <div style="position: absolute; top: 0.5rem; left: 0.5rem; opacity: 0; transition: opacity 0.2s;"
+                                        class="grid-checkbox-wrapper" onclick="event.stopPropagation();">
+                                        <input type="checkbox" class="file-check"
+                                            style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;"
                                             onclick="event.stopPropagation();">
                                     </div>
-                                    <div class="p-4 rounded-2xl bg-slate-50/50 group-hover:bg-slate-50 transition">
-                                        <i data-lucide="<?= $icon ?>" class="w-10 h-10 <?= $color ?>"></i>
+                                    <div style="padding: 1rem; border-radius: 1rem; background: rgba(248, 250, 252, 0.5); transition: background 0.2s;"
+                                        onmouseover="this.style.backgroundColor='var(--slate-50)'"
+                                        onmouseout="this.style.backgroundColor='rgba(248, 250, 252, 0.5)'">
+                                        <i data-lucide="<?= $icon ?>" class="<?= $color ?>"
+                                            style="width: 40px; height: 40px;"></i>
                                     </div>
-                                    <div class="w-full">
-                                        <div class="truncate font-medium text-sm text-slate-700 group-hover:text-slate-900">
+                                    <div style="width: 100%;">
+                                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; font-size: 0.875rem; color: var(--slate-700); transition: color 0.2s;"
+                                            onmouseover="this.style.color='var(--slate-900)'"
+                                            onmouseout="this.style.color='var(--slate-700)'">
                                             <?= htmlspecialchars($i['name']) ?>
                                         </div>
-                                        <div class="text-xs text-slate-700 mt-1"><?= htmlspecialchars($i['size']) ?></div>
+                                        <div style="font-size: 0.75rem; color: var(--slate-700); margin-top: 0.25rem;">
+                                            <?= htmlspecialchars($i['size']) ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1230,205 +1382,247 @@ if (is_dir($full_path)) {
                     <?php endforeach; ?>
 
                     <?php if (empty($items)): ?>
-                        <div class="flex flex-col items-center justify-center h-64 text-slate-700">
-                            <i data-lucide="folder-open" class="w-12 h-12 mb-4 opacity-50"></i>
+                        <div
+                            style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 16rem; color: var(--slate-700);">
+                            <i data-lucide="folder-open"
+                                style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i>
                             <p>This folder is empty</p>
                         </div>
                     <?php endif; ?>
 
+                    <style>
+                        .file-item:hover .file-check,
+                        .file-item:hover .grid-checkbox-wrapper {
+                            opacity: 1 !important;
+                        }
+                    </style>
+
                 </div>
 
-                <!-- Upload Overlay -->
-                <div id="drag-overlay"
-                    class="absolute inset-0 bg-whitelue-600/90 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-slate-900 dashed-border m-4 rounded-3xl pointer-events-none">
-                    <i data-lucide="cloud-upload" class="w-20 h-20 mb-6 animate-bounce"></i>
-                    <h3 class="text-3xl font-bold">Drop files to upload</h3>
-                    <p class="text-blue-600 mt-2">to <?= htmlspecialchars($current_path) ?></p>
+                <div id="drag-overlay" class="hidden"
+                    style="position: absolute; inset: 0; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(4px); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--slate-900); border: 2px dashed rgba(37, 99, 235, 0.4); margin: 1rem; border-radius: 1.5rem; pointer-events: none;">
+                    <i data-lucide="cloud-upload"
+                        style="width: 80px; height: 80px; margin-bottom: 1.5rem; animation: bounce 1s infinite;"></i>
+                    <h3 style="font-size: 1.875rem; font-weight: 700;">Drop files to upload</h3>
+                    <p style="color: var(--primary); margin-top: 0.5rem;">to <?= htmlspecialchars($current_path) ?></p>
                 </div>
             </main>
         </div>
     </main>
 
     <!-- UPLOAD MODAL -->
-    <div id="modal-upload"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-lg border border-slate-300 shadow-2xl">
-            <h3 class="font-bold text-xl text-slate-900 mb-6">Upload Files</h3>
-            <div class="border-2 border-dashed border-slate-600 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-500 hover:bg-slate-50/50 transition mb-6"
+    <div id="modal-upload" class="modal hidden"
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        <div class="glass-card"
+            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 32rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
+            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1.5rem;">Upload
+                Files</h3>
+            <div style="border: 2px dashed var(--slate-600); border-radius: var(--radius-xl); padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem;"
                 onclick="document.getElementById('inp-upload-files').click()"
-                ondrop="FM.handleDrop(event.dataTransfer.files); FM.closeModals();" ondragover="event.preventDefault()">
-                <i data-lucide="cloud-upload" class="w-12 h-12 text-slate-700 mb-3"></i>
-                <p class="text-slate-700 font-medium">Click to browse or drag files here</p>
-                <input type="file" id="inp-upload-files" multiple class="hidden" onchange="FM.doUploadInput(this)">
+                ondrop="FM.handleDrop(event.dataTransfer.files); FM.closeModals();" ondragover="event.preventDefault()"
+                onmouseover="this.style.borderColor='var(--primary)'; this.style.backgroundColor='rgba(248, 250, 252, 0.5)'"
+                onmouseout="this.style.borderColor='var(--slate-600)'; this.style.backgroundColor='transparent'">
+                <i data-lucide="cloud-upload"
+                    style="width: 48px; height: 48px; color: var(--slate-700); margin-bottom: 0.75rem;"></i>
+                <p style="color: var(--slate-700); font-weight: 500;">Click to browse or drag files here</p>
+                <input type="file" id="inp-upload-files" multiple style="display: none;"
+                    onchange="FM.doUploadInput(this)">
             </div>
-            <div class="flex justify-end">
-                <button onclick="FM.closeModals()"
-                    class="px-6 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Close</button>
+            <div style="display: flex; justify-content: flex-end;">
+                <button onclick="FM.closeModals()" class="btn btn-outline">Close</button>
             </div>
         </div>
     </div>
 
     <!-- CHMOD MODAL -->
-    <div id="modal-chmod"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-md border border-slate-300 shadow-2xl">
-            <h3 class="font-bold text-xl text-slate-900 mb-4">Permissions</h3>
+    <div id="modal-chmod" class="modal hidden"
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        <div class="glass-card"
+            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 28rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
+            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1rem;">Permissions
+            </h3>
             <input type="hidden" id="chmod-target">
-            <div class="mb-4">
-                <div class="flex justify-between items-center mb-2">
-                    <label class="block text-slate-700 text-xs uppercase font-bold">Numeric Value (Octal)</label>
-                    <span class="text-xs text-slate-700">Current: <span id="chmod-current"
-                            class="text-slate-700 font-mono">-</span></span>
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label
+                        style="display: block; color: var(--slate-700); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Numeric
+                        Value (Octal)</label>
+                    <span style="font-size: 0.75rem; color: var(--slate-700);">Current: <span id="chmod-current"
+                            style="color: var(--slate-700); font-family: monospace;">-</span></span>
                 </div>
-                <input type="text" id="chmod-val" value="0775"
-                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 font-mono outline-none focus:border-blue-500">
-                <p class="text-[10px] text-slate-700 mt-2">
-                    Examples: <span class="text-blue-400 cursor-pointer"
+                <input type="text" id="chmod-val" value="0775" class="form-input" style="font-family: monospace;">
+                <p style="font-size: 0.625rem; color: var(--slate-700); margin-top: 0.5rem;">
+                    Examples: <span style="color: var(--primary); cursor: pointer;"
                         onclick="document.getElementById('chmod-val').value='0775'">0775</span> (Folder),
-                    <span class="text-blue-400 cursor-pointer"
+                    <span style="color: var(--primary); cursor: pointer;"
                         onclick="document.getElementById('chmod-val').value='0664'">0664</span> (File)
                 </p>
             </div>
-            <div id="chmod-warning" class="hidden mb-4 p-3 bg-whitember-500/10 border border-amber-500/30 rounded-lg">
-                <div class="flex items-start gap-2">
-                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 mt-0.5 shrink-0"></i>
-                    <div class="text-xs text-amber-200">
-                        <p class="font-bold mb-1">Warning: Permission may be denied</p>
+            <div id="chmod-warning" class="hidden"
+                style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-lg);">
+                <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                    <i data-lucide="alert-triangle"
+                        style="width: 16px; height: 16px; color: #fbbf24; margin-top: 0.125rem; flex-shrink: 0;"></i>
+                    <div style="font-size: 0.75rem; color: #fcd34d;">
+                        <p style="font-weight: 700; margin-bottom: 0.25rem;">Warning: Permission may be denied</p>
                         <p>The web server user (<?= htmlspecialchars($process_user) ?>) may not own this file. Changes
                             may fail.</p>
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end gap-2">
-                <button onclick="FM.closeModals()"
-                    class="px-4 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
-                <button onclick="FM.doChmod()"
-                    class="px-6 py-2 rounded-xl font-bold bg-whitelue-600 text-slate-900 hover:bg-whitelue-500 transition shadow-lg">Save</button>
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                <button onclick="FM.closeModals()" class="btn btn-outline">Cancel</button>
+                <button onclick="FM.doChmod()" class="btn btn-primary">Save</button>
             </div>
         </div>
     </div>
 
     <!-- CONTEXT MENU & MODALS (Kept in body) -->
     <!-- CONTEXT MENU -->
-    <div id="ctx-menu"
-        class="fixed z-50 bg-white border border-slate-300 shadow-xl rounded-xl w-48 py-1 hidden transform scale-95 opacity-0 transition-all duration-100 origin-top-left">
+    <div id="ctx-menu" class="hidden"
+        style="position: fixed; z-index: 50; background: white; border: 1px solid var(--border-color); box-shadow: var(--shadow-xl); border-radius: var(--radius-lg); width: 12rem; padding: 0.25rem 0; transform: scale(0.95); opacity: 0; transition: all 0.1s; transform-origin: top left;">
         <button onclick="FM.openCtx()"
-            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 font-medium text-slate-900"><i
-                data-lucide="folder-open" class="w-4 text-blue-400"></i> Open</button>
+            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
+            onmouseover="this.style.backgroundColor='var(--slate-50)'"
+            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="folder-open"
+                style="width: 16px; height: 16px; color: var(--primary);"></i> Open</button>
         <button onclick="FM.editCtx()" id="ctx-btn-edit"
-            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 font-medium text-slate-900"><i
-                data-lucide="file-code" class="w-4 text-emerald-400"></i> Edit</button>
+            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
+            onmouseover="this.style.backgroundColor='var(--slate-50)'"
+            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="file-code"
+                style="width: 16px; height: 16px; color: #10b981;"></i> Edit</button>
         <button onclick="FM.renameCtx()"
-            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700"><i
-                data-lucide="edit-3" class="w-4"></i> Rename</button>
-        <div class="h-px bg-slate-100 my-1"></div>
+            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
+            onmouseover="this.style.backgroundColor='var(--slate-50)'"
+            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="edit-3"
+                style="width: 16px; height: 16px;"></i> Rename</button>
+        <div style="height: 1px; background: var(--border-color); margin: 0.25rem 0;"></div>
         <button onclick="FM.extractCtx()" id="ctx-btn-extract"
-            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 font-medium text-slate-900"><i
-                data-lucide="package-open" class="w-4 text-orange-400"></i> Extract</button>
+            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
+            onmouseover="this.style.backgroundColor='var(--slate-50)'"
+            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="package-open"
+                style="width: 16px; height: 16px; color: #f97316;"></i> Extract</button>
         <button onclick="FM.chmodCtx()"
-            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700">
-            <i data-lucide="shield" class="w-4 text-slate-700"></i> Permissions
+            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
+            onmouseover="this.style.backgroundColor='var(--slate-50)'"
+            onmouseout="this.style.backgroundColor='transparent'">
+            <i data-lucide="shield" style="width: 16px; height: 16px; color: var(--slate-700);"></i> Permissions
         </button>
         <button onclick="FM.bulk('copy')"
-            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700"><i
-                data-lucide="copy" class="w-4"></i> Copy</button>
+            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
+            onmouseover="this.style.backgroundColor='var(--slate-50)'"
+            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="copy"
+                style="width: 16px; height: 16px;"></i> Copy</button>
         <button onclick="FM.bulk('move')"
-            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700"><i
-                data-lucide="move" class="w-4"></i> Move</button>
+            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
+            onmouseover="this.style.backgroundColor='var(--slate-50)'"
+            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="move"
+                style="width: 16px; height: 16px;"></i> Move</button>
         <button onclick="FM.bulk('zip')"
-            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700"><i
-                data-lucide="archive" class="w-4"></i> Archive</button>
-        <div class="h-px bg-slate-100 my-1"></div>
+            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
+            onmouseover="this.style.backgroundColor='var(--slate-50)'"
+            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="archive"
+                style="width: 16px; height: 16px;"></i> Archive</button>
+        <div style="height: 1px; background: var(--border-color); margin: 0.25rem 0;"></div>
         <button onclick="FM.bulk('delete')"
-            class="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-400 hover:text-red-300 text-sm flex items-center gap-2 font-medium"><i
-                data-lucide="trash-2" class="w-4"></i> Delete</button>
+            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: #f87171; background: transparent; border: none; cursor: pointer; transition: background 0.2s, color 0.2s;"
+            onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.color='#fca5a5'"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f87171'"><i data-lucide="trash-2"
+                style="width: 16px; height: 16px;"></i> Delete</button>
     </div>
 
     <!-- CREATE MODAL -->
-    <div id="modal-create"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-300 shadow-2xl">
-            <h3 class="font-bold text-xl text-slate-900 mb-6">New Item</h3>
-            <div class="flex bg-white rounded-lg p-1 mb-6">
+    <div id="modal-create" class="modal hidden"
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        <div class="glass-card"
+            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 24rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
+            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1.5rem;">New Item
+            </h3>
+            <div
+                style="display: flex; background: white; border-radius: var(--radius-lg); padding: 0.25rem; margin-bottom: 1.5rem;">
                 <button onclick="FM.setCreateType('file')" id="btn-c-file"
-                    class="flex-1 py-1.5 rounded text-sm font-bold bg-whitelue-600 text-slate-900 shadow transition">File</button>
+                    style="flex: 1; padding: 0.375rem 0; border-radius: 0.25rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: var(--primary); color: white; box-shadow: var(--shadow-sm);">File</button>
                 <button onclick="FM.setCreateType('folder')" id="btn-c-folder"
-                    class="flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition">Folder</button>
+                    style="flex: 1; padding: 0.375rem 0; border-radius: 0.25rem; border: none; font-size: 0.875rem; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--slate-700);">Folder</button>
             </div>
-            <input id="input-create" type="text" placeholder="Name"
-                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 mb-6 text-slate-900 text-sm">
-            <div class="flex gap-3">
-                <button onclick="FM.closeModals()"
-                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
-                <button onclick="FM.doCreate()"
-                    class="flex-1 py-2.5 rounded-xl font-bold bg-whitelue-600 text-slate-900 hover:bg-whitelue-500 shadow-lg shadow-blue-500/20 transition">Create</button>
+            <input id="input-create" type="text" placeholder="Name" class="form-input" style="margin-bottom: 1.5rem;">
+            <div style="display: flex; gap: 0.75rem;">
+                <button onclick="FM.closeModals()" class="btn btn-outline" style="flex: 1;">Cancel</button>
+                <button onclick="FM.doCreate()" class="btn btn-primary" style="flex: 1;">Create</button>
             </div>
         </div>
     </div>
 
     <!-- RENAME MODAL -->
-    <div id="modal-rename"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-300 shadow-2xl">
-            <h3 class="font-bold text-xl text-slate-900 mb-6">Rename</h3>
-            <input id="input-rename" type="text"
-                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 mb-6 text-slate-900 text-sm">
+    <div id="modal-rename" class="modal hidden"
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        <div class="glass-card"
+            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 24rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
+            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1.5rem;">Rename
+            </h3>
+            <input id="input-rename" type="text" class="form-input" style="margin-bottom: 1.5rem;">
             <input id="rename-target" type="hidden">
-            <div class="flex gap-3">
-                <button onclick="FM.closeModals()"
-                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
-                <button onclick="FM.doRename()"
-                    class="flex-1 py-2.5 rounded-xl font-bold bg-whitelue-600 text-slate-900 hover:bg-whitelue-500 shadow-lg shadow-blue-500/20 transition">Save</button>
+            <div style="display: flex; gap: 0.75rem;">
+                <button onclick="FM.closeModals()" class="btn btn-outline" style="flex: 1;">Cancel</button>
+                <button onclick="FM.doRename()" class="btn btn-primary" style="flex: 1;">Save</button>
             </div>
         </div>
     </div>
 
     <!-- COPY/MOVE MODAL -->
-    <div id="modal-copymove"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-300 shadow-2xl">
-            <h3 class="font-bold text-xl text-slate-900 mb-6" id="cm-title">Move Items</h3>
-            <div class="mb-4 text-xs text-slate-700 font-bold uppercase">Destination Folder</div>
-            <div class="flex bg-white border border-slate-300 rounded-xl px-4 py-3 mb-6 items-center gap-3">
-                <i data-lucide="folder" class="w-4 text-slate-700"></i>
-                <input id="cm-dest" type="text" class="bg-transparent outline-none flex-1 text-slate-900 text-sm"
+    <div id="modal-copymove" class="modal hidden"
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        <div class="glass-card"
+            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 24rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
+            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1.5rem;"
+                id="cm-title">Move Items</h3>
+            <div
+                style="margin-bottom: 1rem; font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">
+                Destination Folder</div>
+            <div
+                style="display: flex; background: white; border: 1px solid var(--slate-300); border-radius: var(--radius-xl); padding: 0.75rem 1rem; margin-bottom: 1.5rem; align-items: center; gap: 0.75rem;">
+                <i data-lucide="folder" style="width: 16px; height: 16px; color: var(--slate-700);"></i>
+                <input id="cm-dest" type="text"
+                    style="background: transparent; outline: none; border: none; flex: 1; color: var(--slate-900); font-size: 0.875rem;"
                     placeholder="/path/to/folder">
             </div>
             <input type="hidden" id="cm-action">
-            <div class="flex gap-3">
-                <button onclick="FM.closeModals()"
-                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
-                <button onclick="FM.doCopyMove()"
-                    class="flex-1 py-2.5 rounded-xl font-bold bg-whitelue-600 text-slate-900 hover:bg-whitelue-500 shadow-lg shadow-blue-500/20 transition">Confirm</button>
+            <div style="display: flex; gap: 0.75rem;">
+                <button onclick="FM.closeModals()" class="btn btn-outline" style="flex: 1;">Cancel</button>
+                <button onclick="FM.doCopyMove()" class="btn btn-primary" style="flex: 1;">Confirm</button>
             </div>
         </div>
     </div>
 
     <!-- PREVIEW MODAL -->
-    <div id="modal-preview"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/90 backdrop-blur-md">
-        <div
-            class="glass-panel rounded-2xl w-full max-w-4xl h-[80vh] border border-slate-300 shadow-2xl flex flex-col overflow-hidden">
-            <div class="h-12 border-b border-slate-300 flex items-center justify-between px-4 bg-slate-50">
-                <span id="preview-title" class="font-mono text-sm font-bold text-slate-700">filename.txt</span>
+    <div id="modal-preview" class="modal hidden"
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(6px);">
+        <div class="glass-card"
+            style="border-radius: 1rem; width: 100%; max-width: 56rem; height: 80vh; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl); display: flex; flex-direction: column; overflow: hidden; padding: 0;">
+            <div
+                style="height: 3rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; background: var(--slate-50);">
+                <span id="preview-title"
+                    style="font-family: monospace; font-size: 0.875rem; font-weight: 700; color: var(--slate-700);">filename.txt</span>
                 <button onclick="FM.closeModals()"
-                    class="p-1 hover:bg-slate-100 rounded text-slate-700 hover:text-slate-900"><i data-lucide="x"
-                        class="w-5"></i></button>
+                    style="padding: 0.25rem; background: transparent; border: none; border-radius: 0.25rem; color: var(--slate-700); cursor: pointer; transition: background 0.2s, color 0.2s;"
+                    onmouseover="this.style.backgroundColor='var(--slate-100)'; this.style.color='var(--slate-900)'"
+                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)'"><i
+                        data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
-            <div class="flex-1 overflow-auto bg-[#f8fafc] p-0 relative flex items-center justify-center"
+            <div style="flex: 1; overflow: auto; background: var(--slate-50); padding: 0; position: relative; display: flex; align-items: center; justify-content: center;"
                 id="preview-content">
                 <!-- Content injected here -->
             </div>
-            <div class="h-12 border-t border-slate-300 flex items-center justify-end px-4 gap-3 bg-slate-50">
-                <button onclick="FM.closeModals()"
-                    class="px-4 py-1.5 bg-slate-100 text-slate-900 rounded-lg text-sm font-bold hover:bg-slate-200 transition">Close</button>
+            <div
+                style="height: 3rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: flex-end; padding: 0 1rem; gap: 0.75rem; background: var(--slate-50);">
+                <button onclick="FM.closeModals()" class="btn btn-outline">Close</button>
             </div>
         </div>
     </div>
 
     <!-- TOAST -->
     <div id="toast"
-        class="fixed bottom-6 right-6 z-[100] transition-all duration-300 transform translate-y-20 opacity-0 bg-whitemerald-600 text-slate-900 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold">
+        style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; transition: all 0.3s; transform: translateY(5rem); opacity: 0; background: #10b981; color: white; padding: 0.75rem 1.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-2xl); display: flex; align-items: center; gap: 0.75rem; font-weight: 700;">
         <span></span>
     </div>
 
@@ -1568,7 +1762,7 @@ if (is_dir($full_path)) {
 
                 if (fileEl) {
                     // Get permissions from the list view (4th column in list layout)
-                    const permEl = fileEl.querySelector('.list-layout .col-span-2.text-slate-700.font-mono');
+                    const permEl = null; // fileEl.querySelector('.list-layout > div:nth-child(4)');
                     if (permEl) {
                         currentPerms = permEl.textContent.trim();
                     }
@@ -1885,7 +2079,7 @@ if (is_dir($full_path)) {
                 const container = document.getElementById('preview-content');
 
                 modal.classList.remove('hidden');
-                container.innerHTML = '<div class="animate-pulse text-slate-700">Loading...</div>';
+                container.innerHTML = '<div style="animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; color: var(--slate-700);">Loading...</div>';
 
                 if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
                     const fd = new FormData();
@@ -1896,7 +2090,7 @@ if (is_dir($full_path)) {
                         const res = await fetch('', { method: 'POST', body: fd });
                         const blob = await res.blob();
                         const url = URL.createObjectURL(blob);
-                        container.innerHTML = `<img src="${url}" class="max-h-full max-w-full rounded shadow-lg">`;
+                        container.innerHTML = `<img src="${url}" style="max-height: 100%; max-width: 100%; border-radius: 0.25rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);">`;
                     } catch (e) { container.innerHTML = 'Error loading image'; }
                 } else {
                     const fd = new FormData();
@@ -1904,7 +2098,7 @@ if (is_dir($full_path)) {
                     fd.append('item', path);
                     const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                     if (res.status === 'success') {
-                        container.innerHTML = `<pre class="text-xs font-mono text-slate-700 p-4 w-full h-full overflow-auto text-left">${res.content}</pre>`;
+                        container.innerHTML = `<pre style="font-size: 0.75rem; font-family: monospace; color: var(--slate-700); padding: 1rem; width: 100%; height: 100%; overflow: auto; text-align: left;">${res.content}</pre>`;
                     } else {
                         container.innerHTML = res.msg;
                     }
@@ -1915,8 +2109,12 @@ if (is_dir($full_path)) {
             toast(type, msg) {
                 const el = document.getElementById('toast');
                 el.innerText = msg;
-                el.className = `fixed bottom-6 right-6 z-[100] px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold transition-all duration-300 transform ${type === 'success' ? 'bg-whitemerald-600' : 'bg-red-600'} text-slate-900 translate-y-0 opacity-100`;
-                setTimeout(() => el.classList.add('translate-y-20', 'opacity-0'), 3000);
+                const bg = type === 'success' ? '#10b981' : '#ef4444';
+                el.style.cssText = `position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; transition: all 0.3s; transform: translateY(0); opacity: 1; background: ${bg}; color: white; padding: 0.75rem 1.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-2xl); display: flex; align-items: center; gap: 0.75rem; font-weight: 700;`;
+                setTimeout(() => {
+                    el.style.transform = 'translateY(5rem)';
+                    el.style.opacity = '0';
+                }, 3000);
             }
 
             closeModals() {
@@ -1945,8 +2143,10 @@ if (is_dir($full_path)) {
 
             setCreateType(t) {
                 this.createType = t;
-                document.getElementById('btn-c-file').className = t === 'file' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-whitelue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition';
-                document.getElementById('btn-c-folder').className = t === 'folder' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-whitelue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition';
+                const activeStyle = "flex: 1; padding: 0.375rem 0; border-radius: 0.25rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: var(--primary); color: white; box-shadow: var(--shadow-sm);";
+                const inactiveStyle = "flex: 1; padding: 0.375rem 0; border-radius: 0.25rem; border: none; font-size: 0.875rem; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--slate-700);";
+                document.getElementById('btn-c-file').style.cssText = t === 'file' ? activeStyle : inactiveStyle;
+                document.getElementById('btn-c-folder').style.cssText = t === 'folder' ? activeStyle : inactiveStyle;
             }
 
             doCreate() {
@@ -2030,5 +2230,3 @@ if (is_dir($full_path)) {
 </body>
 
 </html>
-
-

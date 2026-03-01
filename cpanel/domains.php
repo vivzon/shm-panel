@@ -468,63 +468,63 @@ $all_domains = $pdo->query("SELECT id, domain FROM domains WHERE client_id = $ci
 include 'layout/header.php';
 ?>
 
-<div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-    <div class="flex items-center gap-4">
-        <h2 class="text-2xl font-bold text-slate-900">Domain Management</h2>
-        <form method="GET" class="relative group">
+<div
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900);">Domain Management</h2>
+        <form method="GET" style="position: relative;">
             <i data-lucide="search"
-                class="w-4 absolute left-3 top-3 text-slate-700 group-focus-within:text-blue-400 transition"></i>
+                style="width: 16px; height: 16px; position: absolute; left: 0.75rem; top: 0.75rem; color: var(--slate-400);"></i>
             <input name="search" value="<?= htmlspecialchars($search_query) ?>" placeholder="Search domains..."
-                class="bg-slate-50 border border-slate-300 p-3 pl-10 rounded-xl text-sm w-48 focus:w-64 outline-none shadow-md focus:border-blue-500 text-slate-900 placeholder-slate-500 transition-all">
+                class="form-input" style="padding-left: 2.5rem; width: 12rem; transition: width 0.2s;"
+                onfocus="this.style.width='16rem'" onblur="this.style.width='12rem'">
         </form>
         <?php if ($search_query): ?>
-            <a href="?" class="text-xs text-slate-700 hover:text-slate-900 transition">Clear</a>
+            <a href="?" style="font-size: 0.75rem; color: var(--slate-500); text-decoration: none;">Clear</a>
         <?php endif; ?>
     </div>
-    <div class="flex gap-4">
+    <div style="display: flex; gap: 1rem;">
         <!-- Add Domain - Only main domains allowed (no subdomains) -->
-        <form onsubmit="handleAddDomain(event)" class="flex gap-2" id="form-add-domain">
+        <form onsubmit="handleAddDomain(event)" style="display: flex; gap: 0.5rem;" id="form-add-domain">
             <?= csrf_field() ?>
-            <input name="domain" required placeholder="example.com"
-                class="bg-slate-50 border border-slate-300 p-3 rounded-xl text-sm outline-none shadow-md focus:border-blue-500 text-slate-900 placeholder-slate-500 w-48 transition">
-            <button
-                class="bg-slate-50 text-slate-900 px-4 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-200 border border-slate-300 transition whitespace-nowrap">
+            <input name="domain" required placeholder="example.com" class="form-input" style="width: 12rem;">
+            <button class="btn btn-secondary">
                 + Domain</button>
         </form>
 
         <!-- Subdomain - Select from all domains -->
-        <form onsubmit="handleAddSubdomain(event)" class="flex gap-2 hidden" id="form-add-subdomain">
+        <form onsubmit="handleAddSubdomain(event)" style="display: none; gap: 0.5rem;" id="form-add-subdomain">
             <?= csrf_field() ?>
-            <input name="sub" required placeholder="sub (e.g. blog)"
-                class="bg-slate-50 border border-slate-300 p-3 rounded-xl text-sm outline-none shadow-md focus:border-blue-500 text-slate-900 placeholder-slate-500 w-32 transition text-right">
-            <span class="self-center font-bold text-slate-700">.</span>
-            <select name="parent_id"
-                class="bg-slate-50 border border-slate-300 p-3 rounded-xl text-sm outline-none shadow-md focus:border-blue-500 text-slate-900 w-40 transition">
+            <input name="sub" required placeholder="sub (e.g. blog)" class="form-input"
+                style="width: 8rem; text-align: right;">
+            <span style="align-self: center; font-weight: 700; color: var(--slate-700);">.</span>
+            <select name="parent_id" class="form-select" style="width: 10rem;">
                 <?php foreach ($all_domains as $d): ?>
                     <option value="<?= $d['domain'] ?>">
                         <?= $d['domain'] ?>
                     </option>
                 <?php endforeach; ?>
             </select>
-            <button
-                class="bg-blue-600 text-slate-900 px-4 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 border border-blue-500 transition whitespace-nowrap">
+            <button class="btn btn-primary">
                 + Sub</button>
         </form>
 
         <button onclick="toggleDomainMode()"
-            class="p-3 bg-slate-50 text-slate-700 rounded-xl hover:text-slate-900 transition"
-            title="Toggle Subdomain Mode">
-            <i data-lucide="shuffle" class="w-4 h-4"></i>
+            style="padding: 0.75rem; background: var(--bg-card); color: var(--slate-700); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;"
+            title="Toggle Subdomain Mode"
+            onmouseover="this.style.backgroundColor='var(--slate-100)'; this.style.color='var(--slate-900)';"
+            onmouseout="this.style.backgroundColor='var(--bg-card)'; this.style.color='var(--slate-700)';">
+            <i data-lucide="shuffle" style="width: 16px; height: 16px;"></i>
         </button>
     </div>
 </div>
 <div id="domain-list">
 
     <?php if (count($domains) === 0): ?>
-        <div class="glass-card p-10 text-center">
-            <i data-lucide="globe" class="w-12 h-12 text-slate-700 mx-auto mb-4"></i>
-            <h3 class="text-lg font-bold text-slate-700">No domains found</h3>
-            <p class="text-sm text-slate-700 mt-2">
+        <div class="glass-card" style="padding: 2.5rem; text-align: center;">
+            <i data-lucide="globe" style="width: 3rem; height: 3rem; color: var(--slate-700); margin: 0 auto 1rem;"></i>
+            <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-700);">No domains found</h3>
+            <p style="font-size: 0.875rem; color: var(--slate-700); margin-top: 0.5rem;">
                 <?= $search_query ? 'Try a different search term' : 'Add your first domain to get started' ?>
             </p>
         </div>
@@ -534,92 +534,93 @@ include 'layout/header.php';
         $is_first = ($index === 0);
         $domain_id = $d['id'];
         ?>
-        <div class="glass-card mb-4 shadow-md group domain-card" data-domain-id="<?= $domain_id ?>">
+        <div class="glass-card" data-domain-id="<?= $domain_id ?>" style="margin-bottom: 2rem;">
             <!-- Domain Header - Always Visible -->
-            <div class="domain-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50/30 transition rounded-xl"
-                onclick="toggleDomain(<?= $domain_id ?>)">
-                <div class="flex items-center gap-4">
+            <div class="domain-header"
+                style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: var(--radius-lg); transition: background 0.2s;"
+                onmouseover="this.style.backgroundColor='var(--slate-50)';"
+                onmouseout="this.style.backgroundColor='transparent';" onclick="toggleDomain(<?= $domain_id ?>)">
+                <div style="display: flex; align-items: center; gap: 1rem;">
                     <i data-lucide="chevron-down" id="chevron-<?= $domain_id ?>"
-                        class="w-5 h-5 text-slate-700 transition-transform <?= $is_first ? '' : '-rotate-90' ?>"></i>
+                        style="width: 20px; height: 20px; color: var(--slate-700); transition: transform 0.3s; transform: <?= $is_first ? 'rotate(0)' : 'rotate(-90deg)' ?>;"></i>
                     <div>
-                        <h3 class="text-xl font-black text-slate-900">
+                        <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--slate-900);">
                             <?= $d['domain'] ?>
                         </h3>
-                        <p class="text-xs text-slate-700 font-mono mt-1">/home/<?= $username ?>/public_html</p>
+                        <p
+                            style="font-size: 0.75rem; color: var(--slate-500); font-family: monospace; margin-top: 0.25rem;">
+                            /home/<?= $username ?>/public_html</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
+                <div style="display: flex; align-items: center; gap: 1rem;">
                     <!-- Quick Stats -->
-                    <div class="flex gap-3">
-                        <div
-                            class="bg-white/80 backdrop-blur border border-slate-300 px-3 py-1 rounded-full text-[10px] font-bold text-slate-700 flex items-center gap-2">
-                            <i data-lucide="activity" class="w-3 h-3 text-emerald-400"></i>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <div class="badge badge-emerald">
+                            <i data-lucide="activity" style="width: 12px; height: 12px;"></i>
                             <?= $d['traffic_today'] ? round($d['traffic_today'] / 1024 / 1024, 2) . ' MB' : '0 MB' ?>
                         </div>
                         <?php if ($d['ssl_active']): ?>
-                            <div
-                                class="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-emerald-400 flex items-center gap-2">
-                                <i data-lucide="lock" class="w-3 h-3"></i> SSL
+                            <div class="badge badge-emerald">
+                                <i data-lucide="lock" style="width: 12px; height: 12px;"></i> SSL
                             </div>
                         <?php endif; ?>
                         <?php if ($d['scan_status'] == 'clean'): ?>
-                            <div
-                                class="bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-emerald-400 flex items-center gap-2">
-                                <i data-lucide="shield-check" class="w-3 h-3"></i> Clean
+                            <div class="badge badge-emerald">
+                                <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> Clean
                             </div>
                         <?php elseif ($d['scan_status'] == 'infected'): ?>
-                            <div
-                                class="bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-red-400 flex items-center gap-2">
-                                <i data-lucide="shield-alert" class="w-3 h-3"></i> Infected
+                            <div class="badge badge-red">
+                                <i data-lucide="shield-alert" style="width: 12px; height: 12px;"></i> Infected
                             </div>
                         <?php elseif ($d['scan_status'] == 'running'): ?>
-                            <div
-                                class="bg-blue-500/10 border border-blue-500/20 px-3 py-1 rounded-full text-[10px] font-bold text-blue-400 flex items-center gap-2">
-                                <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Scanning
+                            <div class="badge badge-blue">
+                                <i data-lucide="loader-2" style="width: 12px; height: 12px;" class="animate-spin"></i> Scanning
                             </div>
                         <?php endif; ?>
                     </div>
                     <!-- Quick Actions -->
-                    <div class="flex gap-2" onclick="event.stopPropagation()">
-                        <a href="files.php?domain_id=<?= $d['id'] ?>&path=/" target="_blank"
-                            class="bg-blue-500/10 text-blue-400 px-3 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-slate-900 transition flex items-center gap-2 border border-blue-500/20">
-                            <i data-lucide="folder-open" class="w-4 h-4"></i>
+                    <div style="display: flex; gap: 0.5rem;" onclick="event.stopPropagation()">
+                        <a href="files.php?domain_id=<?= $d['id'] ?>&path=/" target="_blank" class="btn btn-secondary"
+                            style="padding: 0.5rem;" title="File Manager">
+                            <i data-lucide="folder-open" style="width: 16px; height: 16px;"></i>
                         </a>
-                        <button onclick="fixDefaultPage(<?= $d['id'] ?>)"
-                            class="bg-yellow-500/10 text-yellow-500 px-3 py-2 rounded-lg text-xs font-bold hover:bg-yellow-600 hover:text-slate-900 transition border border-yellow-500/20"
+                        <button onclick="fixDefaultPage(<?= $d['id'] ?>)" class="btn btn-secondary"
+                            style="padding: 0.5rem; color: #eab308; border-color: rgba(234, 179, 8, 0.2);"
                             title="Fix Default Page Issue">
-                            <i data-lucide="wrench" class="w-4 h-4"></i>
+                            <i data-lucide="wrench" style="width: 16px; height: 16px;"></i>
                         </button>
                         <button onclick="deleteAction('delete_domain', 'domain_id', <?= $d['id'] ?>)"
-                            class="bg-red-500/10 text-red-400 px-3 py-2 rounded-lg text-xs font-bold hover:bg-red-600 hover:text-slate-900 transition border border-red-500/20">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            class="btn btn-secondary"
+                            style="padding: 0.5rem; color: var(--accent-red); border-color: rgba(239, 68, 68, 0.2);"
+                            title="Delete">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Domain Content - Collapsible -->
-            <div id="domain-content-<?= $domain_id ?>"
-                class="domain-content <?= $is_first ? '' : 'hidden' ?> border-t border-slate-300">
-                <div class="p-5">
+            <div id="domain-content-<?= $domain_id ?>" class="domain-content <?= $is_first ? '' : 'hidden' ?>"
+                style="border-top: 1px solid var(--slate-200);">
+                <div style="padding: 1.25rem;">
                     <!-- Configuration Row -->
-                    <form onsubmit="handleGeneric(event, 'update_domain_config')"
-                        class="flex flex-wrap items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-300 mb-6">
+                    <form onsubmit="handleGeneric(event, 'update_domain_config')" class="glass-card"
+                        style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1rem; margin-bottom: 1.5rem;">
                         <?= csrf_field() ?>
                         <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
-                        <div class="flex items-center gap-2">
-                            <label class="text-[10px] uppercase font-bold text-slate-700">PHP</label>
-                            <select name="php_version"
-                                class="bg-slate-50 border border-slate-300 p-2 rounded-xl text-xs font-bold text-slate-900">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label
+                                style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase;">PHP</label>
+                            <select name="php_version" class="form-select" style="padding: 0.5rem; font-size: 0.75rem;">
                                 <option value="8.1" <?= $d['php_version'] == '8.1' ? 'selected' : '' ?>>PHP 8.1</option>
                                 <option value="8.2" <?= $d['php_version'] == '8.2' ? 'selected' : '' ?>>PHP 8.2</option>
                                 <option value="8.3" <?= $d['php_version'] == '8.3' ? 'selected' : '' ?>>PHP 8.3</option>
                             </select>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-[10px] uppercase font-bold text-slate-700">Memory</label>
-                            <select name="mem"
-                                class="bg-slate-50 border border-slate-300 p-2 rounded-xl text-xs font-bold text-slate-900">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label
+                                style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase;">Memory</label>
+                            <select name="mem" class="form-select" style="padding: 0.5rem; font-size: 0.75rem;">
                                 <?php
                                 $curr_mem = $pdo->query("SELECT memory_limit FROM php_config WHERE domain_id=" . $d['id'])->fetchColumn();
                                 if (!$curr_mem)
@@ -630,20 +631,25 @@ include 'layout/header.php';
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="flex items-center gap-2 px-3 border-l border-slate-300">
+                        <div
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; border-left: 1px solid var(--slate-300);">
                             <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>
-                                class="w-4 h-4 text-emerald-500 accent-emerald-500">
-                            <span class="text-[10px] font-bold uppercase text-emerald-400">SSL</span>
+                                style="width: 16px; height: 16px; accent-color: var(--accent-emerald);">
+                            <span
+                                style="font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--accent-emerald);">SSL</span>
                         </div>
                         <?php $is_maint = file_exists("/etc/nginx/sites-available/{$d['domain']}.backup"); ?>
-                        <div class="flex items-center gap-2 px-3 border-l border-slate-300">
+                        <div
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; border-left: 1px solid var(--slate-300);">
                             <input type="checkbox" onchange="toggleMaintenance(event, <?= $d['id'] ?>, this.checked)"
-                                <?= $is_maint ? 'checked' : '' ?> class="w-4 h-4 text-orange-500 accent-orange-500">
-                            <span class="text-[10px] font-bold uppercase text-orange-400">Maintenance</span>
+                                <?= $is_maint ? 'checked' : '' ?>
+                                style="width: 16px; height: 16px; accent-color: var(--accent-orange);">
+                            <span
+                                style="font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--accent-orange);">Maintenance</span>
                         </div>
-                        <button
-                            class="bg-blue-600 text-slate-900 px-4 py-2 rounded-lg hover:bg-blue-500 transition text-xs font-bold ml-auto">
-                            <i data-lucide="save" class="w-4 h-4 inline mr-1"></i> Save
+                        <button class="btn btn-primary"
+                            style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.75rem;">
+                            <i data-lucide="save" style="width: 16px; height: 16px;"></i> Save
                         </button>
                     </form>
 
@@ -651,95 +657,109 @@ include 'layout/header.php';
                         <?php
                         $pname = $pdo->query("SELECT domain FROM domains WHERE id={$d['parent_id']}")->fetchColumn();
                         ?>
-                        <div class="text-center p-8 bg-slate-50 rounded-xl border border-slate-300 border-dashed">
-                            <i data-lucide="git-merge" class="w-8 h-8 text-slate-700 mx-auto mb-2"></i>
-                            <p class="text-sm font-bold text-slate-700">DNS Managed by Parent Domain</p>
-                            <p class="text-xs text-slate-700">This subdomain is a record of <span
-                                    class="text-blue-400"><?= $pname ?></span></p>
+                        <div
+                            style="text-align: center; padding: 2rem; background: var(--slate-50); border-radius: 0.75rem; border: 1px dashed var(--slate-300);">
+                            <i data-lucide="git-merge"
+                                style="width: 2rem; height: 2rem; color: var(--slate-700); margin: 0 auto 0.5rem;"></i>
+                            <p style="font-size: 0.875rem; font-weight: 700; color: var(--slate-700);">DNS Managed by Parent
+                                Domain</p>
+                            <p style="font-size: 0.75rem; color: var(--slate-700);">This subdomain is a record of <span
+                                    style="color: #60a5fa;"><?= $pname ?></span></p>
                         </div>
                     <?php else: ?>
-                        <h4 class="text-xs font-black text-slate-700 uppercase tracking-widest mb-4">DNS Zone Management</h4>
+                        <h4
+                            style="font-size: 0.75rem; font-weight: 900; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem;">
+                            DNS Zone Management</h4>
 
                         <!-- Security Section -->
-                        <div
-                            class="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-300 flex justify-between items-center">
+                        <div class="glass-card"
+                            style="margin-bottom: 1.5rem; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <h4 class="text-slate-900 font-bold text-sm flex items-center gap-2"><i data-lucide="shield"
-                                        class="w-4 text-purple-400"></i> Malware Protection</h4>
-                                <p class="text-[10px] text-slate-700 mt-1">Status:
+                                <h4
+                                    style="color: var(--slate-900); font-weight: 700; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="shield" style="width: 16px; height: 16px; color: #a855f7;"></i> Malware
+                                    Protection
+                                </h4>
+                                <p style="font-size: 0.625rem; color: var(--slate-700); margin-top: 0.25rem;">Status:
                                     <?php if ($d['scan_status'] == 'clean'): ?>
-                                        <span class="text-emerald-400">Clean</span>
+                                        <span style="color: var(--accent-emerald);">Clean</span>
                                     <?php elseif ($d['scan_status'] == 'infected'): ?>
-                                        <span class="text-red-400 blink">Infected!</span>
+                                        <span style="color: var(--accent-red); animation: blink 1s infinite;">Infected!</span>
                                     <?php elseif ($d['scan_status'] == 'running'): ?>
-                                        <span class="text-blue-400 animate-pulse">Scanning...</span>
+                                        <span class="animate-pulse" style="color: var(--primary);">Scanning...</span>
                                     <?php else: ?>
-                                        <span class="text-slate-700">Not Scanned</span>
+                                        <span style="color: var(--slate-700);">Not Scanned</span>
                                     <?php endif; ?>
                                     <?php if ($d['last_scan']): ?>
-                                        <span class="opacity-50 ml-2">Last: <?= $d['last_scan'] ?></span>
+                                        <span style="opacity: 0.5; margin-left: 0.5rem;">Last: <?= $d['last_scan'] ?></span>
                                     <?php endif; ?>
                                 </p>
                             </div>
-                            <button onclick="startScan(<?= $d['id'] ?>)"
-                                class="bg-purple-500/10 text-purple-400 border border-purple-500/20 px-4 py-2 rounded-lg text-xs font-bold hover:bg-purple-600 hover:text-slate-900 transition">Run
+                            <button onclick="startScan(<?= $d['id'] ?>)" class="btn btn-secondary"
+                                style="color: #a855f7; border-color: rgba(168, 85, 247, 0.2); background: rgba(168, 85, 247, 0.05);">Run
                                 Scan</button>
                         </div>
 
                         <!-- DNS Tabs -->
-                        <div class="mb-4">
-                            <div class="flex flex-wrap gap-2 mb-4" id="dns-tabs-<?= $d['id'] ?>">
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;"
+                                id="dns-tabs-<?= $d['id'] ?>">
                                 <?php foreach (['A', 'AAAA', 'MX', 'CNAME', 'NS', 'TXT', 'SRV', 'SOA'] as $t): ?>
                                     <button type="button" onclick="setDnsType(<?= $d['id'] ?>, '<?= $t ?>')"
                                         id="btn-dns-<?= $t ?>-<?= $d['id'] ?>"
-                                        class="dns-type-btn px-4 py-2 rounded-lg text-xs font-bold border border-slate-300 transition <?= $t === 'A' ? 'bg-blue-600 text-slate-900 border-blue-500' : 'bg-slate-50 text-slate-700 hover:bg-slate-200' ?>">
+                                        class="dns-type-btn <?= $t === 'A' ? 'btn-primary' : 'btn-secondary' ?>"
+                                        style="padding: 0.5rem 1rem; border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 700; transition: all 0.2s; border: 1px solid <?= $t === 'A' ? 'var(--primary)' : 'var(--slate-300)' ?>;">
                                         <?= $t ?>
                                     </button>
                                 <?php endforeach; ?>
                             </div>
 
                             <!-- Add DNS Form -->
-                            <form onsubmit="handleGeneric(event, 'add_dns')"
-                                class="glass-card p-5 border border-slate-300 bg-slate-50 rounded-xl relative overflow-hidden mb-6">
-                                <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                            <form onsubmit="handleGeneric(event, 'add_dns')" class="glass-card"
+                                style="padding: 1.25rem; position: relative; overflow: hidden; margin-bottom: 1.5rem;">
+                                <div
+                                    style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary);">
+                                </div>
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
                                 <input type="hidden" name="type" id="input-dns-type-<?= $d['id'] ?>" value="A">
 
-                                <div id="dns-fields-<?= $d['id'] ?>" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                                    <div class="col-span-4"><label
-                                            class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Host</label><input
-                                            name="host" value="@"
-                                            class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner">
+                                <div id="dns-fields-<?= $d['id'] ?>"
+                                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: flex-end;">
+                                    <div>
+                                        <label
+                                            style="font-size: 0.625rem; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label>
+                                        <input name="host" value="@" class="form-input">
                                     </div>
-                                    <div class="col-span-8"><label
-                                            class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">IPv4
-                                            Address</label><input name="value" placeholder="192.168.1.1"
-                                            class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner">
+                                    <div style="grid-column: span 2 / span 2;">
+                                        <label
+                                            style="font-size: 0.625rem; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">IPv4
+                                            Address</label>
+                                        <input name="value" placeholder="192.168.1.1" class="form-input">
                                     </div>
                                 </div>
 
-                                <div class="mt-4 flex justify-end">
-                                    <button
-                                        class="bg-blue-600 text-slate-900 px-5 py-2 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-blue-500 transition border border-blue-400 flex items-center gap-2">
-                                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Record
+                                <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+                                    <button class="btn btn-primary"
+                                        style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem;">
+                                        <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> Add Record
                                     </button>
                                 </div>
                             </form>
                         </div>
 
                         <!-- DNS Records Table -->
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-700">
+                        <div style="overflow-x: auto;">
+                            <table class="table">
+                                <thead>
                                     <tr>
-                                        <th class="p-3">Host</th>
-                                        <th class="p-3">Type</th>
-                                        <th class="p-3">Value</th>
-                                        <th class="p-3 text-right">Action</th>
+                                        <th>Host</th>
+                                        <th>Type</th>
+                                        <th>Value</th>
+                                        <th style="text-align: right;">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-700/50">
+                                <tbody>
                                     <?php
                                     $recs = $pdo->prepare("SELECT * FROM dns_records WHERE domain_id = ?");
                                     $recs->execute([$d['id']]);
@@ -747,25 +767,30 @@ include 'layout/header.php';
                                     while ($r = $recs->fetch()):
                                         $has_records = true;
                                         ?>
-                                        <tr class="text-sm hover:bg-slate-50/30 transition">
-                                            <td class="p-3 font-bold text-slate-700"><?= $r['name'] ?></td>
-                                            <td class="p-3"><span
-                                                    class="bg-slate-50 border border-slate-300 px-2 py-1 rounded text-xs font-bold text-slate-700"><?= $r['type'] ?></span>
+                                        <tr>
+                                            <td style="font-weight: 700; color: var(--slate-900);"><?= $r['name'] ?></td>
+                                            <td><span class="badge"
+                                                    style="background: var(--slate-100); border: 1px solid var(--slate-200); color: var(--slate-700);"><?= $r['type'] ?></span>
                                             </td>
-                                            <td class="p-3 font-mono text-slate-700 text-xs truncate max-w-md"><?= $r['value'] ?>
+                                            <td
+                                                style="font-family: monospace; color: var(--slate-700); font-size: 0.75rem; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                <?= $r['value'] ?>
                                             </td>
-                                            <td class="p-3 text-right">
+                                            <td style="text-align: right;">
                                                 <button
                                                     onclick="deleteAction('delete_dns', 'id', <?= $r['id'] ?>, 'domain_id', <?= $d['id'] ?>)"
-                                                    class="text-red-400 hover:text-red-500"><i data-lucide="trash-2"
-                                                        class="w-4"></i></button>
+                                                    style="background: transparent; border: none; cursor: pointer; color: var(--accent-red); opacity: 0.7; transition: opacity 0.2s;"
+                                                    onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'"><i
+                                                        data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
                                             </td>
                                         </tr>
                                     <?php endwhile; ?>
                                     <?php if (!$has_records): ?>
                                         <tr>
-                                            <td colspan="4" class="p-6 text-center text-slate-700 text-sm">
-                                                <i data-lucide="database" class="w-6 h-6 mx-auto mb-2 opacity-50"></i>
+                                            <td colspan="4"
+                                                style="padding: 2rem; text-align: center; color: var(--slate-500); font-size: 0.875rem;">
+                                                <i data-lucide="database"
+                                                    style="width: 24px; height: 24px; margin: 0 auto 0.5rem; opacity: 0.5;"></i>
                                                 No DNS records found
                                             </td>
                                         </tr>
@@ -780,22 +805,22 @@ include 'layout/header.php';
     <?php endforeach; ?>
 
     <?php if ($total_pages > 1): ?>
-        <div class="flex justify-between items-center mt-6">
-            <div class="text-xs text-slate-700 font-bold">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
+            <div style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700;">
                 Page <?= $page ?> of <?= $total_pages ?>
                 <?php if ($search_query): ?>
                     (filtered)
                 <?php endif; ?>
             </div>
-            <div class="flex gap-2">
+            <div style="display: flex; gap: 0.5rem;">
                 <?php if ($page > 1): ?>
                     <a href="?page=<?= $page - 1 ?><?= $search_query ? '&search=' . urlencode($search_query) : '' ?>"
-                        class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition">Previous</a>
+                        class="btn btn-secondary" style="font-size: 0.75rem;">Previous</a>
                 <?php endif; ?>
 
                 <?php if ($page < $total_pages): ?>
                     <a href="?page=<?= $page + 1 ?><?= $search_query ? '&search=' . urlencode($search_query) : '' ?>"
-                        class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition">Next</a>
+                        class="btn btn-secondary" style="font-size: 0.75rem;">Next</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -1012,46 +1037,46 @@ include 'layout/header.php';
 
     const dnsTemplates = {
         'A': `
-            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">IPv4 Address</label><input name="value" placeholder="192.168.1.1" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">IPv4 Address</label><input name="value" placeholder="192.168.1.1" class="form-input" style="width: 100%;" required></div>
         `,
         'AAAA': `
-            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">IPv6 Address</label><input name="value" placeholder="2001:0db8:..." class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">IPv6 Address</label><input name="value" placeholder="2001:0db8:..." class="form-input" style="width: 100%;" required></div>
         `,
         'MX': `
-            <div class="col-span-3"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-3"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Priority</label><input name="priority" type="number" value="10" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-6"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Destination</label><input name="value" placeholder="mail.example.com" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Priority</label><input name="priority" type="number" value="10" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Destination</label><input name="value" placeholder="mail.example.com" class="form-input" style="width: 100%;" required></div>
         `,
         'CNAME': `
-            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Host</label><input name="host" placeholder="www" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Target</label><input name="value" placeholder="example.com" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" placeholder="www" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Target</label><input name="value" placeholder="example.com" class="form-input" style="width: 100%;" required></div>
         `,
         'NS': `
-            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Nameserver</label><input name="value" placeholder="ns1.example.com" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Nameserver</label><input name="value" placeholder="ns1.example.com" class="form-input" style="width: 100%;" required></div>
         `,
         'TXT': `
-            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Host</label><input name="host" value="@" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-8"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">TXT Value</label><input name="value" placeholder="v=spf1..." class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">TXT Value</label><input name="value" placeholder="v=spf1..." class="form-input" style="width: 100%;" required></div>
         `,
         'SRV': `
-            <div class="col-span-3"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Service</label><input name="host" placeholder="_sip._tcp" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Priority</label><input name="priority" type="number" value="10" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Weight</label><input name="weight" type="number" value="10" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Port</label><input name="port" type="number" value="5060" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-3"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Target</label><input name="value" placeholder="sip.example.com" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Service</label><input name="host" placeholder="_sip._tcp" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Priority</label><input name="priority" type="number" value="10" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Weight</label><input name="weight" type="number" value="10" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Port</label><input name="port" type="number" value="5060" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Target</label><input name="value" placeholder="sip.example.com" class="form-input" style="width: 100%;" required></div>
         `,
         'SOA': `
-            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">MNAME</label><input name="mname" placeholder="ns1.example.com" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-4"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">RNAME</label><input name="rname" placeholder="admin.example.com" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Serial</label><input name="serial" placeholder="2024010101" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">TTL</label><input name="ttl" value="86400" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">MNAME</label><input name="mname" placeholder="ns1.example.com" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">RNAME</label><input name="rname" placeholder="admin.example.com" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Serial</label><input name="serial" placeholder="2024010101" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">TTL</label><input name="ttl" value="86400" class="form-input" style="width: 100%;" required></div>
             
-            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Refresh</label><input name="refresh" value="3600" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Retry</label><input name="retry" value="7200" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
-            <div class="col-span-2"><label class="text-[10px] uppercase font-bold text-slate-700 mb-1 block">Expire</label><input name="expire" value="1209600" class="w-full bg-white border border-slate-300 p-3 rounded-lg text-sm text-slate-900 outline-none focus:border-blue-500 shadow-inner" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Refresh</label><input name="refresh" value="3600" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Retry</label><input name="retry" value="7200" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Expire</label><input name="expire" value="1209600" class="form-input" style="width: 100%;" required></div>
             <input type="hidden" name="host" value="@">
         `
     };
@@ -1064,13 +1089,12 @@ include 'layout/header.php';
         const parent = document.getElementById(`dns-tabs-${did}`);
         parent.querySelectorAll('button').forEach(btn => {
             if (btn.id === `btn-dns-${type}-${did}`) {
-                btn.className = "dns-type-btn px-4 py-2 rounded-lg text-xs font-bold border border-blue-500 bg-blue-600 text-slate-900 transition shadow-lg shadow-blue-500/20";
+                btn.className = "dns-type-btn btn-primary";
+                btn.style.border = "1px solid var(--primary)";
             } else {
-                btn.className = "dns-type-btn px-4 py-2 rounded-lg text-xs font-bold border border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-200 transition";
+                btn.className = "dns-type-btn btn-secondary";
+                btn.style.border = "1px solid var(--slate-300)";
             }
         });
     }
 </script>
-
-
-

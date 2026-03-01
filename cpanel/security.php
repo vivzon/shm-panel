@@ -40,26 +40,33 @@ if (isset($_POST['ajax_action'])) {
 include 'layout/header.php';
 ?>
 
-<div class="max-w-4xl mx-auto">
-    <h2 class="text-2xl font-bold mb-8 text-slate-900">SSH Key Management</h2>
+<div style="max-width: 56rem; margin-left: auto; margin-right: auto;">
+    <h2
+        style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; color: var(--slate-900); font-family: 'Lexend', sans-serif; margin-bottom: 2rem;">
+        SSH Key Management</h2>
 
-    <div class="glass-card p-8 mb-8">
-        <h3 class="font-bold mb-4 text-slate-900">Add Public Key</h3>
-        <form onsubmit="handleGeneric(event, 'add_ssh')">
+    <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Add Public Key</h3>
+        <form onsubmit="handleGeneric(event, 'add_ssh')" style="display: flex; flex-direction: column; gap: 1rem;">
             <textarea name="key" required placeholder="ssh-rsa AAAA..." rows="4"
-                class="w-full bg-slate-50 border border-slate-300 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 font-mono text-xs mb-4"></textarea>
-            <button
-                class="bg-blue-600 text-slate-900 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-500 transition">Add
+                style="width: 100%; background-color: var(--slate-50); border: 1px solid var(--slate-300); padding: 1rem; border-radius: 0.75rem; color: var(--slate-900); font-family: monospace; font-size: 0.75rem; outline: none; transition: border-color 0.2s; resize: vertical;"
+                onfocus="this.style.borderColor='#3b82f6'"
+                onblur="this.style.borderColor='var(--slate-300)'"></textarea>
+            <button class="btn btn-primary"
+                style="align-self: flex-start; padding: 0.75rem 1.5rem; font-weight: 700; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">Add
                 Key</button>
         </form>
     </div>
 
-    <div class="glass-card p-8">
-        <h3 class="font-bold mb-6 text-slate-900 text-lg">Authorized Keys</h3>
-        <div id="ssh-list" class="space-y-2">
-            <div class="animate-pulse flex space-x-4">
-                <div class="flex-1 space-y-4 py-1">
-                    <div class="h-4 bg-slate-700 rounded w-3/4"></div>
+    <div class="glass-panel" style="padding: 2rem;">
+        <h3 style="font-weight: 700; color: var(--slate-900); font-size: 1.125rem; margin-bottom: 1.5rem;">Authorized
+            Keys</h3>
+        <div id="ssh-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: flex; gap: 1rem; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">
+                <div
+                    style="flex: 1; display: flex; flex-direction: column; gap: 1rem; padding-top: 0.25rem; padding-bottom: 0.25rem;">
+                    <div style="height: 1rem; background-color: var(--slate-300); border-radius: 0.25rem; width: 75%;">
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,17 +86,17 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach((line, i) => {
                     list.innerHTML += `
-                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-300 mb-2">
-                                <div class="font-mono text-xs text-slate-700 truncate w-3/4">${line}</div>
-                                <button onclick="handleGeneric(event, 'del_ssh', {line: ${parseInt(line)} })" class="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"><i data-lucide="trash-2" class="w-4"></i></button>
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background-color: var(--slate-50); border-radius: 0.75rem; border: 1px solid var(--slate-300); margin-bottom: 0.5rem;">
+                                <div style="font-family: monospace; font-size: 0.75rem; color: var(--slate-700); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 75%;">${line}</div>
+                                <button onclick="handleGeneric(event, 'del_ssh', {line: ${parseInt(line)} })" style="padding: 0.5rem; color: #f87171; border-radius: 0.5rem; transition: background-color 0.2s; border: none; background: transparent; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
                             </div>
                         `;
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<div class="text-center text-slate-700 py-4">No SSH keys found.</div>';
+                list.innerHTML = '<div style="text-align: center; color: var(--slate-700); padding-top: 1rem; padding-bottom: 1rem;">No SSH keys found.</div>';
             }
-        } catch (e) { list.innerHTML = '<div class="text-center text-red-400">Error loading keys.</div>'; }
+        } catch (e) { list.innerHTML = '<div style="text-align: center; color: #f87171; padding-top: 1rem; padding-bottom: 1rem;">Error loading keys.</div>'; }
     }
 
     // Override generic handle to reload keys
@@ -115,6 +122,3 @@ include 'layout/header.php';
 
     loadSSH();
 </script>
-
-
-

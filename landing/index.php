@@ -1,6 +1,6 @@
 <?php
 /**
- * VIVZON CLOUD - LANDING PAGE (v6.0 Enhanced)
+ * VIVZON CLOUD - LANDING PAGE (Modern Vanilla CSS)
  */
 require_once __DIR__ . '/../shared/config.php';
 
@@ -25,7 +25,7 @@ try {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -34,103 +34,26 @@ try {
         content="<?= e($brandName) ?> — Enterprise-grade NVMe cloud hosting with 99.9% uptime, DDoS protection, global CDN, and 24/7 expert support.">
     <title><?= e($brandName) ?> | Premium Cloud Hosting</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        blue: {
-                            50: '#f0f5ff',
-                            100: '#e0ebff',
-                            200: '#cce0ff',
-                            300: '#99c2ff',
-                            400: '#66a3ff',
-                            500: '#4880ed',
-                            600: '#2563eb', /* Primary */
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        indigo: {
-                            50: '#f2f4fb',
-                            100: '#e6ebfb',
-                            200: '#cdcdfa',
-                            300: '#9ea6eb',
-                            400: '#6f7ee1',
-                            500: '#3f51b5', /* Secondary */
-                            600: '#36469b',
-                            700: '#2c397e',
-                            800: '#242f67',
-                            900: '#1f2752',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Unified modern design system -->
+    <link rel="stylesheet" href="/shared/assets/css/modern-design.css">
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
 
     <style>
-        :root {
-            --blue: #2563eb;
-            --blue-glow: rgba(37, 99, 235, 0.35);
-            --purple: #7c3aed;
-            --glass: rgba(248, 250, 252, 0.85);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            font-size: 16px;
-        }
-
+        /* Landing Page Specific Styles */
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
             overflow-x: hidden;
         }
 
-        .font-heading {
-            font-family: 'Outfit', sans-serif;
+        /* Ambient Blobs */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
         }
 
-        /* ── Gradient Text ── */
-        .gradient-text {
-            background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #4f46e5 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* ── Glass Components ── */
-        .glass {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid #cbd5e1;
-        }
-
-        .glass-card {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 16px rgba(100, 116, 139, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 48px rgba(100, 116, 139, 0.18), 0 0 0 1px rgba(59, 130, 246, 0.2);
-            border-color: rgba(59, 130, 246, 0.25);
-        }
-
-        /* ── Ambient Blobs ── */
         .blob {
             position: absolute;
             border-radius: 50%;
@@ -139,7 +62,24 @@ try {
             pointer-events: none;
         }
 
-        /* ── Animations ── */
+        .blob-1 {
+            width: 900px;
+            height: 900px;
+            background: rgba(147, 197, 253, 0.4);
+            top: -20%;
+            left: -15%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .blob-2 {
+            width: 700px;
+            height: 700px;
+            background: rgba(196, 181, 253, 0.3);
+            bottom: -15%;
+            right: -10%;
+            animation: float 10s ease-in-out infinite reverse;
+        }
+
         @keyframes float {
 
             0%,
@@ -152,150 +92,260 @@ try {
             }
         }
 
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
+        /* Navbar Layout */
+        .navbar {
+            position: fixed;
+            width: 100%;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--slate-200);
+            transition: background 0.3s;
+        }
+
+        .navbar.navbar-scrolled {
+            background: rgba(255, 255, 255, 0.97);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.125rem;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            color: var(--slate-800);
+            letter-spacing: -0.02em;
+        }
+
+        .nav-brand-icon {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 10px;
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-links {
+            display: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        @media(min-width: 768px) {
+            .nav-links {
+                display: flex;
             }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        .nav-link-item {
+            color: var(--slate-500);
+            font-weight: 500;
+            font-size: 0.875rem;
+            position: relative;
         }
 
-        @keyframes pulse-ring {
-            0% {
-                transform: scale(1);
-                opacity: 0.6;
-            }
-
-            100% {
-                transform: scale(2.5);
-                opacity: 0;
-            }
+        .nav-link-item:hover {
+            color: var(--slate-900);
         }
 
-        @keyframes shimmer {
-            0% {
-                background-position: -200% center;
-            }
-
-            100% {
-                background-position: 200% center;
-            }
+        .nav-link-item::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.25s ease;
         }
 
-        @keyframes counter {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+        .nav-link-item:hover::after {
+            transform: scaleX(1);
         }
 
-        .animate-float {
-            animation: float 7s ease-in-out infinite;
+        /* Hero Section */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 5rem;
+            padding-bottom: 6rem;
+            position: relative;
         }
 
-        .animate-fade-up {
-            animation: fadeUp 0.8s ease both;
-        }
-
-        .animate-slide-in {
-            animation: slideIn 0.6s ease both;
-        }
-
-        .delay-100 {
-            animation-delay: 0.1s;
-        }
-
-        .delay-200 {
-            animation-delay: 0.2s;
-        }
-
-        .delay-300 {
-            animation-delay: 0.3s;
-        }
-
-        .delay-400 {
-            animation-delay: 0.4s;
-        }
-
-        .delay-500 {
-            animation-delay: 0.5s;
-        }
-
-        /* ── Navbar ── */
-        .navbar-scrolled {
-            background: rgba(255, 255, 255, 0.97) !important;
-            box-shadow: 0 1px 0 #e2e8f0, 0 4px 24px rgba(100, 116, 139, 0.12);
-        }
-
-        /* ── Hero Badge ── */
         .hero-badge {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(124, 58, 237, 0.08));
-            border: 1px solid rgba(99, 102, 241, 0.25);
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.08);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            background: rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--secondary);
+            margin-bottom: 2rem;
         }
 
-        /* ── CTA Buttons ── */
-        .btn-primary {
-            background: linear-gradient(135deg, #2563eb, #4f46e5);
-            box-shadow: 0 10px 40px -8px rgba(37, 99, 235, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 50px -8px rgba(37, 99, 235, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        @keyframes ping {
+
+            75%,
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
         }
 
-        .btn-primary:active {
-            transform: translateY(0);
+        .hero-title {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
         }
 
-        .btn-secondary {
-            border: 1.5px solid #cbd5e1;
-            background: #ffffff;
-            color: #334155;
-            transition: all 0.3s ease;
+        @media(min-width: 768px) {
+            .hero-title {
+                font-size: 5rem;
+            }
         }
 
-        .btn-secondary:hover {
-            background: #f8fafc;
-            border-color: #94a3b8;
-            transform: translateY(-2px);
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--slate-600);
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            font-weight: 400;
         }
 
-        /* ── Stats ── */
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Stats Grid */
+        .stats-section {
+            padding: 4rem 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media(min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
         .stat-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 8px rgba(100, 116, 139, 0.08);
-            transition: all 0.3s;
+            background: var(--bg-surface);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
         }
 
         .stat-card:hover {
-            border-color: rgba(59, 130, 246, 0.3);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.1);
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-4px);
         }
 
-        /* ── Feature Icon ── */
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            color: var(--slate-800);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--slate-500);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Features Section */
+        .section-padding {
+            padding: 6rem 0;
+        }
+
+        .section-title-wrap {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .badge-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--secondary);
+            background: rgba(79, 70, 229, 0.1);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        @media(min-width: 768px) {
+            .section-title {
+                font-size: 3rem;
+            }
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media(min-width: 768px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(min-width: 1024px) {
+            .features-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
         .feature-icon-wrap {
             width: 56px;
             height: 56px;
@@ -303,725 +353,389 @@ try {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 24px;
-            position: relative;
+            margin-bottom: 1.5rem;
+            background: var(--slate-100);
+            color: var(--primary);
         }
 
-        .feature-icon-wrap::after {
-            content: '';
-            position: absolute;
-            inset: -1px;
-            border-radius: 17px;
-            border: 1px solid rgba(226, 232, 240, 0.9);
+        /* Pricing Section */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
-        /* ── Pricing ── */
+        @media(min-width: 768px) {
+            .pricing-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
         .pricing-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 16px rgba(100, 116, 139, 0.08);
-            border-radius: 24px;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-surface);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem 2rem;
             position: relative;
-            overflow: hidden;
-        }
-
-        .pricing-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.03) 100%);
-            opacity: 0;
-            transition: opacity 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .pricing-card:hover {
             transform: translateY(-8px);
-            border-color: rgba(59, 130, 246, 0.25);
-        }
-
-        .pricing-card:hover::before {
-            opacity: 1;
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-lg);
         }
 
         .pricing-card.featured {
-            border-color: rgba(59, 130, 246, 0.5);
-            background: linear-gradient(145deg, rgba(37, 99, 235, 0.12), rgba(15, 23, 42, 0.9));
-            box-shadow: 0 0 60px rgba(37, 99, 235, 0.2), 0 20px 60px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-glow);
         }
 
-        /* ── Shimmer Line ── */
-        .shimmer-line {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.6), transparent);
-            background-size: 200% 100%;
-            animation: shimmer 3s linear infinite;
+        .pricing-badge {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 0.625rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.375rem 1rem;
+            border-radius: var(--radius-full);
         }
 
-        /* ── Trust Logos ── */
-        .trust-logo-wrap {
-            filter: brightness(0) invert(1);
-            opacity: 0.25;
-            transition: opacity 0.3s;
+        .pricing-price {
+            font-size: 3.5rem;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+            margin: 1rem 0 1.5rem;
         }
 
-        .trust-logo-wrap:hover {
-            opacity: 0.6;
+        .pricing-perk {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: var(--slate-600);
         }
 
-        /* ── Testimonial ── */
-        .testimonial-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            border-radius: 20px;
-            transition: all 0.3s;
+        .pricing-perk i {
+            color: var(--accent-emerald);
         }
 
-        .testimonial-card:hover {
-            border-color: rgba(99, 102, 241, 0.4);
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        /* Footer */
+        .footer {
+            background: var(--slate-100);
+            padding: 4rem 0 2rem;
+            border-top: 1px solid var(--slate-200);
         }
 
-        /* ── Custom Scrollbar ── */
-        ::-webkit-scrollbar {
-            width: 6px;
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
         }
 
-        ::-webkit-scrollbar-track {
-            background: #020617;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.4);
-            border-radius: 10px;
-        }
-
-        /* ── Section Divider ── */
-        .section-divider {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
-        }
-
-        /* ── Live Dot ── */
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
-            animation: dot-ping 2s ease-out infinite;
-        }
-
-        @keyframes dot-ping {
-            0% {
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
-            }
-
-            70% {
-                box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        @media(min-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 2fr 1fr 1fr;
             }
         }
 
-        /* ── Nav link hover ── */
-        .nav-link {
-            position: relative;
-            color: #94a3b8;
+        .footer-col h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--slate-500);
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-link {
+            display: block;
+            color: var(--slate-600);
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
             transition: color 0.2s;
         }
 
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #3b82f6;
-            transform: scaleX(0);
-            transition: transform 0.25s ease;
+        .footer-link:hover {
+            color: var(--slate-900);
         }
 
-        .nav-link:hover {
-            color: #fff;
-        }
-
-        .nav-link:hover::after {
-            transform: scaleX(1);
-        }
-
-        /* ── Check mark ── */
-        .check-item {
+        .footer-bottom {
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .check-icon {
-            width: 20px;
-            height: 20px;
-            min-width: 20px;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 50%;
-            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            margin-top: 2px;
+            flex-wrap: wrap;
+            padding-top: 2rem;
+            border-top: 1px solid var(--slate-200);
+            font-size: 0.875rem;
+            color: var(--slate-500);
+        }
+
+        /* Utility */
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-8 {
+            margin-bottom: 2rem;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .block {
+            display: block;
+        }
+
+        .text-center {
+            text-align: center;
         }
     </style>
 </head>
 
-<body class="antialiased selection:bg-blue-500/30 selection:text-white">
+<body>
 
-    <!-- Ambient Background -->
-    <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div class="blob w-[900px] h-[900px] bg-blue-100/50 top-[-20%] left-[-15%] animate-float"></div>
-        <div class="blob w-[700px] h-[700px] bg-purple-100/40 bottom-[-15%] right-[-10%]"
-            style="animation: float 9s ease-in-out infinite reverse;"></div>
-        <div class="blob w-[400px] h-[400px] bg-indigo-100/40 top-[40%] left-[50%]"
-            style="animation: float 11s 2s ease-in-out infinite;"></div>
-
-        <!-- Grid overlay -->
-        <div
-            style="position:absolute;inset:0;background-image:linear-gradient(rgba(148,163,184,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,0.1) 1px,transparent 1px);background-size:60px 60px;">
-        </div>
+    <!-- Ambient BG -->
+    <div class="ambient-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
     </div>
 
-    <!-- ══════════════════════════════════════
-         NAVIGATION
-    ══════════════════════════════════════ -->
-    <nav id="navbar" class="fixed w-full z-50 transition-all duration-500 backdrop-blur-md border-b border-slate-200/50"
-        style="background: rgba(255,255,255,0.7);">
-        <div class="max-w-7xl mx-auto px-6 h-18 flex items-center justify-between" style="height:72px;">
-
-            <!-- Logo -->
-            <a href="#" class="flex items-center gap-3 group">
-                <div class="relative">
-                    <div
-                        class="bg-gradient-to-br from-blue-500 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition group-hover:shadow-blue-500/40 group-hover:scale-105">
-                        <i data-lucide="cloud" class="w-5 h-5 text-white"></i>
-                    </div>
-                </div>
-                <span
-                    class="text-lg font-bold font-heading tracking-tight text-slate-800"><?= e(strtoupper($brandName)) ?></span>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container navbar-content">
+            <a href="#" class="nav-brand">
+                <div class="nav-brand-icon"><i data-lucide="cloud" style="width:20px;height:20px;"></i></div>
+                <span><?= e(strtoupper($brandName)) ?></span>
             </a>
-
-            <!-- Desktop Nav Links -->
-            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
-                <a href="#features" class="nav-link">Features</a>
-                <a href="#stats" class="nav-link">Performance</a>
-                <a href="#pricing" class="nav-link">Pricing</a>
-                <a href="#testimonials" class="nav-link">Reviews</a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link-item">Features</a>
+                <a href="#stats" class="nav-link-item">Performance</a>
+                <a href="#pricing" class="nav-link-item">Pricing</a>
+                <a href="#testimonials" class="nav-link-item">Reviews</a>
             </div>
-
-            <!-- CTA -->
             <div class="flex items-center gap-3">
-                <a href="<?= e($clientUrl) ?>"
-                    class="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition px-4 py-2">
-                    <i data-lucide="log-in" class="w-4 h-4"></i> Login
+                <a href="<?= e($clientUrl) ?>" class="btn btn-secondary">
+                    <i data-lucide="log-in" style="width:16px;height:16px;"></i> Login
                 </a>
-                <a href="#pricing"
-                    class="btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white">
-                    Get Started <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                <a href="#pricing" class="btn btn-primary">
+                    Get Started <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
                 </a>
             </div>
         </div>
     </nav>
 
-    <!-- ══════════════════════════════════════
-         HERO
-    ══════════════════════════════════════ -->
-    <section class="relative min-h-screen flex items-center pt-20 pb-24 px-6 overflow-hidden">
-        <div class="max-w-7xl mx-auto w-full relative z-10">
-            <div class="text-center max-w-5xl mx-auto">
+    <!-- Hero -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <div class="hero-badge animate-fade-in">
+                <div class="live-dot"></div>
+                All Systems Operational · 99.97% Uptime This Month
+            </div>
 
-                <!-- Live status badge -->
-                <div
-                    class="animate-fade-up inline-flex items-center gap-3 hero-badge px-5 py-2.5 rounded-full text-xs font-bold tracking-widest uppercase mb-10">
-                    <div class="live-dot"></div>
-                    <span class="text-indigo-300">All Systems Operational · 99.97% Uptime This Month</span>
-                </div>
+            <h1 class="hero-title animate-fade-in" style="animation-delay: 0.1s;">
+                Hosting Built<br>
+                <span class="text-gradient">For Builders.</span>
+            </h1>
 
-                <!-- Headline -->
-                <h1
-                    class="animate-fade-up delay-100 font-heading text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mb-8">
-                    <span class="text-slate-900">Hosting Built</span><br>
-                    <span class="gradient-text">For Builders.</span>
-                </h1>
+            <p class="hero-subtitle animate-fade-in" style="animation-delay: 0.2s;">
+                Deploy on <strong>NVMe-powered cloud</strong> in seconds.
+                Automatic SSL, DDoS protection, and a control panel that actually makes sense.
+            </p>
 
-                <!-- Sub-headline -->
-                <p
-                    class="animate-fade-up delay-200 text-slate-600 text-lg sm:text-xl max-w-2xl mx-auto mb-12 leading-relaxed font-light">
-                    Deploy on <span class="text-slate-800 font-semibold">NVMe-powered cloud</span> in seconds.
-                    Automatic SSL, DDoS protection, and a control panel that actually makes sense.
-                </p>
-
-                <!-- Action Buttons -->
-                <div
-                    class="animate-fade-up delay-300 flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-                    <a href="#pricing"
-                        class="btn-primary w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 group text-white">
-                        View Plans
-                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition"></i>
-                    </a>
-                    <a href="<?= e($clientUrl) ?>"
-                        class="btn-secondary w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2">
-                        <i data-lucide="layout-dashboard" class="w-5 h-5 text-slate-600"></i>
-                        Client Portal
-                    </a>
-                </div>
-
-                <!-- Trust Line -->
-                <div class="animate-fade-up delay-400 section-divider mb-10"></div>
-                <div
-                    class="animate-fade-up delay-500 flex flex-wrap justify-center items-center gap-3 text-xs text-slate-600 font-semibold uppercase tracking-widest mb-14">
-                    <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2"
-                            class="w-3.5 h-3.5 text-emerald-500"></i> No Setup Fees</span>
-                    <span class="text-slate-700">·</span>
-                    <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2"
-                            class="w-3.5 h-3.5 text-emerald-500"></i> Free SSL</span>
-                    <span class="text-slate-700">·</span>
-                    <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2"
-                            class="w-3.5 h-3.5 text-emerald-500"></i> 24/7 Support</span>
-                    <span class="text-slate-700">·</span>
-                    <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2"
-                            class="w-3.5 h-3.5 text-emerald-500"></i> 30-Day Guarantee</span>
-                </div>
-
-                <!-- Hero Dashboard Preview -->
-                <div class="relative max-w-4xl mx-auto">
-                    <div class="absolute inset-0 rounded-3xl bg-gradient-to-t from-[#f8fafc] via-transparent to-transparent z-10"
-                        style="top:60%;"></div>
-                    <div class="glass rounded-3xl p-5 shadow-2xl shadow-blue-500/10 border border-slate-200/60">
-                        <!-- Fake dashboard preview bar -->
-                        <div class="flex items-center gap-2 mb-4">
-                            <div class="w-3 h-3 rounded-full bg-red-400"></div>
-                            <div class="w-3 h-3 rounded-full bg-amber-400"></div>
-                            <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
-                            <div
-                                class="flex-1 ml-3 h-6 rounded-lg bg-slate-100 flex items-center px-3 border border-slate-200">
-                                <span
-                                    class="text-[10px] font-mono text-slate-600">https://client.<?= e($base) ?>/dashboard</span>
-                            </div>
-                        </div>
-
-                        <!-- Stat bars -->
-                        <div class="grid grid-cols-3 gap-3 mb-4">
-                            <?php
-                            $metrics = [
-                                ['CPU Load', '24%', 'bg-blue-500', 24, '#60a5fa'],
-                                ['RAM Usage', '61%', 'bg-purple-500', 61, '#c084fc'],
-                                ['Disk Space', '38%', 'bg-emerald-500', 38, '#34d399'],
-                            ];
-                            foreach ($metrics as $m):
-                                ?>
-                                <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-                                    <div class="text-[10px] text-slate-600 uppercase tracking-widest mb-2"><?= $m[0] ?>
-                                    </div>
-                                    <div class="text-xl font-bold text-slate-800 mb-3"><?= $m[1] ?></div>
-                                    <div class="h-1 bg-slate-100 rounded-full overflow-hidden">
-                                        <div class="h-full <?= $m[2] ?> rounded-full" style="width:<?= $m[3] ?>%"></div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-
-                        <!-- Fake activity rows -->
-                        <div class="space-y-2">
-                            <?php
-                            $rows = [
-                                ['domain.com', 'Active', 'bg-emerald-500'],
-                                ['api.domain.com', 'Active', 'bg-emerald-500'],
-                                ['staging.domain.com', 'Deploying', 'bg-yellow-500'],
-                            ];
-                            foreach ($rows as $r):
-                                ?>
-                                <div
-                                    class="flex items-center justify-between bg-slate-100 rounded-xl px-4 py-3 border border-slate-200">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-2 h-2 rounded-full <?= $r[2] ?>"></div>
-                                        <span class="text-xs font-mono text-slate-700"><?= $r[0] ?></span>
-                                    </div>
-                                    <span class="text-[10px] font-bold text-slate-600"><?= $r[1] ?></span>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="hero-actions animate-fade-in" style="animation-delay: 0.3s;">
+                <a href="#pricing" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1rem;">
+                    View Plans <i data-lucide="arrow-right"></i>
+                </a>
+                <a href="<?= e($clientUrl) ?>" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1rem;">
+                    <i data-lucide="layout-dashboard"></i> Client Portal
+                </a>
             </div>
         </div>
     </section>
 
-    <!-- ══════════════════════════════════════
-         STATS STRIP
-    ══════════════════════════════════════ -->
-    <section id="stats" class="relative z-10 py-20 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <!-- Stats -->
+    <section id="stats" class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
                 <?php
                 $stats = [
-                    ['99.97%', 'Uptime SLA', 'activity', 'text-emerald-400'],
-                    ['<10ms', 'Response Time', 'zap', 'text-blue-400'],
-                    ['3 DC', 'Global Locations', 'globe', 'text-indigo-400'],
-                    ['24 / 7', 'Expert Support', 'headphones', 'text-purple-400'],
+                    ['99.97%', 'Uptime SLA', 'activity', '#10b981'],
+                    ['<10ms', 'Response Time', 'zap', '#2563eb'],
+                    ['3 DC', 'Global Locations', 'globe', '#4f46e5'],
+                    ['24 / 7', 'Expert Support', 'headphones', '#7c3aed'],
                 ];
                 foreach ($stats as $s):
                     ?>
-                    <div class="stat-card rounded-2xl p-6 text-center">
-                        <div class="<?= $s[3] ?> mb-2 flex justify-center">
-                            <i data-lucide="<?= $s[2] ?>" class="w-6 h-6"></i>
-                        </div>
-                        <div class="text-3xl font-bold font-heading text-slate-800 mb-1"><?= $s[0] ?></div>
-                        <div class="text-xs text-slate-600 font-semibold uppercase tracking-widest"><?= $s[1] ?></div>
+                    <div class="stat-card">
+                        <i data-lucide="<?= $s[2] ?>" style="width:24px;height:24px;color:<?= $s[3] ?>;"></i>
+                        <div class="stat-value"><?= $s[0] ?></div>
+                        <div class="stat-label"><?= $s[1] ?></div>
                     </div>
                 <?php endforeach; ?>
             </div>
         </div>
     </section>
 
-    <div class="section-divider max-w-7xl mx-auto"></div>
-
-    <!-- ══════════════════════════════════════
-         FEATURES
-    ══════════════════════════════════════ -->
-    <section id="features" class="relative z-10 py-28 px-6">
-        <div class="max-w-7xl mx-auto">
-
-            <!-- Section Header -->
-            <div class="text-center mb-20">
-                <span
-                    class="text-xs font-bold tracking-widest uppercase text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-4 py-2 rounded-full">Why
-                    <?= e($brandName) ?></span>
-                <h2 class="font-heading text-4xl md:text-5xl font-bold mt-6 mb-5 text-slate-900">Enterprise-Grade, <br
-                        class="hidden md:block">Developer-Friendly</h2>
-                <p class="text-slate-600 max-w-xl mx-auto leading-relaxed">
+    <!-- Features -->
+    <section id="features" class="section-padding">
+        <div class="container">
+            <div class="section-title-wrap">
+                <span class="badge-label">Why <?= e($brandName) ?></span>
+                <h2 class="section-title">Enterprise-Grade, <br>Developer-Friendly</h2>
+                <p style="color:var(--slate-600);max-width:600px;margin:1rem auto;">
                     All the power of a dedicated server, with the simplicity of a managed platform.
                 </p>
             </div>
 
-            <!-- Feature Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="features-grid">
                 <?php
                 $features = [
-                    ['zap', 'from-blue-50 to-blue-100', 'text-blue-600', 'Blazing NVMe I/O', 'Up to 10× faster storage vs traditional SSD. Queries fly, apps load instantly, users stay happy.'],
-                    ['shield-check', 'from-purple-50 to-purple-100', 'text-purple-600', 'DDoS Protection', 'Multi-layer traffic scrubbing absorbs attacks before they reach your app — automatically.'],
-                    ['globe-2', 'from-emerald-50 to-emerald-100', 'text-emerald-600', 'Global CDN Edge', 'Content delivered from the nearest node. Lower latency means higher conversions.'],
-                    ['lock', 'from-pink-50 to-pink-100', 'text-pink-600', 'Auto Free SSL', 'Let\'s Encrypt certificates issued and auto-renewed for every domain you add. Zero clicks.'],
-                    ['terminal', 'from-orange-50 to-orange-100', 'text-orange-600', 'Full SSH Access', 'Root or user-level SSH, SFTP, and Git deployment hooks. Your server, your rules.'],
-                    ['life-buoy', 'from-cyan-50 to-cyan-100', 'text-cyan-600', '24 / 7 Expert Support', 'Real engineers, not bots — available around the clock via ticket, chat, and phone.'],
-                    ['database', 'from-violet-50 to-violet-100', 'text-violet-600', 'Managed MySQL / PG', 'Automated backups, one-click restores, and phpMyAdmin included. No DBA needed.'],
-                    ['mail', 'from-rose-50 to-rose-100', 'text-rose-600', 'Business Email', 'Fully-featured mail server with spam filters, webmail, and DKIM/SPF configured out of the box.'],
-                    ['refresh-cw', 'from-teal-50 to-teal-100', 'text-teal-600', 'Daily Backups', 'Automated off-site snapshots retained for 30 days. One-click point-in-time restore.'],
+                    ['zap', 'Blazing NVMe I/O', 'Up to 10× faster storage vs traditional SSD. Queries fly, apps load.'],
+                    ['shield-check', 'DDoS Protection', 'Multi-layer traffic scrubbing absorbs attacks before they reach your app.'],
+                    ['globe-2', 'Global CDN Edge', 'Content delivered from the nearest node. Lower latency.'],
+                    ['lock', 'Auto Free SSL', 'Let\'s Encrypt certificates issued and auto-renewed out of the box.'],
+                    ['terminal', 'Full SSH Access', 'Root or user-level SSH, SFTP, and Git deployment hooks.'],
+                    ['life-buoy', '24/7 Expert Support', 'Real engineers available around the clock.'],
                 ];
                 foreach ($features as $f):
                     ?>
-                    <div class="glass-card rounded-2xl p-7">
-                        <div class="feature-icon-wrap bg-gradient-to-br <?= $f[1] ?>">
-                            <i data-lucide="<?= $f[0] ?>" class="w-6 h-6 <?= $f[2] ?>"></i>
+                    <div class="glass-card">
+                        <div class="feature-icon-wrap">
+                            <i data-lucide="<?= $f[0] ?>"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-800 mb-3"><?= $f[3] ?></h3>
-                        <p class="text-slate-600 text-sm leading-relaxed"><?= $f[4] ?></p>
+                        <h3 style="margin-bottom: 0.5rem; font-size: 1.125rem;"><?= $f[1] ?></h3>
+                        <p style="color:var(--slate-600); font-size:0.875rem;"><?= $f[2] ?></p>
                     </div>
                 <?php endforeach; ?>
             </div>
         </div>
     </section>
 
-    <div class="section-divider max-w-7xl mx-auto"></div>
-
-    <!-- ══════════════════════════════════════
-         PRICING
-    ══════════════════════════════════════ -->
-    <section id="pricing" class="relative z-10 py-28 px-6">
-        <div class="max-w-7xl mx-auto">
-
-            <div class="text-center mb-20">
-                <span
-                    class="text-xs font-bold tracking-widest uppercase text-blue-400 bg-blue-400/10 border border-blue-400/20 px-4 py-2 rounded-full">Simple
+    <!-- Pricing -->
+    <section id="pricing" class="section-padding" style="background: rgba(255,255,255,0.4);">
+        <div class="container">
+            <div class="section-title-wrap">
+                <span class="badge-label" style="color:var(--primary); background:var(--primary-light);">Simple
                     Pricing</span>
-                <h2 class="font-heading text-4xl md:text-5xl font-bold mt-6 mb-5 text-slate-900">Plans That Scale With
-                    You
-                </h2>
-                <p class="text-slate-600 max-w-lg mx-auto">No hidden fees. Upgrade or downgrade anytime. Cancel with one
-                    click.</p>
+                <h2 class="section-title">Plans That Scale With You</h2>
             </div>
 
-            <?php if (!empty($plans)): ?>
-                <div class="grid grid-cols-1 md:grid-cols-<?= min(count($plans), 3) ?> gap-6 max-w-5xl mx-auto">
-                    <?php foreach ($plans as $i => $plan):
-                        $featured = $i === 1;
-                        $price = number_format((float) ($plan['price'] ?? 0), 0);
-                        ?>
-                        <div class="pricing-card p-8 <?= $featured ? 'featured' : '' ?>">
-                            <?php if ($featured): ?>
-                                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                    <span
-                                        class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">Most
-                                        Popular</span>
-                                </div>
-                            <?php endif; ?>
-
-                            <div class="mb-6">
-                                <h3 class="text-xl font-bold text-slate-900 mb-1"><?= e($plan['name'] ?? 'Plan') ?></h3>
-                                <p class="text-slate-600 text-sm">Everything you need to get started</p>
-                            </div>
-
-                            <div class="mb-8">
-                                <span class="text-5xl font-bold font-heading text-slate-900">₹<?= $price ?></span>
-                                <span class="text-slate-600 text-sm ml-2">/ month</span>
-                            </div>
-
-                            <div class="space-y-3 mb-8">
-                                <?php
-                                $perks = [
-                                    ($plan['disk_mb'] ?? 0) / 1024 . ' GB NVMe Storage',
-                                    ($plan['max_domains'] ?? 1) . ' Domain' . (($plan['max_domains'] ?? 1) > 1 ? 's' : ''),
-                                    ($plan['max_databases'] ?? 1) . ' MySQL Database' . (($plan['max_databases'] ?? 1) > 1 ? 's' : ''),
-                                    ($plan['max_emails'] ?? 5) . ' Email Account' . (($plan['max_emails'] ?? 5) > 1 ? 's' : ''),
-                                    'Free SSL Certificate',
-                                    'DDoS Protection',
-                                    '24/7 Support',
-                                ];
-                                foreach ($perks as $perk):
-                                    ?>
-                                    <div class="check-item">
-                                        <div class="check-icon"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i></div>
-                                        <span class="text-sm text-slate-600"><?= e($perk) ?></span>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-
-                            <a href="<?= e($clientUrl) ?>/checkout.php?plan=<?= (int) ($plan['id'] ?? 0) ?>" class="block text-center py-3.5 rounded-xl font-bold text-sm transition
-                              <?= $featured
-                                  ? 'btn-primary text-white'
-                                  : 'btn-secondary text-slate-600 hover:text-slate-900' ?>">
-                                Get Started →
-                            </a>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-
-            <?php else: ?>
-                <!-- Default plans if DB is empty -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                    <?php
-                    $defaultPlans = [
-                        ['Starter', '₹299', '10', '1', '1', '5', false],
-                        ['Business', '₹799', '50', '5', '5', '25', true],
-                        ['Pro', '₹1,499', '200', '20', '20', '100', false],
-                    ];
-                    foreach ($defaultPlans as $pi => $dp):
-                        $featured = $dp[6];
-                        ?>
-                        <div class="pricing-card p-8 <?= $featured ? 'featured' : '' ?>">
-                            <?php if ($featured): ?>
-                                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                    <span
-                                        class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg">Most
-                                        Popular</span>
-                                </div>
-                            <?php endif; ?>
-                            <div class="mb-6">
-                                <h3 class="text-xl font-bold text-slate-900 mb-1"><?= $dp[0] ?></h3>
-                                <p class="text-slate-600 text-sm">Perfect for
-                                    <?= $pi === 0 ? 'small projects' : ($pi === 1 ? 'growing businesses' : 'large-scale apps') ?>
-                                </p>
-                            </div>
-                            <div class="mb-8">
-                                <span class="text-5xl font-bold font-heading <?= $featured ? 'text-white' : 'text-slate-900' ?>"><?= $dp[1] ?></span>
-                                <span class="text-slate-600 text-sm ml-2">/ month</span>
-                            </div>
-                            <div class="space-y-3 mb-8">
-                                <?php foreach ([
-                                    $dp[2] . ' GB NVMe Storage',
-                                    $dp[3] . ' Domain(s)',
-                                    $dp[4] . ' MySQL Database(s)',
-                                    $dp[5] . ' Email Accounts',
-                                    'Free SSL',
-                                    'DDoS Protection',
-                                    '24/7 Support',
-                                ] as $perk): ?>
-                                    <div class="check-item">
-                                        <div class="check-icon"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i></div>
-                                        <span class="text-sm text-slate-600"><?= $perk ?></span>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                            <a href="<?= e($clientUrl) ?>"
-                                class="block text-center py-3.5 rounded-xl font-bold text-sm transition <?= $featured ? 'btn-primary text-white' : 'btn-secondary text-slate-600 hover:text-slate-900' ?>">
-                                Get Started →
-                            </a>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-
-            <p class="text-center text-slate-600 text-sm mt-10">
-                Need a custom plan? <a href="mailto:support@<?= e($base) ?>"
-                    class="text-blue-500 hover:text-blue-400 transition">Contact us →</a>
-            </p>
-        </div>
-    </section>
-
-    <div class="section-divider max-w-7xl mx-auto"></div>
-
-    <!-- ══════════════════════════════════════
-         TESTIMONIALS
-    ══════════════════════════════════════ -->
-    <section id="testimonials" class="relative z-10 py-28 px-6">
-        <div class="max-w-7xl mx-auto">
-
-            <div class="text-center mb-20">
-                <span
-                    class="text-xs font-bold tracking-widest uppercase text-purple-400 bg-purple-400/10 border border-purple-400/20 px-4 py-2 rounded-full">Loved
-                    By Developers</span>
-                <h2 class="font-heading text-4xl md:text-5xl font-bold mt-6 mb-5 text-slate-900">Don't Take Our Word For
-                    It
-                </h2>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Pricing Grid -->
+            <div class="pricing-grid"
+                style="grid-template-columns: repeat(min(4, 1fr), 1fr); @media(min-width: 1024px) { grid-template-columns: repeat(4, 1fr); } max-width: 1200px;">
                 <?php
-                $testimonials = [
-                    ['Switched from cPanel/WHM shared hosting — the speed difference is night and day. NVMe just works.', 'Rahul M.', 'Full-Stack Developer, Mumbai', 'RM'],
-                    ['Finally a hosting panel that doesn\'t feel like it\'s from 2005. Clean UI, great support.', 'Priya S.', 'CTO, SaaS Startup', 'PS'],
-                    ['Auto SSL, automatic backups, and a dashboard that shows me exactly what\'s happening. Love it.', 'Arjun K.', 'Freelance DevOps Engineer', 'AK'],
+                $plans = [
+                    [
+                        'name' => 'Basic Plan',
+                        'price' => '₹49',
+                        'popular' => false,
+                        'perks' => ['1 Website', '1 GB SSD Storage', '2 Email Accounts', 'Free SSL Certificate', 'Standard Speed', 'Beginner Friendly']
+                    ],
+                    [
+                        'name' => 'Smart Plan',
+                        'price' => '₹149',
+                        'popular' => true,
+                        'perks' => ['3 Websites', '5 GB SSD Storage', '10 Email Accounts', 'Free SSL', 'Faster Performance', 'Priority Support']
+                    ],
+                    [
+                        'name' => 'Pro Plan',
+                        'price' => '₹249',
+                        'popular' => false,
+                        'perks' => ['10 Websites', '15 GB SSD Storage', '25 Email Accounts', 'Free SSL + Backup', 'High Performance', 'Developer Friendly']
+                    ],
+                    [
+                        'name' => 'Agency Plan',
+                        'price' => '₹399',
+                        'popular' => false,
+                        'perks' => ['Unlimited Websites', '40 GB SSD Storage', '100 Email Accounts', 'Free SSL + Backup', 'Priority Resources', '24/7 Support']
+                    ]
                 ];
-                foreach ($testimonials as $t):
+
+                foreach ($plans as $plan):
+                    $featured = $plan['popular'];
                     ?>
-                    <div class="testimonial-card p-7">
-                        <!-- Stars -->
-                        <div class="flex gap-1 mb-5">
-                            <?php for ($s = 0; $s < 5; $s++): ?><i data-lucide="star"
-                                    class="w-4 h-4 text-amber-400 fill-amber-400"></i><?php endfor; ?>
+                    <div class="pricing-card <?= $featured ? 'featured' : '' ?>">
+                        <?php if ($featured): ?>
+                            <div class="pricing-badge">Most Popular</div>
+                        <?php endif; ?>
+                        <h3 style="font-size:1.25rem; font-weight:700;"><?= $plan['name'] ?></h3>
+                        <div class="pricing-price"><?= $plan['price'] ?><span
+                                style="font-size:0.875rem;color:var(--slate-500);font-weight:400;font-family:'Plus Jakarta Sans',sans-serif;">/mo</span>
                         </div>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-6">"<?= $t[0] ?>"</p>
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center text-xs font-bold text-white">
-                                <?= $t[3] ?>
-                            </div>
-                            <div>
-                                <div class="font-bold text-sm text-slate-900"><?= $t[1] ?></div>
-                                <div class="text-xs text-slate-600"><?= $t[2] ?></div>
-                            </div>
+
+                        <div style="margin-bottom: 2rem;">
+                            <?php foreach ($plan['perks'] as $perk): ?>
+                                <div class="pricing-perk">
+                                    <i data-lucide="check" style="width:16px;height:16px; flex-shrink:0;"></i>
+                                    <span style="flex-grow:1;"><?= e($perk) ?></span>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
+                        <a href="<?= e($clientUrl) ?>/checkout.php?plan=<?= urlencode($plan['name']) ?>"
+                            class="btn w-full block text-center <?= $featured ? 'btn-primary' : 'btn-secondary' ?>">Get
+                            Started</a>
                     </div>
                 <?php endforeach; ?>
             </div>
         </div>
     </section>
 
-    <!-- ══════════════════════════════════════
-         CTA BAND
-    ══════════════════════════════════════ -->
-    <section class="relative z-10 py-28 px-6">
-        <div class="max-w-4xl mx-auto text-center">
-            <div class="glass-card rounded-3xl p-14 relative overflow-hidden">
-                <div class="blob w-[600px] h-[600px] bg-blue-100/50 top-[-50%] left-[50%] -translate-x-1/2 animate-float"
-                    style="filter:blur(80px);opacity:0.6;"></div>
-                <div class="relative z-10">
-                    <h2 class="font-heading text-4xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">Ready
-                        to<br><span class="gradient-text">Launch Faster?</span></h2>
-                    <p class="text-slate-600 text-lg mb-10 max-w-lg mx-auto">
-                        Join thousands of developers who deploy on <?= e($brandName) ?> every day.
-                    </p>
-                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <a href="#pricing"
-                            class="btn-primary px-10 py-4 rounded-2xl font-bold text-white text-base flex items-center gap-2 group">
-                            Start For Free <i data-lucide="rocket" class="w-5 h-5 group-hover:rotate-12 transition"></i>
-                        </a>
-                        <a href="<?= e($clientUrl) ?>"
-                            class="btn-secondary px-10 py-4 rounded-2xl font-bold text-slate-600 hover:text-slate-900 text-base flex items-center gap-2">
-                            <i data-lucide="log-in" class="w-5 h-5"></i> Login to Portal
-                        </a>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col" style="grid-column: span 1;">
+                    <div class="nav-brand" style="margin-bottom:1rem;">
+                        <div class="nav-brand-icon" style="padding:6px;"><i data-lucide="cloud"
+                                style="width:16px;height:16px;"></i></div>
+                        <span><?= e(strtoupper($brandName)) ?></span>
                     </div>
+                    <p style="color:var(--slate-500);font-size:0.875rem;line-height:1.6;max-width:300px;">
+                        Enterprise-grade cloud hosting trusted by developers and agencies.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <a href="#features" class="footer-link">Features</a>
+                    <a href="#pricing" class="footer-link">Pricing</a>
+                    <a href="<?= e($clientUrl) ?>" class="footer-link">Client Portal</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Support</h4>
+                    <a href="mailto:support@<?= e($base) ?>" class="footer-link">Email Support</a>
+                    <a href="#" class="footer-link">Privacy Policy</a>
+                    <a href="#" class="footer-link">Terms of Service</a>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- ══════════════════════════════════════
-         FOOTER
-    ══════════════════════════════════════ -->
-    <footer class="relative z-10 border-t border-slate-200 bg-slate-50 pt-16 pb-8 px-6">
-        <div class="max-w-7xl mx-auto">
-
-            <!-- Top row -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-14">
-                <!-- Brand -->
-                <div class="md:col-span-2">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 p-2.5 rounded-xl">
-                            <i data-lucide="cloud" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <span
-                            class="text-lg font-bold font-heading text-slate-900"><?= e(strtoupper($brandName)) ?></span>
-                    </div>
-                    <p class="text-slate-600 text-sm leading-relaxed max-w-xs mb-6">
-                        Enterprise-grade cloud hosting trusted by developers and agencies across India and beyond.
-                    </p>
-                    <div class="flex items-center gap-2 text-xs font-bold text-emerald-400">
-                        <div class="live-dot"></div>
-                        <span>All Systems Operational</span>
-                    </div>
+            <div class="footer-bottom">
+                <div>&copy; <?= date('Y') ?> <?= e($brandName) ?>. All rights reserved.</div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    Made with <i data-lucide="heart"
+                        style="width:14px;height:14px;color:var(--accent-red);fill:var(--accent-red);"></i> for the web
                 </div>
-
-                <!-- Quick Links -->
-                <div>
-                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-600 mb-5">Platform</h4>
-                    <div class="space-y-3">
-                        <a href="#features"
-                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Features</a>
-                        <a href="#pricing"
-                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Pricing</a>
-                        <a href="#testimonials"
-                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Reviews</a>
-                        <a href="<?= e($clientUrl) ?>"
-                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Client Portal</a>
-                    </div>
-                </div>
-
-                <!-- Support -->
-                <div>
-                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-600 mb-5">Support</h4>
-                    <div class="space-y-3">
-                        <a href="mailto:support@<?= e($base) ?>"
-                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Email Support</a>
-                        <a href="#" class="block text-sm text-slate-600 hover:text-slate-900 transition">Privacy
-                            Policy</a>
-                        <a href="#" class="block text-sm text-slate-600 hover:text-slate-900 transition">Terms of
-                            Service</a>
-                        <a href="#" class="block text-sm text-slate-600 hover:text-slate-900 transition">SLA</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="shimmer-line mb-8"></div>
-
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-600">
-                <span>&copy; <?= date('Y') ?> <?= e($brandName) ?>. All rights reserved.</span>
-                <span class="flex items-center gap-2">
-                    Made with <i data-lucide="heart" class="w-3.5 h-3.5 text-red-500 fill-red-500 animate-pulse"></i>
-                    for the web
-                </span>
             </div>
         </div>
     </footer>
 
     <script>
-        // Init icons
         lucide.createIcons();
 
-        // ── Scrolling Navbar ──
+        // Navbar Scroll Effect
         const navbar = document.getElementById('navbar');
         window.addEventListener('scroll', () => {
             if (window.scrollY > 40) {
@@ -1029,36 +743,6 @@ try {
             } else {
                 navbar.classList.remove('navbar-scrolled');
             }
-        }, { passive: true });
-
-        // ── Smooth scroll offset ──
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                const href = this.getAttribute('href');
-                if (href === '#') return;
-                const target = document.querySelector(href);
-                if (!target) return;
-                e.preventDefault();
-                const top = target.getBoundingClientRect().top + window.scrollY - 80;
-                window.scrollTo({ top, behavior: 'smooth' });
-            });
-        });
-
-        // ── Intersection Observer for fade-in animations ──
-        const obs = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.glass-card, .stat-card, .pricing-card, .testimonial-card').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            obs.observe(el);
         });
     </script>
 </body>

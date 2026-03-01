@@ -101,54 +101,59 @@ if (count($parts) >= 2) {
 include 'layout/header.php';
 ?>
 
-<div class="space-y-10">
+<div style="display: flex; flex-direction: column; gap: 2.5rem;">
     <!-- CREATE EMAIL -->
-    <div class="glass-card p-10">
-        <h2 class="text-2xl font-bold mb-8 text-slate-900">Create Email Account</h2>
-        <form onsubmit="handleGeneric(event, 'add_email')" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="glass-card" style="padding: 2.5rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); margin-bottom: 2rem;">Create Email
+            Account</h2>
+        <form onsubmit="handleGeneric(event, 'add_email')"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             <?= csrf_field() ?>
-            <input name="user" required placeholder="mailbox name"
-                class="bg-slate-50 border border-slate-300 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 placeholder-slate-600 transition">
-            <select name="domain"
-                class="bg-slate-50 border border-slate-300 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-700">
+            <input name="user" required placeholder="mailbox name" class="form-input">
+            <select name="domain" class="form-select">
                 <?php foreach ($domains as $d): ?>
                     <option value="<?= $d['domain'] ?>">@
                         <?= $d['domain'] ?>
                     </option>
                 <?php endforeach; ?>
             </select>
-            <input name="pass" type="password" required placeholder="Password"
-                class="bg-slate-50 border border-slate-300 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 placeholder-slate-600 transition">
-            <button
-                class="bg-blue-600 text-slate-900 rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition">Create
+            <input name="pass" type="password" required placeholder="Password" class="form-input">
+            <button class="btn btn-primary"
+                style="box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.1);">Create
                 Mailbox</button>
         </form>
     </div>
 
     <!-- LIST -->
-    <div class="glass-card overflow-hidden">
-        <table class="w-full text-left">
-            <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-700">
+    <div class="glass-card" style="overflow-x: auto;">
+        <table class="table" style="width: 100%;">
+            <thead>
                 <tr>
-                    <th class="p-6">Active Email Account</th>
-                    <th class="p-6 text-right">Webmail / Action</th>
+                    <th>Active Email Account</th>
+                    <th style="text-align: right;">Webmail / Action</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($my_emails as $mail): ?>
-                    <tr class="border-t border-slate-300 hover:bg-slate-50/30 transition">
-                        <td class="p-6 font-bold text-slate-700">
+                    <tr>
+                        <td style="font-weight: 700; color: var(--slate-700);">
                             <?= $mail['email'] ?>
                         </td>
-                        <td class="p-6 text-right">
+                        <td style="text-align: right;">
                             <a href="http://webmail.<?= $base_domain ?>" target="_blank"
-                                class="text-blue-400 font-bold text-xs mr-4 uppercase tracking-tighter hover:text-blue-300">Login</a>
+                                style="color: var(--primary); font-weight: 700; font-size: 0.75rem; margin-right: 1rem; text-transform: uppercase; letter-spacing: -0.05em; text-decoration: none; transition: color 0.2s;"
+                                onmouseover="this.style.color='#93c5fd'"
+                                onmouseout="this.style.color='var(--primary)'">Login</a>
                             <button onclick="resetPassword('reset_mail_pass', 'email', '<?= $mail['email'] ?>')"
-                                class="text-orange-400 hover:bg-orange-500/10 p-2 rounded-lg transition mr-2"><i
-                                    data-lucide="key" class="w-4 h-4"></i></button>
+                                style="color: var(--accent-orange); background: transparent; border: none; padding: 0.5rem; border-radius: var(--radius-md); cursor: pointer; transition: background 0.2s; margin-right: 0.5rem;"
+                                onmouseover="this.style.backgroundColor='rgba(249, 115, 22, 0.1)'"
+                                onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="key"
+                                    style="width: 16px; height: 16px;"></i></button>
                             <button onclick="deleteAction('delete_email', 'email', '<?= $mail['email'] ?>')"
-                                class="text-red-400 hover:bg-red-500/10 p-2 rounded-lg transition"><i data-lucide="trash-2"
-                                    class="w-4"></i></button>
+                                style="color: var(--accent-red); background: transparent; border: none; padding: 0.5rem; border-radius: var(--radius-md); cursor: pointer; transition: background 0.2s;"
+                                onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'"
+                                onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="trash-2"
+                                    style="width: 16px; height: 16px;"></i></button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -157,18 +162,16 @@ include 'layout/header.php';
     </div>
 
     <?php if ($total_pages > 1): ?>
-        <div class="flex justify-between items-center mt-6">
-            <div class="text-xs text-slate-700 font-bold">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+            <div style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700;">
                 Page <?= $page ?> of <?= $total_pages ?>
             </div>
-            <div class="flex gap-2">
+            <div style="display: flex; gap: 0.5rem;">
                 <?php if ($page > 1): ?>
-                    <a href="?page=<?= $page - 1 ?>"
-                        class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition">Previous</a>
+                    <a href="?page=<?= $page - 1 ?>" class="btn btn-secondary" style="font-size: 0.75rem;">Previous</a>
                 <?php endif; ?>
                 <?php if ($page < $total_pages): ?>
-                    <a href="?page=<?= $page + 1 ?>"
-                        class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-200 transition">Next</a>
+                    <a href="?page=<?= $page + 1 ?>" class="btn btn-secondary" style="font-size: 0.75rem;">Next</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -218,6 +221,3 @@ include 'layout/header.php';
         }
     }
 </script>
-
-
-

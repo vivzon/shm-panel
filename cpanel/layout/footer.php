@@ -9,31 +9,35 @@
     function showToast(type, title, message) {
         const toast = document.createElement('div');
         const colors = {
-            success: 'border-l-emerald-500 bg-white',
-            error: 'border-l-red-500 bg-white',
-            info: 'border-l-blue-500 bg-white',
+            success: 'border-left-color: #10b981; background-color: #fff;',
+            error: 'border-left-color: #ef4444; background-color: #fff;',
+            info: 'border-left-color: #3b82f6; background-color: #fff;',
         };
-        toast.className = `fixed bottom-5 right-5 z-[100] w-96 p-4 rounded-xl shadow-lg border border-slate-200 flex items-start gap-4 transform transition-all duration-500 translate-x-full opacity-0 border-l-4 ${colors[type] || colors.info}`;
+        toast.style.cssText = `position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 100; width: 24rem; padding: 1rem; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid var(--slate-200); display: flex; align-items: flex-start; gap: 1rem; transition: all 0.5s; transform: translateX(100%); opacity: 0; border-left-width: 4px; border-left-style: solid; ${colors[type] || colors.info}`;
 
-        const iconBgs = { success: 'bg-emerald-100 text-emerald-600', error: 'bg-red-100 text-red-600', info: 'bg-blue-100 text-blue-600' };
+        const iconBgs = { success: 'background-color: #d1fae5; color: #059669;', error: 'background-color: #fee2e2; color: #dc2626;', info: 'background-color: #dbeafe; color: #2563eb;' };
         const iconNames = { success: 'check-circle', error: 'x-circle', info: 'info' };
-        const iconHtml = `<div class="${iconBgs[type] || iconBgs.info} p-2 rounded-lg shrink-0"><i data-lucide="${iconNames[type] || 'info'}" class="w-4 h-4"></i></div>`;
+        const iconHtml = `<div style="${iconBgs[type] || iconBgs.info} padding: 0.5rem; border-radius: 0.5rem; flex-shrink: 0;"><i data-lucide="${iconNames[type] || 'info'}" style="width: 1rem; height: 1rem;"></i></div>`;
 
         toast.innerHTML = `
             ${iconHtml}
-            <div class="flex-1 min-w-0">
-                <h4 class="font-bold text-slate-800 text-sm">${title}</h4>
-                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">${message}</p>
+            <div style="flex: 1; min-width: 0;">
+                <h4 style="font-weight: 700; color: #1e293b; font-size: 0.875rem; margin-bottom: 0.125rem;">${title}</h4>
+                <p style="font-size: 0.75rem; color: #64748b; line-height: 1.625; margin: 0;">${message}</p>
             </div>
-            <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 transition shrink-0"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <button onclick="this.parentElement.remove()" style="color: #94a3b8; flex-shrink: 0; background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#475569'" onmouseout="this.style.color='#94a3b8'"><i data-lucide="x" style="width: 1rem; height: 1rem;"></i></button>
         `;
 
         document.body.appendChild(toast);
         lucide.createIcons({ root: toast });
 
-        requestAnimationFrame(() => toast.classList.remove('translate-x-full', 'opacity-0'));
+        requestAnimationFrame(() => {
+            toast.style.transform = 'translateX(0)';
+            toast.style.opacity = '1';
+        });
         setTimeout(() => {
-            toast.classList.add('translate-x-full', 'opacity-0');
+            toast.style.transform = 'translateX(100%)';
+            toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 500);
         }, 5000);
     }

@@ -100,222 +100,289 @@ include 'layout/header.php';
 <!-- ApexCharts for Water Flow Graph -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-<div class="space-y-8">
+<div style="display: flex; flex-direction: column; gap: 2rem;">
 
     <!-- Welcome Section -->
-    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-300 pb-6">
+    <div
+        style="display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; border-bottom: 1px solid var(--slate-300); padding-bottom: 1.5rem; flex-wrap: wrap;">
         <div>
-            <h2 class="text-3xl font-bold text-slate-900 font-heading tracking-tight mb-2">Dashboard</h2>
-            <p class="text-slate-700">Welcome back, <span
-                    class="text-blue-400 font-bold"><?= htmlspecialchars($username) ?></span>. System is running
+            <h2
+                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; margin-bottom: 0.5rem;">
+                Dashboard</h2>
+            <p style="color: var(--slate-700);">Welcome back, <span
+                    style="color: var(--primary); font-weight: 700;"><?= htmlspecialchars($username) ?></span>. System
+                is running
                 smoothly.</p>
         </div>
-        <div class="flex gap-3">
-            <a href="files.php"
-                class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-slate-900 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2">
-                <i data-lucide="folder-up" class="w-4 h-4"></i> Upload Files
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="files.php" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="folder-up" style="width: 16px; height: 16px;"></i> Upload Files
             </a>
         </div>
     </div>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
         <!-- Domains -->
-        <div class="glass-card p-6 relative overflow-hidden group hover:-translate-y-1 transition duration-300">
+        <div class="glass-card"
+            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;"
+            onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='translateY(0)';">
             <div
-                class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition">
+                style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(37, 99, 235, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl"><i data-lucide="globe" class="w-6 h-6"></i>
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; position: relative; z-index: 10;">
+                <div
+                    style="padding: 0.75rem; background: rgba(37, 99, 235, 0.1); color: var(--primary); border-radius: 0.75rem;">
+                    <i data-lucide="globe" style="width: 24px; height: 24px;"></i>
                 </div>
-                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-700"><?= $usage_dom ?> /
+                <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_dom ?> /
                     <?= $clientData['max_domains'] ?></span>
             </div>
-            <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $usage_dom ?></h3>
-            <p class="text-sm text-slate-700 font-medium relative z-10">Active Domains</p>
-            <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
-                <div class="bg-blue-500 h-full rounded-full"
-                    style="width: <?= ($usage_dom / max(1, $clientData['max_domains'])) * 100 ?>%"></div>
+            <h3
+                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
+                <?= $usage_dom ?>
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--slate-700); font-weight: 500; position: relative; z-index: 10;">
+                Active Domains</p>
+            <div
+                style="width: 100%; background: var(--slate-100); height: 4px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
+                <div
+                    style="background: var(--primary); height: 100%; border-radius: 9999px; width: <?= ($usage_dom / max(1, $clientData['max_domains'])) * 100 ?>%">
+                </div>
             </div>
         </div>
 
         <!-- Databases -->
-        <div class="glass-card p-6 relative overflow-hidden group hover:-translate-y-1 transition duration-300">
+        <div class="glass-card"
+            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;"
+            onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='translateY(0)';">
             <div
-                class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition">
+                style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(168, 85, 247, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="p-3 bg-purple-500/10 text-purple-400 rounded-xl"><i data-lucide="database"
-                        class="w-6 h-6"></i></div>
-                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-700"><?= $usage_db ?> /
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; position: relative; z-index: 10;">
+                <div
+                    style="padding: 0.75rem; background: rgba(168, 85, 247, 0.1); color: #a855f7; border-radius: 0.75rem;">
+                    <i data-lucide="database" style="width: 24px; height: 24px;"></i>
+                </div>
+                <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_db ?> /
                     <?= $clientData['max_databases'] ?></span>
             </div>
-            <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $usage_db ?></h3>
-            <p class="text-sm text-slate-700 font-medium relative z-10">MySQL Databases</p>
-            <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
-                <div class="bg-purple-500 h-full rounded-full"
-                    style="width: <?= ($usage_db / max(1, $clientData['max_databases'])) * 100 ?>%"></div>
+            <h3
+                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
+                <?= $usage_db ?>
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--slate-700); font-weight: 500; position: relative; z-index: 10;">
+                MySQL Databases</p>
+            <div
+                style="width: 100%; background: var(--slate-100); height: 4px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
+                <div
+                    style="background: #a855f7; height: 100%; border-radius: 9999px; width: <?= ($usage_db / max(1, $clientData['max_databases'])) * 100 ?>%">
+                </div>
             </div>
         </div>
 
         <!-- Emails -->
-        <div class="glass-card p-6 relative overflow-hidden group hover:-translate-y-1 transition duration-300">
+        <div class="glass-card"
+            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;"
+            onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='translateY(0)';">
             <div
-                class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition">
+                style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(16, 185, 129, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl"><i data-lucide="mail"
-                        class="w-6 h-6"></i></div>
-                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-700"><?= $usage_mail ?> /
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; position: relative; z-index: 10;">
+                <div
+                    style="padding: 0.75rem; background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald); border-radius: 0.75rem;">
+                    <i data-lucide="mail" style="width: 24px; height: 24px;"></i>
+                </div>
+                <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_mail ?> /
                     <?= $clientData['max_emails'] ?></span>
             </div>
-            <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $usage_mail ?></h3>
-            <p class="text-sm text-slate-700 font-medium relative z-10">Email Accounts</p>
-            <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
-                <div class="bg-emerald-500 h-full rounded-full"
-                    style="width: <?= ($usage_mail / max(1, $clientData['max_emails'])) * 100 ?>%"></div>
+            <h3
+                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
+                <?= $usage_mail ?>
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--slate-700); font-weight: 500; position: relative; z-index: 10;">
+                Email Accounts</p>
+            <div
+                style="width: 100%; background: var(--slate-100); height: 4px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
+                <div
+                    style="background: var(--accent-emerald); height: 100%; border-radius: 9999px; width: <?= ($usage_mail / max(1, $clientData['max_emails'])) * 100 ?>%">
+                </div>
             </div>
         </div>
 
         <!-- Storage -->
-        <div class="glass-card p-6 relative overflow-hidden group hover:-translate-y-1 transition duration-300">
+        <div class="glass-card"
+            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;"
+            onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='translateY(0)';">
             <div
-                class="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition">
+                style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(249, 115, 22, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="p-3 bg-orange-500/10 text-orange-400 rounded-xl"><i data-lucide="hard-drive"
-                        class="w-6 h-6"></i></div>
-                <span
-                    class="text-xs font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-1 rounded"><?= htmlspecialchars($clientData['pkg_name']) ?></span>
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; position: relative; z-index: 10;">
+                <div
+                    style="padding: 0.75rem; background: rgba(249, 115, 22, 0.1); color: #f97316; border-radius: 0.75rem;">
+                    <i data-lucide="hard-drive" style="width: 24px; height: 24px;"></i>
+                </div>
+                <span class="badge"
+                    style="background: rgba(249, 115, 22, 0.1); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.2);"><?= htmlspecialchars($clientData['pkg_name']) ?></span>
             </div>
-            <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $used_mb ?> MB</h3>
-            <p class="text-sm text-slate-700 font-medium relative z-10">of <?= $clientData['disk_mb'] ?> MB Used</p>
-            <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
-                <div class="bg-orange-500 h-full rounded-full" style="width: <?= $disk_percent ?>%"></div>
+            <h3
+                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
+                <?= $used_mb ?> MB
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--slate-700); font-weight: 500; position: relative; z-index: 10;">
+                of <?= $clientData['disk_mb'] ?> MB Used</p>
+            <div
+                style="width: 100%; background: var(--slate-100); height: 4px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
+                <div style="background: #f97316; height: 100%; border-radius: 9999px; width: <?= $disk_percent ?>%">
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
         <!-- Left Column: Traffic Graph -->
-        <div class="lg:col-span-2 space-y-8">
-            <div class="glass-card p-6">
-                <div class="flex justify-between items-center mb-6">
+        <div style="grid-column: span 2 / span 2; display: flex; flex-direction: column; gap: 2rem;">
+            <div class="glass-card" style="padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900">Network Traffic</h3>
-                        <p class="text-xs text-slate-700">Hits & Bandwidth (Last 7 Days)</p>
+                        <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900);">Network Traffic</h3>
+                        <p style="font-size: 0.75rem; color: var(--slate-700);">Hits & Bandwidth (Last 7 Days)</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="flex h-2 w-2 rounded-full bg-blue-500"></span>
-                        <span class="text-xs text-slate-700">Flow</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span
+                            style="display: flex; width: 8px; height: 8px; border-radius: 50%; background: var(--primary);"></span>
+                        <span style="font-size: 0.75rem; color: var(--slate-700);">Flow</span>
                     </div>
                 </div>
                 <!-- Chart Container -->
-                <div id="trafficChart" class="w-full h-[300px]"></div>
+                <div id="trafficChart" style="width: 100%; height: 300px;"></div>
             </div>
 
             <!-- Quick Actions -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <a href="emails.php"
-                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-300 hover:border-blue-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
-                    <div class="p-3 bg-white rounded-full group-hover:bg-blue-600 transition duration-300">
-                        <i data-lucide="mail-plus"
-                            class="w-5 h-5 text-blue-400 group-hover:text-slate-900 transition"></i>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
+                <!-- Replaced Tailwind Action Cards with styled anchors -->
+                <a href="emails.php" class="glass-card"
+                    style="padding: 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: transform 0.2s;"
+                    onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='var(--primary)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--slate-200)';">
+                    <div
+                        style="padding: 0.75rem; background: var(--slate-100); border-radius: 50%; color: var(--primary);">
+                        <i data-lucide="mail-plus" style="width: 20px; height: 20px;"></i>
                     </div>
-                    <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">New Email</span>
+                    <span style="font-weight: 700; font-size: 0.875rem; color: var(--slate-700);">New Email</span>
                 </a>
-                <a href="databases.php"
-                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-300 hover:border-purple-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
-                    <div class="p-3 bg-white rounded-full group-hover:bg-purple-600 transition duration-300">
-                        <i data-lucide="database"
-                            class="w-5 h-5 text-purple-400 group-hover:text-slate-900 transition"></i>
-                    </div>
-                    <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">Add DB</span>
+                <a href="databases.php" class="glass-card"
+                    style="padding: 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: transform 0.2s;"
+                    onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='#a855f7';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--slate-200)';">
+                    <div style="padding: 0.75rem; background: var(--slate-100); border-radius: 50%; color: #a855f7;"><i
+                            data-lucide="database" style="width: 20px; height: 20px;"></i></div>
+                    <span style="font-weight: 700; font-size: 0.875rem; color: var(--slate-700);">Add DB</span>
                 </a>
-                <a href="domains.php"
-                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-300 hover:border-emerald-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
-                    <div class="p-3 bg-white rounded-full group-hover:bg-emerald-600 transition duration-300">
-                        <i data-lucide="globe"
-                            class="w-5 h-5 text-emerald-400 group-hover:text-slate-900 transition"></i>
+                <a href="domains.php" class="glass-card"
+                    style="padding: 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: transform 0.2s;"
+                    onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='var(--accent-emerald)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--slate-200)';">
+                    <div
+                        style="padding: 0.75rem; background: var(--slate-100); border-radius: 50%; color: var(--accent-emerald);">
+                        <i data-lucide="globe" style="width: 20px; height: 20px;"></i>
                     </div>
-                    <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">Add Domain</span>
+                    <span style="font-weight: 700; font-size: 0.875rem; color: var(--slate-700);">Add Domain</span>
                 </a>
-                <a href="tools.php"
-                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-300 hover:border-orange-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
-                    <div class="p-3 bg-white rounded-full group-hover:bg-orange-600 transition duration-300">
-                        <i data-lucide="wrench"
-                            class="w-5 h-5 text-orange-400 group-hover:text-slate-900 transition"></i>
-                    </div>
-                    <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">Tools</span>
+                <a href="tools.php" class="glass-card"
+                    style="padding: 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: transform 0.2s;"
+                    onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='#f97316';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--slate-200)';">
+                    <div style="padding: 0.75rem; background: var(--slate-100); border-radius: 50%; color: #f97316;"><i
+                            data-lucide="wrench" style="width: 20px; height: 20px;"></i></div>
+                    <span style="font-weight: 700; font-size: 0.875rem; color: var(--slate-700);">Tools</span>
                 </a>
             </div>
         </div>
 
         <!-- Right Column: Logs & Info -->
-        <div class="space-y-8">
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
             <!-- Server Info -->
-            <div class="glass-card p-6">
-                <h3 class="text-lg font-bold text-slate-900 mb-4">Server Info</h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between text-sm py-2 border-b border-slate-300">
-                        <span class="text-slate-700">IP Address</span>
-                        <span class="font-mono text-slate-900"><?= $_SERVER['SERVER_ADDR'] ?></span>
+            <div class="glass-card" style="padding: 1.5rem;">
+                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Server
+                    Info</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.875rem; padding: 0.5rem 0; border-bottom: 1px solid var(--slate-200);">
+                        <span style="color: var(--slate-700);">IP Address</span>
+                        <span
+                            style="font-family: monospace; color: var(--slate-900);"><?= $_SERVER['SERVER_ADDR'] ?></span>
                     </div>
-                    <div class="flex justify-between text-sm py-2 border-b border-slate-300">
-                        <span class="text-slate-700">PHP Version</span>
-                        <span class="font-mono text-blue-400">8.2 (Default)</span>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.875rem; padding: 0.5rem 0; border-bottom: 1px solid var(--slate-200);">
+                        <span style="color: var(--slate-700);">PHP Version</span>
+                        <span style="font-family: monospace; color: var(--primary);">8.2 (Default)</span>
                     </div>
-                    <div class="flex justify-between text-sm py-2 border-b border-slate-300">
-                        <span class="text-slate-700">Web Server</span>
-                        <span class="font-mono text-emerald-400">Nginx</span>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.875rem; padding: 0.5rem 0; border-bottom: 1px solid var(--slate-200);">
+                        <span style="color: var(--slate-700);">Web Server</span>
+                        <span style="font-family: monospace; color: var(--accent-emerald);">Nginx</span>
                     </div>
-                    <div class="mt-4 pt-2">
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-slate-700">System Load</span>
-                            <span class="text-green-400">Healthy</span>
+                    <div style="margin-top: 1rem; padding-top: 0.5rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
+                            <span style="color: var(--slate-700);">System Load</span>
+                            <span style="color: var(--accent-emerald);">Healthy</span>
                         </div>
-                        <div class="h-1.5 bg-slate-50 rounded-full overflow-hidden">
-                            <div class="h-full bg-green-500 w-1/4 animate-pulse"></div>
+                        <div
+                            style="height: 6px; background: var(--slate-100); border-radius: 9999px; overflow: hidden;">
+                            <div style="height: 100%; background: var(--accent-emerald); width: 25%;"
+                                class="animate-pulse"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Error Logs -->
-            <div class="glass-card overflow-hidden flex flex-col h-[300px]">
-                <div class="p-4 border-b border-slate-300 flex justify-between items-center bg-slate-50">
-                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                        <i data-lucide="terminal" class="w-4 h-4 text-slate-700"></i> Error Stream
+            <div class="glass-card"
+                style="overflow: hidden; display: flex; flex-direction: column; height: 300px; padding: 0;">
+                <div
+                    style="padding: 1rem; border-bottom: 1px solid var(--slate-200); display: flex; justify-content: space-between; align-items: center; background: var(--slate-50);">
+                    <h3
+                        style="font-weight: 700; color: var(--slate-900); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="terminal" style="width: 16px; height: 16px; color: var(--slate-700);"></i> Error
+                        Stream
                     </h3>
-                    <button onclick="fetchLogs()" class="text-slate-700 hover:text-slate-900 transition"><i
-                            data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+                    <button onclick="fetchLogs()"
+                        style="color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;"
+                        onmouseover="this.style.color='var(--slate-900)';"
+                        onmouseout="this.style.color='var(--slate-700)';"><i data-lucide="refresh-cw"
+                            style="width: 14px; height: 14px;"></i></button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4 bg-slate-50 font-mono text-[11px] text-slate-300 leading-relaxed scrollbar-hide"
-                    id="log-container">
-                    <div class="flex items-center justify-center h-full text-slate-600 animate-pulse">Connecting to
+                <div style="flex: 1; overflow-y: auto; padding: 1rem; background: var(--slate-50); font-family: monospace; font-size: 11px; color: var(--slate-400); line-height: 1.6;"
+                    id="log-container" class="custom-scrollbar">
+                    <div style="display: flex; items-center; justify-content: center; height: 100%; color: var(--slate-500);"
+                        class="animate-pulse">Connecting to
                         stream...</div>
                 </div>
-                <div class="p-2 bg-slate-50 border-t border-slate-300 flex justify-between items-center px-4">
+                <div
+                    style="padding: 0.5rem 1rem; background: var(--slate-50); border-top: 1px solid var(--slate-200); display: flex; justify-content: space-between; align-items: center;">
                     <span
-                        class="flex items-center gap-2 text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
-                        <span class="relative flex h-2 w-2">
+                        style="display: flex; align-items: center; gap: 0.5rem; font-size: 10px; color: var(--accent-emerald); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">
+                        <span style="position: relative; display: flex; height: 8px; width: 8px;">
+                            <span class="animate-ping"
+                                style="position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background: var(--accent-emerald); opacity: 0.75;"></span>
                             <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                style="position: relative; display: inline-flex; border-radius: 50%; height: 8px; width: 8px; background: var(--accent-emerald);"></span>
                         </span>
                         Live
                     </span>
-                    <button onclick="clearLogs()"
-                        class="px-3 py-1 bg-red-500/10 text-red-600 border border-red-500/20 rounded hover:bg-red-500 hover:text-white transition font-bold leading-none">
+                    <button onclick="clearLogs()" class="btn btn-secondary"
+                        style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">
                         Clear
                     </button>
-
                 </div>
-
             </div>
-
         </div>
 
     </div>
@@ -383,9 +450,9 @@ include 'layout/header.php';
                 const cont = document.getElementById('log-container');
 
                 if (text.trim() === "") {
-                    cont.innerHTML = '<div class="flex items-center justify-center h-full text-slate-700">No recent errors.</div>';
+                    cont.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--slate-700);">No recent errors.</div>';
                 } else {
-                    cont.innerHTML = `<pre class="whitespace-pre-wrap">${text}</pre>`;
+                    cont.innerHTML = `<pre style="white-space: pre-wrap;">${text}</pre>`;
                     cont.scrollTop = cont.scrollHeight;
                 }
             } catch (e) { console.error(e); }
@@ -408,4 +475,3 @@ include 'layout/header.php';
     </script>
 
     <?php include 'layout/footer.php'; ?>
-

@@ -140,7 +140,8 @@ $mx_display = "mail." . $main_domain;
 $dns_mx = @dns_get_record($main_domain, DNS_MX);
 if ($dns_mx && !empty($dns_mx)) {
     usort($dns_mx, function ($a, $b) {
-        return $a['pri'] <=> $b['pri']; });
+        return $a['pri'] <=> $b['pri'];
+    });
     $mx_display = $dns_mx[0]['target'];
 }
 
@@ -152,129 +153,177 @@ include 'layout/header.php';
    ========================================== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<h2 class="text-2xl font-bold mb-6 text-slate-900 font-heading">System Overview</h2>
+<h2
+    style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+    System Overview</h2>
 
 <!-- TOP METRICS GRID -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
     <!-- CPU -->
-    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
-        <div class="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-110 transition duration-500">
-            <i data-lucide="cpu" class="w-16 h-16 text-slate-900"></i>
+    <div class="glass-card"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s;"
+        onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
+        onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
+        <div class="bg-icon"
+            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
+            <i data-lucide="cpu" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
         </div>
-        <div class="flex items-center gap-3 mb-4">
-            <div class="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                <i data-lucide="cpu" class="w-5 h-5"></i>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <div
+                style="padding: 0.5rem; border-radius: 0.5rem; background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2);">
+                <i data-lucide="cpu" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
-            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-widest">CPU Load</span>
+            <span
+                style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">CPU
+                Load</span>
         </div>
-        <p class="text-3xl font-bold text-slate-900 tracking-tight">
+        <p style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); letter-spacing: -0.025em;">
             <span id="cpu-text">0</span>%
         </p>
     </div>
 
     <!-- RAM -->
-    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
-        <div class="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-110 transition duration-500">
-            <i data-lucide="layers" class="w-16 h-16 text-slate-900"></i>
+    <div class="glass-card"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s;"
+        onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
+        onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
+        <div class="bg-icon"
+            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
+            <i data-lucide="layers" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
         </div>
-        <div class="flex items-center gap-3 mb-4">
-            <div class="p-2 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                <i data-lucide="layers" class="w-5 h-5"></i>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <div
+                style="padding: 0.5rem; border-radius: 0.5rem; background: rgba(168, 85, 247, 0.1); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.2);">
+                <i data-lucide="layers" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
-            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-widest">RAM Usage</span>
+            <span
+                style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">RAM
+                Usage</span>
         </div>
-        <p class="text-3xl font-bold text-slate-900 tracking-tight">
+        <p style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); letter-spacing: -0.025em;">
             <span id="ram-text">0</span>%
         </p>
     </div>
 
     <!-- DISK -->
-    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
-        <div class="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-110 transition duration-500">
-            <i data-lucide="hard-drive" class="w-16 h-16 text-slate-900"></i>
+    <div class="glass-card"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s;"
+        onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
+        onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
+        <div class="bg-icon"
+            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
+            <i data-lucide="hard-drive" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
         </div>
-        <div class="flex items-center gap-3 mb-4">
-            <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <i data-lucide="hard-drive" class="w-5 h-5"></i>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <div
+                style="padding: 0.5rem; border-radius: 0.5rem; background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2);">
+                <i data-lucide="hard-drive" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
-            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Disk Space</span>
+            <span
+                style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">Disk
+                Space</span>
         </div>
-        <p class="text-3xl font-bold text-slate-900 tracking-tight">
+        <p style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); letter-spacing: -0.025em;">
             <span id="disk-text">0</span>%
         </p>
     </div>
 
     <!-- UPTIME -->
-    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
-        <div class="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-110 transition duration-500">
-            <i data-lucide="clock" class="w-16 h-16 text-slate-900"></i>
+    <div class="glass-card"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s;"
+        onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
+        onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
+        <div class="bg-icon"
+            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
+            <i data-lucide="clock" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
         </div>
-        <div class="flex items-center gap-3 mb-4">
-            <div class="p-2 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                <i data-lucide="clock" class="w-5 h-5"></i>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <div
+                style="padding: 0.5rem; border-radius: 0.5rem; background: rgba(249, 115, 22, 0.1); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.2);">
+                <i data-lucide="clock" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
-            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Uptime</span>
+            <span
+                style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">Uptime</span>
         </div>
-        <p class="text-3xl font-bold text-slate-900 tracking-tight">
-            <span id="uptime-text" class="text-xl">...</span>
+        <p style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); letter-spacing: -0.025em;">
+            <span id="uptime-text" style="font-size: 1.25rem;">...</span>
         </p>
     </div>
 </div>
 
 <!-- GRAPH & NETWORK SECTION -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
 
     <!-- Live Graph -->
-    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl">
-        <h3 class="text-lg font-bold text-slate-900 mb-4">Live Resource History</h3>
+    <div class="glass-card" style="grid-column: span 2 / span 2; padding: 1.5rem; border-radius: 1rem;">
+        <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Live Resource
+            History</h3>
         <div style="height: 300px; width: 100%;">
             <canvas id="resourceChart"></canvas>
         </div>
     </div>
 
     <!-- Network Configuration Card -->
-    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden flex flex-col">
+    <div class="glass-card"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; display: flex; flex-direction: column;">
         <!-- Decoration -->
-        <div class="absolute -right-6 -top-6 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div
+            style="position: absolute; right: -1.5rem; top: -1.5rem; width: 8rem; height: 8rem; background: rgba(59, 130, 246, 0.1); border-radius: 9999px; filter: blur(3xl);">
+        </div>
 
-        <div class="flex items-center gap-6 mb-6 relative z-10">
-            <div class="p-4 bg-slate-50 rounded-xl text-blue-400 shadow-lg shadow-black/20">
-                <i data-lucide="network" class="w-8 h-8"></i>
+        <div
+            style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; position: relative; z-index: 10;">
+            <div
+                style="padding: 1rem; background: var(--slate-50); border-radius: 0.75rem; color: #60a5fa; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);">
+                <i data-lucide="network" style="width: 2rem; height: 2rem;"></i>
             </div>
             <div>
-                <h3 class="text-lg font-bold text-slate-900 mb-1">Network Config</h3>
-                <div class="text-sm text-slate-700 font-mono"><?= $main_domain ?></div>
+                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem;">
+                    Network Config</h3>
+                <div style="font-size: 0.875rem; color: var(--slate-700); font-family: monospace;"><?= $main_domain ?>
+                </div>
             </div>
         </div>
 
-        <div class="space-y-4 text-sm text-slate-700 font-mono relative z-10">
+        <div
+            style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.875rem; color: var(--slate-700); font-family: monospace; position: relative; z-index: 10;">
             <!-- IP -->
-            <div class="flex justify-between items-center border-b border-slate-300 pb-2">
-                <span class="flex items-center gap-2 text-slate-700">
-                    <i data-lucide="server" class="w-4 h-4"></i> IP
+            <div
+                style="display: flex; justify-content: space-between; items-align: center; border-bottom: 1px solid var(--slate-300); padding-bottom: 0.5rem;">
+                <span style="display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700);">
+                    <i data-lucide="server" style="width: 1rem; height: 1rem;"></i> IP
                 </span>
-                <span class="text-slate-900"><?= $server_ip ?></span>
+                <span style="color: var(--slate-900);"><?= $server_ip ?></span>
             </div>
             <!-- NS -->
-            <div class="flex justify-between items-center border-b border-slate-300 pb-2">
-                <span class="flex items-center gap-2 text-slate-700">
-                    <i data-lucide="globe" class="w-4 h-4"></i> Name Server 1
+            <div
+                style="display: flex; justify-content: space-between; items-align: center; border-bottom: 1px solid var(--slate-300); padding-bottom: 0.5rem;">
+                <span style="display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700);">
+                    <i data-lucide="globe" style="width: 1rem; height: 1rem;"></i> Name Server 1
                 </span>
-                <span class="text-blue-600 truncate max-w-[150px]" title="<?= $ns_display ?>"><?= $ns_display ?></span>
+                <span
+                    style="color: #2563eb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;"
+                    title="<?= $ns_display ?>"><?= $ns_display ?></span>
             </div>
-            <div class="flex justify-between items-center border-b border-slate-300 pb-2">
-                <span class="flex items-center gap-2 text-slate-700">
-                    <i data-lucide="globe" class="w-4 h-4"></i> Name Server 2
+            <div
+                style="display: flex; justify-content: space-between; items-align: center; border-bottom: 1px solid var(--slate-300); padding-bottom: 0.5rem;">
+                <span style="display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700);">
+                    <i data-lucide="globe" style="width: 1rem; height: 1rem;"></i> Name Server 2
                 </span>
-                <span class="text-blue-600 truncate max-w-[150px]"
+                <span
+                    style="color: #2563eb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;"
                     title="<?= $ns2_display ?>"><?= $ns2_display ?></span>
             </div>
             <!-- MX -->
-            <div class="flex justify-between items-center border-b border-slate-300 pb-2">
-                <span class="flex items-center gap-2 text-slate-700">
-                    <i data-lucide="mail" class="w-4 h-4"></i> MX
+            <div
+                style="display: flex; justify-content: space-between; items-align: center; border-bottom: 1px solid var(--slate-300); padding-bottom: 0.5rem;">
+                <span style="display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700);">
+                    <i data-lucide="mail" style="width: 1rem; height: 1rem;"></i> MX
                 </span>
-                <span class="text-purple-600 truncate max-w-[150px]"
+                <span
+                    style="color: #9333ea; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;"
                     title="<?= $mx_display ?>"><?= $mx_display ?></span>
             </div>
         </div>
@@ -282,52 +331,67 @@ include 'layout/header.php';
 </div>
 
 <!-- SOFTWARE & HARDWARE SPECIFICATIONS -->
-<div class="glass-panel p-6 rounded-2xl">
-    <h3 class="text-lg font-bold text-slate-900 mb-6">Server Specifications</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="glass-card" style="padding: 1.5rem; border-radius: 1rem;">
+    <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1.5rem;">Server
+        Specifications</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
 
         <!-- OS Info -->
-        <div class="flex items-center gap-4">
-            <div class="p-3 bg-indigo-500/10 rounded-lg text-indigo-400 border border-indigo-500/20">
-                <i data-lucide="monitor" class="w-6 h-6"></i>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div
+                style="padding: 0.75rem; background: rgba(99, 102, 241, 0.1); border-radius: 0.5rem; color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2);">
+                <i data-lucide="monitor" style="width: 1.5rem; height: 1.5rem;"></i>
             </div>
-            <div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-700 font-bold">Operating System</div>
-                <div class="text-slate-900 font-medium truncate" title="<?= $os_name ?>"><?= $os_name ?></div>
+            <div style="overflow: hidden;">
+                <div
+                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 700;">
+                    Operating System</div>
+                <div style="color: var(--slate-900); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                    title="<?= $os_name ?>"><?= $os_name ?></div>
             </div>
         </div>
 
         <!-- PHP Version -->
-        <div class="flex items-center gap-4">
-            <div class="p-3 bg-pink-500/10 rounded-lg text-pink-400 border border-pink-500/20">
-                <i data-lucide="code-2" class="w-6 h-6"></i>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div
+                style="padding: 0.75rem; background: rgba(236, 72, 153, 0.1); border-radius: 0.5rem; color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.2);">
+                <i data-lucide="code-2" style="width: 1.5rem; height: 1.5rem;"></i>
             </div>
-            <div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-700 font-bold">PHP Version</div>
-                <div class="text-slate-900 font-medium">v<?= $php_version ?></div>
+            <div style="overflow: hidden;">
+                <div
+                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 700;">
+                    PHP Version</div>
+                <div style="color: var(--slate-900); font-weight: 500;">v<?= $php_version ?></div>
             </div>
         </div>
 
         <!-- Web Server -->
-        <div class="flex items-center gap-4">
-            <div class="p-3 bg-teal-500/10 rounded-lg text-teal-400 border border-teal-500/20">
-                <i data-lucide="globe-2" class="w-6 h-6"></i>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div
+                style="padding: 0.75rem; background: rgba(20, 184, 166, 0.1); border-radius: 0.5rem; color: #2dd4bf; border: 1px solid rgba(20, 184, 166, 0.2);">
+                <i data-lucide="globe-2" style="width: 1.5rem; height: 1.5rem;"></i>
             </div>
-            <div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-700 font-bold">Web Server</div>
-                <div class="text-slate-900 font-medium truncate" title="<?= $web_server ?>"><?= $web_server_display ?>
+            <div style="overflow: hidden;">
+                <div
+                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 700;">
+                    Web Server</div>
+                <div style="color: var(--slate-900); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                    title="<?= $web_server ?>"><?= $web_server_display ?>
                 </div>
             </div>
         </div>
 
         <!-- Architecture -->
-        <div class="flex items-center gap-4">
-            <div class="p-3 bg-amber-500/10 rounded-lg text-amber-400 border border-amber-500/20">
-                <i data-lucide="cpu" class="w-6 h-6"></i>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div
+                style="padding: 0.75rem; background: rgba(245, 158, 11, 0.1); border-radius: 0.5rem; color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2);">
+                <i data-lucide="cpu" style="width: 1.5rem; height: 1.5rem;"></i>
             </div>
-            <div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-700 font-bold">Architecture</div>
-                <div class="text-slate-900 font-medium"><?= $arch ?></div>
+            <div style="overflow: hidden;">
+                <div
+                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 700;">
+                    Architecture</div>
+                <div style="color: var(--slate-900); font-weight: 500;"><?= $arch ?></div>
             </div>
         </div>
 
@@ -431,4 +495,3 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
-

@@ -184,182 +184,229 @@ include 'layout/header.php';
 ?>
 
 <!-- Dashboard Header -->
-<div class="mb-8">
-    <h2 class="text-2xl font-bold text-slate-900 mb-2">System Tools</h2>
-    <p class="text-slate-700 text-sm">Manage applications, security, and backups.</p>
+<div style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem;">
+        System Tools</h2>
+    <p style="color: var(--slate-700); font-size: 0.875rem;">Manage applications, security, and backups.</p>
 </div>
 
 <!-- TABS -->
-<div class="flex border-b border-slate-300 mb-8 overflow-x-auto">
+<div style="display: flex; border-bottom: 1px solid var(--slate-300); margin-bottom: 2rem; overflow-x: auto;">
     <a href="?tab=apps"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'apps' ? 'border-blue-500 text-slate-900' : 'border-transparent text-slate-700 hover:text-slate-700' ?>">App
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'apps' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'apps' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--slate-900)'"
+        onmouseout="this.style.color='<?= $active_tab == 'apps' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">App
         Installer</a>
     <a href="?tab=ftp"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'ftp' ? 'border-blue-500 text-slate-900' : 'border-transparent text-slate-700 hover:text-slate-700' ?>">FTP
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'ftp' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'ftp' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--slate-900)'"
+        onmouseout="this.style.color='<?= $active_tab == 'ftp' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">FTP
         Manager</a>
     <a href="?tab=security"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'security' ? 'border-blue-500 text-slate-900' : 'border-transparent text-slate-700 hover:text-slate-700' ?>">Security
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'security' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'security' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--slate-900)'"
+        onmouseout="this.style.color='<?= $active_tab == 'security' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">Security
         (SSH)</a>
     <a href="?tab=backups"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'backups' ? 'border-blue-500 text-slate-900' : 'border-transparent text-slate-700 hover:text-slate-700' ?>">Backups</a>
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'backups' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'backups' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--slate-900)'"
+        onmouseout="this.style.color='<?= $active_tab == 'backups' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">Backups</a>
     <a href="?tab=troubleshoot"
-        class="px-6 py-3 text-sm font-bold border-b-2 transition whitespace-nowrap <?= $active_tab == 'troubleshoot' ? 'border-emerald-500 text-slate-900' : 'border-transparent text-slate-700 hover:text-slate-700' ?>">Troubleshoot</a>
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'troubleshoot' ? '#10b981' : 'transparent' ?>; color: <?= $active_tab == 'troubleshoot' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--slate-900)'"
+        onmouseout="this.style.color='<?= $active_tab == 'troubleshoot' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">Troubleshoot</a>
 </div>
 
 <!-- APPS TAB -->
-<div id="tab-apps" class="<?= $active_tab == 'apps' ? '' : 'hidden' ?>">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div id="tab-apps" style="display: <?= $active_tab == 'apps' ? 'block' : 'none' ?>;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
         <!-- Install Form -->
-        <div class="glass-card p-6 h-fit">
-            <h3 class="font-bold text-slate-900 mb-4">Install Application</h3>
-            <form onsubmit="handleAppInstall(event)" class="space-y-4">
+        <div class="glass-panel" style="padding: 1.5rem; height: fit-content;">
+            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Install Application</h3>
+            <form onsubmit="handleAppInstall(event)" style="display: flex; flex-direction: column; gap: 1rem;">
                 <div>
-                    <label class="text-xs text-slate-700 uppercase font-bold">Select Domain</label>
+                    <label
+                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Select
+                        Domain</label>
                     <select name="domain_id"
-                        class="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-blue-500 outline-none">
+                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'">
                         <?php foreach ($domains as $d): ?>
                             <option value="<?= $d['id'] ?>"><?= $d['domain'] ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-700 uppercase font-bold">Application</label>
+                    <label
+                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Application</label>
                     <select name="app"
-                        class="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-900 focus:border-blue-500 outline-none">
+                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'">
                         <option value="wordpress">WordPress</option>
                         <option value="laravel">Laravel</option>
                         <option value="codeigniter">CodeIgniter 4</option>
                         <option value="react">React (Vite)</option>
                     </select>
                 </div>
-                <button type="submit"
-                    class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-slate-900 rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; display: flex; justify-content: center;">
                     Install Now
                 </button>
             </form>
         </div>
 
         <!-- Recent Installations -->
-        <div class="lg:col-span-2 glass-card p-0 overflow-hidden">
-            <div class="p-4 border-b border-slate-300 bg-slate-50 flex justify-between items-center">
-                <h3 class="font-bold text-slate-900">Recent Installations</h3>
-                <button onclick="loadApps()" class="text-slate-700 hover:text-slate-900"><i data-lucide="refresh-cw"
-                        class="w-4 h-4"></i></button>
+        <div class="glass-panel" style="padding: 0; overflow: hidden; grid-column: span 2;">
+            <div
+                style="padding: 1rem; border-bottom: 1px solid var(--slate-300); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-weight: 700; color: var(--slate-900);">Recent Installations</h3>
+                <button onclick="loadApps()" style="color: var(--slate-700); transition: color 0.2s;"
+                    onmouseover="this.style.color='var(--slate-900)'"
+                    onmouseout="this.style.color='var(--slate-700)'"><i data-lucide="refresh-cw"
+                        style="width: 1rem; height: 1rem;"></i></button>
             </div>
-            <table class="w-full text-left">
-                <thead class="bg-slate-50 text-[10px] uppercase text-slate-700 font-bold">
-                    <tr>
-                        <th class="p-4">App</th>
-                        <th class="p-4">Domain</th>
-                        <th class="p-4">Status</th>
-                        <th class="p-4 text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="app-list" class="divide-y divide-white/5 text-sm text-slate-700">
-                    <tr>
-                        <td colspan="4" class="p-6 text-center text-slate-700">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table class="modern-table" style="width: 100%; text-align: left;">
+                    <thead
+                        style="background-color: var(--slate-50); font-size: 0.625rem; text-transform: uppercase; color: var(--slate-700); font-weight: 700; letter-spacing: 0.05em;">
+                        <tr>
+                            <th style="padding: 1rem;">App</th>
+                            <th style="padding: 1rem;">Domain</th>
+                            <th style="padding: 1rem;">Status</th>
+                            <th style="padding: 1rem; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="app-list" style="font-size: 0.875rem; color: var(--slate-700);">
+                        <tr>
+                            <td colspan="4" style="padding: 1.5rem; text-align: center; color: var(--slate-700);">
+                                Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- FTP TAB -->
-<div id="tab-ftp" class="<?= $active_tab == 'ftp' ? '' : 'hidden' ?>">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div id="tab-ftp" style="display: <?= $active_tab == 'ftp' ? 'block' : 'none' ?>;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
         <!-- Add FTP Form -->
-        <div class="glass-card p-6 h-fit">
-            <h3 class="font-bold text-slate-900 mb-4">Create FTP Account</h3>
-            <form onsubmit="handleFTPAdd(event)" class="space-y-4">
+        <div class="glass-panel" style="padding: 1.5rem; height: fit-content;">
+            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Create FTP Account</h3>
+            <form onsubmit="handleFTPAdd(event)" style="display: flex; flex-direction: column; gap: 1rem;">
                 <div>
-                    <label class="text-xs text-slate-700 uppercase font-bold">Username</label>
-                    <div class="flex items-center bg-white border border-slate-300 rounded-lg overflow-hidden">
+                    <label
+                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Username</label>
+                    <div
+                        style="display: flex; align-items: center; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; overflow: hidden;">
                         <input name="ftp_user" required placeholder="user"
-                            class="bg-transparent p-3 w-full text-slate-900 outline-none">
+                            style="background: transparent; padding: 0.75rem; width: 100%; color: var(--slate-900); outline: none; border: none;">
                         <span
-                            class="px-3 text-slate-700 bg-slate-50 border-l border-slate-300 py-3">@<?= $username ?></span>
+                            style="padding: 0.75rem; color: var(--slate-700); background-color: var(--slate-50); border-left: 1px solid var(--slate-300);">@<?= $username ?></span>
                     </div>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-700 uppercase font-bold">Password</label>
+                    <label
+                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Password</label>
                     <input type="password" name="pass" required
-                        class="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-900 outline-none mb-2"
+                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; margin-bottom: 0.5rem; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'"
                         placeholder="Password">
                     <input type="password" name="pass2" required
-                        class="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-900 outline-none"
+                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'"
                         placeholder="Confirm Password">
                 </div>
                 <div>
-                    <label class="text-xs text-slate-700 uppercase font-bold">Directory (Optional)</label>
+                    <label
+                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Directory
+                        (Optional)</label>
                     <input name="dir" placeholder="/public_html"
-                        class="w-full bg-white border border-slate-300 rounded-lg p-3 text-slate-900 outline-none">
+                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'">
                 </div>
-                <button type="submit"
-                    class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-slate-900 rounded-xl font-bold transition shadow-lg shadow-blue-500/20">
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; display: flex; justify-content: center;">
                     Create FTP User
                 </button>
             </form>
         </div>
 
         <!-- FTP List -->
-        <div class="lg:col-span-2 glass-card p-0 overflow-hidden">
-            <div class="p-4 border-b border-slate-300 bg-slate-50 flex justify-between items-center">
-                <h3 class="font-bold text-slate-900">FTP Accounts</h3>
-                <button onclick="loadFTP()" class="text-slate-700 hover:text-slate-900"><i data-lucide="refresh-cw"
-                        class="w-4 h-4"></i></button>
+        <div class="glass-panel" style="padding: 0; overflow: hidden; grid-column: span 2;">
+            <div
+                style="padding: 1rem; border-bottom: 1px solid var(--slate-300); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-weight: 700; color: var(--slate-900);">FTP Accounts</h3>
+                <button onclick="loadFTP()" style="color: var(--slate-700); transition: color 0.2s;"
+                    onmouseover="this.style.color='var(--slate-900)'"
+                    onmouseout="this.style.color='var(--slate-700)'"><i data-lucide="refresh-cw"
+                        style="width: 1rem; height: 1rem;"></i></button>
             </div>
-            <table class="w-full text-left">
-                <thead class="bg-slate-50 text-[10px] uppercase text-slate-700 font-bold">
-                    <tr>
-                        <th class="p-4">Username</th>
-                        <th class="p-4">Home Directory</th>
-                        <th class="p-4 text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="ftp-list" class="divide-y divide-white/5 text-sm text-slate-700">
-                    <tr>
-                        <td colspan="3" class="p-6 text-center text-slate-700">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-container">
+                <table class="modern-table" style="width: 100%; text-align: left;">
+                    <thead
+                        style="background-color: var(--slate-50); font-size: 0.625rem; text-transform: uppercase; color: var(--slate-700); font-weight: 700; letter-spacing: 0.05em;">
+                        <tr>
+                            <th style="padding: 1rem;">Username</th>
+                            <th style="padding: 1rem;">Home Directory</th>
+                            <th style="padding: 1rem; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ftp-list" style="font-size: 0.875rem; color: var(--slate-700);">
+                        <tr>
+                            <td colspan="3" style="padding: 1.5rem; text-align: center; color: var(--slate-700);">
+                                Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- SECURITY & BACKUPS (Placeholders for now, to be implemented similarly) -->
 <div id="tab-security" class="<?= $active_tab == 'security' ? '' : 'hidden' ?>">
-    <div class="text-center p-12 text-slate-700">SSH Key Management coming soon.</div>
+    <div style="text-align: center; padding: 3rem; color: var(--slate-700);">SSH Key Management coming soon.</div>
 </div>
 <div id="tab-backups" class="<?= $active_tab == 'backups' ? '' : 'hidden' ?>">
-    <div class="text-center p-12 text-slate-700">Backup Management coming soon.</div>
+    <div style="text-align: center; padding: 3rem; color: var(--slate-700);">Backup Management coming soon.</div>
 </div>
 
-<div id="tab-troubleshoot" class="<?= $active_tab == 'troubleshoot' ? '' : 'hidden' ?>">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div id="tab-troubleshoot" style="display: <?= $active_tab == 'troubleshoot' ? 'block' : 'none' ?>;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
         <!-- Existing Troubleshoot Buttons -->
-        <div class="glass-card p-8 bg-gradient-to-br from-indigo-900/20 to-indigo-900/5 border-indigo-500/20">
-            <h3 class="font-bold text-slate-900 mb-4">Display Doctor</h3>
+        <div class="glass-panel"
+            style="padding: 2rem; background: linear-gradient(to bottom right, rgba(49, 46, 129, 0.2), rgba(49, 46, 129, 0.05)); border-color: rgba(99, 102, 241, 0.2);">
+            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Display Doctor</h3>
             <button onclick="fixWebsite()"
-                class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-slate-900 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
-                <i data-lucide="wand-2" class="w-5 h-5"></i> Fix Website Display
+                style="width: 100%; padding: 1rem; background-color: #4f46e5; color: var(--slate-900); border-radius: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s, transform 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: none; cursor: pointer;"
+                onmouseover="this.style.backgroundColor='#6366f1'; this.style.transform='translateY(-1px)';"
+                onmouseout="this.style.backgroundColor='#4f46e5'; this.style.transform='translateY(0)';">
+                <i data-lucide="wand-2" style="width: 1.25rem; height: 1.25rem;"></i> Fix Website Display
             </button>
         </div>
 
-        <div class="glass-card p-8 bg-gradient-to-br from-slate-900/50 to-slate-900/20">
-            <h3 class="font-bold text-slate-900 mb-4">Restart Services</h3>
+        <div class="glass-panel"
+            style="padding: 2rem; background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.2)); border-color: rgba(255, 255, 255, 0.1);">
+            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Restart Services</h3>
             <button onclick="restartServices()"
-                class="w-full py-4 bg-slate-700 hover:bg-slate-600 text-slate-900 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
-                <i data-lucide="power" class="w-5 h-5"></i> Restart Services
+                style="width: 100%; padding: 1rem; background-color: #334155; color: var(--slate-900); border-radius: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s, transform 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: none; cursor: pointer;"
+                onmouseover="this.style.backgroundColor='#475569'; this.style.transform='translateY(-1px)';"
+                onmouseout="this.style.backgroundColor='#334155'; this.style.transform='translateY(0)';">
+                <i data-lucide="power" style="width: 1.25rem; height: 1.25rem;"></i> Restart Services
             </button>
         </div>
 
         <!-- NEW FIX CONFIG BUTTON -->
-        <div class="glass-card p-8 bg-gradient-to-br from-rose-900/20 to-rose-900/5 border-rose-500/20 mt-6">
-            <h3 class="font-bold text-slate-900 mb-4">Fix Config Issues</h3>
+        <div class="glass-panel"
+            style="padding: 2rem; background: linear-gradient(to bottom right, rgba(136, 19, 55, 0.2), rgba(136, 19, 55, 0.05)); border-color: rgba(244, 63, 94, 0.2);">
+            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Fix Config Issues</h3>
             <button onclick="fixConfig()"
-                class="w-full py-4 bg-rose-600 hover:bg-rose-500 text-slate-900 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition">
-                <i data-lucide="wrench" class="w-5 h-5"></i> Fix Config
+                style="width: 100%; padding: 1rem; background-color: #e11d48; color: var(--slate-900); border-radius: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s, transform 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: none; cursor: pointer;"
+                onmouseover="this.style.backgroundColor='#f43f5e'; this.style.transform='translateY(-1px)';"
+                onmouseout="this.style.backgroundColor='#e11d48'; this.style.transform='translateY(0)';">
+                <i data-lucide="wrench" style="width: 1.25rem; height: 1.25rem;"></i> Fix Config
             </button>
         </div>
     </div>
@@ -372,7 +419,7 @@ include 'layout/header.php';
         const btn = e.target.querySelector('button[type="submit"]');
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i> Processing...`;
+        btn.innerHTML = `<i data-lucide="loader-2" style="width: 1rem; height: 1rem; display: inline-block; margin-right: 0.5rem; vertical-align: middle; animation: spin 1s linear infinite;"></i> Processing...`;
         lucide.createIcons();
 
         const fd = new FormData(e.target);
@@ -413,21 +460,21 @@ include 'layout/header.php';
 
             if (res.status === 'success' && res.data.length > 0) {
                 tbody.innerHTML = res.data.map(app => `
-<tr class="border-t border-slate-300 hover:bg-white/5 transition">
-    <td class="p-4 font-bold text-slate-900 capitalize">${app.app_type}</td>
-    <td class="p-4 text-slate-700">${app.domain}</td>
-    <td class="p-4">
-        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${app.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                        (app.status === 'failed' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                            'bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse')
+<tr style="border-top: 1px solid var(--slate-300); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
+    <td style="padding: 1rem; font-weight: 700; color: var(--slate-900); text-transform: capitalize;">${app.app_type}</td>
+    <td style="padding: 1rem; color: var(--slate-700);">${app.domain}</td>
+    <td style="padding: 1rem;">
+        <span style="padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; ${app.status === 'active' ? 'background-color: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2);' :
+                        (app.status === 'failed' ? 'background-color: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2);' :
+                            'background-color: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;')
                     }">
             ${app.status}
         </span>
     </td>
-    <td class="p-4 text-right">
+    <td style="padding: 1rem; text-align: right;">
         ${app.status === 'active' ?
-                        `<a href="http://${app.domain}" target="_blank" class="text-blue-400 hover:text-slate-900 mr-2"><i
-                data-lucide="external-link" class="w-4 h-4"></i></a>` :
+                        `<a href="http://${app.domain}" target="_blank" style="color: #60a5fa; margin-right: 0.5rem; transition: color 0.2s;" onmouseover="this.style.color='var(--slate-900)'" onmouseout="this.style.color='#60a5fa'"><i
+                data-lucide="external-link" style="width: 1rem; height: 1rem; display: inline-block;"></i></a>` :
                         ''}
     </td>
 </tr>
@@ -435,7 +482,7 @@ include 'layout/header.php';
                 lucide.createIcons();
             } else {
                 tbody.innerHTML = `<tr>
-    <td colspan="4" class="p-6 text-center text-slate-700">No recent installations</td>
+    <td colspan="4" style="padding: 1.5rem; text-align: center; color: var(--slate-700);">No recent installations</td>
 </tr>`;
             }
         } catch (e) { console.error(e); }
@@ -454,19 +501,19 @@ include 'layout/header.php';
 
             if (res.status === 'success' && res.data.length > 0) {
                 tbody.innerHTML = res.data.map(user => `
-<tr class="border-t border-slate-300 hover:bg-white/5 transition">
-    <td class="p-4 font-bold text-slate-900">${user.userid}</td>
-    <td class="p-4 text-slate-700 font-mono text-xs">${user.homedir}</td>
-    <td class="p-4 text-right">
-        <button onclick="delFTP('${user.userid}')" class="text-red-400 hover:bg-red-500/10 p-2 rounded transition"><i
-                data-lucide="trash-2" class="w-4 h-4"></i></button>
+<tr style="border-top: 1px solid var(--slate-300); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
+    <td style="padding: 1rem; font-weight: 700; color: var(--slate-900);">${user.userid}</td>
+    <td style="padding: 1rem; color: var(--slate-700); font-family: monospace; font-size: 0.75rem;">${user.homedir}</td>
+    <td style="padding: 1rem; text-align: right;">
+        <button onclick="delFTP('${user.userid}')" style="color: #f87171; padding: 0.5rem; border-radius: 0.25rem; transition: background-color 0.2s; border: none; background: transparent; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.backgroundColor='transparent'"><i
+                data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
     </td>
 </tr>
 `).join('');
                 lucide.createIcons();
             } else {
                 tbody.innerHTML = `<tr>
-    <td colspan="3" class="p-6 text-center text-slate-700">No FTP accounts found</td>
+    <td colspan="3" style="padding: 1.5rem; text-align: center; color: var(--slate-700);">No FTP accounts found</td>
 </tr>`;
             }
         } catch (e) { console.error(e); }
@@ -529,6 +576,3 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
-
-
-

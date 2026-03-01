@@ -62,41 +62,11 @@ $content = file_get_contents($abs_path);
 <head>
     <meta charset="UTF-8">
     <title>Edit <?= basename($cleaned_file) ?></title>
-        <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        blue: {
-                            50: '#f0f5ff',
-                            100: '#e0ebff',
-                            200: '#cce0ff',
-                            300: '#99c2ff',
-                            400: '#66a3ff',
-                            500: '#4880ed',
-                            600: '#2563eb', /* Primary */
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        indigo: {
-                            50: '#f2f4fb',
-                            100: '#e6ebfb',
-                            200: '#cdcdfa',
-                            300: '#9ea6eb',
-                            400: '#6f7ee1',
-                            500: '#3f51b5', /* Secondary */
-                            600: '#36469b',
-                            700: '#2c397e',
-                            800: '#242f67',
-                            900: '#1f2752',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+    }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style type="text/css" media="screen">
@@ -117,38 +87,43 @@ $content = file_get_contents($abs_path);
     </style>
 </head>
 
-<body class="bg-[#0f172a] text-slate-700 overflow-hidden font-sans">
+<body style="background-color: #0f172a; color: #334155; overflow: hidden; font-family: sans-serif; margin: 0;">
 
-    <header class="h-[70px] glass-panel flex items-center justify-between px-6 z-50 relative">
-        <div class="flex items-center gap-4">
+    <header class="glass-panel"
+        style="height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; z-index: 50; position: relative;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
             <?php $parent_dir = dirname($cleaned_file);
             if ($parent_dir == '.' || $parent_dir == '\\')
                 $parent_dir = '/'; ?>
             <a href="files.php?domain_id=<?= $domain_id ?>&path=<?= $parent_dir ?>"
-                class="p-2 hover:bg-white/10 rounded-xl text-slate-700 hover:text-slate-900 transition">
-                <i data-lucide="arrow-left" class="w-5"></i>
+                style="padding: 0.5rem; border-radius: 0.75rem; color: #334155; transition: all 0.2s; text-decoration: none;"
+                onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.color='#0f172a'"
+                onmouseout="this.style.backgroundColor='transparent'; this.style.color='#334155'">
+                <i data-lucide="arrow-left" style="width: 1.25rem; height: 1.25rem;"></i>
             </a>
-            <div class="flex flex-col">
-                <span class="font-bold text-slate-900 text-sm"><?= basename($cleaned_file) ?></span>
-                <span class="font-mono text-xs text-slate-700"><?= $cleaned_file ?></span>
+            <div style="display: flex; flex-direction: column;">
+                <span
+                    style="font-weight: 700; color: #0f172a; font-size: 0.875rem;"><?= basename($cleaned_file) ?></span>
+                <span style="font-family: monospace; font-size: 0.75rem; color: #334155;"><?= $cleaned_file ?></span>
             </div>
 
             <?php if ($msg): ?>
                 <span
-                    class="ml-4 text-xs bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full animate-pulse border border-emerald-500/30">
-                    <i data-lucide="check" class="w-3 inline mr-1"></i> <?= $msg ?>
+                    style="margin-left: 1rem; font-size: 0.75rem; background-color: rgba(16, 185, 129, 0.2); color: #34d399; padding: 0.25rem 0.75rem; border-radius: 9999px; border: 1px solid rgba(16, 185, 129, 0.3); animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; display: inline-flex; align-items: center;">
+                    <i data-lucide="check" style="width: 0.75rem; height: 0.75rem; margin-right: 0.25rem;"></i> <?= $msg ?>
                 </span>
             <?php endif; ?>
         </div>
         <button onclick="saveFile()"
-            class="bg-blue-600 hover:bg-blue-500 text-slate-900 px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition shadow-lg shadow-blue-600/20 text-sm">
-            <i data-lucide="save" class="w-4"></i> Save Changes
+            style="background-color: #2563eb; color: #0f172a; padding: 0.625rem 1.5rem; border-radius: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s, box-shadow 0.2s; font-size: 0.875rem; border: none; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);"
+            onmouseover="this.style.backgroundColor='#3b82f6'" onmouseout="this.style.backgroundColor='#2563eb'">
+            <i data-lucide="save" style="width: 1rem; height: 1rem;"></i> Save Changes
         </button>
     </header>
 
     <div id="editor"><?= htmlspecialchars($content) ?></div>
 
-    <form id="save-form" method="POST" class="hidden">
+    <form id="save-form" method="POST" style="display: none;">
         <textarea name="content" id="form-content"></textarea>
     </form>
 
@@ -194,6 +169,3 @@ $content = file_get_contents($abs_path);
 </body>
 
 </html>
-
-
-

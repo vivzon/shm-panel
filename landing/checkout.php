@@ -1,6 +1,6 @@
 <?php
 /**
- * VIVZON CLOUD - CHECKOUT PAGE (v5.0)
+ * VIVZON CLOUD - CHECKOUT PAGE (Modern Vanilla CSS)
  * Handles account registration and payment selection.
  */
 require_once __DIR__ . '/../shared/config.php';
@@ -24,7 +24,6 @@ if (!$package) {
 // Config (Replace with real keys or load from DB)
 $RAZORPAY_KEY = "rzp_test_YOUR_KEY_HERE";
 $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,187 +31,290 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout -
-        <?= htmlspecialchars($package['name']) ?> | Vivzon Cloud
-    </title>
-        <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        blue: {
-                            50: '#f0f5ff',
-                            100: '#e0ebff',
-                            200: '#cce0ff',
-                            300: '#99c2ff',
-                            400: '#66a3ff',
-                            500: '#4880ed',
-                            600: '#2563eb', /* Primary */
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
-                        },
-                        indigo: {
-                            50: '#f2f4fb',
-                            100: '#e6ebfb',
-                            200: '#cdcdfa',
-                            300: '#9ea6eb',
-                            400: '#6f7ee1',
-                            500: '#3f51b5', /* Secondary */
-                            600: '#36469b',
-                            700: '#2c397e',
-                            800: '#242f67',
-                            900: '#1f2752',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <title>Checkout - <?= htmlspecialchars($package['name']) ?> | Vivzon Cloud</title>
 
+    <link rel="stylesheet" href="/shared/assets/css/modern-design.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- PayPal SDK -->
-    <script src="https://www.paypal.com/sdk/js?client-id=<?= $PAYPAL_CLIENT_ID ?>&currency=USD"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=<?= $PAYPAL_CLIENT_ID ?>&currency=INR"></script>
     <!-- Razorpay SDK -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <style>
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #0f172a;
-            color: white;
+            background-color: var(--slate-900);
+            color: var(--slate-50);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 1rem;
         }
 
-        .glass-panel {
+        .checkout-container {
+            width: 100%;
+            max-width: 1024px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media(min-width: 1024px) {
+            .checkout-container {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .glass-panel-dark {
             background: rgba(30, 41, 59, 0.4);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            color: white;
+        }
+
+        .dark-input {
+            width: 100%;
+            background: var(--slate-900);
+            border: 1px solid var(--slate-700);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            color: white;
+            outline: none;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .dark-input:focus {
+            border-color: var(--primary);
+        }
+
+        .domain-input-group {
+            display: flex;
+        }
+
+        .domain-input-group .dark-input {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .domain-addon {
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-left: none;
+            border-top-right-radius: var(--radius-md);
+            border-bottom-right-radius: var(--radius-md);
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            color: var(--slate-500);
+            font-size: 0.875rem;
+        }
+
+        .payment-radio {
+            display: none;
+        }
+
+        .payment-option {
+            cursor: pointer;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--slate-700);
+            background: rgba(30, 41, 59, 0.5);
+            text-align: center;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .payment-radio:checked+.payment-option {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.15);
+        }
+
+        /* Utility */
+        .grid-2 {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        @media(min-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--slate-400);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            color: var(--slate-300);
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .summary-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+        }
+
+        .summary-list li {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            color: var(--slate-400);
+            font-size: 0.875rem;
+        }
+
+        .summary-list li span:last-child {
+            color: white;
+            font-weight: 500;
+        }
+
+        .btn-checkout {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-checkout:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .text-emerald-400 {
+            color: var(--accent-emerald) !important;
         }
     </style>
 </head>
 
-<body class="min-h-screen py-10 px-4 flex items-center justify-center">
+<body>
 
-    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="checkout-container">
 
         <!-- Left: Form -->
-        <div class="lg:col-span-2 glass-panel p-8 rounded-3xl">
-            <div class="flex items-center gap-3 mb-8">
-                <a href="index.php" class="p-2 rounded-lg hover:bg-white/5 transition"><i data-lucide="arrow-left"
-                        class="w-5 h-5"></i></a>
-                <h1 class="text-2xl font-bold font-heading">Configure Your Server</h1>
+        <div class="glass-panel-dark">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:2rem;">
+                <a href="index.php" class="back-btn"><i data-lucide="arrow-left"></i></a>
+                <h1 style="font-size:1.5rem;font-family:'Outfit',sans-serif;font-weight:700;">Configure Your Server</h1>
             </div>
 
-            <form id="checkoutForm" class="space-y-6">
+            <form id="checkoutForm">
                 <input type="hidden" name="package_id" value="<?= $package['id'] ?>">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid-2" style="margin-bottom:1.5rem;">
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Username</label>
+                        <label class="label">Username</label>
                         <input type="text" name="username" required pattern="[a-z0-9]{3,16}"
-                            title="Lowercase, numbers, 3-16 chars"
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-blue-500 outline-none transition"
-                            placeholder="jdoe">
+                            title="Lowercase, numbers, 3-16 chars" class="dark-input" placeholder="jdoe">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Email Address</label>
-                        <input type="email" name="email" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-blue-500 outline-none transition"
-                            placeholder="john@example.com">
+                        <label class="label">Email Address</label>
+                        <input type="email" name="email" required class="dark-input" placeholder="john@example.com">
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Primary Domain</label>
-                    <div class="flex">
-                        <input type="text" name="domain" required
-                            class="w-full bg-slate-900 border border-slate-700 rounded-l-xl p-3 focus:border-blue-500 outline-none transition"
-                            placeholder="example">
-                        <span
-                            class="bg-slate-800 border border-l-0 border-slate-700 rounded-r-xl px-4 flex items-center text-slate-600 text-sm">.com</span>
+                <div style="margin-bottom:1.5rem;">
+                    <label class="label">Primary Domain</label>
+                    <div class="domain-input-group">
+                        <input type="text" name="domain" required class="dark-input" placeholder="example">
+                        <span class="domain-addon">.com</span>
                     </div>
-                    <p class="text-xs text-slate-600 mt-2">Enter domain without extension (extension demo only)</p>
+                    <p style="font-size:0.75rem;color:var(--slate-500);margin-top:0.5rem;">Enter domain without
+                        extension (extension demo only)</p>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Password</label>
-                    <input type="password" name="password" required minlength="8"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-blue-500 outline-none transition"
+                <div style="margin-bottom:2rem;">
+                    <label class="label">Password</label>
+                    <input type="password" name="password" required minlength="8" class="dark-input"
                         placeholder="••••••••">
                 </div>
 
-                <div class="pt-6 border-t border-white/5">
-                    <h3 class="text-lg font-bold mb-4">Payment Method</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <label class="cursor-pointer">
-                            <input type="radio" name="gateway" value="razorpay" class="peer hidden" checked>
-                            <div
-                                class="p-4 rounded-xl border border-slate-700 bg-slate-800/50 peer-checked:border-blue-500 peer-checked:bg-blue-600/10 transition flex flex-col items-center gap-2">
-                                <span class="font-bold">Razorpay</span>
-                                <span class="text-xs text-slate-600">Cards, UPI, Netbanking</span>
+                <div style="border-top:1px solid rgba(255,255,255,0.05);padding-top:1.5rem;">
+                    <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:1rem;">Payment Method</h3>
+                    <div class="grid-2">
+                        <label>
+                            <input type="radio" name="gateway" value="razorpay" class="payment-radio" checked>
+                            <div class="payment-option">
+                                <span style="font-weight:700;">Razorpay</span>
+                                <span style="font-size:0.75rem;color:var(--slate-400);">Cards, UPI, Netbanking</span>
                             </div>
                         </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" name="gateway" value="paypal" class="peer hidden">
-                            <div
-                                class="p-4 rounded-xl border border-slate-700 bg-slate-800/50 peer-checked:border-blue-500 peer-checked:bg-blue-600/10 transition flex flex-col items-center gap-2">
-                                <span class="font-bold">PayPal</span>
-                                <span class="text-xs text-slate-600">International Cards</span>
+                        <label>
+                            <input type="radio" name="gateway" value="paypal" class="payment-radio">
+                            <div class="payment-option">
+                                <span style="font-weight:700;">PayPal</span>
+                                <span style="font-size:0.75rem;color:var(--slate-400);">International Cards</span>
                             </div>
                         </label>
                     </div>
                 </div>
 
-                <button type="submit" id="payBtn"
-                    class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition mt-6">
-                    Secure Checkout ($
-                    <?= number_format($package['price'], 2) ?>/mo)
+                <button type="submit" id="payBtn" class="btn-checkout">
+                    Secure Checkout (₹<?= number_format($package['price'], 2) ?>/mo)
                 </button>
             </form>
 
-            <div id="paypal-button-container" class="mt-6 hidden"></div>
+            <div id="paypal-button-container" class="mt-4 hidden"></div>
         </div>
 
         <!-- Right: Summary -->
-        <div class="glass-panel p-8 rounded-3xl h-fit">
-            <h3 class="text-lg font-bold mb-6 text-slate-300">Order Summary</h3>
+        <div class="glass-panel-dark" style="height:fit-content;">
+            <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:1.5rem;color:var(--slate-300);">Order Summary
+            </h3>
 
-            <div class="flex justify-between items-center mb-4">
-                <span class="font-bold text-xl">
-                    <?= htmlspecialchars($package['name']) ?>
-                </span>
-                <span class="font-bold text-xl text-blue-400">$
-                    <?= number_format($package['price'], 2) ?>
-                </span>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <span style="font-weight:700;font-size:1.25rem;"><?= htmlspecialchars($package['name']) ?></span>
+                <span
+                    style="font-weight:700;font-size:1.25rem;color:var(--primary);">₹<?= number_format($package['price'], 2) ?></span>
             </div>
 
-            <ul class="space-y-3 mb-8 text-sm text-slate-600">
-                <li class="flex justify-between"><span>Disk Space</span> <span class="text-white">
-                        <?= $package['disk_mb'] ?> MB
-                    </span></li>
-                <li class="flex justify-between"><span>Domains</span> <span class="text-white">
-                        <?= $package['max_domains'] ?>
-                    </span></li>
-                <li class="flex justify-between"><span>Databases</span> <span class="text-white">
-                        <?= $package['max_databases'] ?>
-                    </span></li>
-                <li class="flex justify-between"><span>Setup Fee</span> <span class="text-emerald-400">FREE</span></li>
+            <ul class="summary-list">
+                <li><span>Disk Space</span> <span><?= $package['disk_mb'] ?> MB</span></li>
+                <li><span>Domains</span> <span><?= $package['max_domains'] ?></span></li>
+                <li><span>Databases</span> <span><?= $package['max_databases'] ?></span></li>
+                <li><span>Setup Fee</span> <span class="text-emerald-400">FREE</span></li>
             </ul>
 
-            <div class="border-t border-white/10 pt-4 flex justify-between items-center">
-                <span class="font-bold">Total Due Today</span>
-                <span class="font-bold text-2xl text-white">$
-                    <?= number_format($package['price'], 2) ?>
-                </span>
+            <div
+                style="border-top:1px solid rgba(255,255,255,0.1);padding-top:1rem;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:700;">Total Due Today</span>
+                <span
+                    style="font-weight:700;font-size:1.5rem;color:white;">₹<?= number_format($package['price'], 2) ?></span>
             </div>
 
-            <div class="mt-8 text-xs text-slate-600 text-center">
+            <div style="margin-top:2rem;font-size:0.75rem;color:var(--slate-500);text-align:center;">
                 <p>30-Day Money Back Guarantee</p>
-                <p class="mt-2">By continuing, you agree to our Terms of Service.</p>
+                <p style="margin-top:0.5rem;">By continuing, you agree to our Terms of Service.</p>
             </div>
         </div>
     </div>
@@ -249,7 +351,7 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
                 const options = {
                     "key": "<?= $RAZORPAY_KEY ?>",
                     "amount": <?= $package['price'] * 100 ?>, // Amount in paisa/cents
-                    "currency": "USD",
+                    "currency": "INR",
                     "name": "Vivzon Cloud",
                     "description": "Hosting Plan: <?= $package['name'] ?>",
                     "handler": function (response) {
@@ -288,7 +390,7 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
             formData.append('transaction_id', txId);
 
             // Show loading state
-            document.body.innerHTML = '<div class="text-white text-center"><h1 class="text-2xl font-bold animate-pulse">Provisioning Server...</h1><p>Please do not close this window.</p></div>';
+            document.body.innerHTML = '<div style="color:white;text-align:center;"><h1 style="font-size:1.5rem;font-weight:700;">Provisioning Server...</h1><p>Please do not close this window.</p></div>';
 
             try {
                 const res = await fetch('process_payment.php', { method: 'POST', body: formData });
@@ -309,4 +411,3 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
 </body>
 
 </html>
-
