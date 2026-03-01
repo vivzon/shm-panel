@@ -814,58 +814,86 @@ EOF
     # --------------------------------------------------------------------------
     dns-tool)
         SUB="$2"
-        
+
         if [ "$SUB" == "sync" ]; then
             # $3: domain_id
             DOM_ID="$3"
             DOM_INFO=$(mysql -N -s -e "SELECT domain FROM domains WHERE id=$DOM_ID" "$DB_NAME" 2>/dev/null || echo "")
-            
+
             if [ -z "$DOM_INFO" ]; then
                 echo "Domain not found"
                 exit 1
             fi
-            
+
             # Create zones directory if it doesn't exist
             mkdir -p "/etc/bind/zones"
-            
+
             # Generate Zone File
             ZONE_FILE="/etc/bind/zones/db.$DOM_INFO"
-            
+
             # Get server IP
             SERVER_IP=$(hostname -I | awk '{print $1}')
-            
+
+            # BIND SOA email must use '.' not '@'
+            SOA_EMAIL=$(echo "$ADMIN_EMAIL" | sed 's/@/./g')
+            # Ensure trailing dot
+            SOA_EMAIL="${SOA_EMAIL%.}."
+
+            # SOA serial: YYYYMMDDnn (date + 2-digit counter based on seconds mod 99)
+            SERIAL=$(date +%Y%m%d)$(printf "%02d" $(($(date +%S) % 99 + 1)))
+
+            # ── Write zone file ──────────────────────────────────────────────
             cat > "$ZONE_FILE" << EOF
 \$TTL 86400
-@ IN SOA ns1.$MAIN_DOMAIN. $ADMIN_EMAIL. ( $(date +%Y%m%d)01 3600 900 604800 86400 )
+@   IN  SOA ns1.$MAIN_DOMAIN. $SOA_EMAIL (
+            $SERIAL  ; Serial (YYYYMMDDnn)
+            3600     ; Refresh
+            900      ; Retry
+            604800   ; Expire
+            86400 )  ; Minimum TTL
+
+; Nameservers
+@   IN  NS  ns1.$MAIN_DOMAIN.
+@   IN  NS  ns2.$MAIN_DOMAIN.
+
 EOF
 
-            # Add nameserver glue records for main domain
+            # Nameserver glue A records for the main domain itself
             if [ "$DOM_INFO" == "$MAIN_DOMAIN" ]; then
-                echo "ns1 IN A $SERVER_IP" >> "$ZONE_FILE"
-                echo "ns2 IN A $SERVER_IP" >> "$ZONE_FILE"
+                printf "ns1\tIN\tA\t%s\n" "$SERVER_IP" >> "$ZONE_FILE"
+                printf "ns2\tIN\tA\t%s\n" "$SERVER_IP" >> "$ZONE_FILE"
                 log_action "Added Nameserver Glue Records for $DOM_INFO"
             fi
-            
-            # Append custom DNS records from DB
+
+            # Append DNS records from DB
             mysql -N -B -e "SELECT name, type, value, priority FROM dns_records WHERE domain_id=$DOM_ID" "$DB_NAME" 2>/dev/null | while IFS=$'\t' read -r host type value priority; do
                 if [ -n "$host" ] && [ -n "$type" ] && [ -n "$value" ]; then
                     case "$type" in
                         MX)
-                            echo "$host IN MX $priority $value" >> "$ZONE_FILE"
+                            printf "%s\tIN\tMX\t%s\t%s\n" "$host" "${priority:-10}" "$value" >> "$ZONE_FILE"
                             ;;
                         TXT)
-                            # Clean and quote TXT values
                             clean_val="${value//\"/\\\"}"
-                            echo "$host IN TXT \"$clean_val\"" >> "$ZONE_FILE"
+                            printf "%s\tIN\tTXT\t\"%s\"\n" "$host" "$clean_val" >> "$ZONE_FILE"
                             ;;
                         CNAME|A|AAAA)
-                            echo "$host IN $type $value" >> "$ZONE_FILE"
+                            printf "%s\tIN\t%s\t%s\n" "$host" "$type" "$value" >> "$ZONE_FILE"
                             ;;
                     esac
                 fi
             done
-            
-            # Add to named.conf.local if not already present
+
+            # ── Validate zone file before registering ────────────────────────
+            if ! named-checkzone "$DOM_INFO" "$ZONE_FILE" > /dev/null 2>&1; then
+                log_action "[ERROR] Zone file invalid for $DOM_INFO — aborting DNS sync"
+                echo "Error: Zone file validation failed for $DOM_INFO. DNS not updated."
+                exit 1
+            fi
+
+            # ── Add to named.conf.local (idempotent) ─────────────────────────
+            mkdir -p "$(dirname /etc/bind/named.conf.local)"
+            touch /etc/bind/named.conf.local
+
             if ! grep -q "zone \"$DOM_INFO\"" /etc/bind/named.conf.local; then
                 cat >> /etc/bind/named.conf.local << EOF
 zone "$DOM_INFO" {
@@ -876,18 +904,27 @@ zone "$DOM_INFO" {
 };
 EOF
             fi
-            
+
+            # ── Validate named.conf.local ────────────────────────────────────
+            if ! named-checkconf /etc/bind/named.conf > /dev/null 2>&1; then
+                log_action "[ERROR] named.conf invalid after zone add for $DOM_INFO"
+                echo "Error: BIND config invalid after zone addition."
+                exit 1
+            fi
+
             # Set proper permissions
             chown bind:bind "$ZONE_FILE"
             chmod 644 "$ZONE_FILE"
-            
+
             # Reload BIND
             if systemctl is-active --quiet bind9; then
                 rndc reload > /dev/null 2>&1 || systemctl reload bind9
+                log_action "Synced DNS for $DOM_INFO"
+                echo "DNS zone updated"
+            else
+                log_action "BIND9 not running — zone file written but not loaded"
+                echo "Warning: BIND9 is not running. Zone file written but not loaded."
             fi
-            
-            log_action "Synced DNS for $DOM_INFO"
-            echo "DNS zone updated"
         else
             echo "Unknown dns-tool subcommand: $SUB"
             exit 1
@@ -2313,13 +2350,16 @@ EOF
         P_SOCK_TO=${14}
 
         mkdir -p /etc/nginx/conf.d
-        
+
         if [ "$N_C_MAX" == "0" ]; then
             CMAX="0"
         else
             CMAX="${N_C_MAX}m"
         fi
-        
+
+        # Remove any stale/corrupt file before writing to prevent duplicate directives
+        rm -f /etc/nginx/conf.d/shm_panel_limits.conf
+
         cat > /etc/nginx/conf.d/shm_panel_limits.conf <<EOF
 client_max_body_size ${CMAX};
 client_body_timeout ${N_C_BODY_TO}s;
@@ -2328,6 +2368,14 @@ fastcgi_read_timeout ${F_READ_TO}s;
 fastcgi_send_timeout ${F_SEND_TO}s;
 proxy_read_timeout ${P_READ_TO}s;
 EOF
+
+        # Validate the written config is parseable by nginx
+        if ! nginx -t > /dev/null 2>&1; then
+            log_action "[ERROR] nginx config invalid after writing shm_panel_limits.conf — rolling back"
+            rm -f /etc/nginx/conf.d/shm_panel_limits.conf
+            echo "Error: Generated nginx config is invalid. Changes rolled back."
+            exit 1
+        fi
 
         mkdir -p /etc/php/${PHP_VER}/fpm/conf.d
         cat > /etc/php/${PHP_VER}/fpm/conf.d/99-shm-panel.ini <<EOF

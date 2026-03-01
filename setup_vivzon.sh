@@ -416,20 +416,54 @@ apt-get install -y bind9 bind9utils bind9-doc
 # Create zones directory
 mkdir -p /etc/bind/zones
 
-# Configure Options
-cat > /etc/bind/named.conf.options << BIND_OPTS
+# 1. named.conf.options — hardened, explicit IPv4+IPv6 listen
+cat > /etc/bind/named.conf.options << 'BIND_OPTS'
 options {
     directory "/var/cache/bind";
+
+    // Authoritative-only: no recursion, no forwarding
     recursion no;
+    allow-query { any; };
     allow-transfer { none; };
-    
-    dnssec-validation auto;
+    allow-recursion { none; };
+
+    // Listen on all IPv4 and IPv6 interfaces
+    listen-on { any; };
     listen-on-v6 { any; };
+
+    // DNSSEC
+    dnssec-validation auto;
+
+    // Hide version
+    version none;
 };
 BIND_OPTS
 
-# Restart Bind9
-systemctl restart bind9
+# 2. named.conf.local — must exist (default named.conf includes it)
+#    Start empty; zones are added by shm-manage dns-tool sync
+if [ ! -f /etc/bind/named.conf.local ]; then
+    cat > /etc/bind/named.conf.local << 'BIND_LOCAL'
+// SHM Panel — zone declarations are appended here by shm-manage dns-tool sync
+BIND_LOCAL
+fi
+
+# 3. Ensure named.conf includes our zones dir (idempotent)
+if ! grep -q "named.conf.local" /etc/bind/named.conf 2>/dev/null; then
+    echo 'include "/etc/bind/named.conf.local";' >> /etc/bind/named.conf
+fi
+
+# 4. Fix permissions so bind user can read zone files
+chown -R bind:bind /etc/bind/zones
+chmod 755 /etc/bind/zones
+
+# Validate config before starting
+if named-checkconf /etc/bind/named.conf; then
+    systemctl enable bind9
+    systemctl restart bind9
+    log "BIND9 started successfully."
+else
+    warn "BIND9 config check FAILED — service NOT started. Run: named-checkconf /etc/bind/named.conf"
+fi
 
 # ==============================================================================
 # 8. MAIL SERVER (POSTFIX + DOVECOT + ROUNDCUBE)
