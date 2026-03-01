@@ -171,12 +171,12 @@ if (isset($_POST['ajax_action'])) {
 
         echo json_encode($res);
     } catch (Exception $e) {
-        if ($pdo->inTransaction())
+        if (isset($pdo) && $pdo->inTransaction()) {
             $pdo->rollBack();
+        }
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+        sendResponse(['status' => 'error', 'msg' => $e->getMessage()]);
     }
-    exit;
 }
 
 $packages = $pdo->query("SELECT * FROM packages")->fetchAll(PDO::FETCH_ASSOC);

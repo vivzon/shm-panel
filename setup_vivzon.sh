@@ -169,7 +169,14 @@ log "Step 4: Deploying Panel..."
 if [ -d "landing" ]; then cp -r landing/* $PANEL_ROOT/landing/; else echo "<h1>Landing</h1>" > $PANEL_ROOT/landing/index.html; fi
 if [ -d "whm" ]; then cp -r whm/* $PANEL_ROOT/whm/; else echo "<h1>WHM</h1>" > $PANEL_ROOT/whm/index.php; fi
 if [ -d "cpanel" ]; then cp -r cpanel/* $PANEL_ROOT/cpanel/; else echo "<h1>cPanel</h1>" > $PANEL_ROOT/cpanel/index.php; fi
-if [ -f "shm-manage" ]; then cp shm-manage /usr/local/bin/shm-manage; chmod +x /usr/local/bin/shm-manage; fi
+if [ -f "shm-manage" ]; then
+    cp shm-manage /usr/local/bin/shm-manage
+    chmod +x /usr/local/bin/shm-manage
+    
+    # Grant www-data passwordless sudo access to shm-manage
+    echo "www-data ALL=(root) NOPASSWD: /usr/local/bin/shm-manage" > /etc/sudoers.d/shm-panel
+    chmod 440 /etc/sudoers.d/shm-panel
+fi
 
 # Config File
 mkdir -p /etc/shm
