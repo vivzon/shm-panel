@@ -64,8 +64,11 @@ if (session_status() === PHP_SESSION_NONE) {
             // Log security event
             error_log("Possible session hijacking detected - User agent mismatch");
 
-            // Redirect to login
-            header('Location: /cpanel/login.php');
+            // Redirect to appropriate login page based on context
+            $login_page = (isset($_SESSION['admin']) || strpos($_SERVER['PHP_SELF'] ?? '', '/whm/') !== false)
+                ? '/whm/login.php'
+                : '/cpanel/login.php';
+            header('Location: ' . $login_page);
             exit;
         }
 
@@ -91,8 +94,11 @@ if (session_status() === PHP_SESSION_NONE) {
             session_unset();
             session_destroy();
 
-            // Redirect to login with timeout message
-            header('Location: /cpanel/login.php?timeout=1');
+            // Redirect to appropriate login page with timeout message based on context
+            $login_page = (isset($_SESSION['admin']) || strpos($_SERVER['PHP_SELF'] ?? '', '/whm/') !== false)
+                ? '/whm/login.php?timeout=1'
+                : '/cpanel/login.php?timeout=1';
+            header('Location: ' . $login_page);
             exit;
         }
 

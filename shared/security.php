@@ -13,17 +13,19 @@
  * 
  * @return string CSRF token
  */
-function csrf_token()
-{
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+if (!function_exists('csrf_token')) {
+    function csrf_token()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 
-    if (empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
 
-    return $_SESSION['csrf_token'];
+        return $_SESSION['csrf_token'];
+    }
 }
 
 /**
@@ -38,9 +40,11 @@ function csrf_token()
  *     <button type="submit">Submit</button>
  * </form>
  */
-function csrf_field()
-{
-    return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') . '">';
+if (!function_exists('csrf_field')) {
+    function csrf_field()
+    {
+        return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') . '">';
+    }
 }
 
 /**
@@ -56,24 +60,26 @@ function csrf_field()
  *     // Process form...
  * }
  */
-function verify_csrf_token($token)
-{
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+if (!function_exists('verify_csrf_token')) {
+    function verify_csrf_token($token)
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 
-    if (!isset($_SESSION['csrf_token'])) {
-        http_response_code(403);
-        die('CSRF token not found in session');
-    }
+        if (!isset($_SESSION['csrf_token'])) {
+            http_response_code(403);
+            die('CSRF token not found in session');
+        }
 
-    if (!hash_equals($_SESSION['csrf_token'], $token)) {
-        http_response_code(403);
-        error_log("CSRF token validation failed for user: " . ($_SESSION['username'] ?? 'unknown'));
-        die('CSRF token validation failed');
-    }
+        if (!hash_equals($_SESSION['csrf_token'], $token)) {
+            http_response_code(403);
+            error_log("CSRF token validation failed for user: " . ($_SESSION['username'] ?? 'unknown'));
+            die('CSRF token validation failed');
+        }
 
-    return true;
+        return true;
+    }
 }
 
 /**
@@ -180,9 +186,10 @@ function verify_password($password, $hash)
  * @param string $hash Current password hash
  * @return bool True if rehash needed
  */
-function password_needs_rehash($hash)
+function needs_password_rehash($hash)
 {
-    return password_needs_rehash($hash, PASSWORD_BCRYPT, ['cost' => 12]);
+    // Note: calls the PHP built-in, NOT this function recursively
+    return \password_needs_rehash($hash, PASSWORD_BCRYPT, ['cost' => 12]);
 }
 
 /**
@@ -211,93 +218,95 @@ function escape_shell_arg_safe($arg)
  * @param int $timeWindow Time window in seconds
  * @return bool True if within rate limit
  */
-function check_rate_limit($key, $maxAttempts = 5, $timeWindow = 300)
-{
-    // Sanitize key for strict safety
-    $safeKey = 'shmpanel_ratelimit:' . preg_replace('/[^a-zA-Z0-9_\-\.:]/', '', $key);
+if (!function_exists('check_rate_limit')) {
+    function check_rate_limit($key, $maxAttempts = 5, $timeWindow = 300)
+    {
+        // Sanitize key for strict safety
+        $safeKey = 'shmpanel_ratelimit:' . preg_replace('/[^a-zA-Z0-9_\-\.:]/', '', $key);
 
-    // 1. Try Redis (Best option, prevents session dropping)
-    if (class_exists('Redis')) {
-        try {
-            $redis = new Redis();
-            // Default redis port from setup script
-            if (@$redis->connect('127.0.0.1', 6379, 1.0)) {
-                $current = $redis->get($safeKey);
+        // 1. Try Redis (Best option, prevents session dropping)
+        if (class_exists('Redis')) {
+            try {
+                $redis = new Redis();
+                // Default redis port from setup script
+                if (@$redis->connect('127.0.0.1', 6379, 1.0)) {
+                    $current = $redis->get($safeKey);
 
-                if ($current === false) {
-                    $redis->setex($safeKey, $timeWindow, 1);
+                    if ($current === false) {
+                        $redis->setex($safeKey, $timeWindow, 1);
+                        return true;
+                    }
+
+                    if ($current >= $maxAttempts) {
+                        return false;
+                    }
+
+                    $redis->incr($safeKey);
                     return true;
                 }
+            } catch (Exception $e) {
+                error_log("Redis rate limit failed, falling back: " . $e->getMessage());
+            }
+        }
 
-                if ($current >= $maxAttempts) {
+        // 2. Try Database Fallback
+        try {
+            require_once __DIR__ . '/Database.php';
+            $db = Database::getInstance();
+
+            // Cleanup old entries
+            $db->execute("DELETE FROM login_attempts WHERE created_at < DATE_SUB(NOW(), INTERVAL ? SECOND)", [$timeWindow]);
+
+            // In our schema, login_attempts uses ip natively, so extract IP from key
+            $parts = explode(':', $key);
+            $ip = end($parts);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                $stmt = $db->query("SELECT COUNT(*) as count FROM login_attempts WHERE ip = ? AND success = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)", [$ip, $timeWindow]);
+                $result = $stmt->fetch();
+
+                if (($result['count'] ?? 0) >= $maxAttempts) {
                     return false;
                 }
-
-                $redis->incr($safeKey);
-                return true;
+                return true; // The actual INSERT happens in internal login logic usually
             }
         } catch (Exception $e) {
-            error_log("Redis rate limit failed, falling back: " . $e->getMessage());
+            // Silently continue to session fallback
         }
-    }
 
-    // 2. Try Database Fallback
-    try {
-        require_once __DIR__ . '/Database.php';
-        $db = Database::getInstance();
-
-        // Cleanup old entries
-        $db->execute("DELETE FROM login_attempts WHERE created_at < DATE_SUB(NOW(), INTERVAL ? SECOND)", [$timeWindow]);
-
-        // In our schema, login_attempts uses ip natively, so extract IP from key
-        $parts = explode(':', $key);
-        $ip = end($parts);
-        if (filter_var($ip, FILTER_VALIDATE_IP)) {
-            $stmt = $db->query("SELECT COUNT(*) as count FROM login_attempts WHERE ip = ? AND success = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL ? SECOND)", [$ip, $timeWindow]);
-            $result = $stmt->fetch();
-
-            if (($result['count'] ?? 0) >= $maxAttempts) {
-                return false;
-            }
-            return true; // The actual INSERT happens in internal login logic usually
+        // 3. Fallback to Session (Weakest, but better than nothing)
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
-    } catch (Exception $e) {
-        // Silently continue to session fallback
-    }
 
-    // 3. Fallback to Session (Weakest, but better than nothing)
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+        $now = time();
 
-    $now = time();
+        if (!isset($_SESSION['rate_limit'][$key])) {
+            $_SESSION['rate_limit'][$key] = [
+                'attempts' => 1,
+                'first_attempt' => $now
+            ];
+            return true;
+        }
 
-    if (!isset($_SESSION['rate_limit'][$key])) {
-        $_SESSION['rate_limit'][$key] = [
-            'attempts' => 1,
-            'first_attempt' => $now
-        ];
+        $data = $_SESSION['rate_limit'][$key];
+
+        if ($now - $data['first_attempt'] > $timeWindow) {
+            $_SESSION['rate_limit'][$key] = [
+                'attempts' => 1,
+                'first_attempt' => $now
+            ];
+            return true;
+        }
+
+        $_SESSION['rate_limit'][$key]['attempts']++;
+
+        if ($data['attempts'] >= $maxAttempts) {
+            return false;
+        }
+
         return true;
     }
-
-    $data = $_SESSION['rate_limit'][$key];
-
-    if ($now - $data['first_attempt'] > $timeWindow) {
-        $_SESSION['rate_limit'][$key] = [
-            'attempts' => 1,
-            'first_attempt' => $now
-        ];
-        return true;
-    }
-
-    $_SESSION['rate_limit'][$key]['attempts']++;
-
-    if ($data['attempts'] >= $maxAttempts) {
-        return false;
-    }
-
-    return true;
-}
+} // end if (!function_exists('check_rate_limit'))
 
 /**
  * Log security event
@@ -306,32 +315,34 @@ function check_rate_limit($key, $maxAttempts = 5, $timeWindow = 300)
  * @param string $severity Severity level (info, warning, critical)
  * @param array $context Additional context
  */
-function log_security_event($event, $severity = 'info', $context = [])
-{
-    $logEntry = [
-        'timestamp' => date('Y-m-d H:i:s'),
-        'event' => $event,
-        'severity' => $severity,
-        'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-        'user' => $_SESSION['username'] ?? $_SESSION['admin_username'] ?? 'guest',
-        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-        'context' => $context
-    ];
+if (!function_exists('log_security_event')) {
+    function log_security_event($event, $severity = 'info', $context = [])
+    {
+        $logEntry = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'event' => $event,
+            'severity' => $severity,
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            'user' => $_SESSION['username'] ?? $_SESSION['admin_username'] ?? 'guest',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+            'context' => $context
+        ];
 
-    $logFile = '/var/log/shm-security.log';
-    file_put_contents($logFile, json_encode($logEntry) . PHP_EOL, FILE_APPEND);
+        $logFile = '/var/log/shm-security.log';
+        file_put_contents($logFile, json_encode($logEntry) . PHP_EOL, FILE_APPEND);
 
-    // Also log to database if available
-    try {
-        require_once __DIR__ . '/Database.php';
-        $db = Database::getInstance();
-        $db->execute(
-            "INSERT INTO security_logs (event, severity, ip, user, user_agent, context, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())",
-            [$event, $severity, $logEntry['ip'], $logEntry['user'], $logEntry['user_agent'], json_encode($context)]
-        );
-    } catch (Exception $e) {
-        // Silently fail if database logging fails
-        error_log("Failed to log security event to database: " . $e->getMessage());
+        // Also log to database if available
+        try {
+            require_once __DIR__ . '/Database.php';
+            $db = Database::getInstance();
+            $db->execute(
+                "INSERT INTO security_logs (event, severity, ip, user, user_agent, context, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())",
+                [$event, $severity, $logEntry['ip'], $logEntry['user'], $logEntry['user_agent'], json_encode($context)]
+            );
+        } catch (Exception $e) {
+            // Silently fail if database logging fails
+            error_log("Failed to log security event to database: " . $e->getMessage());
+        }
     }
-}
+} // end if (!function_exists('log_security_event'))
 ?>

@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($user && password_verify($p, $user['password'])) {
         $_SESSION['admin'] = $user['username'];
-        header("Location: /index.php");
+        header("Location: /whm/index.php");
         exit;
     } else {
         $error = "Invalid credentials";

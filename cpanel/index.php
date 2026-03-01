@@ -24,18 +24,26 @@ if (isset($_POST['ajax_action'])) {
 }
 
 // 1. Fetch Client Data
-$clientData = $pdo->query("SELECT c.*, p.name as pkg_name, p.max_emails, p.max_databases, p.max_domains, p.disk_mb FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = $cid")->fetch();
-$domains = $pdo->query("SELECT * FROM domains WHERE client_id = $cid")->fetchAll();
+$stmt = $pdo->prepare("SELECT c.*, p.name as pkg_name, p.max_emails, p.max_databases, p.max_domains, p.disk_mb FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = ?");
+$stmt->execute([$cid]);
+$clientData = $stmt->fetch();
+$stmt2 = $pdo->prepare("SELECT * FROM domains WHERE client_id = ?");
+$stmt2->execute([$cid]);
+$domains = $stmt2->fetchAll();
 
 // 2. Fetch Usage Stats
 try {
-    $usage_db = $pdo->query("SELECT COUNT(*) FROM client_databases WHERE client_id = $cid")->fetchColumn();
+    $stmt_db = $pdo->prepare("SELECT COUNT(*) FROM client_databases WHERE client_id = ?");
+    $stmt_db->execute([$cid]);
+    $usage_db = $stmt_db->fetchColumn();
 } catch (Exception $e) {
     $usage_db = 0;
 }
 
 $usage_dom = count($domains);
-$usage_mail = $pdo->query("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = $cid))")->fetchColumn();
+$stmt_mail = $pdo->prepare("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = ?))");
+$stmt_mail->execute([$cid]);
+$usage_mail = $stmt_mail->fetchColumn();
 
 // Calculate Disk Usage
 $used_bytes = 0;
@@ -50,14 +58,16 @@ if ($disk_percent > 100)
 
 // 3. Fetch Traffic Data (Last 7 Days)
 // Aggregate traffic across ALL user domains
-$traffic_data = $pdo->query("
+$stmt_traffic = $pdo->prepare("
     SELECT date, SUM(bytes_sent) as total_bytes, SUM(hits) as total_hits 
     FROM domain_traffic 
-    WHERE domain_id IN (SELECT id FROM domains WHERE client_id = $cid) 
+    WHERE domain_id IN (SELECT id FROM domains WHERE client_id = ?) 
     AND date >= DATE(NOW() - INTERVAL 7 DAY)
     GROUP BY date 
     ORDER BY date ASC
-")->fetchAll(PDO::FETCH_ASSOC);
+");
+$stmt_traffic->execute([$cid]);
+$traffic_data = $stmt_traffic->fetchAll(PDO::FETCH_ASSOC);
 
 // Format for JS
 $dates = [];
