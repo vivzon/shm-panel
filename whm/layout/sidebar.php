@@ -8,7 +8,7 @@
                 <i data-lucide="shield-check" class="w-4 h-4"></i>
             </div>
             <div>
-                <h1 class="text-sm font-bold text-slate-900 font-heading tracking-tight leading-none">Vivzon Admin</h1>
+                <h1 class="text-sm font-bold text-slate-900 font-heading tracking-tight leading-none">Vivzon Cloud</h1>
                 <span class="text-[10px] font-semibold text-blue-600 uppercase tracking-widest">WHM Console</span>
             </div>
         </div>

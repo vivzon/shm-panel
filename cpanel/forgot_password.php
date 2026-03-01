@@ -1,6 +1,6 @@
 <?php
 /**
- * VIVZON CPANEL - FORGOT PASSWORD
+ * Vivzon Cloud - FORGOT PASSWORD
  * Glassmorphism Design
  */
 require_once __DIR__ . '/../shared/config.php';
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password | Vivzon CPanel</title>
+    <title>Reset Password | Vivzon Cloud</title>
         <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -225,4 +225,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 
 </html>
+
 

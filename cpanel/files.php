@@ -818,7 +818,7 @@ if (is_dir($full_path)) {
 
 <head>
     <meta charset="UTF-8">
-    <title>File Manager | Vivzon CPanel</title>
+    <title>File Manager | Vivzon Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -2030,4 +2030,5 @@ if (is_dir($full_path)) {
 </body>
 
 </html>
+
 

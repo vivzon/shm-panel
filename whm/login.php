@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login | Vivzon Technologies</title>
+    <title>Admin Login | Vivzon Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -293,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div
                 class="inline-flex items-center gap-2 bg-white border border-slate-200 shadow-sm rounded-full px-4 py-1.5">
                 <div class="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
-                <span class="text-[11px] font-bold text-slate-600 tracking-wider uppercase">Vivzon Technologies</span>
+                <span class="text-[11px] font-bold text-slate-600 tracking-wider uppercase">Vivzon Cloud</span>
             </div>
         </div>
 
@@ -380,7 +380,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <p class="text-center text-[10px] text-slate-400 mt-5 fade-up d2">&copy; <?= date('Y') ?> Vivzon Technologies.
+        <p class="text-center text-[10px] text-slate-400 mt-5 fade-up d2">&copy; <?= date('Y') ?> Vivzon Cloud.
             All rights reserved.</p>
     </div>
 

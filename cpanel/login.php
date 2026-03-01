@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Client Portal — Vivzon Technologies">
-    <title>Client Portal | Vivzon Technologies</title>
+    <meta name="description" content="Client Portal — Vivzon Cloud">
+    <title>Client Portal | Vivzon Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -394,7 +394,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </svg>
                     </div>
                     <div>
-                        <div class="text-sm font-bold font-heading text-white/90">Vivzon Technologies</div>
+                        <div class="text-sm font-bold font-heading text-white/90">Vivzon Cloud</div>
                         <div class="text-[10px] text-white/40 font-medium">Client Portal</div>
                     </div>
                 </div>
@@ -513,7 +513,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
 
             <p class="mt-8 text-center text-[10px] text-slate-400 fade-up d3">
-                &copy; <?= date('Y') ?> Vivzon Technologies &mdash; Secure &amp; Encrypted Connection
+                &copy; <?= date('Y') ?> Vivzon Cloud &mdash; Secure &amp; Encrypted Connection
             </p>
         </div>
     </div>
