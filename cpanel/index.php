@@ -106,7 +106,7 @@ include 'layout/header.php';
     <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-6">
         <div>
             <h2 class="text-3xl font-bold text-slate-900 font-heading tracking-tight mb-2">Dashboard</h2>
-            <p class="text-slate-600">Welcome back, <span
+            <p class="text-slate-700">Welcome back, <span
                     class="text-blue-400 font-bold"><?= htmlspecialchars($username) ?></span>. System is running
                 smoothly.</p>
         </div>
@@ -128,11 +128,11 @@ include 'layout/header.php';
             <div class="flex justify-between items-start mb-4 relative z-10">
                 <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl"><i data-lucide="globe" class="w-6 h-6"></i>
                 </div>
-                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-600"><?= $usage_dom ?> /
+                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-700"><?= $usage_dom ?> /
                     <?= $clientData['max_domains'] ?></span>
             </div>
             <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $usage_dom ?></h3>
-            <p class="text-sm text-slate-600 font-medium relative z-10">Active Domains</p>
+            <p class="text-sm text-slate-700 font-medium relative z-10">Active Domains</p>
             <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
                 <div class="bg-blue-500 h-full rounded-full"
                     style="width: <?= ($usage_dom / max(1, $clientData['max_domains'])) * 100 ?>%"></div>
@@ -147,11 +147,11 @@ include 'layout/header.php';
             <div class="flex justify-between items-start mb-4 relative z-10">
                 <div class="p-3 bg-purple-500/10 text-purple-400 rounded-xl"><i data-lucide="database"
                         class="w-6 h-6"></i></div>
-                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-600"><?= $usage_db ?> /
+                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-700"><?= $usage_db ?> /
                     <?= $clientData['max_databases'] ?></span>
             </div>
             <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $usage_db ?></h3>
-            <p class="text-sm text-slate-600 font-medium relative z-10">MySQL Databases</p>
+            <p class="text-sm text-slate-700 font-medium relative z-10">MySQL Databases</p>
             <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
                 <div class="bg-purple-500 h-full rounded-full"
                     style="width: <?= ($usage_db / max(1, $clientData['max_databases'])) * 100 ?>%"></div>
@@ -166,11 +166,11 @@ include 'layout/header.php';
             <div class="flex justify-between items-start mb-4 relative z-10">
                 <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl"><i data-lucide="mail"
                         class="w-6 h-6"></i></div>
-                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-600"><?= $usage_mail ?> /
+                <span class="text-xs font-bold bg-white/5 px-2 py-1 rounded text-slate-700"><?= $usage_mail ?> /
                     <?= $clientData['max_emails'] ?></span>
             </div>
             <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $usage_mail ?></h3>
-            <p class="text-sm text-slate-600 font-medium relative z-10">Email Accounts</p>
+            <p class="text-sm text-slate-700 font-medium relative z-10">Email Accounts</p>
             <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
                 <div class="bg-emerald-500 h-full rounded-full"
                     style="width: <?= ($usage_mail / max(1, $clientData['max_emails'])) * 100 ?>%"></div>
@@ -189,7 +189,7 @@ include 'layout/header.php';
                     class="text-xs font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 px-2 py-1 rounded"><?= htmlspecialchars($clientData['pkg_name']) ?></span>
             </div>
             <h3 class="text-3xl font-bold text-slate-900 mb-1 relative z-10"><?= $used_mb ?> MB</h3>
-            <p class="text-sm text-slate-600 font-medium relative z-10">of <?= $clientData['disk_mb'] ?> MB Used</p>
+            <p class="text-sm text-slate-700 font-medium relative z-10">of <?= $clientData['disk_mb'] ?> MB Used</p>
             <div class="w-full bg-slate-50 h-1 mt-4 rounded-full overflow-hidden">
                 <div class="bg-orange-500 h-full rounded-full" style="width: <?= $disk_percent ?>%"></div>
             </div>
@@ -205,11 +205,11 @@ include 'layout/header.php';
                 <div class="flex justify-between items-center mb-6">
                     <div>
                         <h3 class="text-lg font-bold text-slate-900">Network Traffic</h3>
-                        <p class="text-xs text-slate-600">Hits & Bandwidth (Last 7 Days)</p>
+                        <p class="text-xs text-slate-700">Hits & Bandwidth (Last 7 Days)</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="flex h-2 w-2 rounded-full bg-blue-500"></span>
-                        <span class="text-xs text-slate-600">Flow</span>
+                        <span class="text-xs text-slate-700">Flow</span>
                     </div>
                 </div>
                 <!-- Chart Container -->
@@ -260,20 +260,20 @@ include 'layout/header.php';
                 <h3 class="text-lg font-bold text-slate-900 mb-4">Server Info</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between text-sm py-2 border-b border-slate-200">
-                        <span class="text-slate-600">IP Address</span>
+                        <span class="text-slate-700">IP Address</span>
                         <span class="font-mono text-slate-900"><?= $_SERVER['SERVER_ADDR'] ?></span>
                     </div>
                     <div class="flex justify-between text-sm py-2 border-b border-slate-200">
-                        <span class="text-slate-600">PHP Version</span>
+                        <span class="text-slate-700">PHP Version</span>
                         <span class="font-mono text-blue-400">8.2 (Default)</span>
                     </div>
                     <div class="flex justify-between text-sm py-2 border-b border-slate-200">
-                        <span class="text-slate-600">Web Server</span>
+                        <span class="text-slate-700">Web Server</span>
                         <span class="font-mono text-emerald-400">Nginx</span>
                     </div>
                     <div class="mt-4 pt-2">
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-slate-600">System Load</span>
+                            <span class="text-slate-700">System Load</span>
                             <span class="text-green-400">Healthy</span>
                         </div>
                         <div class="h-1.5 bg-slate-50 rounded-full overflow-hidden">
@@ -287,17 +287,17 @@ include 'layout/header.php';
             <div class="glass-card overflow-hidden flex flex-col h-[300px]">
                 <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                     <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                        <i data-lucide="terminal" class="w-4 h-4 text-slate-600"></i> Error Stream
+                        <i data-lucide="terminal" class="w-4 h-4 text-slate-700"></i> Error Stream
                     </h3>
-                    <button onclick="fetchLogs()" class="text-slate-600 hover:text-slate-900 transition"><i
+                    <button onclick="fetchLogs()" class="text-slate-700 hover:text-slate-900 transition"><i
                             data-lucide="refresh-cw" class="w-3 h-3"></i></button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4 bg-slate-900 font-mono text-[11px] text-slate-300 leading-relaxed scrollbar-hide"
+                <div class="flex-1 overflow-y-auto p-4 bg-slate-50 font-mono text-[11px] text-slate-300 leading-relaxed scrollbar-hide"
                     id="log-container">
-                    <div class="flex items-center justify-center h-full text-slate-500 animate-pulse">Connecting to
+                    <div class="flex items-center justify-center h-full text-slate-600 animate-pulse">Connecting to
                         stream...</div>
                 </div>
-                <div class="p-2 bg-white/50 border-t border-slate-200 flex justify-between items-center px-4">
+                <div class="p-2 bg-slate-50 border-t border-slate-200 flex justify-between items-center px-4">
                     <span
                         class="flex items-center gap-2 text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
                         <span class="relative flex h-2 w-2">
@@ -383,7 +383,7 @@ include 'layout/header.php';
                 const cont = document.getElementById('log-container');
 
                 if (text.trim() === "") {
-                    cont.innerHTML = '<div class="flex items-center justify-center h-full text-slate-600">No recent errors.</div>';
+                    cont.innerHTML = '<div class="flex items-center justify-center h-full text-slate-700">No recent errors.</div>';
                 } else {
                     cont.innerHTML = `<pre class="whitespace-pre-wrap">${text}</pre>`;
                     cont.scrollTop = cont.scrollHeight;

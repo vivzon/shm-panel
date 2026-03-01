@@ -125,12 +125,12 @@ $content = file_get_contents($abs_path);
             if ($parent_dir == '.' || $parent_dir == '\\')
                 $parent_dir = '/'; ?>
             <a href="files.php?domain_id=<?= $domain_id ?>&path=<?= $parent_dir ?>"
-                class="p-2 hover:bg-white/10 rounded-xl text-slate-600 hover:text-slate-900 transition">
+                class="p-2 hover:bg-white/10 rounded-xl text-slate-700 hover:text-slate-900 transition">
                 <i data-lucide="arrow-left" class="w-5"></i>
             </a>
             <div class="flex flex-col">
                 <span class="font-bold text-slate-900 text-sm"><?= basename($cleaned_file) ?></span>
-                <span class="font-mono text-xs text-slate-600"><?= $cleaned_file ?></span>
+                <span class="font-mono text-xs text-slate-700"><?= $cleaned_file ?></span>
             </div>
 
             <?php if ($msg): ?>
@@ -194,5 +194,6 @@ $content = file_get_contents($abs_path);
 </body>
 
 </html>
+
 
 

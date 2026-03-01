@@ -165,7 +165,7 @@ include 'layout/header.php';
             <div class="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
                 <i data-lucide="cpu" class="w-5 h-5"></i>
             </div>
-            <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">CPU Load</span>
+            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-widest">CPU Load</span>
         </div>
         <p class="text-3xl font-bold text-slate-900 tracking-tight">
             <span id="cpu-text">0</span>%
@@ -181,7 +181,7 @@ include 'layout/header.php';
             <div class="p-2 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
                 <i data-lucide="layers" class="w-5 h-5"></i>
             </div>
-            <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">RAM Usage</span>
+            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-widest">RAM Usage</span>
         </div>
         <p class="text-3xl font-bold text-slate-900 tracking-tight">
             <span id="ram-text">0</span>%
@@ -197,7 +197,7 @@ include 'layout/header.php';
             <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 <i data-lucide="hard-drive" class="w-5 h-5"></i>
             </div>
-            <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Disk Space</span>
+            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Disk Space</span>
         </div>
         <p class="text-3xl font-bold text-slate-900 tracking-tight">
             <span id="disk-text">0</span>%
@@ -213,7 +213,7 @@ include 'layout/header.php';
             <div class="p-2 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20">
                 <i data-lucide="clock" class="w-5 h-5"></i>
             </div>
-            <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Uptime</span>
+            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Uptime</span>
         </div>
         <p class="text-3xl font-bold text-slate-900 tracking-tight">
             <span id="uptime-text" class="text-xl">...</span>
@@ -243,27 +243,27 @@ include 'layout/header.php';
             </div>
             <div>
                 <h3 class="text-lg font-bold text-slate-900 mb-1">Network Config</h3>
-                <div class="text-sm text-slate-600 font-mono"><?= $main_domain ?></div>
+                <div class="text-sm text-slate-700 font-mono"><?= $main_domain ?></div>
             </div>
         </div>
 
         <div class="space-y-4 text-sm text-slate-700 font-mono relative z-10">
             <!-- IP -->
             <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                <span class="flex items-center gap-2 text-slate-600">
+                <span class="flex items-center gap-2 text-slate-700">
                     <i data-lucide="server" class="w-4 h-4"></i> IP
                 </span>
                 <span class="text-slate-900"><?= $server_ip ?></span>
             </div>
             <!-- NS -->
             <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                <span class="flex items-center gap-2 text-slate-600">
+                <span class="flex items-center gap-2 text-slate-700">
                     <i data-lucide="globe" class="w-4 h-4"></i> Name Server 1
                 </span>
                 <span class="text-blue-600 truncate max-w-[150px]" title="<?= $ns_display ?>"><?= $ns_display ?></span>
             </div>
             <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                <span class="flex items-center gap-2 text-slate-600">
+                <span class="flex items-center gap-2 text-slate-700">
                     <i data-lucide="globe" class="w-4 h-4"></i> Name Server 2
                 </span>
                 <span class="text-blue-600 truncate max-w-[150px]"
@@ -271,7 +271,7 @@ include 'layout/header.php';
             </div>
             <!-- MX -->
             <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                <span class="flex items-center gap-2 text-slate-600">
+                <span class="flex items-center gap-2 text-slate-700">
                     <i data-lucide="mail" class="w-4 h-4"></i> MX
                 </span>
                 <span class="text-purple-600 truncate max-w-[150px]"
@@ -292,7 +292,7 @@ include 'layout/header.php';
                 <i data-lucide="monitor" class="w-6 h-6"></i>
             </div>
             <div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-600 font-bold">Operating System</div>
+                <div class="text-[11px] uppercase tracking-wider text-slate-700 font-bold">Operating System</div>
                 <div class="text-slate-900 font-medium truncate" title="<?= $os_name ?>"><?= $os_name ?></div>
             </div>
         </div>
@@ -303,7 +303,7 @@ include 'layout/header.php';
                 <i data-lucide="code-2" class="w-6 h-6"></i>
             </div>
             <div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-600 font-bold">PHP Version</div>
+                <div class="text-[11px] uppercase tracking-wider text-slate-700 font-bold">PHP Version</div>
                 <div class="text-slate-900 font-medium">v<?= $php_version ?></div>
             </div>
         </div>
@@ -314,7 +314,7 @@ include 'layout/header.php';
                 <i data-lucide="globe-2" class="w-6 h-6"></i>
             </div>
             <div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-600 font-bold">Web Server</div>
+                <div class="text-[11px] uppercase tracking-wider text-slate-700 font-bold">Web Server</div>
                 <div class="text-slate-900 font-medium truncate" title="<?= $web_server ?>"><?= $web_server_display ?>
                 </div>
             </div>
@@ -326,7 +326,7 @@ include 'layout/header.php';
                 <i data-lucide="cpu" class="w-6 h-6"></i>
             </div>
             <div>
-                <div class="text-[11px] uppercase tracking-wider text-slate-600 font-bold">Architecture</div>
+                <div class="text-[11px] uppercase tracking-wider text-slate-700 font-bold">Architecture</div>
                 <div class="text-slate-900 font-medium"><?= $arch ?></div>
             </div>
         </div>

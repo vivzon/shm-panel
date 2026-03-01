@@ -47,7 +47,7 @@ include 'layout/header.php';
         <h3 class="font-bold mb-4 text-slate-900">Add Public Key</h3>
         <form onsubmit="handleGeneric(event, 'add_ssh')">
             <textarea name="key" required placeholder="ssh-rsa AAAA..." rows="4"
-                class="w-full bg-white/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 font-mono text-xs mb-4"></textarea>
+                class="w-full bg-slate-50 border border-slate-300 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 font-mono text-xs mb-4"></textarea>
             <button
                 class="bg-blue-600 text-slate-900 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-blue-500 transition">Add
                 Key</button>
@@ -79,7 +79,7 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach((line, i) => {
                     list.innerHTML += `
-                            <div class="flex items-center justify-between p-4 bg-white/50 rounded-xl border border-slate-700/50 mb-2">
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mb-2">
                                 <div class="font-mono text-xs text-slate-700 truncate w-3/4">${line}</div>
                                 <button onclick="handleGeneric(event, 'del_ssh', {line: ${parseInt(line)} })" class="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"><i data-lucide="trash-2" class="w-4"></i></button>
                             </div>
@@ -87,7 +87,7 @@ include 'layout/header.php';
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<div class="text-center text-slate-600 py-4">No SSH keys found.</div>';
+                list.innerHTML = '<div class="text-center text-slate-700 py-4">No SSH keys found.</div>';
             }
         } catch (e) { list.innerHTML = '<div class="text-center text-red-400">Error loading keys.</div>'; }
     }
@@ -115,4 +115,5 @@ include 'layout/header.php';
 
     loadSSH();
 </script>
+
 

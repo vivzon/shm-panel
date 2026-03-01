@@ -522,7 +522,7 @@ try {
             <!-- CTA -->
             <div class="flex items-center gap-3">
                 <a href="<?= e($clientUrl) ?>"
-                    class="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition px-4 py-2">
+                    class="hidden sm:inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition px-4 py-2">
                     <i data-lucide="log-in" class="w-4 h-4"></i> Login
                 </a>
                 <a href="#pricing"
@@ -571,7 +571,7 @@ try {
                     </a>
                     <a href="<?= e($clientUrl) ?>"
                         class="btn-secondary w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2">
-                        <i data-lucide="layout-dashboard" class="w-5 h-5 text-slate-500"></i>
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 text-slate-600"></i>
                         Client Portal
                     </a>
                 </div>
@@ -579,7 +579,7 @@ try {
                 <!-- Trust Line -->
                 <div class="animate-fade-up delay-400 section-divider mb-10"></div>
                 <div
-                    class="animate-fade-up delay-500 flex flex-wrap justify-center items-center gap-3 text-xs text-slate-500 font-semibold uppercase tracking-widest mb-14">
+                    class="animate-fade-up delay-500 flex flex-wrap justify-center items-center gap-3 text-xs text-slate-600 font-semibold uppercase tracking-widest mb-14">
                     <span class="flex items-center gap-1.5"><i data-lucide="check-circle-2"
                             class="w-3.5 h-3.5 text-emerald-500"></i> No Setup Fees</span>
                     <span class="text-slate-700">·</span>
@@ -606,7 +606,7 @@ try {
                             <div
                                 class="flex-1 ml-3 h-6 rounded-lg bg-slate-100 flex items-center px-3 border border-slate-200">
                                 <span
-                                    class="text-[10px] font-mono text-slate-500">https://client.<?= e($base) ?>/dashboard</span>
+                                    class="text-[10px] font-mono text-slate-600">https://client.<?= e($base) ?>/dashboard</span>
                             </div>
                         </div>
 
@@ -621,7 +621,7 @@ try {
                             foreach ($metrics as $m):
                                 ?>
                                 <div class="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-                                    <div class="text-[10px] text-slate-500 uppercase tracking-widest mb-2"><?= $m[0] ?>
+                                    <div class="text-[10px] text-slate-600 uppercase tracking-widest mb-2"><?= $m[0] ?>
                                     </div>
                                     <div class="text-xl font-bold text-slate-800 mb-3"><?= $m[1] ?></div>
                                     <div class="h-1 bg-slate-100 rounded-full overflow-hidden">
@@ -647,7 +647,7 @@ try {
                                         <div class="w-2 h-2 rounded-full <?= $r[2] ?>"></div>
                                         <span class="text-xs font-mono text-slate-300"><?= $r[0] ?></span>
                                     </div>
-                                    <span class="text-[10px] font-bold text-slate-500"><?= $r[1] ?></span>
+                                    <span class="text-[10px] font-bold text-slate-600"><?= $r[1] ?></span>
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -678,7 +678,7 @@ try {
                             <i data-lucide="<?= $s[2] ?>" class="w-6 h-6"></i>
                         </div>
                         <div class="text-3xl font-bold font-heading text-slate-800 mb-1"><?= $s[0] ?></div>
-                        <div class="text-xs text-slate-500 font-semibold uppercase tracking-widest"><?= $s[1] ?></div>
+                        <div class="text-xs text-slate-600 font-semibold uppercase tracking-widest"><?= $s[1] ?></div>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -726,7 +726,7 @@ try {
                             <i data-lucide="<?= $f[0] ?>" class="w-6 h-6 <?= $f[2] ?>"></i>
                         </div>
                         <h3 class="text-lg font-bold text-slate-800 mb-3"><?= $f[3] ?></h3>
-                        <p class="text-slate-500 text-sm leading-relaxed"><?= $f[4] ?></p>
+                        <p class="text-slate-600 text-sm leading-relaxed"><?= $f[4] ?></p>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -769,12 +769,12 @@ try {
 
                             <div class="mb-6">
                                 <h3 class="text-xl font-bold text-slate-900 mb-1"><?= e($plan['name'] ?? 'Plan') ?></h3>
-                                <p class="text-slate-500 text-sm">Everything you need to get started</p>
+                                <p class="text-slate-600 text-sm">Everything you need to get started</p>
                             </div>
 
                             <div class="mb-8">
                                 <span class="text-5xl font-bold font-heading text-slate-900">₹<?= $price ?></span>
-                                <span class="text-slate-500 text-sm ml-2">/ month</span>
+                                <span class="text-slate-600 text-sm ml-2">/ month</span>
                             </div>
 
                             <div class="space-y-3 mb-8">
@@ -829,13 +829,13 @@ try {
                             <?php endif; ?>
                             <div class="mb-6">
                                 <h3 class="text-xl font-bold text-slate-900 mb-1"><?= $dp[0] ?></h3>
-                                <p class="text-slate-500 text-sm">Perfect for
+                                <p class="text-slate-600 text-sm">Perfect for
                                     <?= $pi === 0 ? 'small projects' : ($pi === 1 ? 'growing businesses' : 'large-scale apps') ?>
                                 </p>
                             </div>
                             <div class="mb-8">
                                 <span class="text-5xl font-bold font-heading text-white"><?= $dp[1] ?></span>
-                                <span class="text-slate-400 text-sm ml-2">/ month</span>
+                                <span class="text-slate-600 text-sm ml-2">/ month</span>
                             </div>
                             <div class="space-y-3 mb-8">
                                 <?php foreach ([
@@ -909,7 +909,7 @@ try {
                             </div>
                             <div>
                                 <div class="font-bold text-sm text-slate-900"><?= $t[1] ?></div>
-                                <div class="text-xs text-slate-500"><?= $t[2] ?></div>
+                                <div class="text-xs text-slate-600"><?= $t[2] ?></div>
                             </div>
                         </div>
                     </div>
@@ -964,7 +964,7 @@ try {
                         <span
                             class="text-lg font-bold font-heading text-slate-900"><?= e(strtoupper($brandName)) ?></span>
                     </div>
-                    <p class="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
+                    <p class="text-slate-600 text-sm leading-relaxed max-w-xs mb-6">
                         Enterprise-grade cloud hosting trusted by developers and agencies across India and beyond.
                     </p>
                     <div class="flex items-center gap-2 text-xs font-bold text-emerald-400">
@@ -975,30 +975,30 @@ try {
 
                 <!-- Quick Links -->
                 <div>
-                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-5">Platform</h4>
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-600 mb-5">Platform</h4>
                     <div class="space-y-3">
                         <a href="#features"
-                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Features</a>
+                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Features</a>
                         <a href="#pricing"
-                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Pricing</a>
+                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Pricing</a>
                         <a href="#testimonials"
-                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Reviews</a>
+                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Reviews</a>
                         <a href="<?= e($clientUrl) ?>"
-                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Client Portal</a>
+                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Client Portal</a>
                     </div>
                 </div>
 
                 <!-- Support -->
                 <div>
-                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-5">Support</h4>
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-600 mb-5">Support</h4>
                     <div class="space-y-3">
                         <a href="mailto:support@<?= e($base) ?>"
-                            class="block text-sm text-slate-500 hover:text-slate-900 transition">Email Support</a>
-                        <a href="#" class="block text-sm text-slate-500 hover:text-slate-900 transition">Privacy
+                            class="block text-sm text-slate-600 hover:text-slate-900 transition">Email Support</a>
+                        <a href="#" class="block text-sm text-slate-600 hover:text-slate-900 transition">Privacy
                             Policy</a>
-                        <a href="#" class="block text-sm text-slate-500 hover:text-slate-900 transition">Terms of
+                        <a href="#" class="block text-sm text-slate-600 hover:text-slate-900 transition">Terms of
                             Service</a>
-                        <a href="#" class="block text-sm text-slate-500 hover:text-slate-900 transition">SLA</a>
+                        <a href="#" class="block text-sm text-slate-600 hover:text-slate-900 transition">SLA</a>
                     </div>
                 </div>
             </div>

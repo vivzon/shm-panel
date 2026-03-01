@@ -74,11 +74,11 @@ include 'layout/header.php';
                         <?= $name ?>
                     </p>
                     <div class="flex items-center gap-2 mt-1">
-                        <p class="text-[10px] font-mono text-slate-600 uppercase tracking-widest">
+                        <p class="text-[10px] font-mono text-slate-700 uppercase tracking-widest">
                             <?= $id ?>
                         </p>
                         <span
-                            class="status-badge px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-slate-500/10 text-slate-600 border border-slate-500/20">
+                            class="status-badge px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-slate-500/10 text-slate-700 border border-slate-500/20">
                             CHECKING...
                         </span>
                     </div>
@@ -86,11 +86,11 @@ include 'layout/header.php';
             </div>
             <div class="flex gap-2">
                 <button onclick="servAction('<?= $id ?>','restart')" title="Restart"
-                    class="p-3 bg-slate-50 rounded-xl text-blue-400 hover:text-slate-900 hover:bg-blue-600 transition-all border border-slate-700 shadow-lg">
+                    class="p-3 bg-slate-50 rounded-xl text-blue-400 hover:text-slate-900 hover:bg-blue-600 transition-all border border-slate-300 shadow-lg">
                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                 </button>
                 <button onclick="servAction('<?= $id ?>','stop')" title="Stop"
-                    class="p-3 bg-slate-50 rounded-xl text-red-500 hover:text-slate-900 hover:bg-red-600 transition-all border border-slate-700 shadow-lg">
+                    class="p-3 bg-slate-50 rounded-xl text-red-500 hover:text-slate-900 hover:bg-red-600 transition-all border border-slate-300 shadow-lg">
                     <i data-lucide="power" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -201,4 +201,5 @@ include 'layout/header.php';
         setInterval(updateServiceStatus, 5000);
     });
 </script>
+
 

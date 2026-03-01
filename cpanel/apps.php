@@ -91,7 +91,7 @@ include 'layout/header.php';
             <h3 class="text-xl font-bold text-slate-900 mb-2 relative z-10">
                 <?= $info[0] ?>
             </h3>
-            <p class="text-slate-600 text-sm mb-6 relative z-10 h-10">
+            <p class="text-slate-700 text-sm mb-6 relative z-10 h-10">
                 <?= $info[1] ?>
             </p>
             <button onclick="openAppModal('<?= $key ?>', '<?= $info[0] ?>')"
@@ -118,7 +118,7 @@ include 'layout/header.php';
             </thead>
             <tbody class="divide-y divide-white/10">
                 <?php if (empty($installations)): ?>
-                    <tr><td colspan="6" class="p-6 text-center text-slate-600">No applications installed yet.</td></tr>
+                    <tr><td colspan="6" class="p-6 text-center text-slate-700">No applications installed yet.</td></tr>
                 <?php else: ?>
                     <?php foreach ($installations as $inst): ?>
                         <tr class="hover:bg-white/5 transition">
@@ -130,7 +130,7 @@ include 'layout/header.php';
                             <td class="p-4">
                                 <span class="text-xs <?= $inst['status']=='active'?'bg-green-600':'bg-yellow-600' ?> px-2 py-1 rounded capitalize"><?= $inst['status'] ?></span>
                             </td>
-                            <td class="p-4 text-slate-600 text-sm"><?= date('M d, Y', strtotime($inst['created_at'])) ?></td>
+                            <td class="p-4 text-slate-700 text-sm"><?= date('M d, Y', strtotime($inst['created_at'])) ?></td>
                             <td class="p-4 text-right">
                                 <button onclick="uninstallApp(<?= $inst['id'] ?>, '<?= $inst['app_type'] ?>', '<?= $inst['domain'] ?>')" 
                                         class="text-red-400 hover:text-red-300 text-sm font-bold">Uninstall</button>
@@ -204,3 +204,4 @@ include 'layout/header.php';
         }
     }
 </script>
+

@@ -112,14 +112,14 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Username</label>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Username</label>
                         <input type="text" name="username" required pattern="[a-z0-9]{3,16}"
                             title="Lowercase, numbers, 3-16 chars"
                             class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-blue-500 outline-none transition"
                             placeholder="jdoe">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Email Address</label>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Email Address</label>
                         <input type="email" name="email" required
                             class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-blue-500 outline-none transition"
                             placeholder="john@example.com">
@@ -127,19 +127,19 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Primary Domain</label>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Primary Domain</label>
                     <div class="flex">
                         <input type="text" name="domain" required
                             class="w-full bg-slate-900 border border-slate-700 rounded-l-xl p-3 focus:border-blue-500 outline-none transition"
                             placeholder="example">
                         <span
-                            class="bg-slate-800 border border-l-0 border-slate-700 rounded-r-xl px-4 flex items-center text-slate-400 text-sm">.com</span>
+                            class="bg-slate-800 border border-l-0 border-slate-700 rounded-r-xl px-4 flex items-center text-slate-600 text-sm">.com</span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-2">Enter domain without extension (extension demo only)</p>
+                    <p class="text-xs text-slate-600 mt-2">Enter domain without extension (extension demo only)</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Password</label>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Password</label>
                     <input type="password" name="password" required minlength="8"
                         class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 focus:border-blue-500 outline-none transition"
                         placeholder="••••••••">
@@ -153,7 +153,7 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
                             <div
                                 class="p-4 rounded-xl border border-slate-700 bg-slate-800/50 peer-checked:border-blue-500 peer-checked:bg-blue-600/10 transition flex flex-col items-center gap-2">
                                 <span class="font-bold">Razorpay</span>
-                                <span class="text-xs text-slate-400">Cards, UPI, Netbanking</span>
+                                <span class="text-xs text-slate-600">Cards, UPI, Netbanking</span>
                             </div>
                         </label>
                         <label class="cursor-pointer">
@@ -161,7 +161,7 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
                             <div
                                 class="p-4 rounded-xl border border-slate-700 bg-slate-800/50 peer-checked:border-blue-500 peer-checked:bg-blue-600/10 transition flex flex-col items-center gap-2">
                                 <span class="font-bold">PayPal</span>
-                                <span class="text-xs text-slate-400">International Cards</span>
+                                <span class="text-xs text-slate-600">International Cards</span>
                             </div>
                         </label>
                     </div>
@@ -190,7 +190,7 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
                 </span>
             </div>
 
-            <ul class="space-y-3 mb-8 text-sm text-slate-400">
+            <ul class="space-y-3 mb-8 text-sm text-slate-600">
                 <li class="flex justify-between"><span>Disk Space</span> <span class="text-white">
                         <?= $package['disk_mb'] ?> MB
                     </span></li>
@@ -210,7 +210,7 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
                 </span>
             </div>
 
-            <div class="mt-8 text-xs text-slate-500 text-center">
+            <div class="mt-8 text-xs text-slate-600 text-center">
                 <p>30-Day Money Back Guarantee</p>
                 <p class="mt-2">By continuing, you agree to our Terms of Service.</p>
             </div>
@@ -309,3 +309,4 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
 </body>
 
 </html>
+

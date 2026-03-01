@@ -969,7 +969,7 @@ if (is_dir($full_path)) {
                     foreach ($crumbs as $c):
                         $acc .= '/' . $c;
                         ?>
-                        <i data-lucide="chevron-right" class="w-4 text-slate-600 mx-1"></i>
+                        <i data-lucide="chevron-right" class="w-4 text-slate-700 mx-1"></i>
                         <a href="?domain_id=<?= $domain_id ?>&path=<?= $acc ?>"
                             class="hover:text-slate-900 transition hover:bg-white/5 px-2 py-1 rounded-md"><?= $c ?></a>
                     <?php endforeach; ?>
@@ -980,18 +980,18 @@ if (is_dir($full_path)) {
                 <!-- Search -->
                 <div class="relative group">
                     <i data-lucide="search"
-                        class="w-4 absolute left-3 top-2.5 text-slate-600 group-focus-within:text-blue-400 transition"></i>
+                        class="w-4 absolute left-3 top-2.5 text-slate-700 group-focus-within:text-blue-400 transition"></i>
                     <input id="file-search" onkeyup="FM.filter()" placeholder="Search current folder..."
-                        class="bg-white/50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm w-64 focus:w-80 transition-all outline-none focus:border-blue-500/50 focus:bg-white">
+                        class="bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm w-64 focus:w-80 transition-all outline-none focus:border-blue-500/50 focus:bg-white">
                 </div>
 
                 <!-- View Toggles -->
-                <div class="flex p-1 bg-white/50 rounded-lg border border-slate-200">
+                <div class="flex p-1 bg-slate-50 rounded-lg border border-slate-200">
                     <button onclick="FM.setView('list')" id="btn-list"
                         class="p-1.5 rounded-md hover:text-slate-900 transition text-blue-400 bg-white/10"><i
                             data-lucide="list" class="w-4"></i></button>
                     <button onclick="FM.setView('grid')" id="btn-grid"
-                        class="p-1.5 rounded-md hover:text-slate-900 transition text-slate-600"><i data-lucide="layout-grid"
+                        class="p-1.5 rounded-md hover:text-slate-900 transition text-slate-700"><i data-lucide="layout-grid"
                             class="w-4"></i></button>
                 </div>
 
@@ -1006,28 +1006,28 @@ if (is_dir($full_path)) {
 
         <div class="flex flex-1 overflow-hidden">
             <!-- SIDEBAR (File System Nav) -->
-            <aside class="w-64 border-r border-slate-200 bg-white/30 flex flex-col hidden md:flex">
+            <aside class="w-64 border-r border-slate-200 bg-slate-50 flex flex-col hidden md:flex">
                 <div class="p-4">
                     <button onclick="FM.openCreate()"
-                        class="w-full py-3 rounded-xl border border-dashed border-slate-600 hover:border-blue-500 hover:bg-blue-500/5 hover:text-blue-400 transition text-sm font-bold flex items-center justify-center gap-2 text-slate-600">
+                        class="w-full py-3 rounded-xl border border-dashed border-slate-600 hover:border-blue-500 hover:bg-blue-500/5 hover:text-blue-400 transition text-sm font-bold flex items-center justify-center gap-2 text-slate-700">
                         <i data-lucide="plus" class="w-4"></i> New Item
                     </button>
                 </div>
                 <div class="flex-1 overflow-y-auto px-2 space-y-1">
-                    <div class="px-3 py-2 text-xs font-bold text-slate-600 uppercase tracking-wider">Locations</div>
+                    <div class="px-3 py-2 text-xs font-bold text-slate-700 uppercase tracking-wider">Locations</div>
                     <a href="?domain_id=<?= $domain_id ?>&path=/"
                         class="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-500/10 text-blue-400 font-medium text-sm">
                         <i data-lucide="home" class="w-4"></i> Home Root
                     </a>
 
-                    <div class="mt-6 px-3 py-2 text-xs font-bold text-slate-600 uppercase tracking-wider">Domains</div>
+                    <div class="mt-6 px-3 py-2 text-xs font-bold text-slate-700 uppercase tracking-wider">Domains</div>
                     <?php
                     $doms = $pdo->prepare("SELECT id, domain FROM domains WHERE client_id = ?");
                     $doms->execute([$user_id]);
                     while ($d = $doms->fetch()):
                         ?>
                         <a href="?domain_id=<?= $d['id'] ?>"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-slate-600 hover:text-slate-900 transition text-sm <?= $d['id'] == $domain_id ? '!text-slate-900 !bg-white/10' : '' ?>">
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-slate-700 hover:text-slate-900 transition text-sm <?= $d['id'] == $domain_id ? '!text-slate-900 !bg-white/10' : '' ?>">
                             <i data-lucide="globe" class="w-4"></i> <?= $d['domain'] ?>
                         </a>
                     <?php endwhile; ?>
@@ -1036,7 +1036,7 @@ if (is_dir($full_path)) {
                 <!-- Storage Status -->
                 <div class="p-4 border-t border-slate-200">
                     <div class="flex justify-between text-xs mb-2">
-                        <span class="text-slate-600">Storage</span>
+                        <span class="text-slate-700">Storage</span>
                         <span class="font-bold text-slate-900"><?= $domain['disk_usage'] ?? '0' ?> MB</span>
                     </div>
                     <div class="h-1.5 bg-slate-50 rounded-full overflow-hidden">
@@ -1076,7 +1076,7 @@ if (is_dir($full_path)) {
                             class="text-red-400 hover:text-red-300 flex items-center gap-2 transition"
                             title="Delete (Del key)"><i data-lucide="trash-2" class="w-4"></i> Delete</button>
                     </div>
-                    <button onclick="FM.clearSelection()" class="text-slate-600 hover:text-slate-900"
+                    <button onclick="FM.clearSelection()" class="text-slate-700 hover:text-slate-900"
                         title="Clear Selection"><i data-lucide="x" class="w-4"></i></button>
                 </div>
 
@@ -1084,7 +1084,7 @@ if (is_dir($full_path)) {
 
                     <!-- LIST HEADER -->
                     <div
-                        class="grid grid-cols-12 gap-4 px-4 py-2 border-b border-slate-200 text-xs font-bold uppercase text-slate-600 tracking-wider mb-2 list-header sticky top-0 bg-[#0f172a] z-10 hidden">
+                        class="grid grid-cols-12 gap-4 px-4 py-2 border-b border-slate-200 text-xs font-bold uppercase text-slate-700 tracking-wider mb-2 list-header sticky top-0 bg-[#0f172a] z-10 hidden">
                         <div class="col-span-6 pl-8 flex items-center gap-3">
                             <div class="w-5 flex justify-center">
                                 <input type="checkbox" id="header-select-all" onchange="FM.selectAll(this.checked)"
@@ -1100,10 +1100,10 @@ if (is_dir($full_path)) {
                     <!-- PARENT DIR -->
                     <?php if ($current_path != '/'): ?>
                         <div onclick="location.href='?domain_id=<?= $domain_id ?>&path=<?= dirname($current_path) ?>'"
-                            class="grid grid-cols-12 gap-4 px-4 py-3 rounded-xl hover:bg-white/5 cursor-pointer items-center text-slate-600 hover:text-slate-900 transition group mb-1">
+                            class="grid grid-cols-12 gap-4 px-4 py-3 rounded-xl hover:bg-white/5 cursor-pointer items-center text-slate-700 hover:text-slate-900 transition group mb-1">
                             <div class="col-span-6 flex items-center gap-4">
                                 <i data-lucide="corner-left-up"
-                                    class="w-5 text-slate-600 group-hover:text-blue-400 transition"></i>
+                                    class="w-5 text-slate-700 group-hover:text-blue-400 transition"></i>
                                 <span class="font-bold">..</span>
                             </div>
                         </div>
@@ -1112,7 +1112,7 @@ if (is_dir($full_path)) {
                     <!-- ITEMS LOOP -->
                     <?php foreach ($items as $i):
                         $icon = $i['is_dir'] ? 'folder' : 'file';
-                        $color = $i['is_dir'] ? 'text-amber-400' : 'text-slate-600';
+                        $color = $i['is_dir'] ? 'text-amber-400' : 'text-slate-700';
                         $type = $i['is_dir'] ? 'Directory' : pathinfo($i['name'], PATHINFO_EXTENSION);
 
                         // Icon logic
@@ -1161,12 +1161,12 @@ if (is_dir($full_path)) {
                                         <span
                                             class="truncate font-medium text-slate-700 group-hover:text-slate-900"><?= htmlspecialchars($i['name']) ?></span>
                                     </div>
-                                    <div class="col-span-2 text-sm text-slate-600 font-mono">
+                                    <div class="col-span-2 text-sm text-slate-700 font-mono">
                                         <?= htmlspecialchars($i['size']) ?>
                                     </div>
-                                    <div class="col-span-2 text-sm text-slate-600 uppercase"><?= htmlspecialchars($type) ?>
+                                    <div class="col-span-2 text-sm text-slate-700 uppercase"><?= htmlspecialchars($type) ?>
                                     </div>
-                                    <div class="col-span-2 text-right text-sm text-slate-600 font-mono">
+                                    <div class="col-span-2 text-right text-sm text-slate-700 font-mono">
                                         <?= htmlspecialchars($i['date']) ?>
                                     </div>
                                 </div>
@@ -1185,7 +1185,7 @@ if (is_dir($full_path)) {
                                         <div class="truncate font-medium text-sm text-slate-700 group-hover:text-slate-900">
                                             <?= htmlspecialchars($i['name']) ?>
                                         </div>
-                                        <div class="text-xs text-slate-600 mt-1"><?= htmlspecialchars($i['size']) ?></div>
+                                        <div class="text-xs text-slate-700 mt-1"><?= htmlspecialchars($i['size']) ?></div>
                                     </div>
                                 </div>
                             </div>
@@ -1193,7 +1193,7 @@ if (is_dir($full_path)) {
                     <?php endforeach; ?>
 
                     <?php if (empty($items)): ?>
-                        <div class="flex flex-col items-center justify-center h-64 text-slate-600">
+                        <div class="flex flex-col items-center justify-center h-64 text-slate-700">
                             <i data-lucide="folder-open" class="w-12 h-12 mb-4 opacity-50"></i>
                             <p>This folder is empty</p>
                         </div>
@@ -1220,13 +1220,13 @@ if (is_dir($full_path)) {
             <div class="border-2 border-dashed border-slate-600 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-500 hover:bg-slate-50/50 transition mb-6"
                 onclick="document.getElementById('inp-upload-files').click()"
                 ondrop="FM.handleDrop(event.dataTransfer.files); FM.closeModals();" ondragover="event.preventDefault()">
-                <i data-lucide="cloud-upload" class="w-12 h-12 text-slate-600 mb-3"></i>
+                <i data-lucide="cloud-upload" class="w-12 h-12 text-slate-700 mb-3"></i>
                 <p class="text-slate-700 font-medium">Click to browse or drag files here</p>
                 <input type="file" id="inp-upload-files" multiple class="hidden" onchange="FM.doUploadInput(this)">
             </div>
             <div class="flex justify-end">
                 <button onclick="FM.closeModals()"
-                    class="px-6 py-2 rounded-xl font-bold text-slate-600 hover:bg-white/5 transition">Close</button>
+                    class="px-6 py-2 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Close</button>
             </div>
         </div>
     </div>
@@ -1239,13 +1239,13 @@ if (is_dir($full_path)) {
             <input type="hidden" id="chmod-target">
             <div class="mb-4">
                 <div class="flex justify-between items-center mb-2">
-                    <label class="block text-slate-600 text-xs uppercase font-bold">Numeric Value (Octal)</label>
-                    <span class="text-xs text-slate-600">Current: <span id="chmod-current"
+                    <label class="block text-slate-700 text-xs uppercase font-bold">Numeric Value (Octal)</label>
+                    <span class="text-xs text-slate-700">Current: <span id="chmod-current"
                             class="text-slate-700 font-mono">-</span></span>
                 </div>
                 <input type="text" id="chmod-val" value="0775"
                     class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-mono outline-none focus:border-blue-500">
-                <p class="text-[10px] text-slate-600 mt-2">
+                <p class="text-[10px] text-slate-700 mt-2">
                     Examples: <span class="text-blue-400 cursor-pointer"
                         onclick="document.getElementById('chmod-val').value='0775'">0775</span> (Folder),
                     <span class="text-blue-400 cursor-pointer"
@@ -1264,7 +1264,7 @@ if (is_dir($full_path)) {
             </div>
             <div class="flex justify-end gap-2">
                 <button onclick="FM.closeModals()"
-                    class="px-4 py-2 rounded-xl font-bold text-slate-600 hover:bg-white/5 transition">Cancel</button>
+                    class="px-4 py-2 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Cancel</button>
                 <button onclick="FM.doChmod()"
                     class="px-6 py-2 rounded-xl font-bold bg-blue-600 text-slate-900 hover:bg-blue-500 transition shadow-lg">Save</button>
             </div>
@@ -1274,7 +1274,7 @@ if (is_dir($full_path)) {
     <!-- CONTEXT MENU & MODALS (Kept in body) -->
     <!-- CONTEXT MENU -->
     <div id="ctx-menu"
-        class="fixed z-50 bg-[#1e293b] border border-slate-700 shadow-2xl rounded-xl w-48 py-1 hidden transform scale-95 opacity-0 transition-all duration-100 origin-top-left">
+        class="fixed z-50 bg-[#1e293b] border border-slate-300 shadow-2xl rounded-xl w-48 py-1 hidden transform scale-95 opacity-0 transition-all duration-100 origin-top-left">
         <button onclick="FM.openCtx()"
             class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 font-medium text-slate-900"><i
                 data-lucide="folder-open" class="w-4 text-blue-400"></i> Open</button>
@@ -1290,7 +1290,7 @@ if (is_dir($full_path)) {
                 data-lucide="package-open" class="w-4 text-orange-400"></i> Extract</button>
         <button onclick="FM.chmodCtx()"
             class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-700">
-            <i data-lucide="shield" class="w-4 text-slate-600"></i> Permissions
+            <i data-lucide="shield" class="w-4 text-slate-700"></i> Permissions
         </button>
         <button onclick="FM.bulk('copy')"
             class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-700"><i
@@ -1316,13 +1316,13 @@ if (is_dir($full_path)) {
                 <button onclick="FM.setCreateType('file')" id="btn-c-file"
                     class="flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-slate-900 shadow transition">File</button>
                 <button onclick="FM.setCreateType('folder')" id="btn-c-folder"
-                    class="flex-1 py-1.5 rounded text-sm font-bold text-slate-600 hover:text-slate-900 transition">Folder</button>
+                    class="flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition">Folder</button>
             </div>
             <input id="input-create" type="text" placeholder="Name"
-                class="w-full bg-white border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 mb-6 text-slate-900 text-sm">
+                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 mb-6 text-slate-900 text-sm">
             <div class="flex gap-3">
                 <button onclick="FM.closeModals()"
-                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-white/5 transition">Cancel</button>
+                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Cancel</button>
                 <button onclick="FM.doCreate()"
                     class="flex-1 py-2.5 rounded-xl font-bold bg-blue-600 text-slate-900 hover:bg-blue-500 shadow-lg shadow-blue-500/20 transition">Create</button>
             </div>
@@ -1335,11 +1335,11 @@ if (is_dir($full_path)) {
         <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl">
             <h3 class="font-bold text-xl text-slate-900 mb-6">Rename</h3>
             <input id="input-rename" type="text"
-                class="w-full bg-white border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-blue-500 mb-6 text-slate-900 text-sm">
+                class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 mb-6 text-slate-900 text-sm">
             <input id="rename-target" type="hidden">
             <div class="flex gap-3">
                 <button onclick="FM.closeModals()"
-                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-white/5 transition">Cancel</button>
+                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Cancel</button>
                 <button onclick="FM.doRename()"
                     class="flex-1 py-2.5 rounded-xl font-bold bg-blue-600 text-slate-900 hover:bg-blue-500 shadow-lg shadow-blue-500/20 transition">Save</button>
             </div>
@@ -1351,16 +1351,16 @@ if (is_dir($full_path)) {
         class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
         <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl">
             <h3 class="font-bold text-xl text-slate-900 mb-6" id="cm-title">Move Items</h3>
-            <div class="mb-4 text-xs text-slate-600 font-bold uppercase">Destination Folder</div>
-            <div class="flex bg-white border border-slate-700 rounded-xl px-4 py-3 mb-6 items-center gap-3">
-                <i data-lucide="folder" class="w-4 text-slate-600"></i>
+            <div class="mb-4 text-xs text-slate-700 font-bold uppercase">Destination Folder</div>
+            <div class="flex bg-white border border-slate-300 rounded-xl px-4 py-3 mb-6 items-center gap-3">
+                <i data-lucide="folder" class="w-4 text-slate-700"></i>
                 <input id="cm-dest" type="text" class="bg-transparent outline-none flex-1 text-slate-900 text-sm"
                     placeholder="/path/to/folder">
             </div>
             <input type="hidden" id="cm-action">
             <div class="flex gap-3">
                 <button onclick="FM.closeModals()"
-                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-white/5 transition">Cancel</button>
+                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Cancel</button>
                 <button onclick="FM.doCopyMove()"
                     class="flex-1 py-2.5 rounded-xl font-bold bg-blue-600 text-slate-900 hover:bg-blue-500 shadow-lg shadow-blue-500/20 transition">Confirm</button>
             </div>
@@ -1372,17 +1372,17 @@ if (is_dir($full_path)) {
         class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
         <div
             class="glass-panel rounded-2xl w-full max-w-4xl h-[80vh] border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
-            <div class="h-12 border-b border-slate-200 flex items-center justify-between px-4 bg-white/50">
+            <div class="h-12 border-b border-slate-200 flex items-center justify-between px-4 bg-slate-50">
                 <span id="preview-title" class="font-mono text-sm font-bold text-slate-700">filename.txt</span>
                 <button onclick="FM.closeModals()"
-                    class="p-1 hover:bg-white/10 rounded text-slate-600 hover:text-slate-900"><i data-lucide="x"
+                    class="p-1 hover:bg-white/10 rounded text-slate-700 hover:text-slate-900"><i data-lucide="x"
                         class="w-5"></i></button>
             </div>
             <div class="flex-1 overflow-auto bg-[#0a0f1c] p-0 relative flex items-center justify-center"
                 id="preview-content">
                 <!-- Content injected here -->
             </div>
-            <div class="h-12 border-t border-slate-200 flex items-center justify-end px-4 gap-3 bg-white/50">
+            <div class="h-12 border-t border-slate-200 flex items-center justify-end px-4 gap-3 bg-slate-50">
                 <button onclick="FM.closeModals()"
                     class="px-4 py-1.5 bg-white/10 text-slate-900 rounded-lg text-sm font-bold hover:bg-white/20 transition">Close</button>
             </div>
@@ -1531,7 +1531,7 @@ if (is_dir($full_path)) {
 
                 if (fileEl) {
                     // Get permissions from the list view (4th column in list layout)
-                    const permEl = fileEl.querySelector('.list-layout .col-span-2.text-slate-600.font-mono');
+                    const permEl = fileEl.querySelector('.list-layout .col-span-2.text-slate-700.font-mono');
                     if (permEl) {
                         currentPerms = permEl.textContent.trim();
                     }
@@ -1578,7 +1578,7 @@ if (is_dir($full_path)) {
                     container.classList.add('view-grid');
                     container.classList.remove('view-list');
                     btnGrid.classList.add('bg-white/10', 'text-slate-900');
-                    btnGrid.classList.remove('text-slate-600');
+                    btnGrid.classList.remove('text-slate-700');
                     btnList.classList.remove('bg-white/10', 'text-slate-900');
                     btnList.classList.add('text-blue-400');
                 } else {
@@ -1586,7 +1586,7 @@ if (is_dir($full_path)) {
                     container.classList.remove('view-grid');
                     btnList.classList.add('bg-white/10', 'text-blue-400');
                     btnGrid.classList.remove('bg-white/10', 'text-slate-900');
-                    btnGrid.classList.add('text-slate-600');
+                    btnGrid.classList.add('text-slate-700');
                 }
             }
 
@@ -1848,7 +1848,7 @@ if (is_dir($full_path)) {
                 const container = document.getElementById('preview-content');
 
                 modal.classList.remove('hidden');
-                container.innerHTML = '<div class="animate-pulse text-slate-600">Loading...</div>';
+                container.innerHTML = '<div class="animate-pulse text-slate-700">Loading...</div>';
 
                 if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
                     const fd = new FormData();
@@ -1908,8 +1908,8 @@ if (is_dir($full_path)) {
 
             setCreateType(t) {
                 this.createType = t;
-                document.getElementById('btn-c-file').className = t === 'file' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-600 hover:text-slate-900 transition';
-                document.getElementById('btn-c-folder').className = t === 'folder' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-600 hover:text-slate-900 transition';
+                document.getElementById('btn-c-file').className = t === 'file' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition';
+                document.getElementById('btn-c-folder').className = t === 'folder' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition';
             }
 
             doCreate() {
@@ -1993,4 +1993,5 @@ if (is_dir($full_path)) {
 </body>
 
 </html>
+
 

@@ -187,11 +187,11 @@ include 'layout/header.php';
 <div class="flex justify-between items-center mb-8 gap-4">
     <div class="flex items-center gap-4">
         <h2 class="text-2xl font-bold text-slate-900 font-heading">Clients <span id="client-count"
-                class="text-slate-600 text-lg ml-2"></span></h2>
+                class="text-slate-700 text-lg ml-2"></span></h2>
         <div class="relative">
-            <i data-lucide="search" class="w-4 absolute left-3 top-3 text-slate-600"></i>
+            <i data-lucide="search" class="w-4 absolute left-3 top-3 text-slate-700"></i>
             <input id="live-search" onkeyup="debounceSearch()" placeholder="Search username, email or domain..."
-                class="bg-white/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-2.5 text-sm w-80 outline-none focus:border-blue-500 text-slate-900 transition-all">
+                class="bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm w-80 outline-none focus:border-blue-500 text-slate-900 transition-all">
         </div>
     </div>
     <button onclick="openAccModal()"
@@ -204,7 +204,7 @@ include 'layout/header.php';
 <div class="glass-panel rounded-2xl overflow-hidden">
     <table class="w-full text-left border-collapse">
         <thead
-            class="bg-white/50 text-slate-600 text-[10px] font-bold uppercase tracking-widest border-b border-slate-800">
+            class="bg-slate-50 text-slate-700 text-[10px] font-bold uppercase tracking-widest border-b border-slate-300">
             <tr>
                 <th class="p-5">Client / Primary Domain</th>
                 <th class="p-5">Plan</th>
@@ -227,37 +227,37 @@ include 'layout/header.php';
         <input type="hidden" name="id" id="acc-id">
         <div class="space-y-4">
             <div>
-                <label class="text-[10px] text-slate-600 font-bold uppercase pl-1">Username</label>
+                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Username</label>
                 <input name="user" id="acc-user" required
-                    class="w-full bg-white/50 p-3 rounded-xl border border-slate-700 text-slate-900 outline-none focus:border-blue-500">
+                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500">
             </div>
             <div>
-                <label class="text-[10px] text-slate-600 font-bold uppercase pl-1">Domain</label>
+                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Domain</label>
                 <input name="dom" id="acc-dom" required placeholder="domain.com"
-                    class="w-full bg-white/50 p-3 rounded-xl border border-slate-700 text-slate-900 outline-none focus:border-blue-500">
+                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500">
             </div>
             <div>
-                <label class="text-[10px] text-slate-600 font-bold uppercase pl-1">Email</label>
+                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Email</label>
                 <input name="email" id="acc-email" type="email" required
-                    class="w-full bg-white/50 p-3 rounded-xl border border-slate-700 text-slate-900 outline-none focus:border-blue-500">
+                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500">
             </div>
             <div>
-                <label class="text-[10px] text-slate-600 font-bold uppercase pl-1">Password (Leave blank to keep
+                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Password (Leave blank to keep
                     current)</label>
                 <input name="pass" type="password"
-                    class="w-full bg-white/50 p-3 rounded-xl border border-slate-700 text-slate-900 outline-none focus:border-blue-500">
+                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none focus:border-blue-500">
             </div>
             <div>
-                <label class="text-[10px] text-slate-600 font-bold uppercase pl-1">Plan</label>
+                <label class="text-[10px] text-slate-700 font-bold uppercase pl-1">Plan</label>
                 <select name="package_id" id="acc-pkg"
-                    class="w-full bg-white/50 p-3 rounded-xl border border-slate-700 text-slate-900 outline-none">
+                    class="w-full bg-slate-50 p-3 rounded-xl border border-slate-300 text-slate-900 outline-none">
                     <?php foreach ($packages as $p): ?>
                         <option value="<?= $p['id'] ?>"><?= $p['name'] ?></option><?php endforeach; ?>
                 </select>
             </div>
             <div class="flex gap-4 pt-4">
                 <button type="button" onclick="closeModal('modal-acc')"
-                    class="flex-1 p-3 text-slate-600 font-bold hover:bg-slate-50 rounded-xl transition">Cancel</button>
+                    class="flex-1 p-3 text-slate-700 font-bold hover:bg-slate-50 rounded-xl transition">Cancel</button>
                 <button type="submit"
                     class="flex-1 bg-blue-600 text-slate-900 p-3 rounded-xl font-bold transition hover:bg-blue-500">Save</button>
             </div>
@@ -299,7 +299,7 @@ include 'layout/header.php';
                     <div class="text-xs text-blue-400">${c.domain || 'No domain'}</div>
                 </td>
                 <td class="p-5">
-                    <span class="bg-slate-50 border border-slate-700 px-3 py-1 rounded-full text-[10px] font-bold text-slate-700">${c.pkg_name}</span>
+                    <span class="bg-slate-50 border border-slate-300 px-3 py-1 rounded-full text-[10px] font-bold text-slate-700">${c.pkg_name}</span>
                 </td>
                 <td class="p-5">
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border ${c.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}">
@@ -307,11 +307,11 @@ include 'layout/header.php';
                     </span>
                 </td>
                 <td class="p-5 text-right flex justify-end gap-1">
-                    <button onclick="loginAs('${safeUsername}', ${c.id})" class="p-2 text-slate-600 hover:text-blue-400" title="Login"><i data-lucide="key" class="w-4"></i></button>
-                    <button onclick="toggleSus('${safeUsername}', ${c.status === 'active'})" class="p-2 text-slate-600 hover:text-orange-400" title="Suspend"><i data-lucide="${c.status === 'active' ? 'pause-circle' : 'play-circle'}" class="w-4"></i></button>
-                    <button onclick="editClient(${c.id})" class="p-2 text-slate-600 hover:text-slate-900" title="Edit"><i data-lucide="edit-3" class="w-4"></i></button>
-                    <button onclick="resetAcc('${safeUsername}')" class="p-2 text-slate-600 hover:text-red-400" title="Reset Files"><i data-lucide="rotate-ccw" class="w-4"></i></button>
-                    <button onclick="delAcc(${c.id}, '${safeUsername}')" class="p-2 text-slate-600 hover:text-red-500" title="Delete"><i data-lucide="trash-2" class="w-4"></i></button>
+                    <button onclick="loginAs('${safeUsername}', ${c.id})" class="p-2 text-slate-700 hover:text-blue-400" title="Login"><i data-lucide="key" class="w-4"></i></button>
+                    <button onclick="toggleSus('${safeUsername}', ${c.status === 'active'})" class="p-2 text-slate-700 hover:text-orange-400" title="Suspend"><i data-lucide="${c.status === 'active' ? 'pause-circle' : 'play-circle'}" class="w-4"></i></button>
+                    <button onclick="editClient(${c.id})" class="p-2 text-slate-700 hover:text-slate-900" title="Edit"><i data-lucide="edit-3" class="w-4"></i></button>
+                    <button onclick="resetAcc('${safeUsername}')" class="p-2 text-slate-700 hover:text-red-400" title="Reset Files"><i data-lucide="rotate-ccw" class="w-4"></i></button>
+                    <button onclick="delAcc(${c.id}, '${safeUsername}')" class="p-2 text-slate-700 hover:text-red-500" title="Delete"><i data-lucide="trash-2" class="w-4"></i></button>
                 </td>
             </tr>
         `}).join('');
@@ -324,7 +324,7 @@ include 'layout/header.php';
         const container = document.getElementById('pagination-container');
         if (totalPages <= 1) { container.innerHTML = ''; return; }
         container.innerHTML = `
-            <div class="text-xs text-slate-600 font-bold uppercase">Page ${currentPage} / ${totalPages}</div>
+            <div class="text-xs text-slate-700 font-bold uppercase">Page ${currentPage} / ${totalPages}</div>
             <div class="flex gap-2">
                 <button onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''} class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs disabled:opacity-30">Prev</button>
                 <button onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''} class="bg-slate-50 text-slate-900 px-4 py-2 rounded-lg text-xs disabled:opacity-30">Next</button>
@@ -407,4 +407,5 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
+
 

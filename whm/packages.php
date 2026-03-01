@@ -62,32 +62,32 @@ include 'layout/header.php';
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <?php foreach ($packages as $p): ?>
-        <div class="glass-panel p-6 rounded-2xl relative group hover:border-slate-600 transition">
+        <div class="glass-panel p-6 rounded-2xl relative group hover:border-blue-400 transition">
             <div class="flex justify-between items-start mb-6">
                 <h3 class="text-lg font-bold text-slate-900">
                     <?= $p['name'] ?>
                 </h3>
-                <div class="p-2 bg-slate-50 rounded-lg text-slate-600"><i data-lucide="box" class="w-4"></i></div>
+                <div class="p-2 bg-slate-50 rounded-lg text-slate-700"><i data-lucide="box" class="w-4"></i></div>
             </div>
-            <div class="space-y-4 text-sm text-slate-600 mb-8 font-medium">
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-white/30 border border-slate-800/50">
+            <div class="space-y-4 text-sm text-slate-700 mb-8 font-medium">
+                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
                     <i data-lucide="hard-drive" class="w-4 text-blue-400"></i>
                     <?= $p['disk_mb'] ?> MB
                     Storage
                 </div>
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-white/30 border border-slate-800/50">
+                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
                     <i data-lucide="globe" class="w-4 text-emerald-400"></i>
                     <?= $p['max_domains'] ?>
                     Domains
                 </div>
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-white/30 border border-slate-800/50">
+                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
                     <i data-lucide="mail" class="w-4 text-purple-400"></i>
                     <?= $p['max_emails'] ?> Emails
                 </div>
             </div>
             <div class="flex gap-3">
                 <button onclick='openPkgModal(<?= json_encode($p) ?>)'
-                    class="flex-1 bg-slate-50 hover:bg-slate-200 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-700 transition border border-slate-700">Edit</button>
+                    class="flex-1 bg-slate-50 hover:bg-slate-200 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-700 transition border border-slate-300">Edit</button>
                 <button onclick="delPkg(<?= $p['id'] ?>)"
                     class="bg-red-500/10 hover:bg-red-500/20 p-2.5 rounded-xl text-red-400 border border-red-500/20 transition"><i
                         data-lucide="trash-2" class="w-4"></i></button>
@@ -107,29 +107,29 @@ include 'layout/header.php';
 
         <div class="space-y-5">
             <input name="name" id="pkg-name" placeholder="Package Name" required
-                class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-slate-900 placeholder:text-slate-600 focus:bg-white transition">
+                class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-emerald-500 text-slate-900 placeholder:text-slate-700 focus:bg-white transition">
 
             <div class="grid grid-cols-3 gap-4">
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-600 uppercase tracking-widest pl-1">Disk</label>
+                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest pl-1">Disk</label>
                     <input name="disk" id="pkg-disk" type="number" placeholder="MB" required
-                        class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-slate-900 focus:bg-white transition text-center">
+                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-emerald-500 text-slate-900 focus:bg-white transition text-center">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-600 uppercase tracking-widest pl-1">Doms</label>
+                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest pl-1">Doms</label>
                     <input name="doms" id="pkg-doms" type="number" placeholder="#" required
-                        class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-slate-900 focus:bg-white transition text-center">
+                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-emerald-500 text-slate-900 focus:bg-white transition text-center">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-[10px] font-bold text-slate-600 uppercase tracking-widest pl-1">Mail</label>
+                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest pl-1">Mail</label>
                     <input name="mails" id="pkg-mails" type="number" placeholder="#" required
-                        class="w-full bg-white/50 p-4 rounded-xl border border-slate-700 outline-none focus:border-emerald-500 text-slate-900 focus:bg-white transition text-center">
+                        class="w-full bg-slate-50 p-4 rounded-xl border border-slate-300 outline-none focus:border-emerald-500 text-slate-900 focus:bg-white transition text-center">
                 </div>
             </div>
 
             <div class="flex gap-4 pt-4">
                 <button type="button" onclick="closeModal('modal-pkg')"
-                    class="flex-1 p-4 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition">Cancel</button>
+                    class="flex-1 p-4 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
                 <button type="submit"
                     class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-4 rounded-xl font-bold text-slate-900 shadow-lg shadow-emerald-600/20 transition">Save
                     Plan</button>
@@ -165,4 +165,5 @@ include 'layout/header.php';
         fetch('', { method: 'POST', body: fd }).then(() => location.reload());
     }
 </script>
+
 

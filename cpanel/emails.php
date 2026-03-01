@@ -108,9 +108,9 @@ include 'layout/header.php';
         <form onsubmit="handleGeneric(event, 'add_email')" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <?= csrf_field() ?>
             <input name="user" required placeholder="mailbox name"
-                class="bg-white/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 placeholder-slate-600 transition">
+                class="bg-slate-50 border border-slate-300 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 placeholder-slate-600 transition">
             <select name="domain"
-                class="bg-white/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-700">
+                class="bg-slate-50 border border-slate-300 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-700">
                 <?php foreach ($domains as $d): ?>
                     <option value="<?= $d['domain'] ?>">@
                         <?= $d['domain'] ?>
@@ -118,7 +118,7 @@ include 'layout/header.php';
                 <?php endforeach; ?>
             </select>
             <input name="pass" type="password" required placeholder="Password"
-                class="bg-white/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 placeholder-slate-600 transition">
+                class="bg-slate-50 border border-slate-300 p-4 rounded-xl outline-none focus:border-blue-500 text-slate-900 placeholder-slate-600 transition">
             <button
                 class="bg-blue-600 text-slate-900 rounded-xl font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition">Create
                 Mailbox</button>
@@ -128,7 +128,7 @@ include 'layout/header.php';
     <!-- LIST -->
     <div class="glass-card overflow-hidden">
         <table class="w-full text-left">
-            <thead class="bg-white/50 text-[10px] font-bold uppercase text-slate-600">
+            <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-700">
                 <tr>
                     <th class="p-6">Active Email Account</th>
                     <th class="p-6 text-right">Webmail / Action</th>
@@ -136,7 +136,7 @@ include 'layout/header.php';
             </thead>
             <tbody>
                 <?php foreach ($my_emails as $mail): ?>
-                    <tr class="border-t border-slate-700/50 hover:bg-slate-50/30 transition">
+                    <tr class="border-t border-slate-200 hover:bg-slate-50/30 transition">
                         <td class="p-6 font-bold text-slate-700">
                             <?= $mail['email'] ?>
                         </td>
@@ -158,7 +158,7 @@ include 'layout/header.php';
 
     <?php if ($total_pages > 1): ?>
         <div class="flex justify-between items-center mt-6">
-            <div class="text-xs text-slate-600 font-bold">
+            <div class="text-xs text-slate-700 font-bold">
                 Page <?= $page ?> of <?= $total_pages ?>
             </div>
             <div class="flex gap-2">
@@ -218,4 +218,5 @@ include 'layout/header.php';
         }
     }
 </script>
+
 

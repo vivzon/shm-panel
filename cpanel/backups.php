@@ -64,7 +64,7 @@ include 'layout/header.php';
 
 <div class="glass-card overflow-hidden">
     <table class="w-full text-left">
-        <thead class="bg-white/50 text-[10px] font-bold uppercase text-slate-600">
+        <thead class="bg-slate-50 text-[10px] font-bold uppercase text-slate-700">
             <tr>
                 <th class="p-4">Filename</th>
                 <th class="p-4">Size</th>
@@ -73,7 +73,7 @@ include 'layout/header.php';
         </thead>
         <tbody id="backup-list" class="divide-y divide-slate-700/50">
             <tr>
-                <td class="p-4 text-center text-slate-600" colspan="3">Loading...</td>
+                <td class="p-4 text-center text-slate-700" colspan="3">Loading...</td>
             </tr>
         </tbody>
     </table>
@@ -95,7 +95,7 @@ include 'layout/header.php';
                     list.innerHTML += `
                             <tr class="hover:bg-slate-50/30 transition">
                                 <td class="p-4 font-bold text-slate-700">${safeName}</td>
-                                <td class="p-4 text-slate-600 text-xs">${b.size}</td>
+                                <td class="p-4 text-slate-700 text-xs">${b.size}</td>
                                 <td class="p-4 text-right">
                                     <button onclick="restoreBackup('${safeName}')" class="text-blue-400 font-bold text-xs uppercase hover:text-slate-900 mr-4 transition">Restore</button>
                                 </td>
@@ -104,7 +104,7 @@ include 'layout/header.php';
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-600">No backups found.</td></tr>';
+                list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-700">No backups found.</td></tr>';
             }
         } catch (e) { list.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-red-400">Error loading.</td></tr>'; }
     }
@@ -130,4 +130,5 @@ include 'layout/header.php';
 
     loadBackups();
 </script>
+
 

@@ -38,7 +38,7 @@ include 'layout/header.php';
     <h2 class="text-2xl font-bold text-slate-900 font-heading">Security Monitor</h2>
     <div class="flex gap-2">
         <select id="log-type" onchange="fetchLogs()"
-            class="bg-slate-50 text-slate-900 p-2 rounded-lg border border-slate-700 text-sm font-bold">
+            class="bg-slate-50 text-slate-900 p-2 rounded-lg border border-slate-300 text-sm font-bold">
             <option value="auth">Auth Logs (SSH/Sudo)</option>
             <option value="web">Web Server Errors</option>
             <option value="sys">System Log (Syslog)</option>
@@ -49,11 +49,11 @@ include 'layout/header.php';
     </div>
 </div>
 <div class="glass-panel p-0 rounded-2xl overflow-hidden shadow-2xl">
-    <div class="bg-white p-3 flex gap-2 border-b border-slate-800">
+    <div class="bg-white p-3 flex gap-2 border-b border-slate-300">
         <div class="w-3 h-3 rounded-full bg-red-500"></div>
         <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
         <div class="w-3 h-3 rounded-full bg-green-500"></div>
-        <div class="ml-auto text-xs font-mono text-slate-600" id="log-time">Last updated: Never</div>
+        <div class="ml-auto text-xs font-mono text-slate-700" id="log-time">Last updated: Never</div>
     </div>
     <pre id="log-terminal"
         class="p-6 text-xs font-mono text-emerald-400 bg-[#0a0f1c] h-[600px] overflow-auto whitespace-pre-wrap">Select a log source to view stream...</pre>
@@ -88,4 +88,5 @@ include 'layout/header.php';
     fetchLogs();
     logInterval = setInterval(fetchLogs, 3000);
 </script>
+
 
