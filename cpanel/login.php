@@ -51,6 +51,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="description" content="Client Portal — Vivzon Technologies">
     <title>Client Portal | Vivzon Technologies</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blue: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            200: '#cce0ff',
+                            300: '#99c2ff',
+                            400: '#66a3ff',
+                            500: '#4880ed',
+                            600: '#2563eb', /* Primary */
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        indigo: {
+                            50: '#f2f4fb',
+                            100: '#e6ebfb',
+                            200: '#cdcdfa',
+                            300: '#9ea6eb',
+                            400: '#6f7ee1',
+                            500: '#3f51b5', /* Secondary */
+                            600: '#36469b',
+                            700: '#2c397e',
+                            800: '#242f67',
+                            900: '#1f2752',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
@@ -93,8 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             min-height: 540px;
             border-radius: 24px;
             overflow: hidden;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 24px 60px rgba(100, 116, 139, 0.15), 0 4px 16px rgba(0, 0, 0, 0.05);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 24px 60px rgba(100, 116, 139, 0.25), 0 4px 16px rgba(0, 0, 0, 0.08);
         }
 
         /* ── Left brand panel ── */
@@ -171,8 +205,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: #f8fafc;
-            border: 1.5px solid #e2e8f0;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
             border-radius: 12px;
             padding: 12px 16px;
             transition: border-color 0.2s, box-shadow 0.2s;

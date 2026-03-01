@@ -22,6 +22,40 @@ $username = $_SESSION['client'];
     <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title><?= get_branding() ?> | Client Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blue: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            200: '#cce0ff',
+                            300: '#99c2ff',
+                            400: '#66a3ff',
+                            500: '#4880ed',
+                            600: '#2563eb', /* Primary */
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        indigo: {
+                            50: '#f2f4fb',
+                            100: '#e6ebfb',
+                            200: '#cdcdfa',
+                            300: '#9ea6eb',
+                            400: '#6f7ee1',
+                            500: '#3f51b5', /* Secondary */
+                            600: '#36469b',
+                            700: '#2c397e',
+                            800: '#242f67',
+                            900: '#1f2752',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
@@ -40,15 +74,15 @@ $username = $_SESSION['client'];
         /* ── Cards ── */
         .glass-card {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
             border-radius: 1rem;
         }
 
         .glass-panel {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             border-radius: 1rem;
         }
 
@@ -62,7 +96,7 @@ $username = $_SESSION['client'];
             font-weight: 500;
             font-size: 13px;
             transition: all 0.18s;
-            color: #64748b;
+            color: #475569;
             margin-bottom: 2px;
             text-decoration: none;
         }
@@ -108,6 +142,11 @@ $username = $_SESSION['client'];
             border-color: #e2e8f0 !important;
         }
 
+        [class*="text-slate-4"],
+        [class*="text-slate-5"] {
+            color: #475569 !important;
+        }
+
         [class*="text-white"]:not(button):not(.btn):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-violet"]) {
             color: #1e293b !important;
         }
@@ -118,8 +157,8 @@ $username = $_SESSION['client'];
         input[type=password],
         select,
         textarea {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
             color: #1e293b;
         }
 

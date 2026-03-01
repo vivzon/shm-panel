@@ -62,7 +62,41 @@ $content = file_get_contents($abs_path);
 <head>
     <meta charset="UTF-8">
     <title>Edit <?= basename($cleaned_file) ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blue: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            200: '#cce0ff',
+                            300: '#99c2ff',
+                            400: '#66a3ff',
+                            500: '#4880ed',
+                            600: '#2563eb', /* Primary */
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        indigo: {
+                            50: '#f2f4fb',
+                            100: '#e6ebfb',
+                            200: '#cdcdfa',
+                            300: '#9ea6eb',
+                            400: '#6f7ee1',
+                            500: '#3f51b5', /* Secondary */
+                            600: '#36469b',
+                            700: '#2c397e',
+                            800: '#242f67',
+                            900: '#1f2752',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style type="text/css" media="screen">
@@ -160,4 +194,5 @@ $content = file_get_contents($abs_path);
 </body>
 
 </html>
+
 

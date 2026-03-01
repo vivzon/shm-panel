@@ -35,6 +35,40 @@ try {
     <title><?= e($brandName) ?> | Premium Cloud Hosting</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blue: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            200: '#cce0ff',
+                            300: '#99c2ff',
+                            400: '#66a3ff',
+                            500: '#4880ed',
+                            600: '#2563eb', /* Primary */
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        indigo: {
+                            50: '#f2f4fb',
+                            100: '#e6ebfb',
+                            200: '#cdcdfa',
+                            300: '#9ea6eb',
+                            400: '#6f7ee1',
+                            500: '#3f51b5', /* Secondary */
+                            600: '#36469b',
+                            700: '#2c397e',
+                            800: '#242f67',
+                            900: '#1f2752',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap"
@@ -77,16 +111,16 @@ try {
 
         /* ── Glass Components ── */
         .glass {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(226, 232, 240, 0.9);
+            border: 1px solid #cbd5e1;
         }
 
         .glass-card {
             background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 16px rgba(100, 116, 139, 0.1), 0 1px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 16px rgba(100, 116, 139, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08);
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
         }
 

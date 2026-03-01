@@ -41,7 +41,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password | Vivzon CPanel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blue: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            200: '#cce0ff',
+                            300: '#99c2ff',
+                            400: '#66a3ff',
+                            500: '#4880ed',
+                            600: '#2563eb', /* Primary */
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        indigo: {
+                            50: '#f2f4fb',
+                            100: '#e6ebfb',
+                            200: '#cdcdfa',
+                            300: '#9ea6eb',
+                            400: '#6f7ee1',
+                            500: '#3f51b5', /* Secondary */
+                            600: '#36469b',
+                            700: '#2c397e',
+                            800: '#242f67',
+                            900: '#1f2752',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Lexend:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
@@ -191,3 +225,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 
 </html>
+
