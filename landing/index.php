@@ -372,15 +372,17 @@ try {
 
         /* ── Testimonial ── */
         .testimonial-card {
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.6));
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             border-radius: 20px;
             transition: all 0.3s;
         }
 
         .testimonial-card:hover {
-            border-color: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
             transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         /* ── Custom Scrollbar ── */
@@ -550,8 +552,8 @@ try {
                 <!-- Headline -->
                 <h1
                     class="animate-fade-up delay-100 font-heading text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mb-8">
-                    <span class="gradient-text">Hosting Built</span><br>
-                    <span class="text-slate-900">For Builders.</span>
+                    <span class="text-slate-900">Hosting Built</span><br>
+                    <span class="gradient-text">For Builders.</span>
                 </h1>
 
                 <!-- Sub-headline -->
@@ -642,10 +644,10 @@ try {
                             foreach ($rows as $r):
                                 ?>
                                 <div
-                                    class="flex items-center justify-between bg-slate-900/40 rounded-xl px-4 py-3 border border-white/[0.03]">
+                                    class="flex items-center justify-between bg-slate-100 rounded-xl px-4 py-3 border border-slate-200">
                                     <div class="flex items-center gap-3">
                                         <div class="w-2 h-2 rounded-full <?= $r[2] ?>"></div>
-                                        <span class="text-xs font-mono text-slate-300"><?= $r[0] ?></span>
+                                        <span class="text-xs font-mono text-slate-700"><?= $r[0] ?></span>
                                     </div>
                                     <span class="text-[10px] font-bold text-slate-600"><?= $r[1] ?></span>
                                 </div>
@@ -709,15 +711,15 @@ try {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <?php
                 $features = [
-                    ['zap', 'from-blue-600/20 to-blue-600/5', 'text-blue-400', 'Blazing NVMe I/O', 'Up to 10× faster storage vs traditional SSD. Queries fly, apps load instantly, users stay happy.'],
-                    ['shield-check', 'from-purple-600/20 to-purple-600/5', 'text-purple-400', 'DDoS Protection', 'Multi-layer traffic scrubbing absorbs attacks before they reach your app — automatically.'],
-                    ['globe-2', 'from-emerald-600/20 to-emerald-600/5', 'text-emerald-400', 'Global CDN Edge', 'Content delivered from the nearest node. Lower latency means higher conversions.'],
-                    ['lock', 'from-pink-600/20 to-pink-600/5', 'text-pink-400', 'Auto Free SSL', 'Let\'s Encrypt certificates issued and auto-renewed for every domain you add. Zero clicks.'],
-                    ['terminal', 'from-orange-600/20 to-orange-600/5', 'text-orange-400', 'Full SSH Access', 'Root or user-level SSH, SFTP, and Git deployment hooks. Your server, your rules.'],
-                    ['life-buoy', 'from-cyan-600/20 to-cyan-600/5', 'text-cyan-400', '24 / 7 Expert Support', 'Real engineers, not bots — available around the clock via ticket, chat, and phone.'],
-                    ['database', 'from-violet-600/20 to-violet-600/5', 'text-violet-400', 'Managed MySQL / PG', 'Automated backups, one-click restores, and phpMyAdmin included. No DBA needed.'],
-                    ['mail', 'from-rose-600/20 to-rose-600/5', 'text-rose-400', 'Business Email', 'Fully-featured mail server with spam filters, webmail, and DKIM/SPF configured out of the box.'],
-                    ['refresh-cw', 'from-teal-600/20 to-teal-600/5', 'text-teal-400', 'Daily Backups', 'Automated off-site snapshots retained for 30 days. One-click point-in-time restore.'],
+                    ['zap', 'from-blue-50 to-blue-100', 'text-blue-600', 'Blazing NVMe I/O', 'Up to 10× faster storage vs traditional SSD. Queries fly, apps load instantly, users stay happy.'],
+                    ['shield-check', 'from-purple-50 to-purple-100', 'text-purple-600', 'DDoS Protection', 'Multi-layer traffic scrubbing absorbs attacks before they reach your app — automatically.'],
+                    ['globe-2', 'from-emerald-50 to-emerald-100', 'text-emerald-600', 'Global CDN Edge', 'Content delivered from the nearest node. Lower latency means higher conversions.'],
+                    ['lock', 'from-pink-50 to-pink-100', 'text-pink-600', 'Auto Free SSL', 'Let\'s Encrypt certificates issued and auto-renewed for every domain you add. Zero clicks.'],
+                    ['terminal', 'from-orange-50 to-orange-100', 'text-orange-600', 'Full SSH Access', 'Root or user-level SSH, SFTP, and Git deployment hooks. Your server, your rules.'],
+                    ['life-buoy', 'from-cyan-50 to-cyan-100', 'text-cyan-600', '24 / 7 Expert Support', 'Real engineers, not bots — available around the clock via ticket, chat, and phone.'],
+                    ['database', 'from-violet-50 to-violet-100', 'text-violet-600', 'Managed MySQL / PG', 'Automated backups, one-click restores, and phpMyAdmin included. No DBA needed.'],
+                    ['mail', 'from-rose-50 to-rose-100', 'text-rose-600', 'Business Email', 'Fully-featured mail server with spam filters, webmail, and DKIM/SPF configured out of the box.'],
+                    ['refresh-cw', 'from-teal-50 to-teal-100', 'text-teal-600', 'Daily Backups', 'Automated off-site snapshots retained for 30 days. One-click point-in-time restore.'],
                 ];
                 foreach ($features as $f):
                     ?>
@@ -834,7 +836,7 @@ try {
                                 </p>
                             </div>
                             <div class="mb-8">
-                                <span class="text-5xl font-bold font-heading text-white"><?= $dp[1] ?></span>
+                                <span class="text-5xl font-bold font-heading <?= $featured ? 'text-white' : 'text-slate-900' ?>"><?= $dp[1] ?></span>
                                 <span class="text-slate-600 text-sm ml-2">/ month</span>
                             </div>
                             <div class="space-y-3 mb-8">
@@ -848,13 +850,13 @@ try {
                                     '24/7 Support',
                                 ] as $perk): ?>
                                     <div class="check-item">
-                                        <div class="check-icon"><i data-lucide="check" class="w-3 h-3 text-emerald-400"></i></div>
-                                        <span class="text-sm text-slate-300"><?= $perk ?></span>
+                                        <div class="check-icon"><i data-lucide="check" class="w-3 h-3 text-emerald-500"></i></div>
+                                        <span class="text-sm text-slate-600"><?= $perk ?></span>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
                             <a href="<?= e($clientUrl) ?>"
-                                class="block text-center py-3.5 rounded-xl font-bold text-sm transition <?= $featured ? 'btn-primary text-white' : 'btn-secondary text-slate-300 hover:text-white' ?>">
+                                class="block text-center py-3.5 rounded-xl font-bold text-sm transition <?= $featured ? 'btn-primary text-white' : 'btn-secondary text-slate-600 hover:text-slate-900' ?>">
                                 Get Started →
                             </a>
                         </div>

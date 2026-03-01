@@ -1,5 +1,5 @@
 <aside
-    class="w-64 bg-white border-r border-slate-200 flex flex-col z-20 shadow-sm h-screen overflow-y-auto custom-scrollbar <?= isset($collapse_sidebar) && $collapse_sidebar ? 'hidden' : '' ?>">
+    class="w-64 bg-white border-r border-slate-300 flex flex-col z-20 shadow-md h-screen overflow-y-auto custom-scrollbar <?= isset($collapse_sidebar) && $collapse_sidebar ? 'hidden' : '' ?>">
     <div class="p-6 pb-4">
         <!-- Brand -->
         <div class="flex items-center gap-3 mb-8">
@@ -57,7 +57,7 @@
         </nav>
     </div>
 
-    <div class="mt-auto p-4 border-t border-slate-100">
+    <div class="mt-auto p-4 border-t border-slate-200">
         <a href="logout.php"
             class="flex items-center gap-3 text-slate-500 hover:text-red-600 transition group p-3 rounded-lg hover:bg-red-50">
             <i data-lucide="log-out" class="w-4 group-hover:-translate-x-1 transition shrink-0"></i>

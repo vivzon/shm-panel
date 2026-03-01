@@ -475,7 +475,7 @@ include 'layout/header.php';
             <i data-lucide="search"
                 class="w-4 absolute left-3 top-3 text-slate-700 group-focus-within:text-blue-400 transition"></i>
             <input name="search" value="<?= htmlspecialchars($search_query) ?>" placeholder="Search domains..."
-                class="bg-slate-50 border border-slate-300 p-3 pl-10 rounded-xl text-sm w-48 focus:w-64 outline-none shadow-sm focus:border-blue-500 text-slate-900 placeholder-slate-500 transition-all">
+                class="bg-slate-50 border border-slate-300 p-3 pl-10 rounded-xl text-sm w-48 focus:w-64 outline-none shadow-md focus:border-blue-500 text-slate-900 placeholder-slate-500 transition-all">
         </form>
         <?php if ($search_query): ?>
             <a href="?" class="text-xs text-slate-700 hover:text-slate-900 transition">Clear</a>
@@ -486,7 +486,7 @@ include 'layout/header.php';
         <form onsubmit="handleAddDomain(event)" class="flex gap-2" id="form-add-domain">
             <?= csrf_field() ?>
             <input name="domain" required placeholder="example.com"
-                class="bg-slate-50 border border-slate-300 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-slate-900 placeholder-slate-500 w-48 transition">
+                class="bg-slate-50 border border-slate-300 p-3 rounded-xl text-sm outline-none shadow-md focus:border-blue-500 text-slate-900 placeholder-slate-500 w-48 transition">
             <button
                 class="bg-slate-50 text-slate-900 px-4 py-3 rounded-xl font-bold text-xs uppercase shadow-xl hover:bg-slate-200 border border-slate-300 transition whitespace-nowrap">
                 + Domain</button>
@@ -496,10 +496,10 @@ include 'layout/header.php';
         <form onsubmit="handleAddSubdomain(event)" class="flex gap-2 hidden" id="form-add-subdomain">
             <?= csrf_field() ?>
             <input name="sub" required placeholder="sub (e.g. blog)"
-                class="bg-slate-50 border border-slate-300 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-slate-900 placeholder-slate-500 w-32 transition text-right">
+                class="bg-slate-50 border border-slate-300 p-3 rounded-xl text-sm outline-none shadow-md focus:border-blue-500 text-slate-900 placeholder-slate-500 w-32 transition text-right">
             <span class="self-center font-bold text-slate-700">.</span>
             <select name="parent_id"
-                class="bg-slate-50 border border-slate-300 p-3 rounded-xl text-sm outline-none shadow-sm focus:border-blue-500 text-slate-900 w-40 transition">
+                class="bg-slate-50 border border-slate-300 p-3 rounded-xl text-sm outline-none shadow-md focus:border-blue-500 text-slate-900 w-40 transition">
                 <?php foreach ($all_domains as $d): ?>
                     <option value="<?= $d['domain'] ?>">
                         <?= $d['domain'] ?>
@@ -534,7 +534,7 @@ include 'layout/header.php';
         $is_first = ($index === 0);
         $domain_id = $d['id'];
         ?>
-        <div class="glass-card mb-4 shadow-sm group domain-card" data-domain-id="<?= $domain_id ?>">
+        <div class="glass-card mb-4 shadow-md group domain-card" data-domain-id="<?= $domain_id ?>">
             <!-- Domain Header - Always Visible -->
             <div class="domain-header p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50/30 transition rounded-xl"
                 onclick="toggleDomain(<?= $domain_id ?>)">
@@ -600,11 +600,11 @@ include 'layout/header.php';
 
             <!-- Domain Content - Collapsible -->
             <div id="domain-content-<?= $domain_id ?>"
-                class="domain-content <?= $is_first ? '' : 'hidden' ?> border-t border-slate-200">
+                class="domain-content <?= $is_first ? '' : 'hidden' ?> border-t border-slate-300">
                 <div class="p-5">
                     <!-- Configuration Row -->
                     <form onsubmit="handleGeneric(event, 'update_domain_config')"
-                        class="flex flex-wrap items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-6">
+                        class="flex flex-wrap items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-300 mb-6">
                         <?= csrf_field() ?>
                         <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
                         <div class="flex items-center gap-2">
@@ -700,7 +700,7 @@ include 'layout/header.php';
 
                             <!-- Add DNS Form -->
                             <form onsubmit="handleGeneric(event, 'add_dns')"
-                                class="glass-card p-5 border border-slate-200 bg-slate-50 rounded-xl relative overflow-hidden mb-6">
+                                class="glass-card p-5 border border-slate-300 bg-slate-50 rounded-xl relative overflow-hidden mb-6">
                                 <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
@@ -1071,5 +1071,6 @@ include 'layout/header.php';
         });
     }
 </script>
+
 
 

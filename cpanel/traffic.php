@@ -45,7 +45,7 @@ include 'layout/header.php';
 
 <div class="space-y-8">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-6">
+    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-300 pb-6">
         <div>
             <h2 class="text-3xl font-bold text-slate-900 font-heading tracking-tight mb-2">Traffic & Stats</h2>
             <p class="text-slate-700">Monitor website activity and bandwidth consumption across your domains.</p>
@@ -90,7 +90,7 @@ include 'layout/header.php';
     </div>
 
     <div class="glass-card overflow-hidden text-sm">
-        <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+        <div class="p-4 border-b border-slate-300 bg-slate-50 flex justify-between items-center">
             <h3 class="font-bold text-slate-900">Domain Traffic</h3>
             <button onclick="location.reload()" class="text-slate-700 hover:text-slate-900 transition group">
                 <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition duration-500"></i>
@@ -167,5 +167,6 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
+
 
 

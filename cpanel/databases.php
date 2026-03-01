@@ -233,7 +233,7 @@ include 'layout/header.php';
                     </thead>
                     <tbody>
                         <?php foreach ($my_dbs as $db): ?>
-                            <tr class="border-t border-slate-200 hover:bg-slate-50/30 transition">
+                            <tr class="border-t border-slate-300 hover:bg-slate-50/30 transition">
                                 <td class="p-6">
                                     <div class="font-bold text-slate-200"><?= htmlspecialchars($db['db_name']) ?></div>
                                     <div class="text-xs text-blue-400">
@@ -269,7 +269,7 @@ include 'layout/header.php';
                         $db_users = $pdo->prepare("SELECT * FROM client_db_users WHERE client_id = ?");
                         $db_users->execute([$cid]);
                         foreach ($db_users->fetchAll() as $u): ?>
-                            <tr class="border-t border-slate-200 hover:bg-slate-50/30 transition">
+                            <tr class="border-t border-slate-300 hover:bg-slate-50/30 transition">
                                 <td class="p-6 font-bold text-slate-700"><?= htmlspecialchars($u['db_user']) ?></td>
                                 <td class="p-6 text-right flex justify-end gap-2">
                                     <button onclick="handleResetPass('<?= $u['db_user'] ?>', this)"
@@ -378,4 +378,5 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
+
 

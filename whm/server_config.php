@@ -374,7 +374,7 @@ include 'layout/header.php';
                     </button>
                 </div>
 
-                <div class="flex flex-wrap gap-3 pt-6 border-t border-slate-200">
+                <div class="flex flex-wrap gap-3 pt-6 border-t border-slate-300">
                     <button onclick="simulateAction('restart_services', 'Restarting Nginx & PHP-FPM...', true)"
                         class="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600 hover:text-slate-900 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i> Restart Services
@@ -395,7 +395,7 @@ include 'layout/header.php';
         <!-- Tabs -->
         <div class="flex gap-2 p-1 bg-white/80 rounded-xl border border-slate-300">
             <button onclick="switchPreview('nginx', this)"
-                class="preview-tab active flex-1 py-2 rounded-lg text-sm font-bold transition bg-slate-50 text-slate-900 shadow-sm">
+                class="preview-tab active flex-1 py-2 rounded-lg text-sm font-bold transition bg-slate-50 text-slate-900 shadow-md">
                 nginx.conf
             </button>
             <button onclick="switchPreview('php', this)"
@@ -531,12 +531,12 @@ file_uploads = On
 
     function switchPreview(type, btnObj) {
         document.querySelectorAll('.preview-tab').forEach(b => {
-            b.classList.remove('bg-slate-50', 'text-slate-900', 'shadow-sm', 'active');
+            b.classList.remove('bg-slate-50', 'text-slate-900', 'shadow-md', 'active');
             b.classList.add('text-slate-700');
         });
 
         btnObj.classList.remove('text-slate-700');
-        btnObj.classList.add('bg-slate-50', 'text-slate-900', 'shadow-sm', 'active');
+        btnObj.classList.add('bg-slate-50', 'text-slate-900', 'shadow-md', 'active');
 
         const phpVer = document.getElementById('php_version').value;
         const icon = '<i data-lucide="file-code" class="w-3.5 h-3.5 inline-block mr-1"></i>';
@@ -684,5 +684,6 @@ file_uploads = On
             .catch(e => showToast('error', 'Error', 'Failed to communicate with server.'));
     }
 </script>
+
 
 

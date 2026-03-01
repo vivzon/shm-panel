@@ -241,7 +241,7 @@ include 'layout/header.php';
 
         <!-- Recent Installations -->
         <div class="lg:col-span-2 glass-card p-0 overflow-hidden">
-            <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+            <div class="p-4 border-b border-slate-300 bg-slate-50 flex justify-between items-center">
                 <h3 class="font-bold text-slate-900">Recent Installations</h3>
                 <button onclick="loadApps()" class="text-slate-700 hover:text-slate-900"><i data-lucide="refresh-cw"
                         class="w-4 h-4"></i></button>
@@ -304,7 +304,7 @@ include 'layout/header.php';
 
         <!-- FTP List -->
         <div class="lg:col-span-2 glass-card p-0 overflow-hidden">
-            <div class="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+            <div class="p-4 border-b border-slate-300 bg-slate-50 flex justify-between items-center">
                 <h3 class="font-bold text-slate-900">FTP Accounts</h3>
                 <button onclick="loadFTP()" class="text-slate-700 hover:text-slate-900"><i data-lucide="refresh-cw"
                         class="w-4 h-4"></i></button>
@@ -413,7 +413,7 @@ include 'layout/header.php';
 
             if (res.status === 'success' && res.data.length > 0) {
                 tbody.innerHTML = res.data.map(app => `
-<tr class="border-t border-slate-200 hover:bg-white/5 transition">
+<tr class="border-t border-slate-300 hover:bg-white/5 transition">
     <td class="p-4 font-bold text-slate-900 capitalize">${app.app_type}</td>
     <td class="p-4 text-slate-700">${app.domain}</td>
     <td class="p-4">
@@ -454,7 +454,7 @@ include 'layout/header.php';
 
             if (res.status === 'success' && res.data.length > 0) {
                 tbody.innerHTML = res.data.map(user => `
-<tr class="border-t border-slate-200 hover:bg-white/5 transition">
+<tr class="border-t border-slate-300 hover:bg-white/5 transition">
     <td class="p-4 font-bold text-slate-900">${user.userid}</td>
     <td class="p-4 text-slate-700 font-mono text-xs">${user.homedir}</td>
     <td class="p-4 text-right">
@@ -529,5 +529,6 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
+
 
 

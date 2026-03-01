@@ -103,7 +103,7 @@ include 'layout/header.php';
 <div class="space-y-8">
 
     <!-- Welcome Section -->
-    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-200 pb-6">
+    <div class="flex flex-col md:flex-row justify-between items-end gap-4 border-b border-slate-300 pb-6">
         <div>
             <h2 class="text-3xl font-bold text-slate-900 font-heading tracking-tight mb-2">Dashboard</h2>
             <p class="text-slate-700">Welcome back, <span
@@ -219,7 +219,7 @@ include 'layout/header.php';
             <!-- Quick Actions -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <a href="emails.php"
-                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-200 hover:border-blue-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
+                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-300 hover:border-blue-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
                     <div class="p-3 bg-white rounded-full group-hover:bg-blue-600 transition duration-300">
                         <i data-lucide="mail-plus"
                             class="w-5 h-5 text-blue-400 group-hover:text-slate-900 transition"></i>
@@ -227,7 +227,7 @@ include 'layout/header.php';
                     <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">New Email</span>
                 </a>
                 <a href="databases.php"
-                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-200 hover:border-purple-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
+                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-300 hover:border-purple-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
                     <div class="p-3 bg-white rounded-full group-hover:bg-purple-600 transition duration-300">
                         <i data-lucide="database"
                             class="w-5 h-5 text-purple-400 group-hover:text-slate-900 transition"></i>
@@ -235,7 +235,7 @@ include 'layout/header.php';
                     <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">Add DB</span>
                 </a>
                 <a href="domains.php"
-                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-200 hover:border-emerald-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
+                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-300 hover:border-emerald-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
                     <div class="p-3 bg-white rounded-full group-hover:bg-emerald-600 transition duration-300">
                         <i data-lucide="globe"
                             class="w-5 h-5 text-emerald-400 group-hover:text-slate-900 transition"></i>
@@ -243,7 +243,7 @@ include 'layout/header.php';
                     <span class="font-bold text-sm text-slate-700 group-hover:text-slate-900">Add Domain</span>
                 </a>
                 <a href="tools.php"
-                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-200 hover:border-orange-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
+                    class="p-4 bg-slate-50/40 hover:bg-slate-200/50 border border-slate-300 hover:border-orange-500/30 rounded-2xl flex flex-col items-center gap-3 transition group text-center">
                     <div class="p-3 bg-white rounded-full group-hover:bg-orange-600 transition duration-300">
                         <i data-lucide="wrench"
                             class="w-5 h-5 text-orange-400 group-hover:text-slate-900 transition"></i>
@@ -259,15 +259,15 @@ include 'layout/header.php';
             <div class="glass-card p-6">
                 <h3 class="text-lg font-bold text-slate-900 mb-4">Server Info</h3>
                 <div class="space-y-3">
-                    <div class="flex justify-between text-sm py-2 border-b border-slate-200">
+                    <div class="flex justify-between text-sm py-2 border-b border-slate-300">
                         <span class="text-slate-700">IP Address</span>
                         <span class="font-mono text-slate-900"><?= $_SERVER['SERVER_ADDR'] ?></span>
                     </div>
-                    <div class="flex justify-between text-sm py-2 border-b border-slate-200">
+                    <div class="flex justify-between text-sm py-2 border-b border-slate-300">
                         <span class="text-slate-700">PHP Version</span>
                         <span class="font-mono text-blue-400">8.2 (Default)</span>
                     </div>
-                    <div class="flex justify-between text-sm py-2 border-b border-slate-200">
+                    <div class="flex justify-between text-sm py-2 border-b border-slate-300">
                         <span class="text-slate-700">Web Server</span>
                         <span class="font-mono text-emerald-400">Nginx</span>
                     </div>
@@ -285,7 +285,7 @@ include 'layout/header.php';
 
             <!-- Error Logs -->
             <div class="glass-card overflow-hidden flex flex-col h-[300px]">
-                <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <div class="p-4 border-b border-slate-300 flex justify-between items-center bg-slate-50">
                     <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
                         <i data-lucide="terminal" class="w-4 h-4 text-slate-700"></i> Error Stream
                     </h3>
@@ -297,7 +297,7 @@ include 'layout/header.php';
                     <div class="flex items-center justify-center h-full text-slate-600 animate-pulse">Connecting to
                         stream...</div>
                 </div>
-                <div class="p-2 bg-slate-50 border-t border-slate-200 flex justify-between items-center px-4">
+                <div class="p-2 bg-slate-50 border-t border-slate-300 flex justify-between items-center px-4">
                     <span
                         class="flex items-center gap-2 text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
                         <span class="relative flex h-2 w-2">
@@ -408,3 +408,4 @@ include 'layout/header.php';
     </script>
 
     <?php include 'layout/footer.php'; ?>
+

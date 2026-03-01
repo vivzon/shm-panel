@@ -249,20 +249,20 @@ include 'layout/header.php';
 
         <div class="space-y-4 text-sm text-slate-700 font-mono relative z-10">
             <!-- IP -->
-            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+            <div class="flex justify-between items-center border-b border-slate-300 pb-2">
                 <span class="flex items-center gap-2 text-slate-700">
                     <i data-lucide="server" class="w-4 h-4"></i> IP
                 </span>
                 <span class="text-slate-900"><?= $server_ip ?></span>
             </div>
             <!-- NS -->
-            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+            <div class="flex justify-between items-center border-b border-slate-300 pb-2">
                 <span class="flex items-center gap-2 text-slate-700">
                     <i data-lucide="globe" class="w-4 h-4"></i> Name Server 1
                 </span>
                 <span class="text-blue-600 truncate max-w-[150px]" title="<?= $ns_display ?>"><?= $ns_display ?></span>
             </div>
-            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+            <div class="flex justify-between items-center border-b border-slate-300 pb-2">
                 <span class="flex items-center gap-2 text-slate-700">
                     <i data-lucide="globe" class="w-4 h-4"></i> Name Server 2
                 </span>
@@ -270,7 +270,7 @@ include 'layout/header.php';
                     title="<?= $ns2_display ?>"><?= $ns2_display ?></span>
             </div>
             <!-- MX -->
-            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+            <div class="flex justify-between items-center border-b border-slate-300 pb-2">
                 <span class="flex items-center gap-2 text-slate-700">
                     <i data-lucide="mail" class="w-4 h-4"></i> MX
                 </span>
@@ -431,3 +431,4 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
+

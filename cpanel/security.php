@@ -79,7 +79,7 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach((line, i) => {
                     list.innerHTML += `
-                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 mb-2">
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-300 mb-2">
                                 <div class="font-mono text-xs text-slate-700 truncate w-3/4">${line}</div>
                                 <button onclick="handleGeneric(event, 'del_ssh', {line: ${parseInt(line)} })" class="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition"><i data-lucide="trash-2" class="w-4"></i></button>
                             </div>
@@ -115,5 +115,6 @@ include 'layout/header.php';
 
     loadSSH();
 </script>
+
 
 

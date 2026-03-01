@@ -70,17 +70,17 @@ include 'layout/header.php';
                 <div class="p-2 bg-slate-50 rounded-lg text-slate-700"><i data-lucide="box" class="w-4"></i></div>
             </div>
             <div class="space-y-4 text-sm text-slate-700 mb-8 font-medium">
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-300">
                     <i data-lucide="hard-drive" class="w-4 text-blue-400"></i>
                     <?= $p['disk_mb'] ?> MB
                     Storage
                 </div>
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-300">
                     <i data-lucide="globe" class="w-4 text-emerald-400"></i>
                     <?= $p['max_domains'] ?>
                     Domains
                 </div>
-                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-300">
                     <i data-lucide="mail" class="w-4 text-purple-400"></i>
                     <?= $p['max_emails'] ?> Emails
                 </div>
@@ -165,5 +165,6 @@ include 'layout/header.php';
         fetch('', { method: 'POST', body: fd }).then(() => location.reload());
     }
 </script>
+
 
 

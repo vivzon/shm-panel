@@ -136,7 +136,7 @@ include 'layout/header.php';
             </thead>
             <tbody>
                 <?php foreach ($my_emails as $mail): ?>
-                    <tr class="border-t border-slate-200 hover:bg-slate-50/30 transition">
+                    <tr class="border-t border-slate-300 hover:bg-slate-50/30 transition">
                         <td class="p-6 font-bold text-slate-700">
                             <?= $mail['email'] ?>
                         </td>
@@ -218,5 +218,6 @@ include 'layout/header.php';
         }
     }
 </script>
+
 
 

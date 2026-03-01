@@ -191,7 +191,7 @@ include 'layout/header.php';
         <div class="relative">
             <i data-lucide="search" class="w-4 absolute left-3 top-3 text-slate-700"></i>
             <input id="live-search" onkeyup="debounceSearch()" placeholder="Search username, email or domain..."
-                class="bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm w-80 outline-none focus:border-blue-500 text-slate-900 transition-all">
+                class="bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm w-80 outline-none focus:border-blue-500 text-slate-900 transition-all">
         </div>
     </div>
     <button onclick="openAccModal()"
@@ -407,5 +407,6 @@ include 'layout/header.php';
 </script>
 
 <?php include 'layout/footer.php'; ?>
+
 
 

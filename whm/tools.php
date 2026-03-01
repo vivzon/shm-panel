@@ -387,7 +387,7 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(u => {
                     list.innerHTML += `
-                        <tr class="hover:bg-slate-50/30 transition group border-b border-slate-200 last:border-0">
+                        <tr class="hover:bg-slate-50/30 transition group border-b border-slate-300 last:border-0">
                             <td class="p-4 font-mono text-xs text-blue-300 font-bold">${u.userid}</td>
                             <td class="p-4 text-slate-700 text-xs truncate max-w-[150px] font-mono">${u.homedir}</td>
                             <td class="p-4 text-right">
@@ -415,7 +415,7 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(u => {
                     list.innerHTML += `
-                        <tr class="hover:bg-slate-50/30 transition group border-b border-slate-200 last:border-0">
+                        <tr class="hover:bg-slate-50/30 transition group border-b border-slate-300 last:border-0">
                             <td class="p-4 text-sm text-slate-900 font-medium">
                                 ${u.email}
                                 <div class="text-[10px] text-slate-700 font-mono mt-0.5">${u.domain}</div>
@@ -462,5 +462,6 @@ include 'layout/header.php';
     });
 
 </script>
+
 
 

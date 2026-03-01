@@ -819,30 +819,64 @@ if (is_dir($full_path)) {
 <head>
     <meta charset="UTF-8">
     <title>File Manager | Vivzon CPanel</title>
-    <script src="https://cdn.tailwindcss.com "></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js "></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blue: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            200: '#cce0ff',
+                            300: '#99c2ff',
+                            400: '#66a3ff',
+                            500: '#4880ed',
+                            600: '#2563eb', /* Primary */
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        indigo: {
+                            50: '#f2f4fb',
+                            100: '#e6ebfb',
+                            200: '#cdcdfa',
+                            300: '#9ea6eb',
+                            400: '#6f7ee1',
+                            500: '#3f51b5', /* Secondary */
+                            600: '#36469b',
+                            700: '#2c397e',
+                            800: '#242f67',
+                            900: '#1f2752',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300 ;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #0f172a;
-            color: #f1f5f9;
+            background: #f8fafc;
+            color: #0f172a;
         }
 
         .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid #cbd5e1;
         }
 
         .file-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.02);
         }
 
         .file-item.selected {
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background: rgba(37, 99, 235, 0.08);
+            border: 1px solid rgba(37, 99, 235, 0.3);
         }
 
         /* Grid View */
@@ -941,9 +975,9 @@ if (is_dir($full_path)) {
     include 'layout/sidebar.php';
     ?>
 
-    <main class="flex-1 flex flex-col h-screen relative bg-[#0b1120] overflow-hidden">
+    <main class="flex-1 flex flex-col h-screen relative bg-[#f8fafc] overflow-hidden">
         <!-- TOP NAVIGATION & ACTION BAR -->
-        <header class="h-16 shrink-0 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-20">
+        <header class="h-16 shrink-0 glass-panel border-b border-slate-300 flex items-center justify-between px-6 z-20">
             <div class="flex items-center gap-6">
                 <!-- Toggle Sidebar for Mobile (optional, but good to have space for) -->
 
@@ -955,7 +989,7 @@ if (is_dir($full_path)) {
                     <h1 class="font-bold text-lg text-slate-900 tracking-tight">File Manager</h1>
                 </div>
 
-                <div class="h-6 w-px bg-white/10"></div>
+                <div class="h-6 w-px bg-slate-100"></div>
 
                 <!-- Breadcrumbs -->
                 <nav class="flex items-center text-sm font-medium">
@@ -971,7 +1005,7 @@ if (is_dir($full_path)) {
                         ?>
                         <i data-lucide="chevron-right" class="w-4 text-slate-700 mx-1"></i>
                         <a href="?domain_id=<?= $domain_id ?>&path=<?= $acc ?>"
-                            class="hover:text-slate-900 transition hover:bg-white/5 px-2 py-1 rounded-md"><?= $c ?></a>
+                            class="hover:text-slate-900 transition hover:bg-slate-50 px-2 py-1 rounded-md"><?= $c ?></a>
                     <?php endforeach; ?>
                 </nav>
             </div>
@@ -982,23 +1016,23 @@ if (is_dir($full_path)) {
                     <i data-lucide="search"
                         class="w-4 absolute left-3 top-2.5 text-slate-700 group-focus-within:text-blue-400 transition"></i>
                     <input id="file-search" onkeyup="FM.filter()" placeholder="Search current folder..."
-                        class="bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-sm w-64 focus:w-80 transition-all outline-none focus:border-blue-500/50 focus:bg-white">
+                        class="bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2 text-sm w-64 focus:w-80 transition-all outline-none focus:border-blue-500/50 focus:bg-white">
                 </div>
 
                 <!-- View Toggles -->
-                <div class="flex p-1 bg-slate-50 rounded-lg border border-slate-200">
+                <div class="flex p-1 bg-slate-50 rounded-lg border border-slate-300">
                     <button onclick="FM.setView('list')" id="btn-list"
-                        class="p-1.5 rounded-md hover:text-slate-900 transition text-blue-400 bg-white/10"><i
+                        class="p-1.5 rounded-md hover:text-slate-900 transition text-blue-400 bg-slate-100"><i
                             data-lucide="list" class="w-4"></i></button>
                     <button onclick="FM.setView('grid')" id="btn-grid"
-                        class="p-1.5 rounded-md hover:text-slate-900 transition text-slate-700"><i data-lucide="layout-grid"
-                            class="w-4"></i></button>
+                        class="p-1.5 rounded-md hover:text-slate-900 transition text-slate-700"><i
+                            data-lucide="layout-grid" class="w-4"></i></button>
                 </div>
 
-                <div class="h-6 w-px bg-white/10"></div>
+                <div class="h-6 w-px bg-slate-100"></div>
 
                 <button onclick="FM.openUpload()"
-                    class="bg-blue-600 hover:bg-blue-500 text-slate-900 px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2">
+                    class="bg-whitelue-600 hover:bg-whitelue-500 text-slate-900 px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition flex items-center gap-2">
                     <i data-lucide="upload-cloud" class="w-4"></i> Upload
                 </button>
             </div>
@@ -1006,10 +1040,10 @@ if (is_dir($full_path)) {
 
         <div class="flex flex-1 overflow-hidden">
             <!-- SIDEBAR (File System Nav) -->
-            <aside class="w-64 border-r border-slate-200 bg-slate-50 flex flex-col hidden md:flex">
+            <aside class="w-64 border-r border-slate-300 bg-slate-50 flex flex-col hidden md:flex">
                 <div class="p-4">
                     <button onclick="FM.openCreate()"
-                        class="w-full py-3 rounded-xl border border-dashed border-slate-600 hover:border-blue-500 hover:bg-blue-500/5 hover:text-blue-400 transition text-sm font-bold flex items-center justify-center gap-2 text-slate-700">
+                        class="w-full py-3 rounded-xl border border-dashed border-slate-600 hover:border-blue-500 hover:bg-whitelue-500/5 hover:text-blue-400 transition text-sm font-bold flex items-center justify-center gap-2 text-slate-700">
                         <i data-lucide="plus" class="w-4"></i> New Item
                     </button>
                 </div>
@@ -1027,14 +1061,14 @@ if (is_dir($full_path)) {
                     while ($d = $doms->fetch()):
                         ?>
                         <a href="?domain_id=<?= $d['id'] ?>"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-slate-700 hover:text-slate-900 transition text-sm <?= $d['id'] == $domain_id ? '!text-slate-900 !bg-white/10' : '' ?>">
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition text-sm <?= $d['id'] == $domain_id ? '!text-slate-900 !bg-slate-100' : '' ?>">
                             <i data-lucide="globe" class="w-4"></i> <?= $d['domain'] ?>
                         </a>
                     <?php endwhile; ?>
                 </div>
 
                 <!-- Storage Status -->
-                <div class="p-4 border-t border-slate-200">
+                <div class="p-4 border-t border-slate-300">
                     <div class="flex justify-between text-xs mb-2">
                         <span class="text-slate-700">Storage</span>
                         <span class="font-bold text-slate-900"><?= $domain['disk_usage'] ?? '0' ?> MB</span>
@@ -1046,14 +1080,14 @@ if (is_dir($full_path)) {
             </aside>
 
             <!-- MAIN FILE AREA -->
-            <main class="flex-1 relative bg-white/20" id="drop-zone-global">
+            <main class="flex-1 relative bg-white" id="drop-zone-global">
 
                 <!-- ACTION BAR (Contextual) -->
                 <div id="action-bar"
                     class="h-12 flex items-center justify-between px-6 transition-all duration-300 transform -translate-y-full absolute w-full z-10 hidden">
                     <div class="flex items-center gap-4 text-sm font-medium">
                         <span class="text-blue-400 font-bold" id="selection-count">0 Selected</span>
-                        <div class="h-4 w-px bg-white/10"></div>
+                        <div class="h-4 w-px bg-slate-100"></div>
                         <!-- FIX: Select All / Unselect All buttons -->
                         <button onclick="FM.selectAll(true)" id="btn-select-all"
                             class="hover:text-slate-900 flex items-center gap-2 transition text-slate-700"
@@ -1065,13 +1099,16 @@ if (is_dir($full_path)) {
                         <button onclick="FM.bulk('download')"
                             class="hover:text-slate-900 flex items-center gap-2 transition"><i data-lucide="download"
                                 class="w-4"></i> Download</button>
-                        <button onclick="FM.bulk('zip')" class="hover:text-slate-900 flex items-center gap-2 transition"><i
-                                data-lucide="archive" class="w-4"></i> Archive</button>
-                        <button onclick="FM.bulk('copy')" class="hover:text-slate-900 flex items-center gap-2 transition"><i
-                                data-lucide="copy" class="w-4"></i> Copy</button>
-                        <button onclick="FM.bulk('move')" class="hover:text-slate-900 flex items-center gap-2 transition"><i
-                                data-lucide="move" class="w-4"></i> Move</button>
-                        <div class="h-4 w-px bg-white/10"></div>
+                        <button onclick="FM.bulk('zip')"
+                            class="hover:text-slate-900 flex items-center gap-2 transition"><i data-lucide="archive"
+                                class="w-4"></i> Archive</button>
+                        <button onclick="FM.bulk('copy')"
+                            class="hover:text-slate-900 flex items-center gap-2 transition"><i data-lucide="copy"
+                                class="w-4"></i> Copy</button>
+                        <button onclick="FM.bulk('move')"
+                            class="hover:text-slate-900 flex items-center gap-2 transition"><i data-lucide="move"
+                                class="w-4"></i> Move</button>
+                        <div class="h-4 w-px bg-slate-100"></div>
                         <button onclick="FM.bulk('delete')"
                             class="text-red-400 hover:text-red-300 flex items-center gap-2 transition"
                             title="Delete (Del key)"><i data-lucide="trash-2" class="w-4"></i> Delete</button>
@@ -1084,7 +1121,7 @@ if (is_dir($full_path)) {
 
                     <!-- LIST HEADER -->
                     <div
-                        class="grid grid-cols-12 gap-4 px-4 py-2 border-b border-slate-200 text-xs font-bold uppercase text-slate-700 tracking-wider mb-2 list-header sticky top-0 bg-[#0f172a] z-10 hidden">
+                        class="grid grid-cols-12 gap-4 px-4 py-2 border-b border-slate-300 text-xs font-bold uppercase text-slate-700 tracking-wider mb-2 list-header sticky top-0 bg-white z-10 hidden">
                         <div class="col-span-6 pl-8 flex items-center gap-3">
                             <div class="w-5 flex justify-center">
                                 <input type="checkbox" id="header-select-all" onchange="FM.selectAll(this.checked)"
@@ -1100,7 +1137,7 @@ if (is_dir($full_path)) {
                     <!-- PARENT DIR -->
                     <?php if ($current_path != '/'): ?>
                         <div onclick="location.href='?domain_id=<?= $domain_id ?>&path=<?= dirname($current_path) ?>'"
-                            class="grid grid-cols-12 gap-4 px-4 py-3 rounded-xl hover:bg-white/5 cursor-pointer items-center text-slate-700 hover:text-slate-900 transition group mb-1">
+                            class="grid grid-cols-12 gap-4 px-4 py-3 rounded-xl hover:bg-slate-50 cursor-pointer items-center text-slate-700 hover:text-slate-900 transition group mb-1">
                             <div class="col-span-6 flex items-center gap-4">
                                 <i data-lucide="corner-left-up"
                                     class="w-5 text-slate-700 group-hover:text-blue-400 transition"></i>
@@ -1148,7 +1185,7 @@ if (is_dir($full_path)) {
 
                             <!-- Inner Content (CSS handles List/Grid layout) -->
                             <div
-                                class="file-inner px-4 py-3 rounded-xl border border-transparent group-hover:bg-white/5 group-hover:border-slate-200">
+                                class="file-inner px-4 py-3 rounded-xl border border-transparent group-hover:bg-slate-50 group-hover:border-slate-300">
                                 <!-- List Layout -->
                                 <div class="grid grid-cols-12 gap-4 items-center list-layout">
                                     <div class="col-span-6 flex items-center gap-4 overflow-hidden">
@@ -1203,10 +1240,10 @@ if (is_dir($full_path)) {
 
                 <!-- Upload Overlay -->
                 <div id="drag-overlay"
-                    class="absolute inset-0 bg-blue-600/90 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-slate-900 dashed-border m-4 rounded-3xl pointer-events-none">
+                    class="absolute inset-0 bg-whitelue-600/90 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center text-slate-900 dashed-border m-4 rounded-3xl pointer-events-none">
                     <i data-lucide="cloud-upload" class="w-20 h-20 mb-6 animate-bounce"></i>
                     <h3 class="text-3xl font-bold">Drop files to upload</h3>
-                    <p class="text-blue-100 mt-2">to <?= htmlspecialchars($current_path) ?></p>
+                    <p class="text-blue-600 mt-2">to <?= htmlspecialchars($current_path) ?></p>
                 </div>
             </main>
         </div>
@@ -1214,8 +1251,8 @@ if (is_dir($full_path)) {
 
     <!-- UPLOAD MODAL -->
     <div id="modal-upload"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-lg border border-slate-200 shadow-2xl">
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-lg border border-slate-300 shadow-2xl">
             <h3 class="font-bold text-xl text-slate-900 mb-6">Upload Files</h3>
             <div class="border-2 border-dashed border-slate-600 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-blue-500 hover:bg-slate-50/50 transition mb-6"
                 onclick="document.getElementById('inp-upload-files').click()"
@@ -1226,15 +1263,15 @@ if (is_dir($full_path)) {
             </div>
             <div class="flex justify-end">
                 <button onclick="FM.closeModals()"
-                    class="px-6 py-2 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Close</button>
+                    class="px-6 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Close</button>
             </div>
         </div>
     </div>
 
     <!-- CHMOD MODAL -->
     <div id="modal-chmod"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-md border border-slate-200 shadow-2xl">
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-md border border-slate-300 shadow-2xl">
             <h3 class="font-bold text-xl text-slate-900 mb-4">Permissions</h3>
             <input type="hidden" id="chmod-target">
             <div class="mb-4">
@@ -1244,7 +1281,7 @@ if (is_dir($full_path)) {
                             class="text-slate-700 font-mono">-</span></span>
                 </div>
                 <input type="text" id="chmod-val" value="0775"
-                    class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 font-mono outline-none focus:border-blue-500">
+                    class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-slate-900 font-mono outline-none focus:border-blue-500">
                 <p class="text-[10px] text-slate-700 mt-2">
                     Examples: <span class="text-blue-400 cursor-pointer"
                         onclick="document.getElementById('chmod-val').value='0775'">0775</span> (Folder),
@@ -1252,7 +1289,7 @@ if (is_dir($full_path)) {
                         onclick="document.getElementById('chmod-val').value='0664'">0664</span> (File)
                 </p>
             </div>
-            <div id="chmod-warning" class="hidden mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+            <div id="chmod-warning" class="hidden mb-4 p-3 bg-whitember-500/10 border border-amber-500/30 rounded-lg">
                 <div class="flex items-start gap-2">
                     <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 mt-0.5 shrink-0"></i>
                     <div class="text-xs text-amber-200">
@@ -1264,9 +1301,9 @@ if (is_dir($full_path)) {
             </div>
             <div class="flex justify-end gap-2">
                 <button onclick="FM.closeModals()"
-                    class="px-4 py-2 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Cancel</button>
+                    class="px-4 py-2 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
                 <button onclick="FM.doChmod()"
-                    class="px-6 py-2 rounded-xl font-bold bg-blue-600 text-slate-900 hover:bg-blue-500 transition shadow-lg">Save</button>
+                    class="px-6 py-2 rounded-xl font-bold bg-whitelue-600 text-slate-900 hover:bg-whitelue-500 transition shadow-lg">Save</button>
             </div>
         </div>
     </div>
@@ -1274,34 +1311,34 @@ if (is_dir($full_path)) {
     <!-- CONTEXT MENU & MODALS (Kept in body) -->
     <!-- CONTEXT MENU -->
     <div id="ctx-menu"
-        class="fixed z-50 bg-[#1e293b] border border-slate-300 shadow-2xl rounded-xl w-48 py-1 hidden transform scale-95 opacity-0 transition-all duration-100 origin-top-left">
+        class="fixed z-50 bg-white border border-slate-300 shadow-xl rounded-xl w-48 py-1 hidden transform scale-95 opacity-0 transition-all duration-100 origin-top-left">
         <button onclick="FM.openCtx()"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 font-medium text-slate-900"><i
+            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 font-medium text-slate-900"><i
                 data-lucide="folder-open" class="w-4 text-blue-400"></i> Open</button>
         <button onclick="FM.editCtx()" id="ctx-btn-edit"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 font-medium text-slate-900"><i
+            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 font-medium text-slate-900"><i
                 data-lucide="file-code" class="w-4 text-emerald-400"></i> Edit</button>
         <button onclick="FM.renameCtx()"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-700"><i
+            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700"><i
                 data-lucide="edit-3" class="w-4"></i> Rename</button>
-        <div class="h-px bg-white/10 my-1"></div>
+        <div class="h-px bg-slate-100 my-1"></div>
         <button onclick="FM.extractCtx()" id="ctx-btn-extract"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 font-medium text-slate-900"><i
+            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 font-medium text-slate-900"><i
                 data-lucide="package-open" class="w-4 text-orange-400"></i> Extract</button>
         <button onclick="FM.chmodCtx()"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-700">
+            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700">
             <i data-lucide="shield" class="w-4 text-slate-700"></i> Permissions
         </button>
         <button onclick="FM.bulk('copy')"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-700"><i
+            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700"><i
                 data-lucide="copy" class="w-4"></i> Copy</button>
         <button onclick="FM.bulk('move')"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-700"><i
+            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700"><i
                 data-lucide="move" class="w-4"></i> Move</button>
         <button onclick="FM.bulk('zip')"
-            class="w-full text-left px-4 py-2 hover:bg-white/5 text-sm flex items-center gap-2 text-slate-700"><i
+            class="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm flex items-center gap-2 text-slate-700"><i
                 data-lucide="archive" class="w-4"></i> Archive</button>
-        <div class="h-px bg-white/10 my-1"></div>
+        <div class="h-px bg-slate-100 my-1"></div>
         <button onclick="FM.bulk('delete')"
             class="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-400 hover:text-red-300 text-sm flex items-center gap-2 font-medium"><i
                 data-lucide="trash-2" class="w-4"></i> Delete</button>
@@ -1309,12 +1346,12 @@ if (is_dir($full_path)) {
 
     <!-- CREATE MODAL -->
     <div id="modal-create"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl">
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-300 shadow-2xl">
             <h3 class="font-bold text-xl text-slate-900 mb-6">New Item</h3>
             <div class="flex bg-white rounded-lg p-1 mb-6">
                 <button onclick="FM.setCreateType('file')" id="btn-c-file"
-                    class="flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-slate-900 shadow transition">File</button>
+                    class="flex-1 py-1.5 rounded text-sm font-bold bg-whitelue-600 text-slate-900 shadow transition">File</button>
                 <button onclick="FM.setCreateType('folder')" id="btn-c-folder"
                     class="flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition">Folder</button>
             </div>
@@ -1322,34 +1359,34 @@ if (is_dir($full_path)) {
                 class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 mb-6 text-slate-900 text-sm">
             <div class="flex gap-3">
                 <button onclick="FM.closeModals()"
-                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Cancel</button>
+                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
                 <button onclick="FM.doCreate()"
-                    class="flex-1 py-2.5 rounded-xl font-bold bg-blue-600 text-slate-900 hover:bg-blue-500 shadow-lg shadow-blue-500/20 transition">Create</button>
+                    class="flex-1 py-2.5 rounded-xl font-bold bg-whitelue-600 text-slate-900 hover:bg-whitelue-500 shadow-lg shadow-blue-500/20 transition">Create</button>
             </div>
         </div>
     </div>
 
     <!-- RENAME MODAL -->
     <div id="modal-rename"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl">
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-300 shadow-2xl">
             <h3 class="font-bold text-xl text-slate-900 mb-6">Rename</h3>
             <input id="input-rename" type="text"
                 class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 mb-6 text-slate-900 text-sm">
             <input id="rename-target" type="hidden">
             <div class="flex gap-3">
                 <button onclick="FM.closeModals()"
-                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Cancel</button>
+                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
                 <button onclick="FM.doRename()"
-                    class="flex-1 py-2.5 rounded-xl font-bold bg-blue-600 text-slate-900 hover:bg-blue-500 shadow-lg shadow-blue-500/20 transition">Save</button>
+                    class="flex-1 py-2.5 rounded-xl font-bold bg-whitelue-600 text-slate-900 hover:bg-whitelue-500 shadow-lg shadow-blue-500/20 transition">Save</button>
             </div>
         </div>
     </div>
 
     <!-- COPY/MOVE MODAL -->
     <div id="modal-copymove"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-200 shadow-2xl">
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/80 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-sm border border-slate-300 shadow-2xl">
             <h3 class="font-bold text-xl text-slate-900 mb-6" id="cm-title">Move Items</h3>
             <div class="mb-4 text-xs text-slate-700 font-bold uppercase">Destination Folder</div>
             <div class="flex bg-white border border-slate-300 rounded-xl px-4 py-3 mb-6 items-center gap-3">
@@ -1360,38 +1397,38 @@ if (is_dir($full_path)) {
             <input type="hidden" id="cm-action">
             <div class="flex gap-3">
                 <button onclick="FM.closeModals()"
-                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-white/5 transition">Cancel</button>
+                    class="flex-1 py-2.5 rounded-xl font-bold text-slate-700 hover:bg-slate-50 transition">Cancel</button>
                 <button onclick="FM.doCopyMove()"
-                    class="flex-1 py-2.5 rounded-xl font-bold bg-blue-600 text-slate-900 hover:bg-blue-500 shadow-lg shadow-blue-500/20 transition">Confirm</button>
+                    class="flex-1 py-2.5 rounded-xl font-bold bg-whitelue-600 text-slate-900 hover:bg-whitelue-500 shadow-lg shadow-blue-500/20 transition">Confirm</button>
             </div>
         </div>
     </div>
 
     <!-- PREVIEW MODAL -->
     <div id="modal-preview"
-        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-whitelack/90 backdrop-blur-md">
         <div
-            class="glass-panel rounded-2xl w-full max-w-4xl h-[80vh] border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
-            <div class="h-12 border-b border-slate-200 flex items-center justify-between px-4 bg-slate-50">
+            class="glass-panel rounded-2xl w-full max-w-4xl h-[80vh] border border-slate-300 shadow-2xl flex flex-col overflow-hidden">
+            <div class="h-12 border-b border-slate-300 flex items-center justify-between px-4 bg-slate-50">
                 <span id="preview-title" class="font-mono text-sm font-bold text-slate-700">filename.txt</span>
                 <button onclick="FM.closeModals()"
-                    class="p-1 hover:bg-white/10 rounded text-slate-700 hover:text-slate-900"><i data-lucide="x"
+                    class="p-1 hover:bg-slate-100 rounded text-slate-700 hover:text-slate-900"><i data-lucide="x"
                         class="w-5"></i></button>
             </div>
-            <div class="flex-1 overflow-auto bg-[#0a0f1c] p-0 relative flex items-center justify-center"
+            <div class="flex-1 overflow-auto bg-[#f8fafc] p-0 relative flex items-center justify-center"
                 id="preview-content">
                 <!-- Content injected here -->
             </div>
-            <div class="h-12 border-t border-slate-200 flex items-center justify-end px-4 gap-3 bg-slate-50">
+            <div class="h-12 border-t border-slate-300 flex items-center justify-end px-4 gap-3 bg-slate-50">
                 <button onclick="FM.closeModals()"
-                    class="px-4 py-1.5 bg-white/10 text-slate-900 rounded-lg text-sm font-bold hover:bg-white/20 transition">Close</button>
+                    class="px-4 py-1.5 bg-slate-100 text-slate-900 rounded-lg text-sm font-bold hover:bg-slate-200 transition">Close</button>
             </div>
         </div>
     </div>
 
     <!-- TOAST -->
     <div id="toast"
-        class="fixed bottom-6 right-6 z-[100] transition-all duration-300 transform translate-y-20 opacity-0 bg-emerald-600 text-slate-900 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold">
+        class="fixed bottom-6 right-6 z-[100] transition-all duration-300 transform translate-y-20 opacity-0 bg-whitemerald-600 text-slate-900 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold">
         <span></span>
     </div>
 
@@ -1577,15 +1614,15 @@ if (is_dir($full_path)) {
                 if (mode === 'grid') {
                     container.classList.add('view-grid');
                     container.classList.remove('view-list');
-                    btnGrid.classList.add('bg-white/10', 'text-slate-900');
+                    btnGrid.classList.add('bg-slate-100', 'text-slate-900');
                     btnGrid.classList.remove('text-slate-700');
-                    btnList.classList.remove('bg-white/10', 'text-slate-900');
+                    btnList.classList.remove('bg-slate-100', 'text-slate-900');
                     btnList.classList.add('text-blue-400');
                 } else {
                     container.classList.add('view-list');
                     container.classList.remove('view-grid');
-                    btnList.classList.add('bg-white/10', 'text-blue-400');
-                    btnGrid.classList.remove('bg-white/10', 'text-slate-900');
+                    btnList.classList.add('bg-slate-100', 'text-blue-400');
+                    btnGrid.classList.remove('bg-slate-100', 'text-slate-900');
                     btnGrid.classList.add('text-slate-700');
                 }
             }
@@ -1878,7 +1915,7 @@ if (is_dir($full_path)) {
             toast(type, msg) {
                 const el = document.getElementById('toast');
                 el.innerText = msg;
-                el.className = `fixed bottom-6 right-6 z-[100] px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold transition-all duration-300 transform ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'} text-slate-900 translate-y-0 opacity-100`;
+                el.className = `fixed bottom-6 right-6 z-[100] px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-bold transition-all duration-300 transform ${type === 'success' ? 'bg-whitemerald-600' : 'bg-red-600'} text-slate-900 translate-y-0 opacity-100`;
                 setTimeout(() => el.classList.add('translate-y-20', 'opacity-0'), 3000);
             }
 
@@ -1908,8 +1945,8 @@ if (is_dir($full_path)) {
 
             setCreateType(t) {
                 this.createType = t;
-                document.getElementById('btn-c-file').className = t === 'file' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition';
-                document.getElementById('btn-c-folder').className = t === 'folder' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-blue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition';
+                document.getElementById('btn-c-file').className = t === 'file' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-whitelue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition';
+                document.getElementById('btn-c-folder').className = t === 'folder' ? 'flex-1 py-1.5 rounded text-sm font-bold bg-whitelue-600 text-slate-900 shadow transition' : 'flex-1 py-1.5 rounded text-sm font-bold text-slate-700 hover:text-slate-900 transition';
             }
 
             doCreate() {
@@ -1993,5 +2030,4 @@ if (is_dir($full_path)) {
 </body>
 
 </html>
-
 
