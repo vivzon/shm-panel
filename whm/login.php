@@ -340,11 +340,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="space-y-1">
-                    <div class="flex items-center justify-between">
-                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Password</label>
-                        <a href="../forgot_password.php"
-                            class="text-[11px] text-blue-600 hover:text-blue-700 font-semibold">Forgot password?</a>
-                    </div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Password</label>
                     <div class="input-wrap">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
