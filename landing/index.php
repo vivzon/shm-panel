@@ -35,7 +35,7 @@ try {
     <title><?= e($brandName) ?> | Premium Cloud Hosting</title>
 
     <!-- Unified modern design system -->
-    <link rel="stylesheet" href="/shared/assets/css/modern-design.css">
+    <link rel="stylesheet" href="/assets/css/modern-design.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 

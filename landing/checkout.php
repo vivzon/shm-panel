@@ -33,7 +33,7 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout - <?= htmlspecialchars($package['name']) ?> | Vivzon Cloud</title>
 
-    <link rel="stylesheet" href="/shared/assets/css/modern-design.css">
+    <link rel="stylesheet" href="/assets/css/modern-design.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- PayPal SDK -->
     <script src="https://www.paypal.com/sdk/js?client-id=<?= $PAYPAL_CLIENT_ID ?>&currency=INR"></script>

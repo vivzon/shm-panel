@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Lexend:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="/shared/assets/css/modern-design.css">
+    <link rel="stylesheet" href="/assets/css/modern-design.css">
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;

@@ -22,7 +22,7 @@ $username = $_SESSION['client'];
     <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title><?= get_branding() ?> | Client Portal</title>
     <!-- Modern Vanilla CSS System -->
-    <link rel="stylesheet" href="/shared/assets/css/modern-design.css">
+    <link rel="stylesheet" href="/assets/css/modern-design.css">
 
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
