@@ -363,13 +363,19 @@ try {
             display: grid;
             grid-template-columns: 1fr;
             gap: 2rem;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         @media(min-width: 768px) {
             .pricing-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(min-width: 1024px) {
+            .pricing-grid {
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 
@@ -636,33 +642,32 @@ try {
             </div>
 
             <!-- Pricing Grid -->
-            <div class="pricing-grid"
-                style="grid-template-columns: repeat(min(4, 1fr), 1fr); @media(min-width: 1024px) { grid-template-columns: repeat(4, 1fr); } max-width: 1200px;">
+            <div class="pricing-grid">
                 <?php
                 $plans = [
                     [
                         'name' => 'Basic Plan',
                         'price' => '₹49',
                         'popular' => false,
-                        'perks' => ['1 Website', '1 GB SSD Storage', '2 Email Accounts', 'Free SSL Certificate', 'Standard Speed', 'Beginner Friendly']
+                        'perks' => ['1 Website', '1 GB NVMe Storage', '2 Email Accounts', '2 MySQL Databases', 'Free SSL Certificate', 'Standard Speed']
                     ],
                     [
                         'name' => 'Smart Plan',
                         'price' => '₹149',
                         'popular' => true,
-                        'perks' => ['3 Websites', '5 GB SSD Storage', '10 Email Accounts', 'Free SSL', 'Faster Performance', 'Priority Support']
+                        'perks' => ['3 Websites', '5 GB NVMe Storage', '10 Email Accounts', '5 MySQL Databases', 'Free SSL', 'Faster Performance']
                     ],
                     [
                         'name' => 'Pro Plan',
                         'price' => '₹249',
                         'popular' => false,
-                        'perks' => ['10 Websites', '15 GB SSD Storage', '25 Email Accounts', 'Free SSL + Backup', 'High Performance', 'Developer Friendly']
+                        'perks' => ['10 Websites', '15 GB NVMe Storage', '25 Email Accounts', '20 MySQL Databases', 'Free SSL + Backup', 'High Performance']
                     ],
                     [
                         'name' => 'Agency Plan',
                         'price' => '₹399',
                         'popular' => false,
-                        'perks' => ['Unlimited Websites', '40 GB SSD Storage', '100 Email Accounts', 'Free SSL + Backup', 'Priority Resources', '24/7 Support']
+                        'perks' => ['Unlimited Websites', '40 GB NVMe Storage', '100 Email Accounts', 'Unlimited MySQL Databases', 'Free SSL + Backup', 'Dedicated Resources']
                     ]
                 ];
 
@@ -691,6 +696,54 @@ try {
                             Started</a>
                     </div>
                 <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section-padding" style="background: white;">
+        <div class="container">
+            <div class="section-title-wrap" style="margin-bottom: 3rem;">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+            </div>
+            <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem;">
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                        <i data-lucide="help-circle"
+                            style="color: var(--primary); flex-shrink: 0; margin-top: 0.125rem;"></i>
+                        <div>
+                            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">What is NVMe Cloud
+                                Hosting?</h3>
+                            <p style="color: var(--slate-600); font-size: 0.875rem;">NVMe (Non-Volatile Memory Express)
+                                is a modern storage protocol designed for high-speed data transfer. It is up to 10x
+                                faster than traditional SSDs, ensuring your website loads instantly.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                        <i data-lucide="save" style="color: var(--primary); flex-shrink: 0; margin-top: 0.125rem;"></i>
+                        <div>
+                            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">Do you provide
+                                free backups?</h3>
+                            <p style="color: var(--slate-600); font-size: 0.875rem;">Yes! JetBackup is included with all
+                                plans to take automatic daily backups of your files, emails, and databases. You can
+                                easily restore them anytime from your control panel.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card" style="padding: 1.5rem;">
+                    <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                        <i data-lucide="globe" style="color: var(--primary); flex-shrink: 0; margin-top: 0.125rem;"></i>
+                        <div>
+                            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">Can I host
+                                multiple domains?</h3>
+                            <p style="color: var(--slate-600); font-size: 0.875rem;">Yes, except for the Basic Plan, all
+                                our plans allow you to host multiple domains from a single interface, making it perfect
+                                for developers and agencies.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

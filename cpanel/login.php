@@ -48,12 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Client Portal — Vivzon Cloud">
-    <title>Client Portal | Vivzon Cloud</title>
+    <meta name="description" content="Client Portal — <?= htmlspecialchars(get_branding()) ?>">
+    <title>Client Portal | <?= htmlspecialchars(get_branding()) ?></title>
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/modern-design.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* Modern Design System loaded via CSS */
     </style>
@@ -71,16 +72,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2.5rem;">
                     <div
                         style="width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center;">
-                        <svg style="width: 1rem; height: 1rem; color: #fff;" fill="none" stroke="currentColor"
-                            stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
-                        </svg>
+                        <i data-lucide="cloud" style="width: 1rem; height: 1rem; color: #fff;"></i>
                     </div>
                     <div>
                         <div
                             style="font-size: 0.875rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: rgba(255,255,255,0.9);">
-                            Vivzon Cloud</div>
+                            <?= htmlspecialchars(get_branding()) ?>
+                        </div>
                         <div style="font-size: 0.625rem; color: rgba(255,255,255,0.4); font-weight: 500;">Client Portal
                         </div>
                     </div>
@@ -98,17 +96,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div>
                     <?php
                     $features = [
-                        ['NVMe Cloud Hosting', 'M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z'],
-                        ['Free SSL & DDoS Shield', 'M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z'],
-                        ['24/7 Expert Support', 'M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z'],
+                        ['NVMe Cloud Hosting', 'zap'],
+                        ['Free SSL & DDoS Shield', 'shield-check'],
+                        ['24/7 Expert Support', 'life-buoy'],
                     ];
                     foreach ($features as $f): ?>
                         <div class="feature-item">
                             <div class="feature-icon">
-                                <svg style="width: 0.875rem; height: 0.875rem; color: #bfdbfe;" fill="none"
-                                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="<?= $f[1] ?>" />
-                                </svg>
+                                <i data-lucide="<?= $f[1] ?>"
+                                    style="width: 0.875rem; height: 0.875rem; color: #bfdbfe;"></i>
                             </div>
                             <div
                                 style="font-size: 0.875rem; color: rgba(219, 234, 254, 0.7); font-weight: 500; padding-top: 0.125rem;">
@@ -141,18 +137,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     style="font-size: 1.5rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: #0f172a; margin-bottom: 0.25rem;">
                     Welcome back</h1>
                 <p style="color: #94a3b8; font-size: 0.875rem;">Sign in to your <span
-                        style="color: #475569; font-weight: 600;">Vivzon
-                        Technologies</span> client area</p>
+                        style="color: #475569; font-weight: 600;"><?= htmlspecialchars(get_branding()) ?></span> client
+                    area</p>
             </div>
 
             <!-- Error -->
             <?php if ($error): ?>
                 <div class="error-box" style="margin-bottom: 1.25rem;">
-                    <svg style="width: 1rem; height: 1rem; color: #ef4444; flex-shrink: 0;" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                    </svg>
+                    <i data-lucide="alert-circle" style="width: 1rem; height: 1rem; color: #ef4444; flex-shrink: 0;"></i>
                     <span
                         style="color: #dc2626; font-size: 0.75rem; font-weight: 600;"><?= htmlspecialchars($error) ?></span>
                 </div>
@@ -165,11 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div>
                     <label class="field-label" for="u">Username or Email</label>
                     <div class="input-wrap">
-                        <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
+                        <i data-lucide="user" style="width: 1rem; height: 1rem; color: #94a3b8;"></i>
                         <input id="u" name="u" type="text" required placeholder="your@email.com" autocomplete="username"
                             value="<?= htmlspecialchars($_POST['u'] ?? '') ?>">
                     </div>
@@ -185,11 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             password?</a>
                     </div>
                     <div class="input-wrap">
-                        <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                        </svg>
+                        <i data-lucide="lock" style="width: 1rem; height: 1rem; color: #94a3b8;"></i>
                         <input id="pwd" name="p" type="password" required placeholder="Enter your password"
                             autocomplete="current-password">
                         <button type="button" class="eye-toggle" onclick="togglePwd()" title="Show/hide password">
@@ -214,22 +198,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <button type="submit" class="btn-submit" style="margin-top: 0.25rem;">
-                    <svg style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                    </svg>
+                    <i data-lucide="log-in" style="width: 1rem; height: 1rem;"></i>
                     Sign In to Client Portal
                 </button>
             </form>
 
             <p class="fade-up d3" style="margin-top: 2rem; text-align: center; font-size: 0.625rem; color: #94a3b8;">
-                &copy; <?= date('Y') ?> Vivzon Cloud &mdash; Secure &amp; Encrypted Connection
+                &copy; <?= date('Y') ?> <?= htmlspecialchars(get_branding()) ?> &mdash; Secure &amp; Encrypted
+                Connection
             </p>
         </div>
     </div>
 
     <script>
+        lucide.createIcons();
         function togglePwd() {
             const input = document.getElementById('pwd'), icon = document.getElementById('eye-icon');
             if (input.type === 'password') {
