@@ -19,7 +19,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title><?= get_branding() ?> | Admin Console</title>
-    <link rel="stylesheet" href="/whm/assets/css/modern-design.css">
+    <link rel="stylesheet" href="/assets/css/modern-design.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* ── WHM-specific nav tweaks ── */
@@ -29,14 +29,34 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
 
         /* ── Table overrides ── */
-        table { border-collapse: collapse; }
-        th { font-size: 0.6875rem; }
-        tr:hover td { background: var(--slate-50); }
+        table {
+            border-collapse: collapse;
+        }
+
+        th {
+            font-size: 0.6875rem;
+        }
+
+        tr:hover td {
+            background: var(--slate-50);
+        }
 
         /* ── Inline element overrides (for WHM page content that uses Tailwind-era slate classes) ── */
-        [class*="bg-slate-9"], [class*="bg-slate-8"] { background-color: var(--slate-100) !important; }
-        [class*="border-slate-9"], [class*="border-slate-8"] { border-color: var(--slate-200) !important; }
-        [class*="text-slate-4"], [class*="text-slate-5"] { color: var(--slate-500) !important; }
+        [class*="bg-slate-9"],
+        [class*="bg-slate-8"] {
+            background-color: var(--slate-100) !important;
+        }
+
+        [class*="border-slate-9"],
+        [class*="border-slate-8"] {
+            border-color: var(--slate-200) !important;
+        }
+
+        [class*="text-slate-4"],
+        [class*="text-slate-5"] {
+            color: var(--slate-500) !important;
+        }
+
         [class*="text-white"]:not(button):not(.btn):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-violet"]) {
             color: var(--slate-800) !important;
         }
