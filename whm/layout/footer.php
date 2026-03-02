@@ -7,23 +7,25 @@
 
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-    // --- TOAST SYSTEM (light theme) ---
+    // --- TOAST SYSTEM (Vanilla CSS) ---
     function showToast(type, msg) {
         const colors = {
-            success: 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-emerald-100/80',
-            error: 'bg-red-50 text-red-700 border border-red-200 shadow-red-100/80',
-            info: 'bg-blue-50 text-blue-700 border border-blue-200 shadow-blue-100/80',
+            success: { bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', icon: 'check-circle', left: '#10b981' },
+            error: { bg: '#fef2f2', border: '#fecaca', text: '#b91c1c', icon: 'alert-circle', left: '#ef4444' },
+            info: { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', icon: 'info', left: '#3b82f6' },
+            warning: { bg: '#fffbeb', border: '#fde68a', text: '#92400e', icon: 'triangle-alert', left: '#f59e0b' },
         };
-        const icons = { success: 'check-circle', error: 'alert-circle', info: 'info' };
+        const c = colors[type] || colors.info;
         const toast = document.createElement('div');
-        toast.className = `fixed bottom-5 right-5 z-[100] px-5 py-3.5 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-4 opacity-0 transition-all duration-300 ${colors[type] || colors.info}`;
-        toast.innerHTML = `<i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0"></i><span class="font-semibold text-sm">${msg}</span>`;
+        toast.style.cssText = `position:fixed;bottom:1.25rem;right:1.25rem;z-index:9999;min-width:18rem;max-width:22rem;padding:.875rem 1rem;border-radius:.75rem;box-shadow:0 10px 25px -5px rgba(0,0,0,.15);border:1px solid ${c.border};border-left:4px solid ${c.left};background:${c.bg};display:flex;align-items:center;gap:.75rem;transform:translateX(110%);opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);font-family:inherit;`;
+        toast.innerHTML = `<i data-lucide="${c.icon}" style="width:1rem;height:1rem;color:${c.left};flex-shrink:0;"></i><span style="font-size:.875rem;font-weight:600;color:${c.text};line-height:1.4;">${msg}</span>`;
         document.body.appendChild(toast);
-        lucide.createIcons();
-        requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+        if (window.lucide) lucide.createIcons({ nodes: [toast] });
+        requestAnimationFrame(() => { toast.style.transform = 'translateX(0)'; toast.style.opacity = '1'; });
         setTimeout(() => {
-            toast.classList.add('translate-y-4', 'opacity-0');
-            setTimeout(() => toast.remove(), 300);
+            toast.style.transform = 'translateX(110%)';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 350);
         }, 3500);
     }
 

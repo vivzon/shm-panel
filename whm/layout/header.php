@@ -19,154 +19,26 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title><?= get_branding() ?> | Admin Console</title>
-    <link rel="stylesheet" href="/whm/css/modern-design.css">
+    <link rel="stylesheet" href="/whm/assets/css/modern-design.css">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
-        }
-
-        .font-heading {
-            font-family: 'Outfit', sans-serif;
-        }
-
-        /* ── Cards ── */
-        .glass-card {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-            border-radius: 1rem;
-        }
-
-        .glass-panel {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            border-radius: 1rem;
-        }
-
-        /* ── Sidebar Nav ── */
+        /* ── WHM-specific nav tweaks ── */
         .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-weight: 500;
-            font-size: 13px;
-            color: #475569;
-            transition: all 0.18s;
-            margin-bottom: 2px;
-            text-decoration: none;
+            font-size: 0.8125rem;
+            padding: 0.5rem 0.875rem;
         }
 
-        .nav-link:hover {
-            background: #f1f5f9;
-            color: #1e293b;
-        }
+        /* ── Table overrides ── */
+        table { border-collapse: collapse; }
+        th { font-size: 0.6875rem; }
+        tr:hover td { background: var(--slate-50); }
 
-        .nav-link.active {
-            background: #eff6ff;
-            color: #2563eb;
-            font-weight: 600;
-        }
-
-        .nav-link.active svg {
-            color: #2563eb;
-        }
-
-        /* ── Scrollbar ── */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 20px;
-        }
-
-        /* ── Utility overrides for light theme ── */
-        /* Tables */
-        table {
-            border-collapse: collapse;
-        }
-
-        th {
-            background: #f1f5f9;
-            color: #1e293b;
-            font-weight: 700;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        tr:hover td {
-            background: #f8fafc;
-        }
-
-        /* Inputs */
-        input[type=text],
-        input[type=number],
-        input[type=email],
-        input[type=password],
-        select,
-        textarea {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #1e293b;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-            border-color: #3b82f6;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        /* Badges */
-        .badge-active {
-            background: #dcfce7;
-            color: #16a34a;
-        }
-
-        .badge-warning {
-            background: #fef9c3;
-            color: #ca8a04;
-        }
-
-        .badge-error {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        /* Slate-X overrides — force light bg on panels that hardcode slate-9xx */
-        [class*="bg-slate-9"],
-        [class*="bg-slate-8"] {
-            background-color: #f1f5f9 !important;
-        }
-
-        [class*="border-slate-9"],
-        [class*="border-slate-8"] {
-            border-color: #e2e8f0 !important;
-        }
-
-        [class*="text-slate-4"],
-        [class*="text-slate-5"] {
-            color: #475569 !important;
-        }
-
+        /* ── Inline element overrides (for WHM page content that uses Tailwind-era slate classes) ── */
+        [class*="bg-slate-9"], [class*="bg-slate-8"] { background-color: var(--slate-100) !important; }
+        [class*="border-slate-9"], [class*="border-slate-8"] { border-color: var(--slate-200) !important; }
+        [class*="text-slate-4"], [class*="text-slate-5"] { color: var(--slate-500) !important; }
         [class*="text-white"]:not(button):not(.btn):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-violet"]) {
-            color: #1e293b !important;
+            color: var(--slate-800) !important;
         }
     </style>
 </head>
