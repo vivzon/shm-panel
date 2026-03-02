@@ -60,57 +60,7 @@ include 'layout/header.php';
 <!-- Add Fira Code for code blocks -->
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
-    .font-fira {
-        font-family: 'Fira Code', monospace;
-    }
-
-    /* Range Slider Styling */
-    input[type=range] {
-        -webkit-appearance: none;
-        width: 100%;
-        background: transparent;
-    }
-
-    input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 16px;
-        width: 16px;
-        border-radius: 50%;
-        background: #3b82f6;
-        cursor: pointer;
-        margin-top: -6px;
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
-    }
-
-    input[type=range]::-webkit-slider-runnable-track {
-        width: 100%;
-        height: 4px;
-        cursor: pointer;
-        background: #334155;
-        border-radius: 2px;
-    }
-
-    /* Toggle switch */
-    .toggle-checkbox:checked {
-        right: 0;
-        border-color: #3b82f6;
-    }
-
-    .toggle-checkbox:checked+.toggle-label {
-        background-color: #3b82f6;
-    }
-
-    .code-highlight {
-        color: #60a5fa;
-        background-color: rgba(96, 165, 250, 0.1);
-        padding: 0 0.25rem;
-        border-radius: 2px;
-        transition: background-color 0.5s;
-    }
-
-    .code-highlight.pulse {
-        background-color: rgba(96, 165, 250, 0.4);
-    }
+    /* UI Components handled by modern-design.css */
 </style>
 
 <div style="max-width: 80rem; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 2rem;">

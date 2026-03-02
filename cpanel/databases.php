@@ -160,12 +160,7 @@ $base_domain = implode('.', array_slice(explode('.', $_SERVER['HTTP_HOST']), -2)
 include 'layout/header.php';
 ?>
 
-<style>
-    .btn-loading {
-        pointer-events: none;
-        opacity: 0.6;
-    }
-</style>
+
 
 <div style="display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2rem;">
     <!-- LEFT SIDE: FORMS -->
@@ -306,13 +301,7 @@ include 'layout/header.php';
     </div>
 </div>
 
-<style>
-    @media (min-width: 768px) {
-        div[style*="display: grid; grid-template-columns: 1fr;"] {
-            grid-template-columns: 1fr 2fr !important;
-        }
-    }
-</style>
+
 
 <script>
     /**
