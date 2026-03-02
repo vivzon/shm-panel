@@ -9,7 +9,7 @@ SHM Panel is a lightweight, secure, and modern web hosting control panel designe
 - **Security First:** Built-in CSRF protection, secure PDO prepared statements, and SSH key management.
 - **Automated SSL:** Let's Encrypt integration for the panel and all subdomains.
 - **Performance:** Pre-configured OPCache, Nginx FastCGI caching, and system swap optimization.
-- **Beautiful UI:** Built with Tailwind CSS, Lucide Icons, and ApexCharts.
+- **Beautiful UI:** Built with Vanilla CSS, Lucide Icons, and ApexCharts.
 
 ## 📦 System Requirements
 - **OS:** Ubuntu 20.04, 22.04 LTS, or 24.04 LTS (Fresh install required).
