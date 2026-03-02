@@ -31,8 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login | Vivzon Cloud</title>
     <link rel="stylesheet" href="layout/modern-design.css">
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -362,7 +363,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <p class="fade-up d2" style="text-align: center; font-size: 10px; color: #94a3b8; margin-top: 1.25rem;">&copy;
             <?= date('Y') ?> Vivzon Cloud.
-            All rights reserved.</p>
+            All rights reserved.
+        </p>
     </div>
 
     <script>
