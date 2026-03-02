@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 
-<body>
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
     <div class="bg-grid"></div>
 
     <div class="login-wrapper fade-up" style="position: relative; z-index: 10;">
@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Form -->
             <form method="POST" class="fade-up d2" style="display: flex; flex-direction: column; gap: 1rem;"
-                onsubmit="this.querySelector('.btn-submit').classList.add('loading')">
+                onsubmit="this.querySelector('.btn-signin').classList.add('loading')">
 
                 <div>
                     <label class="field-label" for="u">Username or Email</label>
@@ -176,7 +176,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <i data-lucide="lock" style="width: 1rem; height: 1rem; color: #94a3b8;"></i>
                         <input id="pwd" name="p" type="password" required placeholder="Enter your password"
                             autocomplete="current-password">
-                        <button type="button" class="eye-toggle" onclick="togglePwd()" title="Show/hide password">
+                        <button type="button" class="eye-btn" onclick="togglePwd()" title="Show/hide password"
+                            style="background: none; border: none; padding: 0; display: flex;">
                             <svg id="eye-icon" style="width: 1rem; height: 1rem;" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -197,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         for 30 days</label>
                 </div>
 
-                <button type="submit" class="btn-submit" style="margin-top: 0.25rem;">
+                <button type="submit" class="btn-signin" style="margin-top: 0.25rem;">
                     <i data-lucide="log-in" style="width: 1rem; height: 1rem;"></i>
                     Sign In to Client Portal
                 </button>

@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 
-<body>
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
     <div class="bg-grid"></div>
 
     <div style="position: relative; z-index: 10; width: 100%; max-width: 400px; padding: 0 1.25rem;">
