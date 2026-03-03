@@ -30,7 +30,7 @@ include 'layout/header.php';
             <p style="color: var(--slate-600); font-size: 1rem;">View your past payments and invoices.</p>
         </div>
         <div style="display: flex; gap: 0.75rem;">
-            <a href="../landing/index.php#pricing" class="btn btn-primary"
+            <a href="https://vivzoncloud.com/index.php#pricing" class="btn btn-primary"
                 style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; box-shadow: var(--shadow-md); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); border-radius: var(--radius-lg);"
                 onmouseover="this.style.transform='translateY(-2px)';"
                 onmouseout="this.style.transform='translateY(0)';">

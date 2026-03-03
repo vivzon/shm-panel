@@ -841,28 +841,26 @@ if (is_dir($full_path)) {
         style="flex: 1; display: flex; flex-direction: column; height: 100vh; position: relative; background: var(--slate-50); overflow: hidden;">
         <!-- TOP NAVIGATION & ACTION BAR -->
         <header class="glass-card"
-            style="height: 4.5rem; flex-shrink: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; z-index: 20; border-radius: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(12px);">
+            style="height: 5rem; flex-shrink: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.4); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; z-index: 20; border-radius: 0; background: rgba(255,255,255,0.6); backdrop-filter: blur(20px);">
             <div style="display: flex; align-items: center; gap: 1.5rem;">
-                <!-- Toggle Sidebar for Mobile (optional, but good to have space for) -->
-
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.875rem;">
                     <div
-                        style="padding: 0.5rem; background: linear-gradient(to bottom right, var(--primary), #1d4ed8); border-radius: var(--radius-md); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.1);">
-                        <i data-lucide="folder-kanban" style="width: 20px; height: 20px; color: white;"></i>
+                        style="padding: 0.625rem; background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%); border-radius: var(--radius-lg); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25), inset 0 2px 4px rgba(255,255,255,0.2);">
+                        <i data-lucide="folder-kanban" style="width: 22px; height: 22px; color: white;"></i>
                     </div>
                     <h1
-                        style="font-weight: 700; font-size: 1.125rem; color: var(--slate-900); letter-spacing: -0.025em;">
+                        style="font-family: var(--font-heading); font-weight: 800; font-size: 1.25rem; color: var(--slate-900); letter-spacing: -0.025em;">
                         File Manager</h1>
                 </div>
 
-                <div style="height: 1.5rem; width: 1px; background: var(--border-color);"></div>
+                <div style="height: 2rem; width: 1px; background: rgba(203, 213, 225, 0.5);"></div>
 
                 <!-- Breadcrumbs -->
-                <nav style="display: flex; align-items: center; font-size: 0.875rem; font-weight: 500;">
+                <nav style="display: flex; align-items: center; font-size: 0.875rem; font-weight: 600;">
                     <a href="?domain_id=<?= $domain_id ?>&path=/"
-                        style="display: flex; align-items: center; gap: 0.25rem; color: var(--slate-700); text-decoration: none; transition: color 0.2s;"
-                        onmouseover="this.style.color='var(--primary)'"
-                        onmouseout="this.style.color='var(--slate-700)'">
+                        style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-md); background: rgba(37, 99, 235, 0.1); color: var(--primary); text-decoration: none; transition: all 0.2s;"
+                        onmouseover="this.style.backgroundColor='rgba(37, 99, 235, 0.2)'; this.style.transform='scale(1.05)'"
+                        onmouseout="this.style.backgroundColor='rgba(37, 99, 235, 0.1)'; this.style.transform='scale(1)'">
                         <i data-lucide="hard-drive" style="width: 16px; height: 16px;"></i>
                     </a>
                     <?php
@@ -872,11 +870,11 @@ if (is_dir($full_path)) {
                         $acc .= '/' . $c;
                         ?>
                         <i data-lucide="chevron-right"
-                            style="width: 16px; height: 16px; color: var(--slate-700); margin: 0 0.25rem;"></i>
+                            style="width: 16px; height: 16px; color: var(--slate-400); margin: 0 0.5rem;"></i>
                         <a href="?domain_id=<?= $domain_id ?>&path=<?= $acc ?>"
-                            style="color: var(--slate-700); text-decoration: none; padding: 0.25rem 0.5rem; border-radius: var(--radius-md); transition: background 0.2s, color 0.2s;"
-                            onmouseover="this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--slate-900)'"
-                            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)'"><?= $c ?></a>
+                            style="color: var(--slate-700); text-decoration: none; padding: 0.375rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; border: 1px solid transparent;"
+                            onmouseover="this.style.backgroundColor='rgba(255,255,255,0.8)'; this.style.borderColor='rgba(203, 213, 225, 0.5)'; this.style.color='var(--slate-900)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.02)';"
+                            onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='transparent'; this.style.color='var(--slate-700)'; this.style.boxShadow='none';"><?= $c ?></a>
                     <?php endforeach; ?>
                 </nav>
             </div>
@@ -885,28 +883,32 @@ if (is_dir($full_path)) {
                 <!-- Search -->
                 <div style="position: relative;">
                     <i data-lucide="search"
-                        style="width: 16px; height: 16px; position: absolute; left: 0.75rem; top: 0.625rem; color: var(--slate-700);"></i>
+                        style="width: 16px; height: 16px; position: absolute; left: 1rem; top: 0.875rem; color: var(--slate-500);"></i>
                     <input id="file-search" onkeyup="FM.filter()" placeholder="Search current folder..."
-                        class="form-input" style="padding-left: 2.5rem; width: 16rem; transition: width 0.3s;"
-                        onfocus="this.style.width='20rem'" onblur="this.style.width='16rem'">
+                        class="form-input"
+                        style="padding: 0.75rem 1rem 0.75rem 2.75rem; width: 18rem; transition: all 0.3s; background: rgba(255,255,255,0.7); border: 1px solid rgba(203, 213, 225, 0.5); font-size: 0.875rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"
+                        onfocus="this.style.width='22rem'; this.style.background='#ffffff'; this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                        onblur="this.style.width='18rem'; this.style.background='rgba(255,255,255,0.7)'; this.style.borderColor='rgba(203, 213, 225, 0.5)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
                 </div>
 
                 <!-- View Toggles -->
                 <div
-                    style="display: flex; padding: 0.25rem; background: var(--slate-50); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                    style="display: flex; padding: 0.375rem; background: rgba(241, 245, 249, 0.8); border-radius: var(--radius-lg); border: 1px solid rgba(203, 213, 225, 0.4);">
                     <button onclick="FM.setView('list')" id="btn-list"
-                        style="padding: 0.375rem; border-radius: var(--radius-sm); border: none; background: #f1f5f9; color: var(--primary); cursor: pointer; transition: color 0.2s;"><i
-                            data-lucide="list" style="width: 16px; height: 16px;"></i></button>
+                        style="padding: 0.375rem 0.75rem; border-radius: var(--radius-md); border: none; background: #ffffff; color: var(--primary); cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);"><i
+                            data-lucide="list" style="width: 18px; height: 18px;"></i></button>
                     <button onclick="FM.setView('grid')" id="btn-grid"
-                        style="padding: 0.375rem; border-radius: var(--radius-sm); border: none; background: transparent; color: var(--slate-700); cursor: pointer; transition: color 0.2s;"><i
-                            data-lucide="layout-grid" style="width: 16px; height: 16px;"></i></button>
+                        style="padding: 0.375rem 0.75rem; border-radius: var(--radius-md); border: none; background: transparent; color: var(--slate-500); cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.color='var(--slate-900)'"
+                        onmouseout="this.style.color='var(--slate-500)'"><i data-lucide="layout-grid"
+                            style="width: 18px; height: 18px;"></i></button>
                 </div>
 
-                <div style="height: 1.5rem; width: 1px; background: var(--border-color);"></div>
+                <div style="height: 2rem; width: 1px; background: rgba(203, 213, 225, 0.5);"></div>
 
                 <button onclick="FM.openUpload()" class="btn btn-primary"
-                    style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i> Upload
+                    style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; font-weight: 700; font-size: 0.875rem; border-radius: var(--radius-lg); transition: transform 0.2s, box-shadow 0.2s;">
+                    <i data-lucide="upload-cloud" style="width: 18px; height: 18px;"></i> Upload
                 </button>
             </div>
         </header>
@@ -914,56 +916,66 @@ if (is_dir($full_path)) {
         <div style="display: flex; flex: 1; overflow: hidden;">
             <!-- SIDEBAR (File System Nav) -->
             <aside class="glass-card"
-                style="width: 17rem; border-right: 1px solid rgba(255, 255, 255, 0.5); display: flex; flex-direction: column; display: none; border-radius: 0; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(16px);">
-                <div style="padding: 1.25rem;">
+                style="width: 18rem; border-right: 1px solid rgba(255, 255, 255, 0.4); display: flex; flex-direction: column; display: none; border-radius: 0; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px);">
+                <div style="padding: 1.5rem;">
                     <button onclick="FM.openCreate()"
-                        style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px dashed var(--slate-300); background: transparent; color: var(--slate-700); font-size: 0.875rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: all 0.2s;"
-                        onmouseover="this.style.borderColor='var(--primary)'; this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--primary)'"
-                        onmouseout="this.style.borderColor='var(--slate-300)'; this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)'">
-                        <i data-lucide="plus" style="width: 16px; height: 16px;"></i> New Item
+                        style="width: 100%; padding: 0.875rem; border-radius: var(--radius-lg); border: 2px dashed rgba(203, 213, 225, 0.8); background: rgba(255,255,255,0.5); color: var(--slate-700); font-size: 0.875rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.borderColor='var(--primary)'; this.style.backgroundColor='#ffffff'; this.style.color='var(--primary)'; this.style.borderStyle='solid'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';"
+                        onmouseout="this.style.borderColor='rgba(203, 213, 225, 0.8)'; this.style.backgroundColor='rgba(255,255,255,0.5)'; this.style.color='var(--slate-700)'; this.style.borderStyle='dashed'; this.style.boxShadow='none';">
+                        <i data-lucide="plus" style="width: 18px; height: 18px;"></i> New File / Folder
                     </button>
                 </div>
-                <div
-                    style="flex: 1; overflow-y: auto; padding: 0 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                <div style="flex: 1; overflow-y: auto; padding: 0 1rem; display: flex; flex-direction: column; gap: 0.375rem;"
+                    class="custom-scrollbar">
                     <div
-                        style="padding: 0.5rem 0.75rem; font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.05em;">
+                        style="padding: 0.5rem 0.75rem; font-size: 0.6875rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-heading);">
                         Locations</div>
                     <a href="?domain_id=<?= $domain_id ?>&path=/"
-                        style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); background: rgba(37, 99, 235, 0.1); color: var(--primary); font-weight: 500; font-size: 0.875rem; text-decoration: none;">
-                        <i data-lucide="home" style="width: 16px; height: 16px;"></i> Home Root
+                        style="display: flex; align-items: center; gap: 0.875rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%); color: var(--primary); font-weight: 700; font-size: 0.875rem; text-decoration: none; border: 1px solid rgba(37, 99, 235, 0.15);">
+                        <i data-lucide="home" style="width: 18px; height: 18px;"></i> Home Root
                     </a>
 
                     <div
-                        style="margin-top: 1.5rem; padding: 0.5rem 0.75rem; font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.05em;">
+                        style="margin-top: 1.5rem; padding: 0.5rem 0.75rem; font-size: 0.6875rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-heading);">
                         Domains</div>
                     <?php
                     $doms = $pdo->prepare("SELECT id, domain FROM domains WHERE client_id = ?");
                     $doms->execute([$user_id]);
                     while ($d = $doms->fetch()):
                         $isActive = $d['id'] == $domain_id;
-                        $bg = $isActive ? 'var(--slate-100)' : 'transparent';
-                        $color = $isActive ? 'var(--slate-900)' : 'var(--slate-700)';
+                        $bg = $isActive ? 'rgba(255,255,255,0.8)' : 'transparent';
+                        $color = $isActive ? 'var(--slate-900)' : 'var(--slate-600)';
+                        $weight = $isActive ? '700' : '500';
+                        $border = $isActive ? 'rgba(203, 213, 225, 0.5)' : 'transparent';
                         ?>
                         <a href="?domain_id=<?= $d['id'] ?>" class="sidebar-domain-link"
-                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.625rem 0.75rem; border-radius: var(--radius-md); background: <?= $bg ?>; color: <?= $color ?>; transition: all 0.3s ease; font-size: 0.875rem; text-decoration: none; border: 1px solid transparent;"
-                            onmouseover="this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--slate-900)'; this.style.borderColor='rgba(255,255,255,0.6)'; this.style.transform='translateX(4px)';"
-                            onmouseout="this.style.backgroundColor='<?= $bg ?>'; this.style.color='<?= $color ?>'; this.style.borderColor='transparent'; this.style.transform='translateX(0)';">
-                            <i data-lucide="globe" style="width: 16px; height: 16px;"></i> <?= $d['domain'] ?>
+                            style="display: flex; align-items: center; gap: 0.875rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); background: <?= $bg ?>; color: <?= $color ?>; font-weight: <?= $weight ?>; transition: all 0.2s ease; font-size: 0.875rem; text-decoration: none; border: 1px solid <?= $border ?>;"
+                            onmouseover="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--slate-900)'; this.style.borderColor='rgba(203, 213, 225, 0.5)';"
+                            onmouseout="this.style.backgroundColor='<?= $bg ?>'; this.style.color='<?= $color ?>'; this.style.borderColor='<?= $border ?>';">
+                            <i data-lucide="globe"
+                                style="width: 18px; height: 18px; <?= $isActive ? 'color: var(--primary);' : '' ?>"></i>
+                            <?= $d['domain'] ?>
                         </a>
                     <?php endwhile; ?>
                 </div>
 
                 <!-- Storage Status -->
-                <div style="padding: 1rem; border-top: 1px solid var(--border-color);">
+                <div
+                    style="padding: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.4); background: linear-gradient(to top, rgba(255,255,255,0.3) 0%, transparent 100%);">
                     <div
-                        style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.5rem;">
-                        <span style="color: var(--slate-700);">Storage</span>
-                        <span style="font-weight: 700; color: var(--slate-900);"><?= $domain['disk_usage'] ?? '0' ?>
+                        style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.75rem;">
+                        <span
+                            style="color: var(--slate-500); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Storage
+                            Usage</span>
+                        <span
+                            style="font-weight: 800; color: var(--slate-900); font-family: 'JetBrains Mono', monospace;"><?= $domain['disk_usage'] ?? '0' ?>
                             MB</span>
                     </div>
                     <div
-                        style="height: 0.375rem; background: var(--slate-50); border-radius: 9999px; overflow: hidden;">
-                        <div style="height: 100%; background: var(--primary); width: 75%;"></div>
+                        style="height: 0.5rem; background: rgba(203, 213, 225, 0.4); border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                        <div
+                            style="height: 100%; background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%); width: 75%; border-radius: 9999px;">
+                        </div>
                         <!-- Placeholder for real % -->
                     </div>
                 </div>
@@ -976,53 +988,58 @@ if (is_dir($full_path)) {
 
                 <!-- ACTION BAR (Contextual) -->
                 <div id="action-bar" class="hidden glass-card"
-                    style="position: absolute; width: 100%; height: 3.5rem; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(-100%); z-index: 10; background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.1); border-radius: 0; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-                    <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; font-weight: 500;">
-                        <span style="color: #93c5fd; font-weight: 700;" id="selection-count">0 Selected</span>
-                        <div style="height: 1rem; width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
+                    style="position: absolute; width: calc(100% - 3rem); left: 1.5rem; top: 1.5rem; height: 4rem; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: translateY(-150%); z-index: 40; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-xl); color: white; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; font-weight: 600;">
+                        <span
+                            style="color: #93c5fd; font-weight: 800; padding: 0.25rem 0.75rem; background: rgba(59, 130, 246, 0.2); border-radius: var(--radius-md);"
+                            id="selection-count">0 Selected</span>
+                        <div style="height: 1.5rem; width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
                         <!-- FIX: Select All / Unselect All buttons -->
                         <button onclick="FM.selectAll(true)" id="btn-select-all"
-                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'" title="Select All (Ctrl+A)"><i
-                                data-lucide="check-square" style="width: 16px; height: 16px;"></i> Select
-                            All</button>
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"
+                            title="Select All (Ctrl+A)"><i data-lucide="check-square"
+                                style="width: 18px; height: 18px;"></i> Select All</button>
                         <button onclick="FM.selectAll(false)" id="btn-unselect-all"
-                            style="display: none; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'" title="Unselect All"><i
-                                data-lucide="square" style="width: 16px; height: 16px;"></i> Unselect All</button>
+                            style="display: none; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"
+                            title="Unselect All"><i data-lucide="square" style="width: 18px; height: 18px;"></i>
+                            Unselect All</button>
                         <button onclick="FM.bulk('download')"
-                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i data-lucide="download"
-                                style="width: 16px; height: 16px;"></i> Download</button>
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"><i
+                                data-lucide="download" style="width: 18px; height: 18px;"></i> Download</button>
                         <button onclick="FM.bulk('zip')"
-                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i data-lucide="archive"
-                                style="width: 16px; height: 16px;"></i> Archive</button>
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"><i
+                                data-lucide="archive" style="width: 18px; height: 18px;"></i> Archive</button>
                         <button onclick="FM.bulk('copy')"
-                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i data-lucide="copy"
-                                style="width: 16px; height: 16px;"></i> Copy</button>
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"><i
+                                data-lucide="copy" style="width: 18px; height: 18px;"></i> Copy</button>
                         <button onclick="FM.bulk('move')"
-                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"><i data-lucide="move"
-                                style="width: 16px; height: 16px;"></i> Move</button>
-                        <div style="height: 1rem; width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
+                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"><i
+                                data-lucide="move" style="width: 18px; height: 18px;"></i> Move</button>
+                        <div style="height: 1.5rem; width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
                         <button onclick="FM.bulk('delete')"
-                            style="display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s; color: #f87171; background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='#fca5a5'" onmouseout="this.style.color='#f87171'"
-                            title="Delete (Del key)"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: #f87171; background: transparent; border: none; cursor: pointer;"
+                            onmouseover="this.style.color='#fca5a5'; this.style.backgroundColor='rgba(248, 113, 113, 0.15)';"
+                            onmouseout="this.style.color='#f87171'; this.style.backgroundColor='transparent';"
+                            title="Delete (Del key)"><i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
                             Delete</button>
                     </div>
                     <button onclick="FM.clearSelection()"
-                        style="color: rgba(255, 255, 255, 0.8); transition: color 0.2s; background: transparent; border: none; cursor: pointer;"
-                        onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'"
-                        title="Clear Selection"><i data-lucide="x" style="width: 16px; height: 16px;"></i></button>
+                        style="color: rgba(255, 255, 255, 0.5); padding: 0.5rem; border-radius: 50%; transition: all 0.2s; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;"
+                        onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
+                        onmouseout="this.style.color='rgba(255, 255, 255, 0.5)'; this.style.backgroundColor='transparent';"
+                        title="Clear Selection"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
                 </div>
 
                 <div id="file-view" class="view-list custom-scrollbar"
@@ -1030,9 +1047,8 @@ if (is_dir($full_path)) {
 
                     <!-- LIST HEADER -->
                     <div class="list-header hidden"
-                        style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; padding: 0.5rem 1rem; border-bottom: 1px solid var(--border-color); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--slate-700); letter-spacing: 0.05em; margin-bottom: 0.5rem; position: sticky; top: 0; background: white; z-index: 10;">
-                        <div
-                            style="grid-column: span 6 / span 6; padding-left: 2rem; display: flex; align-items: center; gap: 0.75rem;">
+                        style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; padding: 0.75rem 1.5rem; border-bottom: 2px solid rgba(226, 232, 240, 0.8); font-size: 0.6875rem; font-weight: 800; font-family: var(--font-heading); text-transform: uppercase; color: var(--slate-400); letter-spacing: 0.05em; margin-bottom: 0.5rem; position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); z-index: 10;">
+                        <div style="grid-column: span 6 / span 6; display: flex; align-items: center; gap: 1rem;">
                             <div style="width: 1.25rem; display: flex; justify-content: center;">
                                 <input type="checkbox" id="header-select-all" onchange="FM.selectAll(this.checked)"
                                     style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;"
@@ -1106,7 +1122,7 @@ if (is_dir($full_path)) {
 
                             <!-- Inner Content (CSS handles List/Grid layout) -->
                             <div
-                                style="padding: 0.75rem 1rem; border-radius: var(--radius-xl); border: 1px solid transparent; transition: background 0.2s, border-color 0.2s;">
+                                style="padding: 0.75rem 1.5rem; border-radius: var(--radius-xl); border: 1px solid transparent; transition: background 0.2s, border-color 0.2s;">
                                 <!-- List Layout -->
                                 <div class="list-layout"
                                     style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; align-items: center;">
@@ -1126,15 +1142,15 @@ if (is_dir($full_path)) {
                                             onmouseout="this.style.color='var(--slate-700)'"><?= htmlspecialchars($i['name']) ?></span>
                                     </div>
                                     <div
-                                        style="grid-column: span 2 / span 2; font-size: 0.875rem; color: var(--slate-700); font-family: monospace;">
+                                        style="grid-column: span 2 / span 2; font-size: 0.875rem; color: var(--slate-500); font-family: 'JetBrains Mono', monospace;">
                                         <?= htmlspecialchars($i['size']) ?>
                                     </div>
                                     <div
-                                        style="grid-column: span 2 / span 2; font-size: 0.875rem; color: var(--slate-700); text-transform: uppercase;">
+                                        style="grid-column: span 2 / span 2; font-size: 0.75rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.05em;">
                                         <?= htmlspecialchars($type) ?>
                                     </div>
                                     <div
-                                        style="grid-column: span 2 / span 2; text-align: right; font-size: 0.875rem; color: var(--slate-700); font-family: monospace;">
+                                        style="grid-column: span 2 / span 2; text-align: right; font-size: 0.875rem; color: var(--slate-500); font-family: 'JetBrains Mono', monospace;">
                                         <?= htmlspecialchars($i['date']) ?>
                                     </div>
                                 </div>
@@ -1148,19 +1164,20 @@ if (is_dir($full_path)) {
                                             style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;"
                                             onclick="event.stopPropagation();">
                                     </div>
-                                    <div style="padding: 1rem; border-radius: 1rem; background: rgba(248, 250, 252, 0.5); transition: background 0.2s;"
-                                        onmouseover="this.style.backgroundColor='var(--slate-50)'"
-                                        onmouseout="this.style.backgroundColor='rgba(248, 250, 252, 0.5)'">
+                                    <div style="padding: 1.25rem; border-radius: 1.25rem; background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.6) 100%); transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5), 0 4px 6px -1px rgba(0,0,0,0.02); border: 1px solid rgba(226, 232, 240, 0.8);"
+                                        onmouseover="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 0.8) 100%)'; this.style.transform='translateY(-2px)';"
+                                        onmouseout="this.style.background='linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.6) 100%)'; this.style.transform='translateY(0)';">
                                         <i data-lucide="<?= $icon ?>" class="<?= $color ?>"
-                                            style="width: 40px; height: 40px;"></i>
+                                            style="width: 48px; height: 48px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));"></i>
                                     </div>
                                     <div style="width: 100%;">
-                                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; font-size: 0.875rem; color: var(--slate-700); transition: color 0.2s;"
-                                            onmouseover="this.style.color='var(--slate-900)'"
+                                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; font-size: 0.875rem; color: var(--slate-700); transition: color 0.2s;"
+                                            onmouseover="this.style.color='var(--primary)'"
                                             onmouseout="this.style.color='var(--slate-700)'">
                                             <?= htmlspecialchars($i['name']) ?>
                                         </div>
-                                        <div style="font-size: 0.75rem; color: var(--slate-700); margin-top: 0.25rem;">
+                                        <div
+                                            style="font-size: 0.75rem; font-weight: 500; color: var(--slate-400); margin-top: 0.25rem; font-family: 'JetBrains Mono', monospace;">
                                             <?= htmlspecialchars($i['size']) ?>
                                         </div>
                                     </div>
@@ -1171,10 +1188,13 @@ if (is_dir($full_path)) {
 
                     <?php if (empty($items)): ?>
                         <div
-                            style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 16rem; color: var(--slate-700);">
-                            <i data-lucide="folder-open"
-                                style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i>
-                            <p>This folder is empty</p>
+                            style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 16rem; color: var(--slate-400);">
+                            <div
+                                style="padding: 1.5rem; border-radius: 50%; background: rgba(241, 245, 249, 0.5); margin-bottom: 1rem;">
+                                <i data-lucide="folder-open" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                            </div>
+                            <p style="font-weight: 600; font-size: 1rem; color: var(--slate-500);">This folder is empty</p>
+                            <p style="font-size: 0.875rem; margin-top: 0.25rem;">Drag and drop files here to upload</p>
                         </div>
                     <?php endif; ?>
 
@@ -1188,11 +1208,17 @@ if (is_dir($full_path)) {
                 </div>
 
                 <div id="drag-overlay" class="hidden"
-                    style="position: absolute; inset: 0; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(4px); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--slate-900); border: 2px dashed rgba(37, 99, 235, 0.4); margin: 1rem; border-radius: 1.5rem; pointer-events: none;">
-                    <i data-lucide="cloud-upload"
-                        style="width: 80px; height: 80px; margin-bottom: 1.5rem; animation: bounce 1s infinite;"></i>
-                    <h3 style="font-size: 1.875rem; font-weight: 700;">Drop files to upload</h3>
-                    <p style="color: var(--primary); margin-top: 0.5rem;">to <?= htmlspecialchars($current_path) ?></p>
+                    style="position: absolute; inset: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--slate-900); border: 3px dashed var(--primary); margin: 1.5rem; border-radius: 2rem; pointer-events: none; transition: all 0.3s; box-shadow: inset 0 0 50px rgba(37, 99, 235, 0.1);">
+                    <div
+                        style="padding: 2rem; border-radius: 50%; background: rgba(37, 99, 235, 0.1); margin-bottom: 1.5rem; animation: bounce 2s infinite;">
+                        <i data-lucide="cloud-upload" style="width: 64px; height: 64px; color: var(--primary);"></i>
+                    </div>
+                    <h3
+                        style="font-size: 2.25rem; font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.025em;">
+                        Drop files to upload</h3>
+                    <p style="color: var(--slate-500); margin-top: 0.5rem; font-size: 1.125rem;">to <span
+                            style="font-weight: 700; color: var(--primary);"><?= htmlspecialchars($current_path) ?></span>
+                    </p>
                 </div>
             </main>
         </div>
@@ -1272,55 +1298,55 @@ if (is_dir($full_path)) {
     <!-- CONTEXT MENU & MODALS (Kept in body) -->
     <!-- CONTEXT MENU -->
     <div id="ctx-menu" class="hidden glass-card"
-        style="position: fixed; z-index: 50; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border-radius: 1rem; width: 13rem; padding: 0.5rem; transform: scale(0.95); opacity: 0; transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: top left;">
+        style="position: fixed; z-index: 50; background: rgba(255,255,255,0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.05); border-radius: var(--radius-xl); width: 14rem; padding: 0.5rem; transform: scale(0.95); opacity: 0; transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: top left;">
         <button onclick="FM.openCtx()"
-            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
-            onmouseover="this.style.backgroundColor='var(--slate-50)'"
-            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="folder-open"
-                style="width: 16px; height: 16px; color: var(--primary);"></i> Open</button>
+            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
+            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--primary)';"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-900)';"><i
+                data-lucide="folder-open" style="width: 18px; height: 18px; color: var(--primary);"></i> Open</button>
         <button onclick="FM.editCtx()" id="ctx-btn-edit"
-            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
-            onmouseover="this.style.backgroundColor='var(--slate-50)'"
-            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="file-code"
-                style="width: 16px; height: 16px; color: #10b981;"></i> Edit</button>
+            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
+            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='#10b981';"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-900)';"><i
+                data-lucide="file-code" style="width: 18px; height: 18px; color: #10b981;"></i> Edit</button>
         <button onclick="FM.renameCtx()"
-            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
-            onmouseover="this.style.backgroundColor='var(--slate-50)'"
-            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="edit-3"
-                style="width: 16px; height: 16px;"></i> Rename</button>
-        <div style="height: 1px; background: var(--border-color); margin: 0.25rem 0;"></div>
+            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
+            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';"><i
+                data-lucide="edit-3" style="width: 18px; height: 18px;"></i> Rename</button>
+        <div style="height: 1px; background: rgba(226, 232, 240, 0.8); margin: 0.375rem 0;"></div>
         <button onclick="FM.extractCtx()" id="ctx-btn-extract"
-            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
-            onmouseover="this.style.backgroundColor='var(--slate-50)'"
-            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="package-open"
-                style="width: 16px; height: 16px; color: #f97316;"></i> Extract</button>
+            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
+            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='#f97316';"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-900)';"><i
+                data-lucide="package-open" style="width: 18px; height: 18px; color: #f97316;"></i> Extract</button>
         <button onclick="FM.chmodCtx()"
-            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
-            onmouseover="this.style.backgroundColor='var(--slate-50)'"
-            onmouseout="this.style.backgroundColor='transparent'">
-            <i data-lucide="shield" style="width: 16px; height: 16px; color: var(--slate-700);"></i> Permissions
+            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
+            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';">
+            <i data-lucide="lock" style="width: 18px; height: 18px;"></i> Permissions
         </button>
         <button onclick="FM.bulk('copy')"
-            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
-            onmouseover="this.style.backgroundColor='var(--slate-50)'"
-            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="copy"
-                style="width: 16px; height: 16px;"></i> Copy</button>
+            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
+            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';"><i
+                data-lucide="copy" style="width: 18px; height: 18px;"></i> Copy</button>
         <button onclick="FM.bulk('move')"
-            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
-            onmouseover="this.style.backgroundColor='var(--slate-50)'"
-            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="move"
-                style="width: 16px; height: 16px;"></i> Move</button>
+            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
+            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';"><i
+                data-lucide="move" style="width: 18px; height: 18px;"></i> Move</button>
         <button onclick="FM.bulk('zip')"
-            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
-            onmouseover="this.style.backgroundColor='var(--slate-50)'"
-            onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="archive"
-                style="width: 16px; height: 16px;"></i> Archive</button>
-        <div style="height: 1px; background: var(--border-color); margin: 0.25rem 0;"></div>
+            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
+            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';"><i
+                data-lucide="archive" style="width: 18px; height: 18px;"></i> Archive</button>
+        <div style="height: 1px; background: rgba(226, 232, 240, 0.8); margin: 0.375rem 0;"></div>
         <button onclick="FM.bulk('delete')"
-            style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: #f87171; background: transparent; border: none; cursor: pointer; transition: background 0.2s, color 0.2s;"
-            onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.color='#fca5a5'"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f87171'"><i data-lucide="trash-2"
-                style="width: 16px; height: 16px;"></i> Delete</button>
+            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: #ef4444; background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
+            onmouseover="this.style.backgroundColor='rgba(254, 226, 226, 0.5)'; this.style.color='#dc2626';"
+            onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ef4444';"><i data-lucide="trash-2"
+                style="width: 18px; height: 18px;"></i> Delete</button>
     </div>
 
     <!-- CREATE MODAL -->
@@ -1328,14 +1354,21 @@ if (is_dir($full_path)) {
         style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="glass-card"
             style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 24rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <h3 style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1.5rem; font-family: var(--font-heading);">New Item
-            </h3>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <div style="padding: 0.5rem; border-radius: 50%; background: rgba(37, 99, 235, 0.1);">
+                    <i data-lucide="file-plus-2" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                </div>
+                <h3
+                    style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+                    New Item
+                </h3>
+            </div>
             <div
-                style="display: flex; background: white; border-radius: var(--radius-lg); padding: 0.25rem; margin-bottom: 1.5rem;">
+                style="display: flex; background: rgba(241, 245, 249, 0.8); border: 1px solid rgba(203, 213, 225, 0.5); border-radius: var(--radius-lg); padding: 0.25rem; margin-bottom: 1.5rem;">
                 <button onclick="FM.setCreateType('file')" id="btn-c-file"
-                    style="flex: 1; padding: 0.375rem 0; border-radius: 0.25rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: var(--primary); color: white; box-shadow: var(--shadow-sm);">File</button>
+                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.375rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);">File</button>
                 <button onclick="FM.setCreateType('folder')" id="btn-c-folder"
-                    style="flex: 1; padding: 0.375rem 0; border-radius: 0.25rem; border: none; font-size: 0.875rem; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--slate-700);">Folder</button>
+                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.375rem; border: none; font-size: 0.875rem; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--slate-500);">Folder</button>
             </div>
             <input id="input-create" type="text" placeholder="Name" class="form-input" style="margin-bottom: 1.5rem;">
             <div style="display: flex; gap: 0.75rem;">
@@ -1350,8 +1383,15 @@ if (is_dir($full_path)) {
         style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="glass-card"
             style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 24rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <h3 style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1.5rem; font-family: var(--font-heading);">Rename
-            </h3>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <div style="padding: 0.5rem; border-radius: 50%; background: rgba(37, 99, 235, 0.1);">
+                    <i data-lucide="edit-3" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                </div>
+                <h3
+                    style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+                    Rename
+                </h3>
+            </div>
             <input id="input-rename" type="text" class="form-input" style="margin-bottom: 1.5rem;">
             <input id="rename-target" type="hidden">
             <div style="display: flex; gap: 0.75rem;">
@@ -1366,16 +1406,22 @@ if (is_dir($full_path)) {
         style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="glass-card"
             style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 24rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <h3 style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1.5rem; font-family: var(--font-heading);"
-                id="cm-title">Move Items</h3>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <div style="padding: 0.5rem; border-radius: 50%; background: rgba(37, 99, 235, 0.1);">
+                    <i data-lucide="folder-output" style="width: 24px; height: 24px; color: var(--primary);"></i>
+                </div>
+                <h3 style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);"
+                    id="cm-title">Move Items</h3>
+            </div>
             <div
-                style="margin-bottom: 1rem; font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">
+                style="margin-bottom: 0.75rem; font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
                 Destination Folder</div>
-            <div
-                style="display: flex; background: white; border: 1px solid var(--slate-300); border-radius: var(--radius-xl); padding: 0.75rem 1rem; margin-bottom: 1.5rem; align-items: center; gap: 0.75rem;">
-                <i data-lucide="folder" style="width: 16px; height: 16px; color: var(--slate-700);"></i>
+            <div style="display: flex; background: rgba(248, 250, 252, 0.8); border: 1px solid rgba(203, 213, 225, 0.8); border-radius: var(--radius-lg); padding: 0.75rem 1rem; margin-bottom: 1.5rem; align-items: center; gap: 0.75rem; transition: border-color 0.2s;"
+                onfocusin="this.style.borderColor='var(--primary)'"
+                onfocusout="this.style.borderColor='rgba(203, 213, 225, 0.8)'">
+                <i data-lucide="folder" style="width: 18px; height: 18px; color: var(--slate-500);"></i>
                 <input id="cm-dest" type="text"
-                    style="background: transparent; outline: none; border: none; flex: 1; color: var(--slate-900); font-size: 0.875rem;"
+                    style="background: transparent; outline: none; border: none; flex: 1; color: var(--slate-900); font-size: 0.875rem; font-family: monospace;"
                     placeholder="/path/to/folder">
             </div>
             <input type="hidden" id="cm-action">
@@ -1388,34 +1434,37 @@ if (is_dir($full_path)) {
 
     <!-- PREVIEW MODAL -->
     <div id="modal-preview" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); opacity: 0; transition: opacity 0.3s; pointer-events: none; padding: 2rem;">
         <div class="glass-card"
-            style="border-radius: 1.5rem; width: 100%; max-width: 56rem; height: 80vh; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; overflow: hidden; padding: 0; transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            style="border-radius: 1.5rem; width: 100%; max-width: 64rem; height: 85vh; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; overflow: hidden; padding: 0; transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); background: rgba(255, 255, 255, 0.95);">
             <div
-                style="height: 3rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; background: var(--slate-50);">
-                <span id="preview-title"
-                    style="font-family: monospace; font-size: 0.875rem; font-weight: 700; color: var(--slate-700);">filename.txt</span>
+                style="height: 4rem; border-bottom: 1px solid rgba(226, 232, 240, 0.8); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; background: rgba(248, 250, 252, 0.6); backdrop-filter: blur(8px);">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i data-lucide="eye" style="width: 20px; height: 20px; color: var(--primary);"></i>
+                    <span id="preview-title"
+                        style="font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; font-weight: 700; color: var(--slate-800);">filename.txt</span>
+                </div>
                 <button onclick="FM.closeModals()"
-                    style="padding: 0.25rem; background: transparent; border: none; border-radius: 0.25rem; color: var(--slate-700); cursor: pointer; transition: background 0.2s, color 0.2s;"
-                    onmouseover="this.style.backgroundColor='var(--slate-100)'; this.style.color='var(--slate-900)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)'"><i
+                    style="padding: 0.5rem; background: transparent; border: none; border-radius: 50%; color: var(--slate-500); cursor: pointer; transition: all 0.2s;"
+                    onmouseover="this.style.backgroundColor='rgba(226, 232, 240, 0.8)'; this.style.color='var(--slate-900)'"
+                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-500)'"><i
                         data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
-            <div style="flex: 1; overflow: auto; background: var(--slate-50); padding: 0; position: relative; display: flex; align-items: center; justify-content: center;"
+            <div style="flex: 1; overflow: auto; background: white; padding: 0; position: relative; display: flex; align-items: center; justify-content: center; border-radius: 0 0 1.5rem 1.5rem;"
                 id="preview-content">
                 <!-- Content injected here -->
-            </div>
-            <div
-                style="height: 3rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: flex-end; padding: 0 1rem; gap: 0.75rem; background: var(--slate-50);">
-                <button onclick="FM.closeModals()" class="btn btn-outline">Close</button>
             </div>
         </div>
     </div>
 
     <!-- TOAST -->
     <div id="toast"
-        style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; transition: all 0.3s; transform: translateY(5rem); opacity: 0; background: #10b981; color: white; padding: 0.75rem 1.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-2xl); display: flex; align-items: center; gap: 0.75rem; font-weight: 700;">
-        <span></span>
+        style="position: fixed; bottom: 2rem; right: 2rem; z-index: 100; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); transform: translateY(5rem) scale(0.9); opacity: 0; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); color: white; padding: 1rem 1.5rem; border-radius: var(--radius-lg); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 1rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.1); min-width: 250px;">
+        <!-- Icon injected via JS -->
+        <div id="toast-icon-wrapper"
+            style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%;">
+        </div>
+        <span style="flex: 1;"></span>
     </div>
 
     <!-- HIDDEN FORMS FOR DOWNLOADS -->
@@ -1890,9 +1939,10 @@ if (is_dir($full_path)) {
                     fd.append('item', path);
                     const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                     if (res.status === 'success') {
-                        container.innerHTML = `<pre style="font-size: 0.75rem; font-family: monospace; color: var(--slate-700); padding: 1rem; width: 100%; height: 100%; overflow: auto; text-align: left;">${res.content}</pre>`;
+                        container.innerHTML = `<pre style="font-size: 0.8125rem; font-family: 'JetBrains Mono', monospace; line-height: 1.6; color: var(--slate-700); padding: 1.5rem; width: 100%; height: 100%; overflow: auto; text-align: left; margin: 0; tab-size: 4;">${res.content}</pre>`;
                     } else {
-                        container.innerHTML = res.msg;
+                        container.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; color: #ef4444;"><i data-lucide="alert-circle" style="width: 48px; height: 48px;"></i><span style="font-weight: 600;">${res.msg}</span></div>`;
+                        lucide.createIcons();
                     }
                 }
             }
@@ -1900,11 +1950,25 @@ if (is_dir($full_path)) {
             // UTILS
             toast(type, msg) {
                 const el = document.getElementById('toast');
-                el.innerText = msg;
-                const bg = type === 'success' ? '#10b981' : '#ef4444';
-                el.style.cssText = `position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; transition: all 0.3s; transform: translateY(0); opacity: 1; background: ${bg}; color: white; padding: 0.75rem 1.5rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-2xl); display: flex; align-items: center; gap: 0.75rem; font-weight: 700;`;
+                const iconWrapper = el.querySelector('#toast-icon-wrapper');
+                const span = el.querySelector('span');
+
+                span.innerText = msg;
+
+                if (type === 'success') {
+                    iconWrapper.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+                    iconWrapper.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px; color: #10b981;"></i>';
+                } else {
+                    iconWrapper.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                    iconWrapper.innerHTML = '<i data-lucide="alert-circle" style="width: 14px; height: 14px; color: #ef4444;"></i>';
+                }
+                lucide.createIcons({ nameAttr: 'data-lucide', attrs: { class: "lucide" } });
+
+                el.style.transform = 'translateY(0) scale(1)';
+                el.style.opacity = '1';
+
                 setTimeout(() => {
-                    el.style.transform = 'translateY(5rem)';
+                    el.style.transform = 'translateY(5rem) scale(0.9)';
                     el.style.opacity = '0';
                 }, 3000);
             }
