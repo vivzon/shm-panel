@@ -534,65 +534,96 @@ include 'layout/header.php';
         $is_first = ($index === 0);
         $domain_id = $d['id'];
         ?>
-        <div class="glass-card" data-domain-id="<?= $domain_id ?>" style="margin-bottom: 2rem;">
+        <div class="glass-card domain-card" data-domain-id="<?= $domain_id ?>"
+            style="margin-bottom: 2rem; border-color: transparent;">
             <!-- Domain Header - Always Visible -->
             <div class="domain-header"
-                style="padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: var(--radius-lg); transition: background 0.2s;"
-                onmouseover="this.style.backgroundColor='var(--slate-50)';"
-                onmouseout="this.style.backgroundColor='transparent';" onclick="toggleDomain(<?= $domain_id ?>)">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <i data-lucide="chevron-down" id="chevron-<?= $domain_id ?>"
-                        style="width: 20px; height: 20px; color: var(--slate-700); transition: transform 0.3s; transform: <?= $is_first ? 'rotate(0)' : 'rotate(-90deg)' ?>;"></i>
+                style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: var(--radius-lg); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255, 255, 255, 0.4);"
+                onmouseover="this.style.backgroundColor='rgba(255, 255, 255, 0.8)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)';"
+                onmouseout="this.style.backgroundColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='none';"
+                onclick="toggleDomain(<?= $domain_id ?>)">
+                <div style="display: flex; align-items: center; gap: 1.25rem;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(37,99,235,0.05) 100%); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);">
+                        <i data-lucide="globe" style="width: 20px; height: 20px; color: var(--primary);"></i>
+                    </div>
                     <div>
-                        <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--slate-900);">
-                            <?= $d['domain'] ?>
-                        </h3>
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <h3
+                                style="font-size: 1.25rem; font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); display: flex; align-items: center; gap: 0.5rem;">
+                                <?= htmlspecialchars($d['domain']) ?>
+                                <?php if ($is_first): ?>
+                                    <span class="badge"
+                                        style="background: rgba(37, 99, 235, 0.1); color: var(--primary); font-size: 0.625rem; padding: 0.125rem 0.375rem; border: 1px solid rgba(37, 99, 235, 0.2);">Primary</span>
+                                <?php endif; ?>
+                            </h3>
+                            <i data-lucide="chevron-down" id="chevron-<?= $domain_id ?>"
+                                style="width: 18px; height: 18px; color: var(--slate-400); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: <?= $is_first ? 'rotate(0)' : 'rotate(-90deg)' ?>;"></i>
+                        </div>
                         <p
-                            style="font-size: 0.75rem; color: var(--slate-500); font-family: monospace; margin-top: 0.25rem;">
-                            /home/<?= $username ?>/public_html</p>
+                            style="font-size: 0.8125rem; color: var(--slate-500); font-family: 'JetBrains Mono', monospace; margin-top: 0.375rem; display: flex; align-items: center; gap: 0.375rem;">
+                            <i data-lucide="folder" style="width: 12px; height: 12px; opacity: 0.7;"></i>
+                            /home/<?= $username ?>/public_html
+                        </p>
                     </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
                     <!-- Quick Stats -->
                     <div style="display: flex; gap: 0.75rem;">
-                        <div class="badge badge-emerald">
+                        <div class="badge badge-emerald"
+                            style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                             <i data-lucide="activity" style="width: 12px; height: 12px;"></i>
-                            <?= $d['traffic_today'] ? round($d['traffic_today'] / 1024 / 1024, 2) . ' MB' : '0 MB' ?>
+                            <span
+                                style="font-weight: 700;"><?= $d['traffic_today'] ? round($d['traffic_today'] / 1024 / 1024, 2) . ' MB' : '0 MB' ?></span>
                         </div>
                         <?php if ($d['ssl_active']): ?>
-                            <div class="badge badge-emerald">
-                                <i data-lucide="lock" style="width: 12px; height: 12px;"></i> SSL
+                            <div class="badge badge-emerald"
+                                style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                <i data-lucide="lock" style="width: 12px; height: 12px;"></i> <span
+                                    style="font-weight: 700;">SSL</span>
                             </div>
                         <?php endif; ?>
                         <?php if ($d['scan_status'] == 'clean'): ?>
-                            <div class="badge badge-emerald">
-                                <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> Clean
+                            <div class="badge badge-emerald"
+                                style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> <span
+                                    style="font-weight: 700;">Clean</span>
                             </div>
                         <?php elseif ($d['scan_status'] == 'infected'): ?>
-                            <div class="badge badge-red">
-                                <i data-lucide="shield-alert" style="width: 12px; height: 12px;"></i> Infected
+                            <div class="badge badge-red"
+                                style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                <i data-lucide="shield-alert" style="width: 12px; height: 12px;"></i> <span
+                                    style="font-weight: 700;">Infected</span>
                             </div>
                         <?php elseif ($d['scan_status'] == 'running'): ?>
-                            <div class="badge badge-blue">
-                                <i data-lucide="loader-2" style="width: 12px; height: 12px;" class="animate-spin"></i> Scanning
+                            <div class="badge badge-blue"
+                                style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                <i data-lucide="loader-2" style="width: 12px; height: 12px;" class="animate-spin"></i> <span
+                                    style="font-weight: 700;">Scanning</span>
                             </div>
                         <?php endif; ?>
                     </div>
                     <!-- Quick Actions -->
                     <div style="display: flex; gap: 0.5rem;" onclick="event.stopPropagation()">
-                        <a href="files.php?domain_id=<?= $d['id'] ?>&path=/" target="_blank" class="btn btn-secondary"
-                            style="padding: 0.5rem;" title="File Manager">
+                        <a href="files.php?domain_id=<?= $d['id'] ?>&path=/" target="_blank"
+                            style="padding: 0.5rem; color: var(--primary); background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: var(--radius-md); transition: all 0.2s; display: flex; align-items: center; justify-content: center;"
+                            title="File Manager"
+                            onmouseover="this.style.backgroundColor='rgba(37, 99, 235, 0.2)'; this.style.borderColor='rgba(37, 99, 235, 0.3)';"
+                            onmouseout="this.style.backgroundColor='rgba(37, 99, 235, 0.1)'; this.style.borderColor='rgba(37, 99, 235, 0.2)';">
                             <i data-lucide="folder-open" style="width: 16px; height: 16px;"></i>
                         </a>
-                        <button onclick="fixDefaultPage(<?= $d['id'] ?>)" class="btn btn-secondary"
-                            style="padding: 0.5rem; color: #eab308; border-color: rgba(234, 179, 8, 0.2);"
-                            title="Fix Default Page Issue">
+                        <button onclick="fixDefaultPage(<?= $d['id'] ?>)"
+                            style="padding: 0.5rem; color: var(--accent-orange); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: var(--radius-md); transition: all 0.2s; cursor: pointer; display: flex; align-items: center; justify-content: center;"
+                            title="Fix Default Page Issue"
+                            onmouseover="this.style.backgroundColor='rgba(245, 158, 11, 0.2)'; this.style.borderColor='rgba(245, 158, 11, 0.3)';"
+                            onmouseout="this.style.backgroundColor='rgba(245, 158, 11, 0.1)'; this.style.borderColor='rgba(245, 158, 11, 0.2)';">
                             <i data-lucide="wrench" style="width: 16px; height: 16px;"></i>
                         </button>
                         <button onclick="deleteAction('delete_domain', 'domain_id', <?= $d['id'] ?>)"
-                            class="btn btn-secondary"
-                            style="padding: 0.5rem; color: var(--accent-red); border-color: rgba(239, 68, 68, 0.2);"
-                            title="Delete">
+                            style="padding: 0.5rem; color: var(--accent-red); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-md); transition: all 0.2s; cursor: pointer; display: flex; align-items: center; justify-content: center;"
+                            title="Delete Domain"
+                            onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'; this.style.borderColor='rgba(239, 68, 68, 0.3)';"
+                            onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.2)';">
                             <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                         </button>
                     </div>
@@ -604,23 +635,29 @@ include 'layout/header.php';
                 style="border-top: 1px solid var(--slate-200);">
                 <div style="padding: 1.25rem;">
                     <!-- Configuration Row -->
-                    <form onsubmit="handleGeneric(event, 'update_domain_config')" class="glass-card"
-                        style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1rem; margin-bottom: 1.5rem;">
+                    <form onsubmit="handleGeneric(event, 'update_domain_config')" class="setup-form"
+                        style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1rem; margin-bottom: 1.5rem; background: rgba(248, 250, 252, 0.5); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: var(--radius-md);">
                         <?= csrf_field() ?>
                         <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <label
-                                style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase;">PHP</label>
-                            <select name="php_version" class="form-select" style="padding: 0.5rem; font-size: 0.75rem;">
-                                <option value="8.1" <?= $d['php_version'] == '8.1' ? 'selected' : '' ?>>PHP 8.1</option>
-                                <option value="8.2" <?= $d['php_version'] == '8.2' ? 'selected' : '' ?>>PHP 8.2</option>
-                                <option value="8.3" <?= $d['php_version'] == '8.3' ? 'selected' : '' ?>>PHP 8.3</option>
+                                style="font-size: 0.625rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em;">PHP</label>
+                            <select name="php_version" class="form-select"
+                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 600; color: var(--slate-800); background-color: white; border-color: var(--slate-200); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                                onblur="this.style.borderColor='var(--slate-200)'; this.style.boxShadow='none';">
+                                <option value="8.1" <?= $d['php_version'] == '8.1' ? 'selected' : '' ?>>8.1</option>
+                                <option value="8.2" <?= $d['php_version'] == '8.2' ? 'selected' : '' ?>>8.2</option>
+                                <option value="8.3" <?= $d['php_version'] == '8.3' ? 'selected' : '' ?>>8.3</option>
                             </select>
                         </div>
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <label
-                                style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase;">Memory</label>
-                            <select name="mem" class="form-select" style="padding: 0.5rem; font-size: 0.75rem;">
+                                style="font-size: 0.625rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em;">Memory</label>
+                            <select name="mem" class="form-select"
+                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 600; color: var(--slate-800); background-color: white; border-color: var(--slate-200); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                                onblur="this.style.borderColor='var(--slate-200)'; this.style.boxShadow='none';">
                                 <?php
                                 $curr_mem = $pdo->query("SELECT memory_limit FROM php_config WHERE domain_id=" . $d['id'])->fetchColumn();
                                 if (!$curr_mem)
@@ -632,20 +669,23 @@ include 'layout/header.php';
                             </select>
                         </div>
                         <div
-                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; border-left: 1px solid var(--slate-300);">
-                            <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>
-                                style="width: 16px; height: 16px; accent-color: var(--accent-emerald);">
-                            <span
-                                style="font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--accent-emerald);">SSL</span>
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0 1rem; border-left: 1px solid rgba(203, 213, 225, 0.5);">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>
+                                    style="width: 16px; height: 16px; accent-color: var(--accent-emerald); cursor: pointer;">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700);">AutoSSL</span>
+                            </label>
                         </div>
                         <?php $is_maint = file_exists("/etc/nginx/sites-available/{$d['domain']}.backup"); ?>
                         <div
-                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; border-left: 1px solid var(--slate-300);">
-                            <input type="checkbox" onchange="toggleMaintenance(event, <?= $d['id'] ?>, this.checked)"
-                                <?= $is_maint ? 'checked' : '' ?>
-                                style="width: 16px; height: 16px; accent-color: var(--accent-orange);">
-                            <span
-                                style="font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--accent-orange);">Maintenance</span>
+                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0 1rem; border-left: 1px solid rgba(203, 213, 225, 0.5);">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" onchange="toggleMaintenance(event, <?= $d['id'] ?>, this.checked)"
+                                    <?= $is_maint ? 'checked' : '' ?>
+                                    style="width: 16px; height: 16px; accent-color: var(--accent-orange); cursor: pointer;">
+                                <span
+                                    style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700);">Maintenance</span>
+                            </label>
                         </div>
                         <button class="btn btn-primary"
                             style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.75rem;">
