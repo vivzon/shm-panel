@@ -402,36 +402,54 @@ include 'layout/header.php';
 <div id="tab-troubleshoot" style="display: <?= $active_tab == 'troubleshoot' ? 'block' : 'none' ?>;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
         <!-- Existing Troubleshoot Buttons -->
-        <div class="glass-panel"
-            style="padding: 2rem; background: linear-gradient(to bottom right, rgba(49, 46, 129, 0.2), rgba(49, 46, 129, 0.05)); border-color: rgba(99, 102, 241, 0.2);">
-            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Display Doctor</h3>
+        <div class="glass-card"
+            style="padding: 2.5rem 2rem; background: linear-gradient(135deg, rgba(49, 46, 129, 0.1) 0%, rgba(49, 46, 129, 0.02) 100%); border-color: rgba(99, 102, 241, 0.15); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);">
+                <i data-lucide="wand-2" style="width: 32px; height: 32px; color: #6366f1;"></i>
+            </div>
+            <div>
+                <h3 style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); font-size: 1.125rem; margin-bottom: 0.25rem;">Display Doctor</h3>
+                <p style="font-size: 0.75rem; color: var(--slate-500); line-height: 1.4;">Fixes common website display issues.</p>
+            </div>
             <button onclick="fixWebsite()"
-                style="width: 100%; padding: 1rem; background-color: #4f46e5; color: var(--slate-900); border-radius: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s, transform 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: none; cursor: pointer;"
-                onmouseover="this.style.backgroundColor='#6366f1'; this.style.transform='translateY(-1px)';"
-                onmouseout="this.style.backgroundColor='#4f46e5'; this.style.transform='translateY(0)';">
+                style="width: 100%; padding: 0.875rem; margin-top: 0.5rem; background-color: #4f46e5; color: white; border-radius: var(--radius-lg); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1); border: none; cursor: pointer;"
+                onmouseover="this.style.backgroundColor='#4338ca'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(79, 70, 229, 0.3), 0 4px 6px -2px rgba(79, 70, 229, 0.15)';"
+                onmouseout="this.style.backgroundColor='#4f46e5'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1)';">
                 <i data-lucide="wand-2" style="width: 1.25rem; height: 1.25rem;"></i> Fix Website Display
             </button>
         </div>
 
-        <div class="glass-panel"
-            style="padding: 2rem; background: linear-gradient(to bottom right, rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.2)); border-color: rgba(255, 255, 255, 0.1);">
-            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Restart Services</h3>
+        <div class="glass-card"
+            style="padding: 2.5rem 2rem; background: linear-gradient(135deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.02) 100%); border-color: rgba(71, 85, 105, 0.15); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, rgba(71, 85, 105, 0.1) 0%, rgba(71, 85, 105, 0.05) 100%); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);">
+                <i data-lucide="power" style="width: 32px; height: 32px; color: #475569;"></i>
+            </div>
+            <div>
+                <h3 style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); font-size: 1.125rem; margin-bottom: 0.25rem;">Restart Services</h3>
+                <p style="font-size: 0.75rem; color: var(--slate-500); line-height: 1.4;">Safely reloads backend web services.</p>
+            </div>
             <button onclick="restartServices()"
-                style="width: 100%; padding: 1rem; background-color: #334155; color: var(--slate-900); border-radius: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s, transform 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: none; cursor: pointer;"
-                onmouseover="this.style.backgroundColor='#475569'; this.style.transform='translateY(-1px)';"
-                onmouseout="this.style.backgroundColor='#334155'; this.style.transform='translateY(0)';">
+                style="width: 100%; padding: 0.875rem; margin-top: 0.5rem; background-color: #334155; color: white; border-radius: var(--radius-lg); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(51, 65, 85, 0.2), 0 2px 4px -1px rgba(51, 65, 85, 0.1); border: none; cursor: pointer;"
+                onmouseover="this.style.backgroundColor='#1e293b'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(51, 65, 85, 0.3), 0 4px 6px -2px rgba(51, 65, 85, 0.15)';"
+                onmouseout="this.style.backgroundColor='#334155'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(51, 65, 85, 0.2), 0 2px 4px -1px rgba(51, 65, 85, 0.1)';">
                 <i data-lucide="power" style="width: 1.25rem; height: 1.25rem;"></i> Restart Services
             </button>
         </div>
 
         <!-- NEW FIX CONFIG BUTTON -->
-        <div class="glass-panel"
-            style="padding: 2rem; background: linear-gradient(to bottom right, rgba(136, 19, 55, 0.2), rgba(136, 19, 55, 0.05)); border-color: rgba(244, 63, 94, 0.2);">
-            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Fix Config Issues</h3>
+        <div class="glass-card"
+            style="padding: 2.5rem 2rem; background: linear-gradient(135deg, rgba(225, 29, 72, 0.1) 0%, rgba(225, 29, 72, 0.02) 100%); border-color: rgba(244, 63, 94, 0.15); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1rem;">
+             <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(244, 63, 94, 0.05) 100%); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);">
+                <i data-lucide="wrench" style="width: 32px; height: 32px; color: #f43f5e;"></i>
+            </div>
+            <div>
+                <h3 style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); font-size: 1.125rem; margin-bottom: 0.25rem;">Fix Config Issues</h3>
+                <p style="font-size: 0.75rem; color: var(--slate-500); line-height: 1.4;">Rebuilds server configuration files.</p>
+            </div>
             <button onclick="fixConfig()"
-                style="width: 100%; padding: 1rem; background-color: #e11d48; color: var(--slate-900); border-radius: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.2s, transform 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: none; cursor: pointer;"
-                onmouseover="this.style.backgroundColor='#f43f5e'; this.style.transform='translateY(-1px)';"
-                onmouseout="this.style.backgroundColor='#e11d48'; this.style.transform='translateY(0)';">
+                style="width: 100%; padding: 0.875rem; margin-top: 0.5rem; background-color: #e11d48; color: white; border-radius: var(--radius-lg); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.2), 0 2px 4px -1px rgba(225, 29, 72, 0.1); border: none; cursor: pointer;"
+                onmouseover="this.style.backgroundColor='#be123c'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(225, 29, 72, 0.3), 0 4px 6px -2px rgba(225, 29, 72, 0.15)';"
+                onmouseout="this.style.backgroundColor='#e11d48'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(225, 29, 72, 0.2), 0 2px 4px -1px rgba(225, 29, 72, 0.1)';">
                 <i data-lucide="wrench" style="width: 1.25rem; height: 1.25rem;"></i> Fix Config
             </button>
         </div>
