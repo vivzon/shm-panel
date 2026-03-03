@@ -1,14 +1,10 @@
 <?php
-//require_once '../includes/config.php';
-//require_once '../includes/auth.php';
-//require_login();
-//check_permission('file_management');
+require_once __DIR__ . '/../shared/config.php';
 
-// TEMP: show any PHP errors directly on the page while debugging.
-// Remove or comment these three lines after it works.
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+if (!isset($_SESSION['admin'])) {
+    header("Location: login.php");
+    exit;
+}
 
 // -------- CONFIG: SHM PANEL ROOT --------
 $panel_root = realpath(dirname(__DIR__));
@@ -21,12 +17,10 @@ $panel_root = str_replace('\\', '/', $panel_root);
 // -------------------- HELPER FUNCTIONS --------------------
 
 /**
- * Simple local cleaner (so we don't depend on sanitize_input())
+ * Simple local cleaner
  */
-function shm_clean($value)
-{
-    if (is_array($value))
-        return $value;
+function shm_clean($value) {
+    if (is_array($value)) return $value;
     return trim(strip_tags($value));
 }
 
@@ -34,10 +28,8 @@ function shm_clean($value)
  * Format file size nicely
  */
 if (!function_exists('format_file_size')) {
-    function format_file_size($bytes)
-    {
-        if (!is_numeric($bytes) || $bytes <= 0)
-            return '0 B';
+    function format_file_size($bytes) {
+        if (!is_numeric($bytes) || $bytes <= 0) return '0 B';
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $power = min(floor(log($bytes, 1024)), count($units) - 1);
         return round($bytes / pow(1024, $power), 2) . ' ' . $units[$power];
@@ -48,11 +40,9 @@ if (!function_exists('format_file_size')) {
  * Change file permissions safely
  */
 if (!function_exists('change_file_permissions')) {
-    function change_file_permissions($path, $permissions)
-    {
+    function change_file_permissions($path, $permissions) {
         $permissions = trim($permissions);
-        if (!preg_match('/^[0-7]{3,4}$/', $permissions))
-            return false;
+        if (!preg_match('/^[0-7]{3,4}$/', $permissions)) return false;
         $mode = octdec(ltrim($permissions, '0'));
         return @chmod($path, $mode);
     }
@@ -61,12 +51,9 @@ if (!function_exists('change_file_permissions')) {
 /**
  * Recursive delete (file or directory)
  */
-function shm_rrmdir($path)
-{
-    if (!file_exists($path))
-        return true;
-    if (!is_dir($path))
-        return @unlink($path);
+function shm_rrmdir($path) {
+    if (!file_exists($path)) return true;
+    if (!is_dir($path)) return @unlink($path);
 
     $items = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
@@ -81,14 +68,12 @@ function shm_rrmdir($path)
 /**
  * Normalize a relative path (removes .. and .)
  */
-function shm_normalize_relative($path)
-{
+function shm_normalize_relative($path) {
     $path = str_replace('\\', '/', $path);
     $path = '/' . ltrim($path, '/');
     $parts = [];
     foreach (explode('/', $path) as $part) {
-        if ($part === '' || $part === '.')
-            continue;
+        if ($part === '' || $part === '.') continue;
         ($part === '..') ? array_pop($parts) : $parts[] = $part;
     }
     return '/' . implode('/', $parts);
@@ -97,8 +82,7 @@ function shm_normalize_relative($path)
 /**
  * Build a safe absolute path inside base
  */
-function shm_build_path($base, $relative)
-{
+function shm_build_path($base, $relative) {
     $base = rtrim(str_replace('\\', '/', $base), '/');
     $relative = shm_normalize_relative($relative);
     $full = $base . $relative;
@@ -106,28 +90,26 @@ function shm_build_path($base, $relative)
     // Check if the path tries to escape the base directory
     $real_base = realpath($base);
     $real_full = realpath($full);
+    
     if ($real_full !== false) {
-        if (strpos($real_full, $real_base) !== 0)
-            return false;
+        if (strpos($real_full, str_replace('\\', '/', $real_base)) !== 0) return false;
         return str_replace('\\', '/', $real_full);
     }
-
+    
     // For non-existent paths (like new folders), check normalized string
-    if (strpos($full, $base) !== 0)
-        return false;
+    if (strpos($full, $base) !== 0) return false;
     return $full;
 }
 
 /**
  * Recursively zip a directory
  */
-function shm_zip_dir($source, $destination)
-{
+function shm_zip_dir($source, $destination) {
     if (!extension_loaded('zip') || !file_exists($source)) {
         return false;
     }
     $zip = new ZipArchive();
-    if (!$zip->open($destination, ZIPARCHIVE::CREATE)) {
+    if (!$zip->open($destination, ZipArchive::CREATE)) {
         return false;
     }
     $source = str_replace('\\', '/', realpath($source));
@@ -138,8 +120,7 @@ function shm_zip_dir($source, $destination)
         );
         foreach ($files as $file) {
             $file = str_replace('\\', '/', $file);
-            if (in_array(substr($file, strrpos($file, '/') + 1), ['.', '..']))
-                continue;
+            if (in_array(substr($file, strrpos($file, '/') + 1), ['.', '..'])) continue;
 
             $file = realpath($file);
             $file = str_replace('\\', '/', $file);
@@ -282,10 +263,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action_taken) {
         $redirect_url = 'files-sh.php?path=' . urlencode($current_path);
-        if ($success_msg)
-            $redirect_url .= '&success=' . urlencode($success_msg);
-        if ($error_msg)
-            $redirect_url .= '&error=' . urlencode($error_msg);
+        if ($success_msg) $redirect_url .= '&success=' . urlencode($success_msg);
+        if ($error_msg) $redirect_url .= '&error=' . urlencode($error_msg);
         header('Location: ' . $redirect_url);
         exit;
     }
@@ -297,38 +276,31 @@ $files = [];
 $items = @scandir($full_path);
 if ($items !== false) {
     foreach ($items as $item) {
-        if ($item === '.' || $item === '..')
-            continue;
+        if ($item === '.' || $item === '..') continue;
         $abs = $full_path . '/' . $item;
         $is_dir = is_dir($abs);
         $rel = shm_normalize_relative(($current_path === '/' ? '' : $current_path) . '/' . $item);
         $perm = @fileperms($abs);
         $files[] = [
-            'name' => $item,
-            'relative' => $rel,
-            'is_dir' => $is_dir,
-            'size' => $is_dir ? 0 : @filesize($abs),
+            'name'        => $item,
+            'relative'    => $rel,
+            'is_dir'      => $is_dir,
+            'size'        => $is_dir ? 0 : @filesize($abs),
             'permissions' => $perm ? substr(sprintf('%o', $perm), -4) : '----',
-            'modified' => date('Y-m-d H:i:s', @filemtime($abs)),
-            'extension' => $is_dir ? '' : strtolower(pathinfo($item, PATHINFO_EXTENSION)),
+            'modified'    => date('Y-m-d H:i:s', @filemtime($abs)),
+            'extension'   => $is_dir ? '' : strtolower(pathinfo($item, PATHINFO_EXTENSION)),
         ];
     }
 }
 
 // Sort: dirs first, then by field
 usort($files, function ($a, $b) use ($sort) {
-    if ($a['is_dir'] !== $b['is_dir'])
-        return $a['is_dir'] ? -1 : 1;
+    if ($a['is_dir'] !== $b['is_dir']) return $a['is_dir'] ? -1 : 1;
     switch ($sort) {
-        case 'size':
-            return $a['size'] <=> $b['size'];
-        case 'modified':
-            return strcmp($b['modified'], $a['modified']); // Newest first
-        case 'type':
-            return strcmp($a['extension'], $b['extension']);
-        case 'name':
-        default:
-            return strcasecmp($a['name'], $b['name']);
+        case 'size': return $a['size'] <=> $b['size'];
+        case 'modified': return strcmp($b['modified'], $a['modified']); // Newest first
+        case 'type': return strcmp($a['extension'], $b['extension']);
+        case 'name': default: return strcasecmp($a['name'], $b['name']);
     }
 });
 
@@ -339,253 +311,150 @@ if ($search_query !== '') {
 }
 
 // -------- SVG ICONS --------
-function get_file_icon($is_dir, $ext)
-{
+function get_file_icon($is_dir, $ext) {
     if ($is_dir) {
-        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M4 5a2 2 0 0 1 2-2h6.172a2 2 0 0 1 1.414.586l3.828 3.828A2 2 0 0 1 18 8.828V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5zm2-1v14h12V9.414l-3.414-3.414H6z"></path></svg>';
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-blue-400"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>';
     }
-    $icons = [
-        'php' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm-1.031 4.31a.75.75 0 0 0-1.438.438l-1.5 5.25a.75.75 0 0 0 1.438.438l.605-2.116h2.852l.605 2.116a.75.75 0 1 0 1.438-.437l-1.5-5.25a.75.75 0 0 0-1.438-.438l-.531 1.857h-1.44l-.53-1.857zm.175 3.328l.473-1.657.473 1.657h-.946zm4.856-3.328a.75.75 0 0 0-1.5 0v5.25a.75.75 0 0 0 1.5 0v-5.25zm-2.25 0a.75.75 0 0 0-1.5 0v5.25a.75.75 0 0 0 1.5 0v-5.25z"></path></svg>',
-        'js' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm2 4v2h2v6H7v2h4v-2h-2V9h4v8h2V9h-2V7H7z"></path></svg>',
-        'html' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M15 4h-2.5l-1-1h-3l-1 1H5v2h14V4h-4zm-2.5 13.5V10h-1v7.5l-2-2-1.5 1.5L12 23l4-4-1.5-1.5-2 2z"></path></svg>',
-        'css' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm-1 6a1 1 0 0 0-1 1v6a1 1 0 1 0 2 0V9a1 1 0 0 0-1-1zm3 0a1 1 0 0 0-1 1v6a1 1 0 1 0 2 0V9a1 1 0 0 0-1-1z"></path></svg>',
-        'jpg' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M2 5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V5zm16 2a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM5 17.5l4.5-4.5 2.5 2.5 5.5-5.5L21 13.5V5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12.5z"></path></svg>',
-        'png' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M2 5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V5zm16 2a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM5 17.5l4.5-4.5 2.5 2.5 5.5-5.5L21 13.5V5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12.5z"></path></svg>',
-        'svg' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M2 5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V5zm16 2a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM5 17.5l4.5-4.5 2.5 2.5 5.5-5.5L21 13.5V5a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12.5z"></path></svg>',
-        'zip' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M11 2h2v5h-2V2zm0 5h2v2h-2V7zm0 2h2v2h-2V9zm0 2h2v2h-2v-2zM9 2H7v12h2V2zm10 0h-2v12h2V2zM6 4H4v10h2V4zm12 0h-2v10h2V4zM2 16v5a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-5H2z"></path></svg>',
-    ];
-    $ext = strtolower($ext);
-    if (in_array($ext, ['jpeg', 'gif', 'bmp', 'webp']))
-        $ext = 'jpg';
-    if (in_array($ext, ['rar', '7z', 'tar', 'gz']))
-        $ext = 'zip';
-
-    return $icons[$ext] ?? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon"><path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zM5 20V4a1 1 0 0 1 1-1h7v5h5v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zm8-13V4.5L17.5 9H13z"></path></svg>';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-slate-400"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14.5 2 14.5 7.5 20 7.5"/></svg>';
 }
 
 include 'layout/header.php';
 ?>
 
-<div style="max-width: 1200px; margin: 0 auto; padding: 1.5rem;">
-    <div
-        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
-        <h1
-            style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); font-family: var(--font-heading); margin: 0;">
-            File Manager</h1>
-    </div>
-
-    <?php if (isset($_GET['success'])): ?>
-        <div
-            style="padding: 1rem; margin-bottom: 1.5rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 500; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;">
-            <?php echo htmlspecialchars($_GET['success']); ?></div>
-    <?php endif; ?>
-    <?php if (isset($_GET['error'])): ?>
-        <div
-            style="padding: 1rem; margin-bottom: 1.5rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 500; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;">
-            <?php echo htmlspecialchars($_GET['error']); ?></div>
-    <?php endif; ?>
-
-    <div class="glass-card"
-        style="border-radius: 1.5rem; border: 1px solid var(--border-color); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
-        <div style="padding: 1.5rem;">
-            <div style="font-size: 0.875rem; margin-bottom: 1rem; color: var(--slate-700);">
-                <a href="files-sh.php?path=/" style="color: #3b82f6; text-decoration: none; font-weight: 600;">SHM
-                    Root</a>
-                <?php
-                $parts = explode('/', trim($current_path, '/'));
-                $crumb = '/';
-                foreach ($parts as $part) {
-                    if ($part === '')
-                        continue;
-                    $crumb .= $part . '/';
-                    echo ' <span style="color: var(--slate-300);">/</span> <a href="files-sh.php?path=' . urlencode($crumb) . '" style="color: #3b82f6; text-decoration: none; font-weight: 600;">' . htmlspecialchars($part) . '</a>';
-                }
-                ?>
-            </div>
-
-            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; align-items: center;">
-                <button type="button" class="btn btn-primary" onclick="togglePanel('upload-panel')"
-                    style="padding: 0.5rem 1rem; border-radius: 0.5rem;">Upload File</button>
-                <button type="button" class="btn btn-secondary" onclick="togglePanel('folder-panel')"
-                    style="padding: 0.5rem 1rem; border-radius: 0.5rem;">New Folder</button>
-                <a href="files-sh.php?zip_project=1&path=<?php echo urlencode($current_path); ?>"
-                    class="btn btn-secondary" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">Download Project
-                    ZIP</a>
-                <form method="get" style="display:flex; gap:0.5rem; align-items:center; margin-left: auto;">
-                    <input type="hidden" name="path" value="<?php echo htmlspecialchars($current_path); ?>">
-                    <input type="text" name="q" class="form-input" placeholder="Search..."
-                        value="<?php echo htmlspecialchars($search_query); ?>"
-                        style="padding: 0.5rem 1rem; border-radius: 0.5rem; width: 12rem;">
-                    <select name="sort" class="form-input" onchange="this.form.submit()"
-                        style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        <option value="name" <?php if ($sort === 'name')
-                            echo 'selected'; ?>>Sort by Name</option>
-                        <option value="size" <?php if ($sort === 'size')
-                            echo 'selected'; ?>>Sort by Size</option>
-                        <option value="modified" <?php if ($sort === 'modified')
-                            echo 'selected'; ?>>Sort by Modified
-                        </option>
-                        <option value="type" <?php if ($sort === 'type')
-                            echo 'selected'; ?>>Sort by Type</option>
-                    </select>
-                    <button type="submit" class="btn btn-secondary"
-                        style="padding: 0.5rem 1rem; border-radius: 0.5rem;">Go</button>
-                </form>
-            </div>
-
-            <div id="upload-panel"
-                style="display:none; margin-top: 1rem; margin-bottom: 1rem; padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--border-color); background: var(--slate-50);">
-                <form method="post" enctype="multipart/form-data"
-                    style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
-                    <input type="file" name="file" required class="form-input" style="padding: 0.5rem;">
-                    <button type="submit" name="upload_file" class="btn btn-primary"
-                        style="padding: 0.5rem 1rem; border-radius: 0.5rem;">Upload</button>
-                    <button type="button" class="btn btn-secondary" onclick="togglePanel('upload-panel')"
-                        style="padding: 0.5rem 1rem; border-radius: 0.5rem;">Cancel</button>
-                </form>
-            </div>
-            <div id="folder-panel"
-                style="display:none; margin-top: 1rem; margin-bottom: 1rem; padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--border-color); background: var(--slate-50);">
-                <form method="post" style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
-                    <input type="text" name="folder_name" placeholder="Folder name" required class="form-input"
-                        style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                    <button type="submit" name="create_folder" class="btn btn-primary"
-                        style="padding: 0.5rem 1rem; border-radius: 0.5rem;">Create</button>
-                    <button type="button" class="btn btn-secondary" onclick="togglePanel('folder-panel')"
-                        style="padding: 0.5rem 1rem; border-radius: 0.5rem;">Cancel</button>
-                </form>
-            </div>
-
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
-                    <thead
-                        style="background: var(--slate-50); color: var(--slate-700); font-size: 0.75rem; text-transform: uppercase;">
-                        <tr>
-                            <th style="padding: 0.75rem 1rem; font-weight: 700;">Name</th>
-                            <th style="padding: 0.75rem 1rem; font-weight: 700; text-align: right;">Size</th>
-                            <th style="padding: 0.75rem 1rem; font-weight: 700;">Permissions</th>
-                            <th style="padding: 0.75rem 1rem; font-weight: 700;">Last Modified</th>
-                            <th style="padding: 0.75rem 1rem; font-weight: 700; text-align: right;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody style="border-top: 1px solid var(--border-color);">
-                        <?php if (empty($files)): ?>
-                            <tr>
-                                <td colspan="5"
-                                    style="text-align: center; padding: 2.5rem 0; color: var(--slate-500); font-style: italic;">
-                                    This folder is empty.</td>
-                            </tr>
-                        <?php else: ?>
-                            <?php foreach ($files as $f): ?>
-                                <tr style="border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;"
-                                    onmouseover="this.style.backgroundColor='var(--slate-50)'"
-                                    onmouseout="this.style.backgroundColor='transparent'">
-                                    <td style="padding: 0.75rem 1rem; font-weight: 500;">
-                                        <?php if ($f['is_dir']): ?>
-                                            <a href="files-sh.php?path=<?php echo urlencode($f['relative']); ?>"
-                                                style="color: var(--slate-900); text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
-                                                <span
-                                                    style="color: #3b82f6; display: flex; align-items: center; width: 1.25rem; height: 1.25rem;"><?php echo get_file_icon(true, ''); ?></span>
-                                                <?php echo htmlspecialchars($f['name']); ?>
-                                            </a>
-                                        <?php else: ?>
-                                            <span style="color: var(--slate-900); display: flex; align-items: center; gap: 0.5rem;">
-                                                <span
-                                                    style="color: var(--slate-500); display: flex; align-items: center; width: 1.25rem; height: 1.25rem;"><?php echo get_file_icon(false, $f['extension']); ?></span>
-                                                <?php echo htmlspecialchars($f['name']); ?>
-                                            </span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td
-                                        style="padding: 0.75rem 1rem; text-align: right; color: var(--slate-700); font-family: monospace; font-size: 0.75rem;">
-                                        <?php echo $f['is_dir'] ? '-' : format_file_size($f['size']); ?></td>
-                                    <td style="padding: 0.75rem 1rem;"><span
-                                            style="font-family: monospace; background: var(--slate-50); color: var(--slate-700); padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; border: 1px solid var(--border-color);"><?php echo htmlspecialchars($f['permissions']); ?></span>
-                                    </td>
-                                    <td style="padding: 0.75rem 1rem; color: var(--slate-700); font-size: 0.75rem;">
-                                        <?php echo htmlspecialchars($f['modified']); ?></td>
-                                    <td style="padding: 0.75rem 1rem; text-align: right;">
-                                        <div style="display: flex; gap: 0.25rem; justify-content: flex-end;">
-                                            <?php if (!$f['is_dir']): ?>
-                                                <!--<a href="editor.php?file=<?php echo urlencode($f['relative']); ?>" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.25rem;" title="Edit">Edit</a>-->
-                                                <a href="files-sh.php?path=<?php echo urlencode($current_path); ?>&download=<?php echo urlencode($f['relative']); ?>"
-                                                    class="btn btn-secondary"
-                                                    style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.25rem;"
-                                                    title="Download">Download</a>
-                                            <?php endif; ?>
-                                            <button type="button" class="btn btn-secondary"
-                                                style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.25rem;"
-                                                onclick="changePerms('<?php echo htmlspecialchars($f['relative']); ?>', '<?php echo htmlspecialchars($f['permissions']); ?>')"
-                                                title="Permissions">Perms</button>
-                                            <button type="button" class="btn btn-secondary"
-                                                style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.25rem;"
-                                                onclick="renameItem('<?php echo htmlspecialchars($f['relative']); ?>', '<?php echo htmlspecialchars($f['name']); ?>')"
-                                                title="Rename">Rename</button>
-                                            <button type="button" class="btn btn-danger"
-                                                style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.25rem;"
-                                                onclick="deleteItem('<?php echo htmlspecialchars($f['relative']); ?>', '<?php echo htmlspecialchars($f['name']); ?>')"
-                                                title="Delete">Delete</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Hidden forms for JS actions -->
-            <form id="permForm" method="post" style="display:none;"><input type="hidden" name="file_path"><input
-                    type="hidden" name="permissions"><input type="hidden" name="change_permissions" value="1"></form>
-            <form id="delForm" method="post" style="display:none;"><input type="hidden" name="file_path"><input
-                    type="hidden" name="delete_path" value="1"></form>
-            <form id="renameForm" method="post" style="display:none;"><input type="hidden" name="file_path"><input
-                    type="hidden" name="new_name"><input type="hidden" name="rename_path" value="1"></form>
+<div class="flex justify-between items-center mb-8 gap-4">
+    <div class="flex items-center gap-4">
+        <h2 class="text-2xl font-bold text-white font-heading">File Manager</h2>
+        <div class="text-sm text-slate-500 font-mono bg-slate-900/50 px-3 py-1 rounded-lg border border-slate-800">
+            <?= htmlspecialchars($current_path) ?>
         </div>
     </div>
 </div>
 
+<div class="glass-panel p-6 rounded-2xl mb-8">
+    <div class="flex flex-wrap gap-4 items-center">
+        <button onclick="togglePanel('upload-panel')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+            <i data-lucide="upload" class="w-4 h-4"></i> Upload
+        </button>
+        <button onclick="togglePanel('folder-panel')" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-slate-700">
+            <i data-lucide="folder-plus" class="w-4 h-4"></i> New Folder
+        </button>
+        <a href="?zip_project=1&path=<?= urlencode($current_path) ?>" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-slate-700">
+            <i data-lucide="download-cloud" class="w-4 h-4"></i> Full ZIP
+        </a>
+
+        <div class="flex-1 min-w-[200px]">
+            <form method="get" class="relative">
+                <input type="hidden" name="path" value="<?= htmlspecialchars($current_path) ?>">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-500"></i>
+                <input type="text" name="q" placeholder="Search files..." value="<?= htmlspecialchars($search_query) ?>"
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white outline-none focus:border-blue-500 transition">
+            </form>
+        </div>
+    </div>
+
+    <div id="upload-panel" class="mt-6 p-6 bg-slate-900/50 rounded-xl border border-slate-800 hidden">
+        <form method="post" enctype="multipart/form-data" class="flex items-center gap-4">
+            <input type="file" name="file" required class="text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-blue-600/10 file:text-blue-400 hover:file:bg-blue-600/20">
+            <button type="submit" name="upload_file" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase transition hover:bg-blue-500">Start Upload</button>
+        </form>
+    </div>
+
+    <div id="folder-panel" class="mt-6 p-6 bg-slate-900/50 rounded-xl border border-slate-800 hidden">
+        <form method="post" class="flex items-center gap-4">
+            <input type="text" name="folder_name" placeholder="Folder Name" required class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white outline-none">
+            <button type="submit" name="create_folder" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase transition hover:bg-blue-500">Create Folder</button>
+        </form>
+    </div>
+</div>
+
+<div class="glass-panel rounded-2xl overflow-hidden border border-slate-800/50">
+    <table class="w-full text-left">
+        <thead class="bg-slate-900/80 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-800">
+            <tr>
+                <th class="p-4">Name</th>
+                <th class="p-4">Size</th>
+                <th class="p-4">Perms</th>
+                <th class="p-4">Modified</th>
+                <th class="p-4 text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/50">
+            <?php if ($current_path !== '/'): ?>
+                <tr class="hover:bg-slate-800/30 transition">
+                    <td class="p-4" colspan="5">
+                        <a href="?path=<?= urlencode(dirname($current_path)) ?>" class="flex items-center gap-3 text-sm text-blue-400 font-bold">
+                            <i data-lucide="corner-left-up" class="w-4 h-4"></i> ..
+                        </a>
+                    </td>
+                </tr>
+            <?php endif; ?>
+
+            <?php foreach ($files as $f): ?>
+                <tr class="hover:bg-slate-800/30 transition group">
+                    <td class="p-4">
+                        <div class="flex items-center gap-3">
+                            <?= get_file_icon($f['is_dir'], $f['extension']) ?>
+                            <?php if ($f['is_dir']): ?>
+                                <a href="?path=<?= urlencode($f['relative']) ?>" class="text-sm font-bold text-white hover:text-blue-400 transition">
+                                    <?= htmlspecialchars($f['name']) ?>
+                                </a>
+                            <?php else: ?>
+                                <span class="text-sm font-medium text-slate-300"><?= htmlspecialchars($f['name']) ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                    <td class="p-4 text-xs text-slate-500"><?= $f['is_dir'] ? '-' : format_file_size($f['size']) ?></td>
+                    <td class="p-4 text-xs font-mono text-slate-500"><?= $f['permissions'] ?></td>
+                    <td class="p-4 text-xs text-slate-500"><?= $f['modified'] ?></td>
+                    <td class="p-4 text-right">
+                        <div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
+                            <?php if (!$f['is_dir']): ?>
+                                <a href="?download=<?= urlencode($f['relative']) ?>" class="p-2 text-slate-400 hover:text-blue-400" title="Download"><i data-lucide="download" class="w-4 h-4"></i></a>
+                            <?php endif; ?>
+                            <button onclick="renameItem('<?= addslashes($f['relative']) ?>', '<?= addslashes($f['name']) ?>')" class="p-2 text-slate-400 hover:text-white" title="Rename"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="deleteItem('<?= addslashes($f['relative']) ?>', '<?= addslashes($f['name']) ?>')" class="p-2 text-slate-400 hover:text-red-500" title="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            <?php if (empty($files)): ?>
+                <tr><td colspan="5" class="p-8 text-center text-slate-600 text-sm">No files found.</td></tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<form id="js-form" method="post" style="display:none;">
+    <input type="hidden" name="file_path" id="js-path">
+    <input type="hidden" name="new_name" id="js-name">
+    <input type="hidden" name="rename_path" id="js-rename" value="1">
+    <input type="hidden" name="delete_path" id="js-delete" value="1">
+</form>
+
 <script>
     function togglePanel(id) {
         const el = document.getElementById(id);
-        const isHidden = el.style.display === 'none' || el.style.display === '';
-        document.getElementById('upload-panel').style.display = 'none';
-        document.getElementById('folder-panel').style.display = 'none';
-        if (isHidden) el.style.display = 'block';
+        el.classList.toggle('hidden');
     }
 
-    function changePerms(filePath, currentPerms) {
-        const newPerms = prompt(`Enter new permissions for "${filePath}" (e.g., 755 or 644):`, currentPerms);
-        if (newPerms && /^[0-7]{3,4}$/.test(newPerms.trim())) {
-            const form = document.getElementById('permForm');
-            form.file_path.value = filePath;
-            form.permissions.value = newPerms.trim();
-            form.submit();
-        } else if (newPerms !== null) {
-            alert('Invalid permissions format. Please use a 3 or 4-digit octal number (e.g., 755).');
-        }
+    function deleteItem(path, name) {
+        if (!confirm(`Delete ${name}?`)) return;
+        const f = document.getElementById('js-form');
+        document.getElementById('js-path').value = path;
+        document.getElementById('js-delete').disabled = false;
+        document.getElementById('js-rename').disabled = true;
+        f.submit();
     }
 
-    function deleteItem(filePath, name) {
-        if (confirm(`Are you sure you want to permanently delete "${name}"? This action cannot be undone.`)) {
-            const form = document.getElementById('delForm');
-            form.file_path.value = filePath;
-            form.submit();
-        }
-    }
-
-    function renameItem(filePath, currentName) {
-        const newName = prompt(`Rename "${currentName}" to:`, currentName);
-        if (newName && newName.trim() !== '' && newName.trim() !== currentName) {
-            if (newName.includes('/') || newName.includes('\\')) {
-                alert('File names cannot contain slashes.');
-                return;
-            }
-            const form = document.getElementById('renameForm');
-            form.file_path.value = filePath;
-            form.new_name.value = newName.trim();
-            form.submit();
-        }
+    function renameItem(path, oldName) {
+        const newName = prompt("Enter new name:", oldName);
+        if (!newName || newName === oldName) return;
+        const f = document.getElementById('js-form');
+        document.getElementById('js-path').value = path;
+        document.getElementById('js-name').value = newName;
+        document.getElementById('js-delete').disabled = true;
+        document.getElementById('js-rename').disabled = false;
+        f.submit();
     }
 </script>
 
