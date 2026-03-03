@@ -10,19 +10,7 @@ if (!isset($_SESSION['client'])) {
 }
 $cid = $_SESSION['cid'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action']) && $_POST['ajax_action'] === 'add_funds') {
-    $amount = (float) ($_POST['amount'] ?? 0);
-    $tx_id = $_POST['transaction_id'] ?? 'RZP_' . uniqid();
 
-    if ($amount > 0) {
-        $stmt = $pdo->prepare("INSERT INTO transactions (client_id, invoice_id, amount, status, payment_gateway, transaction_id) VALUES (?, NULL, ?, 'paid', 'razorpay', ?)");
-        $stmt->execute([$cid, $amount, $tx_id]);
-
-        header("Content-Type: application/json");
-        echo json_encode(['status' => 'success', 'msg' => 'Funds added successfully']);
-        exit;
-    }
-}
 
 // Fetch transactions
 $stmt = $pdo->prepare("SELECT * FROM transactions WHERE client_id = ? ORDER BY created_at DESC");
@@ -37,68 +25,93 @@ include 'layout/header.php';
         style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; border-bottom: 1px solid var(--slate-300); padding-bottom: 1.5rem;">
         <div>
             <h2
-                style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; color: var(--slate-900); font-family: 'Lexend', sans-serif; letter-spacing: -0.025em; margin-bottom: 0.5rem;">
+                style="font-size: 2rem; font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); letter-spacing: -0.02em; margin-bottom: 0.5rem;">
                 Billing History</h2>
-            <p style="color: var(--slate-700);">View your past payments and invoices.</p>
+            <p style="color: var(--slate-600); font-size: 1rem;">View your past payments and invoices.</p>
         </div>
         <div style="display: flex; gap: 0.75rem;">
-            <button id="addFundsBtn" class="btn btn-secondary"
-                style="display: flex; align-items: center; gap: 0.5rem; border: none; cursor: pointer;">
-                <i data-lucide="plus-circle" style="width: 1.25rem; height: 1.25rem;"></i> Add Funds
-            </button>
             <a href="../landing/index.php#pricing" class="btn btn-primary"
-                style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; box-shadow: var(--shadow-md); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); border-radius: var(--radius-lg);"
+                onmouseover="this.style.transform='translateY(-2px)';"
+                onmouseout="this.style.transform='translateY(0)';">
                 <i data-lucide="arrow-up-circle" style="width: 1.25rem; height: 1.25rem;"></i> Upgrade Plan
             </a>
         </div>
     </div>
 
-    <div class="glass-panel p-0 overflow-hidden">
-        <div class="table-container">
-            <table class="modern-table">
+    <div class="glass-card table-card" style="padding: 0; overflow: hidden;">
+        <div class="table-container custom-scrollbar">
+            <table class="modern-table w-full text-left border-collapse" style="width: 100%;">
                 <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Transaction ID</th>
-                        <th>Amount</th>
-                        <th>Gateway</th>
-                        <th>Status</th>
+                    <tr style="border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50);">
+                        <th
+                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            Date</th>
+                        <th
+                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            Transaction ID</th>
+                        <th
+                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            Amount</th>
+                        <th
+                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            Gateway</th>
+                        <th
+                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($transactions)): ?>
                         <tr>
-                            <td colspan="5"
-                                style="text-align: center; padding-top: 2rem; padding-bottom: 2rem; color: var(--slate-500);">
-                                No transactions found.</td>
+                            <td colspan="5" style="text-align: center; padding: 3rem 1.5rem; color: var(--slate-500);">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="receipt" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                                    <span>No transactions found.</span>
+                                </div>
+                            </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($transactions as $tx): ?>
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 500; color: var(--slate-800);">
+                            <tr style="border-bottom: 1px solid var(--slate-100); transition: background-color 0.2s;"
+                                onmouseover="this.style.backgroundColor='var(--slate-50)'"
+                                onmouseout="this.style.backgroundColor='transparent'">
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div style="font-weight: 600; color: var(--slate-800);">
                                         <?= date('M d, Y', strtotime($tx['created_at'])) ?>
                                     </div>
                                     <div style="font-size: 0.75rem; color: var(--slate-500);">
                                         <?= date('h:i A', strtotime($tx['created_at'])) ?>
                                     </div>
                                 </td>
-                                <td style="font-family: monospace; font-size: 0.75rem;">
+                                <td
+                                    style="padding: 1rem 1.5rem; font-family: monospace; font-size: 0.875rem; color: var(--slate-600);">
                                     <?= htmlspecialchars($tx['transaction_id']) ?>
                                 </td>
-                                <td style="font-weight: 700; color: var(--slate-900);">₹
+                                <td style="padding: 1rem 1.5rem; font-weight: 800; color: var(--slate-900);">₹
                                     <?= number_format($tx['amount'], 2) ?>
                                 </td>
-                                <td style="text-transform: capitalize; color: var(--slate-600);">
-                                    <?= htmlspecialchars($tx['payment_gateway']) ?>
+                                <td
+                                    style="padding: 1rem 1.5rem; text-transform: capitalize; color: var(--slate-600); font-weight: 500;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <i data-lucide="credit-card"
+                                            style="width: 16px; height: 16px; color: var(--slate-400);"></i>
+                                        <?= htmlspecialchars($tx['payment_gateway']) ?>
+                                    </div>
                                 </td>
-                                <td>
+                                <td style="padding: 1rem 1.5rem;">
                                     <?php if ($tx['status'] === 'paid'): ?>
-                                        <span class="badge badge-success">Paid</span>
+                                        <span class="badge badge-success" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i
+                                                data-lucide="check-circle-2"
+                                                style="width: 12px; height: 12px; margin-right: 4px; display: inline-block;"></i>Paid</span>
                                     <?php elseif ($tx['status'] === 'pending'): ?>
-                                        <span class="badge badge-warning">Pending</span>
+                                        <span class="badge badge-warning" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i
+                                                data-lucide="clock"
+                                                style="width: 12px; height: 12px; margin-right: 4px; display: inline-block;"></i>Pending</span>
                                     <?php else: ?>
-                                        <span class="badge badge-danger">Failed</span>
+                                        <span class="badge badge-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"><i
+                                                data-lucide="alert-circle"
+                                                style="width: 12px; height: 12px; margin-right: 4px; display: inline-block;"></i>Failed</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -109,55 +122,8 @@ include 'layout/header.php';
         </div>
     </div>
 </div>
-
-</div>
-
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const addFundsBtn = document.getElementById('addFundsBtn');
-        if (addFundsBtn) {
-            addFundsBtn.addEventListener('click', () => {
-                const amountStr = prompt("Enter amount to add (in ₹):", "500");
-                if (!amountStr) return;
-                const amount = parseFloat(amountStr);
-                if (isNaN(amount) || amount <= 0) {
-                    alert("Please enter a valid amount.");
-                    return;
-                }
-
-                const options = {
-                    "key": "rzp_test_YOUR_KEY_HERE", // Replace with real key
-                    "amount": amount * 100, // Amount in paisa
-                    "currency": "INR",
-                    "name": "Vivzon Cloud",
-                    "description": "Add Funds to Wallet",
-                    "handler": async function (response) {
-                        const fd = new FormData();
-                        fd.append('ajax_action', 'add_funds');
-                        fd.append('amount', amount);
-                        fd.append('transaction_id', response.razorpay_payment_id);
-
-                        try {
-                            const res = await fetch('billing.php', { method: 'POST', body: fd }).then(r => r.json());
-                            if (res.status === 'success') {
-                                alert('Funds added successfully!');
-                                window.location.reload();
-                            } else {
-                                alert('Failed to add funds.');
-                            }
-                        } catch (e) {
-                            alert('System error.');
-                            console.error(e);
-                        }
-                    },
-                    "theme": { "color": "#2563eb" }
-                };
-                const rzp = new Razorpay(options);
-                rzp.open();
-            });
-        }
-    });
+    lucide.createIcons();
 </script>
 
 <?php include 'layout/footer.php'; ?>

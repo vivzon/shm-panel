@@ -14,7 +14,7 @@ if (filter_var($host, FILTER_VALIDATE_IP)) {
     $scheme = isset($_SERVER['HTTPS']) ? "https://" : "http://";
 }
 
-$clientUrl = $scheme . 'client.' . $base;
+$clientUrl = $scheme . '' . $base;
 $brandName = get_branding();
 
 // Fetch plans from DB for pricing section
@@ -700,6 +700,87 @@ try {
         </div>
     </section>
 
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="section-padding" style="background: var(--slate-100);">
+        <div class="container">
+            <div class="section-title-wrap" style="margin-bottom: 3rem;">
+                <span class="badge-label">Customer Reviews</span>
+                <h2 class="section-title">Trusted by Thousands</h2>
+                <p style="color:var(--slate-600);max-width:600px;margin:1rem auto;">
+                    See what our customers have to say about their experience with <?= e($brandName) ?>.
+                </p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                <!-- Review 1 -->
+                <div class="glass-card" style="padding: 2rem;">
+                    <div style="display: flex; gap: 0.25rem; color: #fbbf24; margin-bottom: 1rem;">
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                    </div>
+                    <p style="color: var(--slate-700); font-style: italic; margin-bottom: 1.5rem;">"The NVMe speeds are
+                        unbelievable. Our WooCommerce store load times dropped by 60% after migrating here. Best
+                        decision we've made."</p>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 50%; background: rgba(37, 99, 235, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: bold; font-family: 'Outfit', sans-serif;">
+                            AR</div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--slate-900);">Alex Rivera</div>
+                            <div style="font-size: 0.875rem; color: var(--slate-500);">E-commerce Owner</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Review 2 -->
+                <div class="glass-card" style="padding: 2rem;">
+                    <div style="display: flex; gap: 0.25rem; color: #fbbf24; margin-bottom: 1rem;">
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                    </div>
+                    <p style="color: var(--slate-700); font-style: italic; margin-bottom: 1.5rem;">"We host over 50
+                        client websites on the Agency Plan. The built-in backups and free SSL automation alone save us
+                        hours every week."</p>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 50%; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Outfit', sans-serif;">
+                            SK</div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--slate-900);">Sarah Khan</div>
+                            <div style="font-size: 0.875rem; color: var(--slate-500);">Digital Agency Founder</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Review 3 -->
+                <div class="glass-card" style="padding: 2rem;">
+                    <div style="display: flex; gap: 0.25rem; color: #fbbf24; margin-bottom: 1rem;">
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
+                    </div>
+                    <p style="color: var(--slate-700); font-style: italic; margin-bottom: 1.5rem;">"Support is actually
+                        available 24/7. When I had a DNS issue at 2 AM on a Sunday, they fixed it in under 5 minutes.
+                        Incredible service."</p>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div
+                            style="width: 40px; height: 40px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Outfit', sans-serif;">
+                            MJ</div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--slate-900);">Mark Johnson</div>
+                            <div style="font-size: 0.875rem; color: var(--slate-500);">Software Developer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- FAQ Section -->
     <section class="section-padding" style="background: white;">
         <div class="container">
@@ -769,17 +850,17 @@ try {
                     <a href="<?= e($clientUrl) ?>" class="footer-link">Client Portal</a>
                 </div>
                 <div class="footer-col">
-                    <h4>Support</h4>
+                    <h4>Legal & Support</h4>
                     <a href="mailto:support@<?= e($base) ?>" class="footer-link">Email Support</a>
-                    <a href="#" class="footer-link">Privacy Policy</a>
-                    <a href="#" class="footer-link">Terms of Service</a>
+                    <a href="privacy.php" class="footer-link">Privacy Policy</a>
+                    <a href="terms.php" class="footer-link">Terms & Conditions</a>
+                    <a href="refund.php" class="footer-link">Refund Policy</a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <div>&copy; <?= date('Y') ?> <?= e($brandName) ?>. All rights reserved.</div>
+                <div>&copy; <?= date('Y') ?> <?= e($brandName) ?> - Premium Cloud Hosting. All rights reserved.</div>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
-                    Made with <i data-lucide="heart"
-                        style="width:14px;height:14px;color:var(--accent-red);fill:var(--accent-red);"></i> for the web
+                    Prices are listed without GST
                 </div>
             </div>
         </div>

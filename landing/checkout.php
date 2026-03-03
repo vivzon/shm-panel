@@ -22,8 +22,8 @@ if (!$package) {
 }
 
 // Config (Replace with real keys or load from DB)
-$RAZORPAY_KEY = "rzp_test_YOUR_KEY_HERE";
-$PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
+$RAZORPAY_KEY = "rzp_test_SMZ8mtCXTC7eyI";
+$PAYPAL_CLIENT_ID = "AYIVFYREiP7uVVPDu7MjTI3ltKT53EKfkAK-Q3i6qcDUtVkSsjQUzRezXDvbxx3LrGphzIzXZRDacTMh"; // Sandbox Client ID
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -397,13 +397,19 @@ $PAYPAL_CLIENT_ID = "sb"; // Sandbox Client ID
                 const data = await res.json();
 
                 if (data.status === 'success') {
-                    window.location.href = '../cpanel/login.php?msg=welcome';
+                    if (data.msg && data.msg.includes('manual review')) {
+                        // Payment succeeded but provisioning had a warning/error
+                        document.body.innerHTML = '<div style="color:white;text-align:center;"><h1 style="font-size:1.5rem;font-weight:700;color:#fbbf24;">Payment Successful, Provisioning Pending</h1><p style="margin-top:1rem;color:var(--slate-300);">' + data.msg + '</p><a href="index.php" style="display:inline-block;margin-top:2rem;color:white;text-decoration:underline;">Return to Home</a></div>';
+                    } else {
+                        // Fully successful setup
+                        window.location.href = '../cpanel/login.php?msg=welcome';
+                    }
                 } else {
                     alert('Error: ' + data.msg);
                     location.reload();
                 }
             } catch (e) {
-                alert('Server Connection Failed');
+                alert('Server Connection Failed. Please contact support immediately.');
                 location.reload();
             }
         }

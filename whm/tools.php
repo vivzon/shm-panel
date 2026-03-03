@@ -199,9 +199,7 @@ include 'layout/header.php';
                         style="width: 100%; border-radius: 0.75rem;">
                 </div>
                 <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); background: #4f46e5; border-color: #4f46e5;"
-                    onmouseover="this.style.background='#6366f1'; this.style.borderColor='#6366f1';"
-                    onmouseout="this.style.background='#4f46e5'; this.style.borderColor='#4f46e5';">
+                    style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                     Create FTP User
                 </button>
             </form>
@@ -271,9 +269,7 @@ include 'layout/header.php';
                 <input name="mail_pass" required type="password" placeholder="Password" autocomplete="new-password"
                     class="form-input" style="width: 100%; border-radius: 0.75rem; margin-bottom: 0.5rem;">
                 <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); background: #4f46e5; border-color: #4f46e5;"
-                    onmouseover="this.style.background='#6366f1'; this.style.borderColor='#6366f1';"
-                    onmouseout="this.style.background='#4f46e5'; this.style.borderColor='#4f46e5';">Create
+                    style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">Create
                     Mailbox</button>
             </form>
         </div>
@@ -347,9 +343,7 @@ include 'layout/header.php';
                 </div>
             </div>
             <button type="submit" class="btn btn-primary"
-                style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.2); background: #9333ea; border-color: #9333ea;"
-                onmouseover="this.style.background='#a855f7'; this.style.borderColor='#a855f7';"
-                onmouseout="this.style.background='#9333ea'; this.style.borderColor='#9333ea';">
+                style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 Update Handlers
             </button>
         </form>
@@ -388,9 +382,7 @@ include 'layout/header.php';
                 <option value="ens18">ens18 (Proxmox)</option>
             </select>
             <button type="submit" class="btn btn-primary"
-                style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.2); background: #ea580c; border-color: #ea580c;"
-                onmouseover="this.style.background='#f97316'; this.style.borderColor='#f97316';"
-                onmouseout="this.style.background='#ea580c'; this.style.borderColor='#ea580c';">Update
+                style="width: 100%; padding: 0.875rem; border-radius: 0.75rem; margin-top: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">Update
                 Interface</button>
         </form>
     </div>

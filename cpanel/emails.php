@@ -104,61 +104,102 @@ include 'layout/header.php';
 <div style="display: flex; flex-direction: column; gap: 2.5rem;">
     <!-- CREATE EMAIL -->
     <div class="glass-card" style="padding: 2.5rem;">
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); margin-bottom: 2rem;">Create Email
+        <h2
+            style="font-size: 1.5rem; font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); margin-bottom: 2rem;">
+            Create Email
             Account</h2>
         <form onsubmit="handleGeneric(event, 'add_email')"
             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             <?= csrf_field() ?>
-            <input name="user" required placeholder="mailbox name" class="form-input">
-            <select name="domain" class="form-select">
+            <input name="user" required placeholder="mailbox name" class="form-input"
+                style="padding: 0.75rem 1rem; border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.5); font-size: 0.875rem; transition: all 0.2s; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"
+                onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
+            <select name="domain" class="form-select"
+                style="padding: 0.75rem 1rem; border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.5); color: var(--slate-900); font-size: 0.875rem; transition: all 0.2s; outline: none;"
+                onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='none';">
                 <?php foreach ($domains as $d): ?>
                     <option value="<?= $d['domain'] ?>">@
                         <?= $d['domain'] ?>
                     </option>
                 <?php endforeach; ?>
             </select>
-            <input name="pass" type="password" required placeholder="Password" class="form-input">
+            <input name="pass" type="password" required placeholder="Password" class="form-input"
+                style="padding: 0.75rem 1rem; border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.5); font-size: 0.875rem; transition: all 0.2s; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"
+                onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
             <button class="btn btn-primary"
-                style="box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.1);">Create
+                style="padding: 0.75rem; font-weight: 600; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.1);"><i
+                    data-lucide="mail-plus" style="width: 1.25rem; height: 1.25rem;"></i> Create
                 Mailbox</button>
         </form>
     </div>
 
     <!-- LIST -->
-    <div class="glass-card" style="overflow-x: auto;">
-        <table class="table" style="width: 100%;">
-            <thead>
-                <tr>
-                    <th>Active Email Account</th>
-                    <th style="text-align: right;">Webmail / Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($my_emails as $mail): ?>
-                    <tr>
-                        <td style="font-weight: 700; color: var(--slate-700);">
-                            <?= $mail['email'] ?>
-                        </td>
-                        <td style="text-align: right;">
-                            <a href="http://webmail.<?= $base_domain ?>" target="_blank"
-                                style="color: var(--primary); font-weight: 700; font-size: 0.75rem; margin-right: 1rem; text-transform: uppercase; letter-spacing: -0.05em; text-decoration: none; transition: color 0.2s;"
-                                onmouseover="this.style.color='#93c5fd'"
-                                onmouseout="this.style.color='var(--primary)'">Login</a>
-                            <button onclick="resetPassword('reset_mail_pass', 'email', '<?= $mail['email'] ?>')"
-                                style="color: var(--accent-orange); background: transparent; border: none; padding: 0.5rem; border-radius: var(--radius-md); cursor: pointer; transition: background 0.2s; margin-right: 0.5rem;"
-                                onmouseover="this.style.backgroundColor='rgba(249, 115, 22, 0.1)'"
-                                onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="key"
-                                    style="width: 16px; height: 16px;"></i></button>
-                            <button onclick="deleteAction('delete_email', 'email', '<?= $mail['email'] ?>')"
-                                style="color: var(--accent-red); background: transparent; border: none; padding: 0.5rem; border-radius: var(--radius-md); cursor: pointer; transition: background 0.2s;"
-                                onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'"
-                                onmouseout="this.style.backgroundColor='transparent'"><i data-lucide="trash-2"
-                                    style="width: 16px; height: 16px;"></i></button>
-                        </td>
+    <div class="glass-card table-card" style="padding: 0; overflow: hidden;">
+        <div class="table-container custom-scrollbar">
+            <table class="modern-table w-full text-left border-collapse" style="width: 100%;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50);">
+                        <th
+                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            Active Email Account</th>
+                        <th
+                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; text-align: right;">
+                            Webmail / Action</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php if (empty($my_emails)): ?>
+                        <tr>
+                            <td colspan="2" style="text-align: center; padding: 3rem 1.5rem; color: var(--slate-500);">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="mail" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                                    <span>No email accounts found.</span>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($my_emails as $mail): ?>
+                            <tr style="border-bottom: 1px solid var(--slate-100); transition: background-color 0.2s;"
+                                onmouseover="this.style.backgroundColor='var(--slate-50)'"
+                                onmouseout="this.style.backgroundColor='transparent'">
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div
+                                        style="font-weight: 700; color: var(--slate-900); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <i data-lucide="mail"
+                                            style="width: 1.25rem; height: 1.25rem; color: var(--slate-400);"></i>
+                                        <?= htmlspecialchars($mail['email']) ?>
+                                    </div>
+                                </td>
+                                <td
+                                    style="padding: 1rem 1.5rem; text-align: right; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem;">
+                                    <a href="http://webmail.<?= $base_domain ?>" target="_blank"
+                                        style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; text-decoration: none; display: flex; align-items: center; gap: 0.25rem; transition: opacity 0.2s;"
+                                        onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"><i
+                                            data-lucide="external-link" style="width: 14px; height: 14px;"></i> Login</a>
+
+                                    <button onclick="resetPassword('reset_mail_pass', 'email', '<?= $mail['email'] ?>')"
+                                        style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: var(--radius-md); padding: 0.5rem; cursor: pointer; color: var(--accent-orange); transition: all 0.2s; display: flex; align-items: center; justify-content: center; margin-left: 0.75rem;"
+                                        title="Reset Password"
+                                        onmouseover="this.style.backgroundColor='rgba(245, 158, 11, 0.2)'; this.style.borderColor='rgba(245, 158, 11, 0.3)';"
+                                        onmouseout="this.style.backgroundColor='rgba(245, 158, 11, 0.1)'; this.style.borderColor='rgba(245, 158, 11, 0.2)';"><i
+                                            data-lucide="key" style="width: 16px; height: 16px;"></i></button>
+
+                                    <button onclick="deleteAction('delete_email', 'email', '<?= $mail['email'] ?>')"
+                                        style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-md); padding: 0.5rem; cursor: pointer; color: var(--accent-red); transition: all 0.2s; display: flex; align-items: center; justify-content: center;"
+                                        title="Delete Mailbox"
+                                        onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'; this.style.borderColor='rgba(239, 68, 68, 0.3)';"
+                                        onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.2)';"><i
+                                            data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <?php if ($total_pages > 1): ?>

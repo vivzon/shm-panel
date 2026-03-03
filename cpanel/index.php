@@ -102,17 +102,24 @@ include 'layout/header.php';
 
 <div style="display: flex; flex-direction: column; gap: 2rem;">
 
+    <?php
+    $hour = date('H');
+    $greeting = 'Good evening';
+    if ($hour < 12) {
+        $greeting = 'Good morning';
+    } elseif ($hour < 17) {
+        $greeting = 'Good afternoon';
+    }
+    ?>
     <!-- Welcome Section -->
     <div
-        style="display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; border-bottom: 1px solid var(--slate-300); padding-bottom: 1.5rem; flex-wrap: wrap;">
+        style="display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; border-bottom: 1px solid var(--slate-200); padding-bottom: 1.5rem; flex-wrap: wrap;">
         <div>
             <h2
-                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; margin-bottom: 0.5rem;">
-                Dashboard</h2>
-            <p style="color: var(--slate-700);">Welcome back, <span
-                    style="color: var(--primary); font-weight: 700;"><?= htmlspecialchars($username) ?></span>. System
-                is running
-                smoothly.</p>
+                style="font-size: 2rem; font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); letter-spacing: -0.02em; margin-bottom: 0.5rem;">
+                <?= $greeting ?>, <?= htmlspecialchars($username) ?> 👋
+            </h2>
+            <p style="color: var(--slate-600); font-size: 1rem;">Here is what's happening with your server today.</p>
         </div>
         <div style="display: flex; gap: 0.75rem;">
             <a href="files.php" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -143,12 +150,12 @@ include 'layout/header.php';
                 style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
                 <?= $usage_dom ?>
             </h3>
-            <p style="font-size: 0.875rem; color: var(--slate-700); font-weight: 500; position: relative; z-index: 10;">
+            <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
                 Active Domains</p>
             <div
-                style="width: 100%; background: var(--slate-100); height: 4px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
-                <div
-                    style="background: var(--primary); height: 100%; border-radius: 9999px; width: <?= ($usage_dom / max(1, $clientData['max_domains'])) * 100 ?>%">
+                style="width: 100%; background: var(--slate-100); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                <div class="progress-bar-fill"
+                    style="background: linear-gradient(90deg, #60a5fa, #3b82f6); height: 100%; border-radius: 9999px; width: <?= ($usage_dom / max(1, $clientData['max_domains'])) * 100 ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(59,130,246,0.3);">
                 </div>
             </div>
         </div>
@@ -173,12 +180,12 @@ include 'layout/header.php';
                 style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
                 <?= $usage_db ?>
             </h3>
-            <p style="font-size: 0.875rem; color: var(--slate-700); font-weight: 500; position: relative; z-index: 10;">
+            <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
                 MySQL Databases</p>
             <div
-                style="width: 100%; background: var(--slate-100); height: 4px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
-                <div
-                    style="background: #a855f7; height: 100%; border-radius: 9999px; width: <?= ($usage_db / max(1, $clientData['max_databases'])) * 100 ?>%">
+                style="width: 100%; background: var(--slate-100); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                <div class="progress-bar-fill"
+                    style="background: linear-gradient(90deg, #c084fc, #a855f7); height: 100%; border-radius: 9999px; width: <?= ($usage_db / max(1, $clientData['max_databases'])) * 100 ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(168,85,247,0.3);">
                 </div>
             </div>
         </div>
@@ -203,12 +210,12 @@ include 'layout/header.php';
                 style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
                 <?= $usage_mail ?>
             </h3>
-            <p style="font-size: 0.875rem; color: var(--slate-700); font-weight: 500; position: relative; z-index: 10;">
+            <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
                 Email Accounts</p>
             <div
-                style="width: 100%; background: var(--slate-100); height: 4px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
-                <div
-                    style="background: var(--accent-emerald); height: 100%; border-radius: 9999px; width: <?= ($usage_mail / max(1, $clientData['max_emails'])) * 100 ?>%">
+                style="width: 100%; background: var(--slate-100); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                <div class="progress-bar-fill"
+                    style="background: linear-gradient(90deg, #34d399, #10b981); height: 100%; border-radius: 9999px; width: <?= ($usage_mail / max(1, $clientData['max_emails'])) * 100 ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(16,185,129,0.3);">
                 </div>
             </div>
         </div>
@@ -233,11 +240,12 @@ include 'layout/header.php';
                 style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
                 <?= $used_mb ?> MB
             </h3>
-            <p style="font-size: 0.875rem; color: var(--slate-700); font-weight: 500; position: relative; z-index: 10;">
+            <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
                 of <?= $clientData['disk_mb'] ?> MB Used</p>
             <div
-                style="width: 100%; background: var(--slate-100); height: 4px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
-                <div style="background: #f97316; height: 100%; border-radius: 9999px; width: <?= $disk_percent ?>%">
+                style="width: 100%; background: var(--slate-100); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                <div class="progress-bar-fill"
+                    style="background: linear-gradient(90deg, #fb923c, #f97316); height: 100%; border-radius: 9999px; width: <?= $disk_percent ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(249,115,22,0.3);">
                 </div>
             </div>
         </div>
@@ -266,41 +274,44 @@ include 'layout/header.php';
             <!-- Quick Actions -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
                 <!-- Replaced Tailwind Action Cards with styled anchors -->
-                <a href="emails.php" class="glass-card"
-                    style="padding: 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: transform 0.2s;"
-                    onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='var(--primary)';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--slate-200)';">
-                    <div
-                        style="padding: 0.75rem; background: var(--slate-100); border-radius: 50%; color: var(--primary);">
-                        <i data-lucide="mail-plus" style="width: 20px; height: 20px;"></i>
+                <a href="emails.php" class="glass-card action-card"
+                    style="padding: 1.5rem 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent;"
+                    onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(59, 130, 246, 0.3)'; this.style.boxShadow='0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 8px 10px -6px rgba(59, 130, 246, 0.1)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
+                    <div class="action-icon"
+                        style="padding: 1rem; background: rgba(59, 130, 246, 0.1); border-radius: 50%; color: var(--primary); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <i data-lucide="mail-plus" style="width: 24px; height: 24px;"></i>
                     </div>
-                    <span style="font-weight: 700; font-size: 0.875rem; color: var(--slate-700);">New Email</span>
+                    <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">New Email</span>
                 </a>
-                <a href="databases.php" class="glass-card"
-                    style="padding: 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: transform 0.2s;"
-                    onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='#a855f7';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--slate-200)';">
-                    <div style="padding: 0.75rem; background: var(--slate-100); border-radius: 50%; color: #a855f7;"><i
-                            data-lucide="database" style="width: 20px; height: 20px;"></i></div>
-                    <span style="font-weight: 700; font-size: 0.875rem; color: var(--slate-700);">Add DB</span>
+                <a href="databases.php" class="glass-card action-card"
+                    style="padding: 1.5rem 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent;"
+                    onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(168, 85, 247, 0.3)'; this.style.boxShadow='0 20px 25px -5px rgba(168, 85, 247, 0.1), 0 8px 10px -6px rgba(168, 85, 247, 0.1)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
+                    <div class="action-icon"
+                        style="padding: 1rem; background: rgba(168, 85, 247, 0.1); border-radius: 50%; color: #a855f7; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(168, 85, 247, 0.2);">
+                        <i data-lucide="database" style="width: 24px; height: 24px;"></i></div>
+                    <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">Add Database</span>
                 </a>
-                <a href="domains.php" class="glass-card"
-                    style="padding: 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: transform 0.2s;"
-                    onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='var(--accent-emerald)';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--slate-200)';">
-                    <div
-                        style="padding: 0.75rem; background: var(--slate-100); border-radius: 50%; color: var(--accent-emerald);">
-                        <i data-lucide="globe" style="width: 20px; height: 20px;"></i>
+                <a href="domains.php" class="glass-card action-card"
+                    style="padding: 1.5rem 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent;"
+                    onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.boxShadow='0 20px 25px -5px rgba(16, 185, 129, 0.1), 0 8px 10px -6px rgba(16, 185, 129, 0.1)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
+                    <div class="action-icon"
+                        style="padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 50%; color: var(--accent-emerald); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <i data-lucide="globe" style="width: 24px; height: 24px;"></i>
                     </div>
-                    <span style="font-weight: 700; font-size: 0.875rem; color: var(--slate-700);">Add Domain</span>
+                    <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">Add Domain</span>
                 </a>
-                <a href="tools.php" class="glass-card"
-                    style="padding: 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: transform 0.2s;"
-                    onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='#f97316';"
-                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--slate-200)';">
-                    <div style="padding: 0.75rem; background: var(--slate-100); border-radius: 50%; color: #f97316;"><i
-                            data-lucide="wrench" style="width: 20px; height: 20px;"></i></div>
-                    <span style="font-weight: 700; font-size: 0.875rem; color: var(--slate-700);">Tools</span>
+                <a href="tools.php" class="glass-card action-card"
+                    style="padding: 1.5rem 1rem; text-align: center; text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent;"
+                    onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(249, 115, 22, 0.3)'; this.style.boxShadow='0 20px 25px -5px rgba(249, 115, 22, 0.1), 0 8px 10px -6px rgba(249, 115, 22, 0.1)';"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
+                    <div class="action-icon"
+                        style="padding: 1rem; background: rgba(249, 115, 22, 0.1); border-radius: 50%; color: #f97316; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(249, 115, 22, 0.2);">
+                        <i data-lucide="wrench" style="width: 24px; height: 24px;"></i></div>
+                    <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">Tools &
+                        Settings</span>
                 </a>
             </div>
         </div>
@@ -426,12 +437,12 @@ include 'layout/header.php';
                 labels: { style: { colors: '#64748b' } }
             },
             grid: {
-                borderColor: 'rgba(255, 255, 255, 0.05)',
+                borderColor: 'var(--slate-200)',
                 strokeDashArray: 4,
             },
-            theme: { mode: 'dark' },
+            theme: { mode: 'light' },
             tooltip: {
-                theme: 'dark',
+                theme: 'light',
                 x: { show: true },
             }
         };

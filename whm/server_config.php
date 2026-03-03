@@ -393,9 +393,7 @@ include 'layout/header.php';
                     <div
                         style="display: flex; flex-wrap: wrap; gap: 0.75rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
                         <button onclick="simulateAction('restart_services', 'Restarting Nginx & PHP-FPM...', true)"
-                            style="background: rgba(79, 70, 229, 0.2); color: #818cf8; border: 1px solid rgba(79, 70, 229, 0.3); padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;"
-                            onmouseover="this.style.backgroundColor='#4f46e5'; this.style.color='var(--slate-900)'"
-                            onmouseout="this.style.backgroundColor='rgba(79, 70, 229, 0.2)'; this.style.color='#818cf8'">
+                            class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
                             <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i> Restart Services
                         </button>
                         <button onclick="simulateAction('test_config', 'Testing Configuration Syntax...', false)"

@@ -9,7 +9,7 @@ if (!isset($_SESSION['admin'])) {
 /**
  * HELPER: Fetch Clients (One row per client)
  */
-function getClientsData($pdo, $search = '', $page = 1, $limit = 10)
+function getClientsData($pdo, $search = '', $page = 1, $limit = 10, $status = '', $plan = '')
 {
     $offset = ($page - 1) * $limit;
     $params = [];
@@ -17,7 +17,19 @@ function getClientsData($pdo, $search = '', $page = 1, $limit = 10)
 
     if (!empty($search)) {
         $where .= " AND (c.username LIKE ? OR d.domain LIKE ? OR c.email LIKE ?) ";
-        $params = ["%$search%", "%$search%", "%$search%"];
+        $params[] = "%$search%";
+        $params[] = "%$search%";
+        $params[] = "%$search%";
+    }
+
+    if (!empty($status)) {
+        $where .= " AND c.status = ? ";
+        $params[] = $status;
+    }
+
+    if (!empty($plan)) {
+        $where .= " AND c.package_id = ? ";
+        $params[] = $plan;
     }
 
     // Count Total Unique Clients
@@ -52,7 +64,7 @@ if (isset($_POST['ajax_action'])) {
     try {
         verify_csrf();
         if ($action == 'search_clients') {
-            echo json_encode(getClientsData($pdo, $_POST['query'] ?? '', (int) ($_POST['page'] ?? 1)));
+            echo json_encode(getClientsData($pdo, $_POST['query'] ?? '', (int) ($_POST['page'] ?? 1), 10, $_POST['status'] ?? '', $_POST['plan'] ?? ''));
             exit;
         }
 
@@ -100,6 +112,17 @@ if (isset($_POST['ajax_action'])) {
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, name, value) VALUES (?, 'A', '@', ?)")->execute([$dom_id, $ip]);
                 $pdo->prepare("INSERT INTO dns_records (domain_id, type, name, value) VALUES (?, 'MX', '@', ?)")->execute([$dom_id, "mail.$d"]);
                 $pdo->commit();
+
+                // Send Email Notification if requested
+                if (isset($_POST['send_welcome']) && $_POST['send_welcome'] == '1' && !empty($_POST['pass'])) {
+                    $subject = "Welcome to " . get_branding() . " - Account Created";
+                    $message = "Hello $u,\n\nYour account has been created successfully.\n\n";
+                    $message .= "Domain: $d\nUsername: $u\nPassword: " . $_POST['pass'] . "\n\n";
+                    $message .= "Control Panel URL: " . $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . "/cpanel\n\n";
+                    $message .= "Thank you for choosing " . get_branding() . "!\n";
+                    $headers = "From: no-reply@" . $_SERVER['HTTP_HOST'];
+                    @mail($e, $subject, $message, $headers);
+                }
 
                 echo json_encode($res);
                 if (function_exists('fastcgi_finish_request'))
@@ -189,11 +212,26 @@ include 'layout/header.php';
         <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); font-family: var(--font-heading);">
             Clients <span id="client-count"
                 style="color: var(--slate-700); font-size: 1.125rem; margin-left: 0.5rem;"></span></h2>
-        <div style="position: relative;">
-            <i data-lucide="search"
-                style="width: 1rem; height: 1rem; position: absolute; left: 0.75rem; top: 0.75rem; color: var(--slate-700);"></i>
-            <input id="live-search" onkeyup="debounceSearch()" placeholder="Search username, email or domain..."
-                class="form-input" style="padding-left: 2.5rem; width: 20rem; border-radius: 0.75rem;">
+        <div style="position: relative; display: flex; gap: 0.5rem;">
+            <div style="position: relative;">
+                <i data-lucide="search"
+                    style="width: 1rem; height: 1rem; position: absolute; left: 0.75rem; top: 0.75rem; color: var(--slate-700);"></i>
+                <input id="live-search" onkeyup="debounceSearch()" placeholder="Search username, email or domain..."
+                    class="form-input" style="padding-left: 2.5rem; width: 18rem; border-radius: 0.75rem;">
+            </div>
+            <select id="filter-status" onchange="debounceSearch()" class="form-input"
+                style="padding: 0.5rem; border-radius: 0.75rem; font-size: 0.875rem;">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+            </select>
+            <select id="filter-plan" onchange="debounceSearch()" class="form-input"
+                style="padding: 0.5rem; border-radius: 0.75rem; font-size: 0.875rem; max-width: 12rem;">
+                <option value="">All Plans</option>
+                <?php foreach ($packages as $p): ?>
+                    <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
     </div>
     <button onclick="openAccModal()" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -229,42 +267,58 @@ include 'layout/header.php';
         <h3 id="acc-title" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--slate-900);">
             Client Details</h3>
         <input type="hidden" name="id" id="acc-id">
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div>
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Username</label>
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Username</label>
                 <input name="user" id="acc-user" required class="form-input" style="width: 100%;">
             </div>
             <div>
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Domain</label>
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Domain</label>
                 <input name="dom" id="acc-dom" required placeholder="domain.com" class="form-input"
                     style="width: 100%;">
             </div>
-            <div>
+            <div style="grid-column: span 2;">
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Email</label>
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Email</label>
                 <input name="email" id="acc-email" type="email" required class="form-input" style="width: 100%;">
             </div>
             <div>
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Password
-                    (Leave blank to keep
-                    current)</label>
-                <input name="pass" type="password" class="form-input" style="width: 100%;">
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Password</label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input name="pass" id="acc-pass" type="password" class="form-input" style="width: 100%;"
+                        placeholder="(Leave blank to keep)">
+                    <button type="button" onclick="generatePass()" class="btn btn-outline" style="padding: 0 0.5rem;"
+                        title="Generate Password"><i data-lucide="key" style="width:1rem;height:1rem;"></i></button>
+                </div>
+                <div id="gen-pass-display"
+                    style="font-size: 0.75rem; color: var(--primary); margin-top: 0.25rem; font-weight: bold;"></div>
             </div>
             <div>
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; padding-left: 0.25rem; display: block; margin-bottom: 0.5rem;">Plan</label>
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Plan</label>
                 <select name="package_id" id="acc-pkg" class="form-input" style="width: 100%;">
                     <?php foreach ($packages as $p): ?>
-                        <option value="<?= $p['id'] ?>"><?= $p['name'] ?></option><?php endforeach; ?>
+                        <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></option>
+                    <?php endforeach; ?>
                 </select>
             </div>
-            <div style="display: flex; gap: 1rem; padding-top: 1rem;">
+
+            <div id="acc-welcome-wrapper"
+                style="grid-column: span 2; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                <input type="checkbox" name="send_welcome" id="acc-send-email" value="1" checked
+                    style="width: 1rem; height: 1rem;">
+                <label for="acc-send-email" style="font-size: 0.875rem; color: var(--slate-700);">Send welcome email to
+                    client with credentials</label>
+            </div>
+
+            <div
+                style="grid-column: span 2; display: flex; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
                 <button type="button" onclick="closeModal('modal-acc')" class="btn btn-outline"
                     style="flex: 1;">Cancel</button>
-                <button type="submit" class="btn btn-primary" style="flex: 1;">Save</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Save Client</button>
             </div>
         </div>
     </form>
@@ -285,6 +339,8 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'search_clients');
         fd.append('query', query);
+        fd.append('status', document.getElementById('filter-status').value);
+        fd.append('plan', document.getElementById('filter-plan').value);
         fd.append('page', currentPage);
         fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
@@ -353,11 +409,25 @@ include 'layout/header.php';
             document.getElementById('acc-email').value = data.email;
             document.getElementById('acc-pkg').value = data.package_id;
             document.getElementById('acc-title').innerText = "Edit Client";
+            document.getElementById('acc-welcome-wrapper').style.display = 'none'; // Only show email send on creation
         } else {
             document.getElementById('acc-id').value = ""; uInp.readOnly = false;
             document.getElementById('acc-title').innerText = "Create Client";
+            document.getElementById('acc-welcome-wrapper').style.display = 'flex';
         }
+        document.getElementById('acc-pass').type = 'password';
+        document.getElementById('gen-pass-display').innerText = '';
         document.getElementById('modal-acc').classList.remove('hidden');
+    }
+
+    function generatePass() {
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        let pass = "";
+        for (let i = 0; i < 12; i++) { pass += chars.charAt(Math.floor(Math.random() * chars.length)); }
+        const passInp = document.getElementById('acc-pass');
+        passInp.type = 'text';
+        passInp.value = pass;
+        document.getElementById('gen-pass-display').innerText = "Generated: " + pass;
     }
 
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }

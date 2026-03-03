@@ -56,10 +56,7 @@ include 'layout/header.php';
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); font-family: var(--font-heading);">Service
         Packages</h2>
-    <button onclick="openPkgModal()" class="btn btn-primary"
-        style="background: var(--emerald-600); border-color: var(--emerald-600); display: flex; align-items: center; gap: 0.5rem;"
-        onmouseover="this.style.background='var(--emerald-500)'; this.style.borderColor='var(--emerald-500)';"
-        onmouseout="this.style.background='var(--emerald-600)'; this.style.borderColor='var(--emerald-600)';">
+    <button onclick="openPkgModal()" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
         <i data-lucide="plus" style="width: 1rem; height: 1rem;"></i> Add Package
     </button>
 </div>
@@ -73,7 +70,8 @@ include 'layout/header.php';
                     <?= $p['name'] ?>
                 </h3>
                 <div style="padding: 0.5rem; background: var(--slate-50); border-radius: 0.5rem; color: var(--slate-700);">
-                    <i data-lucide="box" style="width: 1rem; height: 1rem;"></i></div>
+                    <i data-lucide="box" style="width: 1rem; height: 1rem;"></i>
+                </div>
             </div>
             <div
                 style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.875rem; color: var(--slate-700); margin-bottom: 2rem; font-weight: 500;">
@@ -148,9 +146,7 @@ include 'layout/header.php';
                 <button type="button" onclick="closeModal('modal-pkg')" class="btn btn-outline"
                     style="flex: 1; padding: 1rem; border-radius: 0.75rem;">Cancel</button>
                 <button type="submit" class="btn btn-primary"
-                    style="flex: 1; padding: 1rem; border-radius: 0.75rem; background: var(--emerald-600); border-color: var(--emerald-600);"
-                    onmouseover="this.style.background='var(--emerald-500)'; this.style.borderColor='var(--emerald-500)';"
-                    onmouseout="this.style.background='var(--emerald-600)'; this.style.borderColor='var(--emerald-600)';">Save
+                    style="flex: 1; padding: 1rem; border-radius: 0.75rem;">Save
                     Plan</button>
             </div>
         </div>

@@ -841,7 +841,7 @@ if (is_dir($full_path)) {
         style="flex: 1; display: flex; flex-direction: column; height: 100vh; position: relative; background: var(--slate-50); overflow: hidden;">
         <!-- TOP NAVIGATION & ACTION BAR -->
         <header class="glass-card"
-            style="height: 4rem; flex-shrink: 0; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; z-index: 20; border-radius: 0;">
+            style="height: 4.5rem; flex-shrink: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; z-index: 20; border-radius: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(12px);">
             <div style="display: flex; align-items: center; gap: 1.5rem;">
                 <!-- Toggle Sidebar for Mobile (optional, but good to have space for) -->
 
@@ -914,8 +914,8 @@ if (is_dir($full_path)) {
         <div style="display: flex; flex: 1; overflow: hidden;">
             <!-- SIDEBAR (File System Nav) -->
             <aside class="glass-card"
-                style="width: 16rem; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; display: none; border-radius: 0;">
-                <div style="padding: 1rem;">
+                style="width: 17rem; border-right: 1px solid rgba(255, 255, 255, 0.5); display: flex; flex-direction: column; display: none; border-radius: 0; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(16px);">
+                <div style="padding: 1.25rem;">
                     <button onclick="FM.openCreate()"
                         style="width: 100%; padding: 0.75rem; border-radius: var(--radius-md); border: 1px dashed var(--slate-300); background: transparent; color: var(--slate-700); font-size: 0.875rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: all 0.2s;"
                         onmouseover="this.style.borderColor='var(--primary)'; this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--primary)'"
@@ -944,10 +944,10 @@ if (is_dir($full_path)) {
                         $bg = $isActive ? 'var(--slate-100)' : 'transparent';
                         $color = $isActive ? 'var(--slate-900)' : 'var(--slate-700)';
                         ?>
-                        <a href="?domain_id=<?= $d['id'] ?>"
-                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); background: <?= $bg ?>; color: <?= $color ?>; transition: background 0.2s, color 0.2s; font-size: 0.875rem; text-decoration: none;"
-                            onmouseover="this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--slate-900)'"
-                            onmouseout="this.style.backgroundColor='<?= $bg ?>'; this.style.color='<?= $color ?>'">
+                        <a href="?domain_id=<?= $d['id'] ?>" class="sidebar-domain-link"
+                            style="display: flex; align-items: center; gap: 0.75rem; padding: 0.625rem 0.75rem; border-radius: var(--radius-md); background: <?= $bg ?>; color: <?= $color ?>; transition: all 0.3s ease; font-size: 0.875rem; text-decoration: none; border: 1px solid transparent;"
+                            onmouseover="this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--slate-900)'; this.style.borderColor='rgba(255,255,255,0.6)'; this.style.transform='translateX(4px)';"
+                            onmouseout="this.style.backgroundColor='<?= $bg ?>'; this.style.color='<?= $color ?>'; this.style.borderColor='transparent'; this.style.transform='translateX(0)';">
                             <i data-lucide="globe" style="width: 16px; height: 16px;"></i> <?= $d['domain'] ?>
                         </a>
                     <?php endwhile; ?>
@@ -975,8 +975,8 @@ if (is_dir($full_path)) {
             <main style="flex: 1; position: relative; background: white;" id="drop-zone-global">
 
                 <!-- ACTION BAR (Contextual) -->
-                <div id="action-bar" class="hidden"
-                    style="position: absolute; width: 100%; height: 3rem; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; transition: all 0.3s; transform: translateY(-100%); z-index: 10; background: #354264d1; color: white;">
+                <div id="action-bar" class="hidden glass-card"
+                    style="position: absolute; width: 100%; height: 3.5rem; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(-100%); z-index: 10; background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.1); border-radius: 0; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
                     <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; font-weight: 500;">
                         <span style="color: #93c5fd; font-weight: 700;" id="selection-count">0 Selected</span>
                         <div style="height: 1rem; width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
@@ -1119,10 +1119,10 @@ if (is_dir($full_path)) {
                                                 onclick="event.stopPropagation();">
                                         </div>
                                         <i data-lucide="<?= $icon ?>" class="<?= $color ?>"
-                                            style="width: 20px; height: 20px; flex-shrink: 0;"></i>
+                                            style="width: 20px; height: 20px; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));"></i>
                                         <span
-                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; color: var(--slate-700); transition: color 0.2s;"
-                                            onmouseover="this.style.color='var(--slate-900)'"
+                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--slate-700); transition: color 0.2s;"
+                                            onmouseover="this.style.color='var(--primary)'"
                                             onmouseout="this.style.color='var(--slate-700)'"><?= htmlspecialchars($i['name']) ?></span>
                                     </div>
                                     <div
@@ -1200,10 +1200,12 @@ if (is_dir($full_path)) {
 
     <!-- UPLOAD MODAL -->
     <div id="modal-upload" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="glass-card"
-            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 32rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
-            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1.5rem;">Upload
+            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 32rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <h3
+                style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1.5rem; font-family: var(--font-heading);">
+                Upload
                 Files</h3>
             <div style="border: 2px dashed var(--slate-600); border-radius: var(--radius-xl); padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem;"
                 onclick="document.getElementById('inp-upload-files').click()"
@@ -1224,10 +1226,12 @@ if (is_dir($full_path)) {
 
     <!-- CHMOD MODAL -->
     <div id="modal-chmod" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="glass-card"
-            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 28rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
-            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1rem;">Permissions
+            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 28rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <h3
+                style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1rem; font-family: var(--font-heading);">
+                Permissions
             </h3>
             <input type="hidden" id="chmod-target">
             <div style="margin-bottom: 1rem;">
@@ -1267,8 +1271,8 @@ if (is_dir($full_path)) {
 
     <!-- CONTEXT MENU & MODALS (Kept in body) -->
     <!-- CONTEXT MENU -->
-    <div id="ctx-menu" class="hidden"
-        style="position: fixed; z-index: 50; background: white; border: 1px solid var(--border-color); box-shadow: var(--shadow-xl); border-radius: var(--radius-lg); width: 12rem; padding: 0.25rem 0; transform: scale(0.95); opacity: 0; transition: all 0.1s; transform-origin: top left;">
+    <div id="ctx-menu" class="hidden glass-card"
+        style="position: fixed; z-index: 50; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border-radius: 1rem; width: 13rem; padding: 0.5rem; transform: scale(0.95); opacity: 0; transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: top left;">
         <button onclick="FM.openCtx()"
             style="width: 100%; text-align: left; padding: 0.5rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: background 0.2s;"
             onmouseover="this.style.backgroundColor='var(--slate-50)'"
@@ -1321,10 +1325,10 @@ if (is_dir($full_path)) {
 
     <!-- CREATE MODAL -->
     <div id="modal-create" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="glass-card"
-            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 24rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
-            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1.5rem;">New Item
+            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 24rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <h3 style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1.5rem; font-family: var(--font-heading);">New Item
             </h3>
             <div
                 style="display: flex; background: white; border-radius: var(--radius-lg); padding: 0.25rem; margin-bottom: 1.5rem;">
@@ -1343,10 +1347,10 @@ if (is_dir($full_path)) {
 
     <!-- RENAME MODAL -->
     <div id="modal-rename" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="glass-card"
-            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 24rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
-            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1.5rem;">Rename
+            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 24rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <h3 style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1.5rem; font-family: var(--font-heading);">Rename
             </h3>
             <input id="input-rename" type="text" class="form-input" style="margin-bottom: 1.5rem;">
             <input id="rename-target" type="hidden">
@@ -1359,10 +1363,10 @@ if (is_dir($full_path)) {
 
     <!-- COPY/MOVE MODAL -->
     <div id="modal-copymove" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="glass-card"
-            style="padding: 2rem; border-radius: 1rem; width: 100%; max-width: 24rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl);">
-            <h3 style="font-weight: 700; font-size: 1.25rem; color: var(--slate-900); margin-bottom: 1.5rem;"
+            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 24rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <h3 style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1.5rem; font-family: var(--font-heading);"
                 id="cm-title">Move Items</h3>
             <div
                 style="margin-bottom: 1rem; font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">
@@ -1384,9 +1388,9 @@ if (is_dir($full_path)) {
 
     <!-- PREVIEW MODAL -->
     <div id="modal-preview" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(6px);">
+        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
         <div class="glass-card"
-            style="border-radius: 1rem; width: 100%; max-width: 56rem; height: 80vh; border: 1px solid var(--border-color); box-shadow: var(--shadow-2xl); display: flex; flex-direction: column; overflow: hidden; padding: 0;">
+            style="border-radius: 1.5rem; width: 100%; max-width: 56rem; height: 80vh; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; overflow: hidden; padding: 0; transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
             <div
                 style="height: 3rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; background: var(--slate-50);">
                 <span id="preview-title"

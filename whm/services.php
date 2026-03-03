@@ -140,7 +140,7 @@ include 'layout/header.php';
                             dot.style.boxShadow = '0 0 10px #10b981';
                             dotPing.style.background = '#10b981';
                             badge.style.background = 'rgba(16, 185, 129, 0.1)';
-                            badge.style.color = '#34d399';
+                            badge.style.color = '#10b981';
                             badge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
                             badge.textContent = 'ACTIVE';
                         } else {
@@ -149,7 +149,7 @@ include 'layout/header.php';
                             dot.style.boxShadow = '0 0 10px #ef4444';
                             dotPing.style.background = '#ef4444';
                             badge.style.background = 'rgba(239, 68, 68, 0.1)';
-                            badge.style.color = '#f87171';
+                            badge.style.color = '#ef4444';
                             badge.style.borderColor = 'rgba(239, 68, 68, 0.2)';
                             badge.textContent = 'INACTIVE';
                         }
