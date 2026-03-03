@@ -61,93 +61,118 @@ include 'layout/header.php';
     </div>
 
     <!-- Summary Widgets -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-        <div class="glass-panel" style="padding: 1.5rem; border-color: rgba(59, 130, 246, 0.2);">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div style="padding: 0.75rem; background-color: rgba(59, 130, 246, 0.1); border-radius: 0.75rem;">
-                    <i data-lucide="activity" style="width: 1.5rem; height: 1.5rem; color: #60a5fa;"></i>
-                </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        <div class="glass-card"
+            style="padding: 1.75rem; border-color: transparent; position: relative; overflow: hidden;">
+            <div
+                style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0) 70%); border-radius: 50%;">
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
                 <div>
-                    <h3 style="font-weight: 700; color: var(--slate-900); font-size: 1.125rem;">Total Hits</h3>
+                    <h3
+                        style="font-weight: 800; color: var(--slate-500); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                        Total Hits</h3>
                     <p
-                        style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                        style="font-size: 0.625rem; color: var(--slate-400); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
                         All Time</p>
+                </div>
+                <div
+                    style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);">
+                    <i data-lucide="activity" style="width: 24px; height: 24px; color: var(--primary);"></i>
                 </div>
             </div>
             <div
-                style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; font-family: 'Lexend', sans-serif; color: var(--slate-900);">
+                style="font-size: 2.25rem; line-height: 2.5rem; font-weight: 800; font-family: var(--font-heading); color: var(--slate-900); display: flex; align-items: baseline; gap: 0.5rem;">
                 <?= number_format($monthly_total_hits) ?>
             </div>
         </div>
 
-        <div class="glass-panel" style="padding: 1.5rem; border-color: rgba(168, 85, 247, 0.2);">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div style="padding: 0.75rem; background-color: rgba(168, 85, 247, 0.1); border-radius: 0.75rem;">
-                    <i data-lucide="hard-drive" style="width: 1.5rem; height: 1.5rem; color: #c084fc;"></i>
-                </div>
+        <div class="glass-card"
+            style="padding: 1.75rem; border-color: transparent; position: relative; overflow: hidden;">
+            <div
+                style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, rgba(168,85,247,0) 70%); border-radius: 50%;">
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
                 <div>
-                    <h3 style="font-weight: 700; color: var(--slate-900); font-size: 1.125rem;">Total Bandwidth</h3>
+                    <h3
+                        style="font-weight: 800; color: var(--slate-500); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                        Total Bandwidth</h3>
                     <p
-                        style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                        style="font-size: 0.625rem; color: var(--slate-400); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
                         All Time</p>
+                </div>
+                <div
+                    style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(168,85,247,0.1) 0%, rgba(168,85,247,0.05) 100%); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);">
+                    <i data-lucide="hard-drive" style="width: 24px; height: 24px; color: #a855f7;"></i>
                 </div>
             </div>
             <div
-                style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; font-family: 'Lexend', sans-serif; color: var(--slate-900);">
-                <?= round($monthly_total_bytes / 1024 / 1024, 2) ?> MB
+                style="font-size: 2.25rem; line-height: 2.5rem; font-weight: 800; font-family: var(--font-heading); color: var(--slate-900); display: flex; align-items: baseline; gap: 0.5rem;">
+                <?= round($monthly_total_bytes / 1024 / 1024, 2) ?>
+                <span style="font-size: 1rem; font-weight: 700; color: var(--slate-500);">MB</span>
             </div>
         </div>
     </div>
 
-    <div class="glass-panel" style="padding: 0; overflow: hidden; font-size: 0.875rem;">
+    <div class="glass-card table-card" style="padding: 0; overflow: hidden; font-size: 0.875rem;">
         <div
-            style="padding: 1rem; border-bottom: 1px solid var(--slate-300); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="font-weight: 700; color: var(--slate-900);">Domain Traffic</h3>
-            <button onclick="location.reload()" style="color: var(--slate-700); transition: color 0.2s;"
-                onmouseover="this.style.color='var(--slate-900)'" onmouseout="this.style.color='var(--slate-700)'">
+            style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading);">Domain Traffic
+                Details</h3>
+            <button onclick="location.reload()"
+                style="color: var(--slate-500); background: transparent; border: none; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-md); transition: all 0.2s;"
+                onmouseover="this.style.color='var(--slate-900)'; this.style.backgroundColor='var(--slate-100)';"
+                onmouseout="this.style.color='var(--slate-500)'; this.style.backgroundColor='transparent';">
                 <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i>
             </button>
         </div>
-        <div class="table-container">
-            <table class="modern-table" style="width: 100%; text-align: left;">
+        <div class="table-container custom-scrollbar">
+            <table class="modern-table w-full text-left border-collapse" style="width: 100%;">
                 <thead
-                    style="background-color: var(--slate-50); font-size: 0.625rem; text-transform: uppercase; color: var(--slate-700); font-weight: 700; letter-spacing: 0.05em;">
+                    style="background-color: var(--slate-50); font-size: 0.75rem; text-transform: uppercase; color: var(--slate-500); font-weight: 800; letter-spacing: 0.05em; border-bottom: 1px solid var(--slate-200);">
                     <tr>
-                        <th style="padding: 1.25rem; font-weight: 700;">Domain Name</th>
-                        <th style="padding: 1.25rem; font-weight: 700;">Hits Count</th>
-                        <th style="padding: 1.25rem; font-weight: 700; text-align: right; width: 250px;">Bandwidth Sent
+                        <th style="padding: 1rem 1.5rem;">Domain Name</th>
+                        <th style="padding: 1rem 1.5rem;">Hits Count</th>
+                        <th style="padding: 1rem 1.5rem; text-align: right; width: 250px;">Bandwidth Sent
                         </th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($domains_traffic)): ?>
                         <tr>
-                            <td colspan="3" style="padding: 2rem; text-align: center; color: var(--slate-700);">No domains
-                                found</td>
+                            <td colspan="3" style="padding: 3rem 1.5rem; text-align: center; color: var(--slate-500);">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="bar-chart-2" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                                    <span>No traffic data found.</span>
+                                </div>
+                            </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($domains_traffic as $t): ?>
-                            <tr style="transition: background-color 0.2s;"
-                                onmouseover="this.style.backgroundColor='rgba(248, 250, 252, 0.5)'"
+                            <tr style="border-bottom: 1px solid var(--slate-100); transition: background-color 0.2s;"
+                                onmouseover="this.style.backgroundColor='var(--slate-50)'"
                                 onmouseout="this.style.backgroundColor='transparent'">
-                                <td style="padding: 1.25rem; border-bottom: 1px solid var(--slate-200);">
-                                    <div style="font-weight: 700; color: var(--slate-900);">
+                                <td style="padding: 1.25rem 1.5rem;">
+                                    <div
+                                        style="font-weight: 800; color: var(--slate-900); display: flex; align-items: center; gap: 0.5rem;">
+                                        <i data-lucide="globe" style="width: 16px; height: 16px; color: var(--slate-400);"></i>
                                         <?= htmlspecialchars($t['domain']) ?>
                                     </div>
                                     <div
-                                        style="font-size: 0.625rem; color: var(--slate-700); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
+                                        style="font-size: 0.6875rem; color: var(--slate-500); margin-top: 0.375rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; display: flex; align-items: center; gap: 0.25rem;">
+                                        <i data-lucide="clock" style="width: 12px; height: 12px; opacity: 0.7;"></i>
                                         Last Activity:
-                                        <?= $t['last_activity'] ? date('M j, Y', strtotime($t['last_activity'])) : 'Never' ?>
+                                        <span
+                                            style="color: var(--slate-700);"><?= $t['last_activity'] ? date('M j, Y', strtotime($t['last_activity'])) : 'Never' ?></span>
                                     </div>
                                 </td>
-                                <td style="padding: 1.25rem; border-bottom: 1px solid var(--slate-200);">
-                                    <span
-                                        style="font-weight: 700; color: #34d399; background-color: rgba(16, 185, 129, 0.1); padding: 0.25rem 0.5rem; border-radius: 9999px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                <td style="padding: 1.25rem 1.5rem;">
+                                    <span class="badge badge-emerald" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;">
                                         <?= number_format((float) $t['total_hits']) ?>
                                     </span>
                                 </td>
                                 <td
-                                    style="padding: 1.25rem; text-align: right; font-family: monospace; font-size: 0.75rem; color: #60a5fa; border-bottom: 1px solid var(--slate-200);">
+                                    style="padding: 1.25rem 1.5rem; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; font-weight: 700; color: var(--primary);">
                                     <?= round((float) $t['total_bytes'] / 1024 / 1024, 2) ?> MB
                                 </td>
                             </tr>
