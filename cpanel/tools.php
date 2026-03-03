@@ -221,16 +221,20 @@ include 'layout/header.php';
 <div id="tab-apps" style="display: <?= $active_tab == 'apps' ? 'block' : 'none' ?>;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
         <!-- Install Form -->
-        <div class="glass-panel" style="padding: 1.5rem; height: fit-content;">
-            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Install Application</h3>
-            <form onsubmit="handleAppInstall(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div class="glass-card" style="padding: 2rem; height: fit-content;">
+            <h3
+                style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="download-cloud" style="width: 20px; height: 20px; color: var(--primary);"></i> Install
+                Application</h3>
+            <form onsubmit="handleAppInstall(event)" style="display: flex; flex-direction: column; gap: 1.25rem;">
                 <div>
                     <label
-                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Select
+                        style="font-size: 0.75rem; color: var(--slate-500); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Select
                         Domain</label>
-                    <select name="domain_id"
-                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; transition: border-color 0.2s;"
-                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'">
+                    <select name="domain_id" class="form-select"
+                        style="width: 100%; background-color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: var(--radius-lg); padding: 0.875rem 1rem; color: var(--slate-900); font-size: 0.875rem; outline: none; transition: all 0.2s;"
+                        onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                        onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='none';">
                         <?php foreach ($domains as $d): ?>
                             <option value="<?= $d['id'] ?>"><?= $d['domain'] ?></option>
                         <?php endforeach; ?>
@@ -238,10 +242,11 @@ include 'layout/header.php';
                 </div>
                 <div>
                     <label
-                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Application</label>
-                    <select name="app"
-                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; transition: border-color 0.2s;"
-                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'">
+                        style="font-size: 0.75rem; color: var(--slate-500); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Application</label>
+                    <select name="app" class="form-select"
+                        style="width: 100%; background-color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: var(--radius-lg); padding: 0.875rem 1rem; color: var(--slate-900); font-size: 0.875rem; outline: none; transition: all 0.2s;"
+                        onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                        onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='none';">
                         <option value="wordpress">WordPress</option>
                         <option value="laravel">Laravel</option>
                         <option value="codeigniter">CodeIgniter 4</option>
@@ -249,37 +254,44 @@ include 'layout/header.php';
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; display: flex; justify-content: center;">
+                    style="width: 100%; padding: 0.875rem; border-radius: var(--radius-lg); display: flex; justify-content: center; font-weight: 700; margin-top: 0.5rem; transition: transform 0.2s, box-shadow 0.2s;">
                     Install Now
                 </button>
             </form>
         </div>
 
         <!-- Recent Installations -->
-        <div class="glass-panel" style="padding: 0; overflow: hidden; grid-column: span 2;">
+        <div class="glass-card table-card" style="padding: 0; overflow: hidden; grid-column: span 2;">
             <div
-                style="padding: 1rem; border-bottom: 1px solid var(--slate-300); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="font-weight: 700; color: var(--slate-900);">Recent Installations</h3>
-                <button onclick="loadApps()" style="color: var(--slate-700); transition: color 0.2s;"
-                    onmouseover="this.style.color='var(--slate-900)'"
-                    onmouseout="this.style.color='var(--slate-700)'"><i data-lucide="refresh-cw"
-                        style="width: 1rem; height: 1rem;"></i></button>
+                style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading);">Recent
+                    Installations</h3>
+                <button onclick="loadApps()"
+                    style="color: var(--slate-500); background: transparent; border: none; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-md); transition: all 0.2s;"
+                    onmouseover="this.style.color='var(--slate-900)'; this.style.backgroundColor='var(--slate-100)';"
+                    onmouseout="this.style.color='var(--slate-500)'; this.style.backgroundColor='transparent';"><i
+                        data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i></button>
             </div>
-            <div class="table-container">
-                <table class="modern-table" style="width: 100%; text-align: left;">
+            <div class="table-container custom-scrollbar">
+                <table class="modern-table w-full text-left border-collapse" style="width: 100%;">
                     <thead
-                        style="background-color: var(--slate-50); font-size: 0.625rem; text-transform: uppercase; color: var(--slate-700); font-weight: 700; letter-spacing: 0.05em;">
+                        style="background-color: var(--slate-50); font-size: 0.75rem; text-transform: uppercase; color: var(--slate-500); font-weight: 800; letter-spacing: 0.05em; border-bottom: 1px solid var(--slate-200);">
                         <tr>
-                            <th style="padding: 1rem;">App</th>
-                            <th style="padding: 1rem;">Domain</th>
-                            <th style="padding: 1rem;">Status</th>
-                            <th style="padding: 1rem; text-align: right;">Action</th>
+                            <th style="padding: 1rem 1.5rem;">App</th>
+                            <th style="padding: 1rem 1.5rem;">Domain</th>
+                            <th style="padding: 1rem 1.5rem;">Status</th>
+                            <th style="padding: 1rem 1.5rem; text-align: right;">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="app-list" style="font-size: 0.875rem; color: var(--slate-700);">
+                    <tbody id="app-list">
                         <tr>
-                            <td colspan="4" style="padding: 1.5rem; text-align: center; color: var(--slate-700);">
-                                Loading...</td>
+                            <td colspan="4" style="padding: 3rem 1.5rem; text-align: center; color: var(--slate-500);">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="loader-2" class="animate-spin"
+                                        style="width: 24px; height: 24px; color: var(--primary);"></i>
+                                    <span style="font-size: 0.875rem; font-weight: 600;">Loading installations...</span>
+                                </div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -292,71 +304,85 @@ include 'layout/header.php';
 <div id="tab-ftp" style="display: <?= $active_tab == 'ftp' ? 'block' : 'none' ?>;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
         <!-- Add FTP Form -->
-        <div class="glass-panel" style="padding: 1.5rem; height: fit-content;">
-            <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Create FTP Account</h3>
-            <form onsubmit="handleFTPAdd(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div class="glass-card" style="padding: 2rem; height: fit-content;">
+            <h3
+                style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="folder-key" style="width: 20px; height: 20px; color: var(--primary);"></i> Create FTP
+                Account</h3>
+            <form onsubmit="handleFTPAdd(event)" style="display: flex; flex-direction: column; gap: 1.25rem;">
                 <div>
                     <label
-                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Username</label>
-                    <div
-                        style="display: flex; align-items: center; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; overflow: hidden;">
+                        style="font-size: 0.75rem; color: var(--slate-500); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Username</label>
+                    <div style="display: flex; align-items: center; background-color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"
+                        onfocusin="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                        onfocusout="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
                         <input name="ftp_user" required placeholder="user"
-                            style="background: transparent; padding: 0.75rem; width: 100%; color: var(--slate-900); outline: none; border: none;">
+                            style="background: transparent; padding: 0.875rem 1rem; width: 100%; color: var(--slate-900); font-size: 0.875rem; outline: none; border: none;">
                         <span
-                            style="padding: 0.75rem; color: var(--slate-700); background-color: var(--slate-50); border-left: 1px solid var(--slate-300);">@<?= $username ?></span>
+                            style="padding: 0.875rem 1rem; color: var(--slate-500); font-weight: 700; background-color: rgba(248, 250, 252, 0.5); border-left: 1px solid rgba(255, 255, 255, 0.4);">@<?= $username ?></span>
                     </div>
                 </div>
                 <div>
                     <label
-                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Password</label>
+                        style="font-size: 0.75rem; color: var(--slate-500); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Password</label>
                     <input type="password" name="pass" required
-                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; margin-bottom: 0.5rem; transition: border-color 0.2s;"
-                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'"
+                        style="width: 100%; background-color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: var(--radius-lg); padding: 0.875rem 1rem; color: var(--slate-900); font-size: 0.875rem; outline: none; margin-bottom: 0.75rem; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"
+                        onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                        onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';"
                         placeholder="Password">
                     <input type="password" name="pass2" required
-                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; transition: border-color 0.2s;"
-                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'"
+                        style="width: 100%; background-color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: var(--radius-lg); padding: 0.875rem 1rem; color: var(--slate-900); font-size: 0.875rem; outline: none; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"
+                        onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                        onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';"
                         placeholder="Confirm Password">
                 </div>
                 <div>
                     <label
-                        style="font-size: 0.75rem; color: var(--slate-700); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 0.5rem;">Directory
+                        style="font-size: 0.75rem; color: var(--slate-500); text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Directory
                         (Optional)</label>
                     <input name="dir" placeholder="/public_html"
-                        style="width: 100%; background-color: #fff; border: 1px solid var(--slate-300); border-radius: 0.5rem; padding: 0.75rem; color: var(--slate-900); outline: none; transition: border-color 0.2s;"
-                        onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='var(--slate-300)'">
+                        style="width: 100%; background-color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: var(--radius-lg); padding: 0.875rem 1rem; color: var(--slate-900); font-size: 0.875rem; outline: none; transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"
+                        onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
+                        onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
                 </div>
                 <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 0.75rem; border-radius: 0.75rem; display: flex; justify-content: center;">
+                    style="width: 100%; padding: 0.875rem; border-radius: var(--radius-lg); display: flex; justify-content: center; font-weight: 700; margin-top: 0.5rem; transition: transform 0.2s, box-shadow 0.2s;">
                     Create FTP User
                 </button>
             </form>
         </div>
 
         <!-- FTP List -->
-        <div class="glass-panel" style="padding: 0; overflow: hidden; grid-column: span 2;">
+        <div class="glass-card table-card" style="padding: 0; overflow: hidden; grid-column: span 2;">
             <div
-                style="padding: 1rem; border-bottom: 1px solid var(--slate-300); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="font-weight: 700; color: var(--slate-900);">FTP Accounts</h3>
-                <button onclick="loadFTP()" style="color: var(--slate-700); transition: color 0.2s;"
-                    onmouseover="this.style.color='var(--slate-900)'"
-                    onmouseout="this.style.color='var(--slate-700)'"><i data-lucide="refresh-cw"
-                        style="width: 1rem; height: 1rem;"></i></button>
+                style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading);">FTP Accounts
+                </h3>
+                <button onclick="loadFTP()"
+                    style="color: var(--slate-500); background: transparent; border: none; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-md); transition: all 0.2s;"
+                    onmouseover="this.style.color='var(--slate-900)'; this.style.backgroundColor='var(--slate-100)';"
+                    onmouseout="this.style.color='var(--slate-500)'; this.style.backgroundColor='transparent';"><i
+                        data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i></button>
             </div>
-            <div class="table-container">
-                <table class="modern-table" style="width: 100%; text-align: left;">
+            <div class="table-container custom-scrollbar">
+                <table class="modern-table w-full text-left border-collapse" style="width: 100%;">
                     <thead
-                        style="background-color: var(--slate-50); font-size: 0.625rem; text-transform: uppercase; color: var(--slate-700); font-weight: 700; letter-spacing: 0.05em;">
+                        style="background-color: var(--slate-50); font-size: 0.75rem; text-transform: uppercase; color: var(--slate-500); font-weight: 800; letter-spacing: 0.05em; border-bottom: 1px solid var(--slate-200);">
                         <tr>
-                            <th style="padding: 1rem;">Username</th>
-                            <th style="padding: 1rem;">Home Directory</th>
-                            <th style="padding: 1rem; text-align: right;">Action</th>
+                            <th style="padding: 1rem 1.5rem;">Username</th>
+                            <th style="padding: 1rem 1.5rem;">Home Directory</th>
+                            <th style="padding: 1rem 1.5rem; text-align: right;">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="ftp-list" style="font-size: 0.875rem; color: var(--slate-700);">
+                    <tbody id="ftp-list">
                         <tr>
-                            <td colspan="3" style="padding: 1.5rem; text-align: center; color: var(--slate-700);">
-                                Loading...</td>
+                            <td colspan="3" style="padding: 3rem 1.5rem; text-align: center; color: var(--slate-500);">
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="loader-2" class="animate-spin"
+                                        style="width: 24px; height: 24px; color: var(--primary);"></i>
+                                    <span style="font-size: 0.875rem; font-weight: 600;">Loading FTP accounts...</span>
+                                </div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -460,21 +486,27 @@ include 'layout/header.php';
 
             if (res.status === 'success' && res.data.length > 0) {
                 tbody.innerHTML = res.data.map(app => `
-<tr style="border-top: 1px solid var(--slate-300); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
-    <td style="padding: 1rem; font-weight: 700; color: var(--slate-900); text-transform: capitalize;">${app.app_type}</td>
-    <td style="padding: 1rem; color: var(--slate-700);">${app.domain}</td>
-    <td style="padding: 1rem;">
-        <span style="padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; ${app.status === 'active' ? 'background-color: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2);' :
-                        (app.status === 'failed' ? 'background-color: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2);' :
-                            'background-color: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2); animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;')
+<tr style="border-bottom: 1px solid var(--slate-100); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--slate-50)'" onmouseout="this.style.backgroundColor='transparent'">
+    <td style="padding: 1.25rem 1.5rem; font-weight: 800; color: var(--slate-900); text-transform: capitalize; font-size: 0.875rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="box" style="width: 16px; height: 16px; color: var(--slate-400);"></i>
+            ${app.app_type}
+        </div>
+    </td>
+    <td style="padding: 1.25rem 1.5rem; color: var(--slate-700); font-size: 0.875rem; font-weight: 600;">${app.domain}</td>
+    <td style="padding: 1.25rem 1.5rem;">
+        <span style="padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.25rem; ${app.status === 'active' ? 'background-color: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2);' :
+                        (app.status === 'failed' ? 'background-color: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2);' :
+                            'background-color: rgba(59, 130, 246, 0.1); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.2);')
                     }">
+            ${app.status === 'installing' ? '<i data-lucide="loader-2" class="animate-spin" style="width: 10px; height: 10px;"></i>' : ''}
             ${app.status}
         </span>
     </td>
-    <td style="padding: 1rem; text-align: right;">
+    <td style="padding: 1.25rem 1.5rem; text-align: right;">
         ${app.status === 'active' ?
-                        `<a href="http://${app.domain}" target="_blank" style="color: #60a5fa; margin-right: 0.5rem; transition: color 0.2s;" onmouseover="this.style.color='var(--slate-900)'" onmouseout="this.style.color='#60a5fa'"><i
-                data-lucide="external-link" style="width: 1rem; height: 1rem; display: inline-block;"></i></a>` :
+                        `<a href="http://${app.domain}" target="_blank" style="padding: 0.5rem; color: var(--primary); background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: var(--radius-md); transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;" onmouseover="this.style.backgroundColor='rgba(37, 99, 235, 0.2)'; this.style.borderColor='rgba(37, 99, 235, 0.3)';" onmouseout="this.style.backgroundColor='rgba(37, 99, 235, 0.1)'; this.style.borderColor='rgba(37, 99, 235, 0.2)';"><i
+                data-lucide="external-link" style="width: 16px; height: 16px;"></i></a>` :
                         ''}
     </td>
 </tr>
@@ -482,7 +514,12 @@ include 'layout/header.php';
                 lucide.createIcons();
             } else {
                 tbody.innerHTML = `<tr>
-    <td colspan="4" style="padding: 1.5rem; text-align: center; color: var(--slate-700);">No recent installations</td>
+    <td colspan="4" style="padding: 3rem 1.5rem; text-align: center; color: var(--slate-500);">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <i data-lucide="inbox" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+            <span>No recent installations found.</span>
+        </div>
+    </td>
 </tr>`;
             }
         } catch (e) { console.error(e); }
@@ -501,19 +538,29 @@ include 'layout/header.php';
 
             if (res.status === 'success' && res.data.length > 0) {
                 tbody.innerHTML = res.data.map(user => `
-<tr style="border-top: 1px solid var(--slate-300); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
-    <td style="padding: 1rem; font-weight: 700; color: var(--slate-900);">${user.userid}</td>
-    <td style="padding: 1rem; color: var(--slate-700); font-family: monospace; font-size: 0.75rem;">${user.homedir}</td>
-    <td style="padding: 1rem; text-align: right;">
-        <button onclick="delFTP('${user.userid}')" style="color: #f87171; padding: 0.5rem; border-radius: 0.25rem; transition: background-color 0.2s; border: none; background: transparent; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.backgroundColor='transparent'"><i
-                data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
+<tr style="border-bottom: 1px solid var(--slate-100); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--slate-50)'" onmouseout="this.style.backgroundColor='transparent'">
+    <td style="padding: 1.25rem 1.5rem; font-weight: 800; color: var(--slate-900); font-size: 0.875rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="user" style="width: 16px; height: 16px; color: var(--slate-400);"></i>
+            ${user.userid}
+        </div>
+    </td>
+    <td style="padding: 1.25rem 1.5rem; color: var(--primary); font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; font-weight: 700;">${user.homedir}</td>
+    <td style="padding: 1.25rem 1.5rem; text-align: right;">
+        <button onclick="delFTP('${user.userid}')" style="padding: 0.5rem; color: var(--accent-red); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-md); transition: all 0.2s; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'; this.style.borderColor='rgba(239, 68, 68, 0.3)';" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.2)';"><i
+                data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
     </td>
 </tr>
 `).join('');
                 lucide.createIcons();
             } else {
                 tbody.innerHTML = `<tr>
-    <td colspan="3" style="padding: 1.5rem; text-align: center; color: var(--slate-700);">No FTP accounts found</td>
+    <td colspan="3" style="padding: 3rem 1.5rem; text-align: center; color: var(--slate-500);">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+            <i data-lucide="users" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+            <span>No FTP accounts found.</span>
+        </div>
+    </td>
 </tr>`;
             }
         } catch (e) { console.error(e); }
