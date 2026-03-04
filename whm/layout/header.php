@@ -22,43 +22,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <link rel="stylesheet" href="/assets/css/modern-design.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* ── WHM-specific nav tweaks ── */
+        /* WHM-specific sizing tweaks – all colours/shadows come from modern-design.css */
         .nav-link {
             font-size: 0.8125rem;
             padding: 0.5rem 0.875rem;
-        }
-
-        /* ── Table overrides ── */
-        table {
-            border-collapse: collapse;
-        }
-
-        th {
-            font-size: 0.6875rem;
-        }
-
-        tr:hover td {
-            background: var(--slate-50);
-        }
-
-        /* ── Inline element overrides (for WHM page content that uses Tailwind-era slate classes) ── */
-        [class*="bg-slate-9"],
-        [class*="bg-slate-8"] {
-            background-color: var(--slate-100) !important;
-        }
-
-        [class*="border-slate-9"],
-        [class*="border-slate-8"] {
-            border-color: var(--slate-200) !important;
-        }
-
-        [class*="text-slate-4"],
-        [class*="text-slate-5"] {
-            color: var(--slate-500) !important;
-        }
-
-        [class*="text-white"]:not(button):not(.btn):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-emerald"]):not([class*="bg-amber"]):not([class*="bg-violet"]) {
-            color: var(--slate-800) !important;
         }
     </style>
 </head>
@@ -86,7 +53,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <span
-                    style="padding: 0.125rem 0.5rem; border-radius: 0.375rem; background: var(--slate-100); border: 1px solid var(--slate-200); font-size: 0.625rem; font-weight: 700; color: var(--slate-500);">v5.0-STABLE</span>
+                    style="padding: 0.125rem 0.5rem; border-radius: 0.375rem; background: var(--slate-100); border: 1px solid var(--slate-200); font-size: 0.625rem; font-weight: 700; color: var(--slate-500);"><?= defined('PANEL_VERSION') ? htmlspecialchars(PANEL_VERSION) : 'v5.0' ?></span>
             </div>
         </header>
 

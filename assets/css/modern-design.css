@@ -1354,3 +1354,22 @@ input[type="checkbox"]:indeterminate { accent-color: #3b82f6; }
 #item-context-menu { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
 #item-context-menu button:hover { background-color: var(--slate-100); }
 
+
+/* -- Sidebar logout link (CSS hover replaces inline JS) -- */
+.sidebar-logout {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--slate-500);
+    padding: 0.75rem;
+    border-radius: var(--radius-lg);
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+    text-decoration: none;
+}
+
+.sidebar-logout:hover {
+    color: var(--accent-red);
+    background-color: rgba(239, 68, 68, 0.07);
+}
+
+.sidebar-logout span { font-weight: 600; font-size: 0.75rem; }

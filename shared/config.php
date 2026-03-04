@@ -11,6 +11,9 @@ error_reporting(E_ALL);
  * Robust configuration loader supporting local environments.
  */
 
+// Panel version (used by WHM header badge)
+define('PANEL_VERSION', 'v5.0-STABLE');
+
 // Load security helper functions
 require_once __DIR__ . '/security_helpers.php';
 

@@ -290,7 +290,8 @@ include 'layout/header.php';
                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
                     <div class="action-icon"
                         style="padding: 1rem; background: rgba(168, 85, 247, 0.1); border-radius: 50%; color: #a855f7; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(168, 85, 247, 0.2);">
-                        <i data-lucide="database" style="width: 24px; height: 24px;"></i></div>
+                        <i data-lucide="database" style="width: 24px; height: 24px;"></i>
+                    </div>
                     <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">Add Database</span>
                 </a>
                 <a href="domains.php" class="glass-card action-card"
@@ -309,7 +310,8 @@ include 'layout/header.php';
                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
                     <div class="action-icon"
                         style="padding: 1rem; background: rgba(249, 115, 22, 0.1); border-radius: 50%; color: #f97316; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(249, 115, 22, 0.2);">
-                        <i data-lucide="wrench" style="width: 24px; height: 24px;"></i></div>
+                        <i data-lucide="wrench" style="width: 24px; height: 24px;"></i>
+                    </div>
                     <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">Tools &
                         Settings</span>
                 </a>
@@ -332,23 +334,31 @@ include 'layout/header.php';
                     <div
                         style="display: flex; justify-content: space-between; font-size: 0.875rem; padding: 0.5rem 0; border-bottom: 1px solid var(--slate-200);">
                         <span style="color: var(--slate-700);">PHP Version</span>
-                        <span style="font-family: monospace; color: var(--primary);">8.2 (Default)</span>
+                        <span style="font-family: monospace; color: var(--primary);"><?= phpversion() ?></span>
                     </div>
                     <div
                         style="display: flex; justify-content: space-between; font-size: 0.875rem; padding: 0.5rem 0; border-bottom: 1px solid var(--slate-200);">
                         <span style="color: var(--slate-700);">Web Server</span>
-                        <span style="font-family: monospace; color: var(--accent-emerald);">Nginx</span>
+                        <?php $srv_sw = $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown';
+                        $srv_display = explode('/', explode(' ', $srv_sw)[0])[0]; ?>
+                        <span style="font-family: monospace; color: var(--accent-emerald);"
+                            title="<?= htmlspecialchars($srv_sw) ?>"><?= htmlspecialchars($srv_display) ?></span>
                     </div>
                     <div style="margin-top: 1rem; padding-top: 0.5rem;">
-                        <div
-                            style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
+                        <?php
+                            $load_avg = sys_getloadavg();
+                            $load_val = isset($load_avg[0]) ? round($load_avg[0], 2) : 0;
+                            $load_pct = min(100, round($load_val / 4 * 100));
+                            if ($load_pct < 50)      { $lc = 'var(--accent-emerald)'; $ll = 'Healthy'; }
+                            elseif ($load_pct < 80)  { $lc = 'var(--accent-amber)';   $ll = 'Moderate'; }
+                            else                     { $lc = 'var(--accent-red)';     $ll = 'High'; }
+                        ?>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
                             <span style="color: var(--slate-700);">System Load</span>
-                            <span style="color: var(--accent-emerald);">Healthy</span>
+                            <span style="color: <?= $lc ?>; font-family: monospace;"><?= $load_val ?> &mdash; <?= $ll ?></span>
                         </div>
-                        <div
-                            style="height: 6px; background: var(--slate-100); border-radius: 9999px; overflow: hidden;">
-                            <div style="height: 100%; background: var(--accent-emerald); width: 25%;"
-                                class="animate-pulse"></div>
+                        <div style="height: 6px; background: var(--slate-100); border-radius: 9999px; overflow: hidden;">
+                            <div style="height: 100%; background: <?= $lc ?>; width: <?= $load_pct ?>%; transition: width 0.6s ease;"></div>
                         </div>
                     </div>
                 </div>

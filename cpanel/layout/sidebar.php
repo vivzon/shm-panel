@@ -70,12 +70,9 @@
     </div>
 
     <div style="margin-top: auto; padding: 1rem; border-top: 1px solid var(--slate-200);">
-        <a href="logout.php"
-            style="display: flex; align-items: center; gap: 0.75rem; color: var(--slate-500); padding: 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; text-decoration: none;"
-            onmouseover="this.style.color='var(--accent-red)'; this.style.backgroundColor='rgba(239, 68, 68, 0.1)';"
-            onmouseout="this.style.color='var(--slate-500)'; this.style.backgroundColor='transparent';">
+        <a href="logout.php" class="sidebar-logout">
             <i data-lucide="log-out" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
-            <span style="font-weight: 600; font-size: 0.75rem;">Sign Out</span>
+            <span>Sign Out</span>
         </a>
     </div>
 </aside>
