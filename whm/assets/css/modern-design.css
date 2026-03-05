@@ -743,7 +743,7 @@ th {
 .modern-table td,
 td {
     padding: 0.875rem 1rem;
-    border-bottom: 1px solid var(--border-color);
+    /* border-bottom: 1px solid var(--border-color); */
     color: var(--text-primary);
     vertical-align: middle;
     font-size: var(--input-font-size);
