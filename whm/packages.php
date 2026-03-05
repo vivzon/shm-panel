@@ -54,42 +54,40 @@ include 'layout/header.php';
 ?>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); font-family: var(--font-heading);">Service
-        Packages</h2>
+    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-heading);">
+        Service Packages</h2>
     <button onclick="openPkgModal()" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
         <i data-lucide="plus" style="width: 1rem; height: 1rem;"></i> Add Package
     </button>
 </div>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
     <?php foreach ($packages as $p): ?>
-        <div class="glass-card"
-            style="padding: 1.5rem; border-radius: 1rem; position: relative; transition: border-color 0.2s; border: 1px solid var(--border-color);"
-            onmouseover="this.style.borderColor='#60a5fa'" onmouseout="this.style.borderColor='var(--border-color)'">
+        <div class="glass-card animate-slide-right hover-glow"
+            style="padding: 1.5rem; border-radius: 1rem; position: relative; transition: all var(--transition-normal); border: 1px solid var(--border-color);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900);">
+                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary);">
                     <?= $p['name'] ?>
                 </h3>
-                <div style="padding: 0.5rem; background: var(--slate-50); border-radius: 0.5rem; color: var(--slate-700);">
+                <div
+                    style="padding: 0.5rem; background: var(--bg-body); border-radius: 0.5rem; color: var(--text-secondary);">
                     <i data-lucide="box" style="width: 1rem; height: 1rem;"></i>
                 </div>
             </div>
             <div
-                style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.875rem; color: var(--slate-700); margin-bottom: 2rem; font-weight: 500;">
+                style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 2rem; font-weight: 500;">
                 <div
-                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: var(--slate-50); border: 1px solid var(--border-color);">
-                    <i data-lucide="hard-drive" style="width: 1rem; height: 1rem; color: #60a5fa;"></i>
-                    <?= $p['disk_mb'] ?> MB
-                    Storage
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: var(--bg-body); border: 1px solid var(--border-color);">
+                    <i data-lucide="hard-drive" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
+                    <?= $p['disk_mb'] ?> MB Storage
                 </div>
                 <div
-                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: var(--slate-50); border: 1px solid var(--border-color);">
-                    <i data-lucide="globe" style="width: 1rem; height: 1rem; color: #34d399;"></i>
-                    <?= $p['max_domains'] ?>
-                    Domains
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: var(--bg-body); border: 1px solid var(--border-color);">
+                    <i data-lucide="globe" style="width: 1rem; height: 1rem; color: var(--accent-emerald);"></i>
+                    <?= $p['max_domains'] ?> Domains
                 </div>
                 <div
-                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: var(--slate-50); border: 1px solid var(--border-color);">
-                    <i data-lucide="mail" style="width: 1rem; height: 1rem; color: #c084fc;"></i>
+                    style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: var(--bg-body); border: 1px solid var(--border-color);">
+                    <i data-lucide="mail" style="width: 1rem; height: 1rem; color: var(--accent-purple);"></i>
                     <?= $p['max_emails'] ?> Emails
                 </div>
             </div>
@@ -97,7 +95,7 @@ include 'layout/header.php';
                 <button onclick='openPkgModal(<?= json_encode($p) ?>)' class="btn btn-outline"
                     style="flex: 1; padding: 0.625rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border-radius: 0.75rem;">Edit</button>
                 <button onclick="delPkg(<?= $p['id'] ?>)"
-                    style="background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 0.75rem; padding: 0.625rem; transition: background-color 0.2s;"
+                    style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 0.75rem; padding: 0.625rem; transition: background-color 0.2s;"
                     onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'"
                     onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'"><i data-lucide="trash-2"
                         style="width: 1rem; height: 1rem;"></i></button>
@@ -108,11 +106,11 @@ include 'layout/header.php';
 
 <!-- PACKAGE MODAL -->
 <div id="modal-pkg" class="modal hidden"
-    style="position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1.5rem;">
-    <form id="form-pkg" onsubmit="handleGeneric(event, 'save_package')" class="glass-card"
-        style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 28rem; position: relative;">
+    style="position: fixed; inset: 0; background: var(--bg-glass); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1.5rem; transition: all var(--transition-normal);">
+    <form id="form-pkg" onsubmit="handleGeneric(event, 'save_package')" class="glass-card animate-slide-right"
+        style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 28rem; position: relative; background: var(--bg-surface);">
         <h3 id="pkg-title"
-            style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--slate-900); font-family: var(--font-heading);">
+            style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--text-primary); font-family: var(--font-heading);">
             Plan Configuration</h3>
         <input type="hidden" name="id" id="pkg-id">
         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
@@ -124,19 +122,19 @@ include 'layout/header.php';
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label
-                        style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.25rem;">Disk</label>
+                        style="font-size: 0.625rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.25rem;">Disk</label>
                     <input name="disk" id="pkg-disk" type="number" placeholder="MB" required class="form-input"
                         style="width: 100%; padding: 1rem; border-radius: 0.75rem; text-align: center;">
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label
-                        style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.25rem;">Doms</label>
+                        style="font-size: 0.625rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.25rem;">Doms</label>
                     <input name="doms" id="pkg-doms" type="number" placeholder="#" required class="form-input"
                         style="width: 100%; padding: 1rem; border-radius: 0.75rem; text-align: center;">
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     <label
-                        style="font-size: 0.625rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.25rem;">Mail</label>
+                        style="font-size: 0.625rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.25rem;">Mail</label>
                     <input name="mails" id="pkg-mails" type="number" placeholder="#" required class="form-input"
                         style="width: 100%; padding: 1rem; border-radius: 0.75rem; text-align: center;">
                 </div>

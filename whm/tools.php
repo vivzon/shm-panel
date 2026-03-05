@@ -131,35 +131,36 @@ include 'layout/header.php';
 ?>
 
 <div style="margin-bottom: 2rem;">
-    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem;">System Tools</h2>
-    <p style="color: var(--slate-700); font-size: 0.875rem;">Configure system services and accounts.</p>
+    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">System Tools
+    </h2>
+    <p style="color: var(--text-secondary); font-size: 0.875rem;">Configure system services and accounts.</p>
 </div>
 
 <!-- TABS -->
 <div
     style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem; overflow-x: auto; scrollbar-width: none;">
     <a href="?tab=ftp"
-        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'ftp' ? '#6366f1' : 'transparent' ?>; color: <?= $active_tab == 'ftp' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
-        onmouseover="this.style.color='var(--slate-900)'"
-        onmouseout="this.style.color='<?= $active_tab == 'ftp' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'ftp' ? 'var(--primary)' : 'transparent' ?>; color: <?= $active_tab == 'ftp' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>; transition: all var(--transition-normal); white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--text-primary)'"
+        onmouseout="this.style.color='<?= $active_tab == 'ftp' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>'">
         FTP Manager
     </a>
     <a href="?tab=mail"
-        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'mail' ? '#6366f1' : 'transparent' ?>; color: <?= $active_tab == 'mail' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
-        onmouseover="this.style.color='var(--slate-900)'"
-        onmouseout="this.style.color='<?= $active_tab == 'mail' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'mail' ? 'var(--primary)' : 'transparent' ?>; color: <?= $active_tab == 'mail' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>; transition: all var(--transition-normal); white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--text-primary)'"
+        onmouseout="this.style.color='<?= $active_tab == 'mail' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>'">
         Mail Manager
     </a>
     <a href="?tab=php"
-        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'php' ? '#6366f1' : 'transparent' ?>; color: <?= $active_tab == 'php' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
-        onmouseover="this.style.color='var(--slate-900)'"
-        onmouseout="this.style.color='<?= $active_tab == 'php' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'php' ? 'var(--primary)' : 'transparent' ?>; color: <?= $active_tab == 'php' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>; transition: all var(--transition-normal); white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--text-primary)'"
+        onmouseout="this.style.color='<?= $active_tab == 'php' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>'">
         PHP Config
     </a>
     <a href="?tab=network"
-        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'network' ? '#6366f1' : 'transparent' ?>; color: <?= $active_tab == 'network' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
-        onmouseover="this.style.color='var(--slate-900)'"
-        onmouseout="this.style.color='<?= $active_tab == 'network' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'network' ? 'var(--primary)' : 'transparent' ?>; color: <?= $active_tab == 'network' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>; transition: all var(--transition-normal); white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--text-primary)'"
+        onmouseout="this.style.color='<?= $active_tab == 'network' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>'">
         Network Settings
     </a>
 </div>
@@ -168,14 +169,15 @@ include 'layout/header.php';
 <div style="display: <?= $active_tab == 'ftp' ? 'block' : 'none' ?>;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
         <!-- CREATE FTP -->
-        <div class="glass-card" style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden;">
+        <div class="glass-card animate-slide-right hover-glow"
+            style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden;">
             <div
                 style="position: absolute; right: -2.5rem; top: -2.5rem; width: 10rem; height: 10rem; background: rgba(37, 99, 235, 0.1); border-radius: 9999px; filter: blur(24px);">
             </div>
             <h3
-                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--slate-900); font-family: var(--font-heading);">
+                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-family: var(--font-heading);">
                 <div
-                    style="padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.5rem; border: 1px solid rgba(59, 130, 246, 0.2); color: #3b82f6;">
+                    style="padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.5rem; border: 1px solid rgba(59, 130, 246, 0.2); color: var(--primary);">
                     <i data-lucide="folder-up" style="width: 1.25rem; height: 1.25rem;"></i>
                 </div>
                 Create FTP Account
@@ -206,15 +208,15 @@ include 'layout/header.php';
         </div>
 
         <!-- LIST FTP -->
-        <div class="glass-card"
-            style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%;">
+        <div class="glass-card animate-slide-right hover-glow"
+            style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%; animation-delay: 0.1s;">
             <h3
-                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-primary); font-family: var(--font-heading);">
                 Existing Accounts</h3>
             <div style="overflow-y: auto; flex: 1; max-height: 400px;" class="custom-scrollbar">
                 <table style="width: 100%; text-align: left; border-collapse: collapse;">
                     <thead
-                        style="background: var(--slate-50); font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--slate-700); position: sticky; top: 0; backdrop-filter: blur(12px);">
+                        style="background: var(--bg-body); font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); position: sticky; top: 0; backdrop-filter: blur(12px);">
                         <tr>
                             <th style="padding: 0.75rem;">User</th>
                             <th style="padding: 0.75rem;">Home</th>
@@ -223,7 +225,7 @@ include 'layout/header.php';
                     </thead>
                     <tbody id="ftp-list" class="divide-y divide-slate-700/50">
                         <tr>
-                            <td colspan="3" style="padding: 1rem; text-align: center; color: var(--slate-700);">
+                            <td colspan="3" style="padding: 1rem; text-align: center; color: var(--text-secondary);">
                                 Loading...</td>
                         </tr>
                     </tbody>
@@ -237,14 +239,15 @@ include 'layout/header.php';
 <div style="display: <?= $active_tab == 'mail' ? 'block' : 'none' ?>;">
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
         <!-- CREATE MAIL -->
-        <div class="glass-card" style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden;">
+        <div class="glass-card animate-slide-right hover-glow"
+            style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden;">
             <div
                 style="position: absolute; right: -2.5rem; top: -2.5rem; width: 10rem; height: 10rem; background: rgba(16, 185, 129, 0.1); border-radius: 9999px; filter: blur(24px);">
             </div>
             <h3
-                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--slate-900); font-family: var(--font-heading);">
+                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-family: var(--font-heading);">
                 <div
-                    style="padding: 0.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; border: 1px solid rgba(16, 185, 129, 0.2); color: #10b981;">
+                    style="padding: 0.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; border: 1px solid rgba(16, 185, 129, 0.2); color: var(--accent-emerald);">
                     <i data-lucide="mail-plus" style="width: 1.25rem; height: 1.25rem;"></i>
                 </div>
                 Create Email Account
@@ -254,7 +257,8 @@ include 'layout/header.php';
                 <div style="display: flex; gap: 0.5rem;">
                     <input name="prefix" required placeholder="user" class="form-input"
                         style="flex: 1; border-radius: 0.75rem; text-align: right;">
-                    <div style="display: flex; align-items: center; color: var(--slate-700); font-weight: 700;">@</div>
+                    <div style="display: flex; align-items: center; color: var(--text-secondary); font-weight: 700;">@
+                    </div>
                     <select name="domain" required class="form-input"
                         style="flex: 1; border-radius: 0.75rem; cursor: pointer;">
                         <?php foreach ($mail_domains as $d): ?>
@@ -275,15 +279,15 @@ include 'layout/header.php';
         </div>
 
         <!-- LIST MAIL -->
-        <div class="glass-card"
-            style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%;">
+        <div class="glass-card animate-slide-right hover-glow"
+            style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%; animation-delay: 0.1s;">
             <h3
-                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+                style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-primary); font-family: var(--font-heading);">
                 Existing Mailboxes</h3>
             <div style="overflow-y: auto; flex: 1; max-height: 400px;" class="custom-scrollbar">
                 <table style="width: 100%; text-align: left; border-collapse: collapse;">
                     <thead
-                        style="background: var(--slate-50); font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--slate-700); position: sticky; top: 0; backdrop-filter: blur(12px);">
+                        style="background: var(--bg-body); font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); position: sticky; top: 0; backdrop-filter: blur(12px);">
                         <tr>
                             <th style="padding: 0.75rem;">Email Address</th>
                             <th style="padding: 0.75rem; text-align: right;">Action</th>
@@ -291,7 +295,7 @@ include 'layout/header.php';
                     </thead>
                     <tbody id="mail-list" class="divide-y divide-slate-700/50">
                         <tr>
-                            <td colspan="2" style="padding: 1rem; text-align: center; color: var(--slate-700);">
+                            <td colspan="2" style="padding: 1rem; text-align: center; color: var(--text-secondary);">
                                 Loading...</td>
                         </tr>
                     </tbody>
@@ -303,15 +307,15 @@ include 'layout/header.php';
 
 <!-- CONTENT: PHP -->
 <div style="display: <?= $active_tab == 'php' ? 'block' : 'none' ?>;">
-    <div class="glass-card"
+    <div class="glass-card animate-slide-right hover-glow"
         style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; max-width: 42rem;">
         <div
             style="position: absolute; right: -2.5rem; top: -2.5rem; width: 10rem; height: 10rem; background: rgba(147, 51, 234, 0.1); border-radius: 9999px; filter: blur(24px);">
         </div>
         <h3
-            style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--slate-900); font-family: var(--font-heading);">
+            style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-family: var(--font-heading);">
             <div
-                style="padding: 0.5rem; background: rgba(168, 85, 247, 0.1); border-radius: 0.5rem; border: 1px solid rgba(168, 85, 247, 0.2); color: #a855f7;">
+                style="padding: 0.5rem; background: rgba(168, 85, 247, 0.1); border-radius: 0.5rem; border: 1px solid rgba(168, 85, 247, 0.2); color: var(--accent-purple);">
                 <i data-lucide="code" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             PHP Handlers
@@ -321,7 +325,7 @@ include 'layout/header.php';
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div>
                     <label
-                        style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; margin-bottom: 0.25rem; display: block;">User
+                        style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; margin-bottom: 0.25rem; display: block;">User
                         / Site</label>
                     <select name="sys_user" required class="form-input"
                         style="width: 100%; border-radius: 0.75rem; font-family: monospace; font-size: 0.875rem;">
@@ -332,7 +336,7 @@ include 'layout/header.php';
                 </div>
                 <div>
                     <label
-                        style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; margin-bottom: 0.25rem; display: block;">PHP
+                        style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; margin-bottom: 0.25rem; display: block;">PHP
                         Version</label>
                     <select name="php_version" required class="form-input"
                         style="width: 100%; border-radius: 0.75rem; font-family: monospace; font-size: 0.875rem;">
@@ -352,13 +356,13 @@ include 'layout/header.php';
 
 <!-- CONTENT: NETWORK -->
 <div style="display: <?= $active_tab == 'network' ? 'block' : 'none' ?>;">
-    <div class="glass-card"
+    <div class="glass-card animate-slide-right hover-glow"
         style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden; max-width: 42rem;">
         <div
             style="position: absolute; right: -2.5rem; top: -2.5rem; width: 10rem; height: 10rem; background: rgba(234, 88, 12, 0.1); border-radius: 9999px; filter: blur(24px);">
         </div>
         <h3
-            style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--slate-900); font-family: var(--font-heading);">
+            style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-family: var(--font-heading);">
             <div
                 style="padding: 0.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 0.5rem; border: 1px solid rgba(249, 115, 22, 0.2); color: #f97316;">
                 <i data-lucide="network" style="width: 1.25rem; height: 1.25rem;"></i>
@@ -431,20 +435,20 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(u => {
                     list.innerHTML += `
-                        <tr style="transition: all 0.2s; border-bottom: 1px solid var(--border-color);" onmouseover="this.style.background='rgba(248, 250, 252, 0.3)'" onmouseout="this.style.background='transparent'">
-                            <td style="padding: 1rem; font-family: monospace; font-size: 0.75rem; color: #93c5fd; font-weight: 700;">${u.userid}</td>
-                            <td style="padding: 1rem; color: var(--slate-700); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; font-family: monospace;">${u.homedir}</td>
+                        <tr style="transition: all var(--transition-normal); border-bottom: 1px solid var(--border-color);" onmouseover="this.style.background='var(--bg-body)'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 1rem; font-family: monospace; font-size: 0.75rem; color: var(--primary); font-weight: 700;">${u.userid}</td>
+                            <td style="padding: 1rem; color: var(--text-secondary); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; font-family: monospace;">${u.homedir}</td>
                             <td style="padding: 1rem; text-align: right;">
-                                <button onclick="delFTP('${u.userid}')" style="padding: 0.5rem; border-radius: 0.5rem; color: #f87171; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.color='#ef4444';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f87171';"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
+                                <button onclick="delFTP('${u.userid}')" style="padding: 0.5rem; border-radius: 0.5rem; color: var(--accent-red); transition: all 0.2s; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.color='#ef4444';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--accent-red)';"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
                             </td>
                         </tr>
                      `;
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--slate-700); font-style: italic; font-size: 0.875rem;">No FTP accounts found.</td></tr>';
+                list.innerHTML = '<tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--text-secondary); font-style: italic; font-size: 0.875rem;">No FTP accounts found.</td></tr>';
             }
-        } catch (e) { list.innerHTML = '<tr><td colspan="3" style="padding: 1rem; text-align: center; color: #f87171;">Error loading data.</td></tr>'; }
+        } catch (e) { list.innerHTML = '<tr><td colspan="3" style="padding: 1rem; text-align: center; color: var(--accent-red);">Error loading data.</td></tr>'; }
     }
 
     // Mail Loader
@@ -459,22 +463,22 @@ include 'layout/header.php';
             if (res.data && res.data.length > 0) {
                 res.data.forEach(u => {
                     list.innerHTML += `
-                        <tr style="transition: all 0.2s; border-bottom: 1px solid var(--border-color);" onmouseover="this.style.background='rgba(248, 250, 252, 0.3)'" onmouseout="this.style.background='transparent'">
-                            <td style="padding: 1rem; font-size: 0.875rem; color: var(--slate-900); font-weight: 500;">
+                        <tr style="transition: all var(--transition-normal); border-bottom: 1px solid var(--border-color);" onmouseover="this.style.background='var(--bg-surface)'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 1rem; font-size: 0.875rem; color: var(--text-primary); font-weight: 500;">
                                 ${u.email}
-                                <div style="font-size: 0.625rem; color: var(--slate-700); font-family: monospace; margin-top: 0.125rem;">${u.domain}</div>
+                                <div style="font-size: 0.625rem; color: var(--text-secondary); font-family: monospace; margin-top: 0.125rem;">${u.domain}</div>
                             </td>
                             <td style="padding: 1rem; text-align: right;">
-                                <button onclick="delMail(${u.id}, '${u.email}')" style="padding: 0.5rem; border-radius: 0.5rem; color: #f87171; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.color='#ef4444';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#f87171';"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
+                                <button onclick="delMail(${u.id}, '${u.email}')" style="padding: 0.5rem; border-radius: 0.5rem; color: var(--accent-red); transition: all 0.2s; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.color='#ef4444';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--accent-red)';"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
                             </td>
                         </tr>
                      `;
                 });
                 lucide.createIcons();
             } else {
-                list.innerHTML = '<tr><td colspan="2" style="padding: 2rem; text-align: center; color: var(--slate-700); font-style: italic; font-size: 0.875rem;">No mailboxes found.</td></tr>';
+                list.innerHTML = '<tr><td colspan="2" style="padding: 2rem; text-align: center; color: var(--text-secondary); font-style: italic; font-size: 0.875rem;">No mailboxes found.</td></tr>';
             }
-        } catch (e) { list.innerHTML = '<tr><td colspan="2" style="padding: 1rem; text-align: center; color: #f87171;">Error loading data.</td></tr>'; }
+        } catch (e) { list.innerHTML = '<tr><td colspan="2" style="padding: 1rem; text-align: center; color: var(--accent-red);">Error loading data.</td></tr>'; }
     }
 
     async function delFTP(user) {

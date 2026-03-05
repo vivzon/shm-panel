@@ -58,36 +58,35 @@ include 'layout/header.php';
 ?>
 
 <h2
-    style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--slate-900); font-family: var(--font-heading);">
+    style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--text-primary); font-family: var(--font-heading);">
     Service Engine</h2>
 <div id="services-container"
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
     <?php foreach ($services as $id => $name): ?>
-        <div data-service="<?= $id ?>" class="glass-card"
-            style="padding: 1.5rem; border-radius: 1rem; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.2s; border: 1px solid var(--border-color);"
-            onmouseover="this.style.borderColor='rgba(59, 130, 246, 0.3)'"
-            onmouseout="this.style.borderColor='var(--border-color)'">
+        <div data-service="<?= $id ?>" class="glass-card animate-slide-up hover-glow"
+            style="padding: 1.5rem; border-radius: 1rem; display: flex; justify-content: space-between; align-items: center; transition: border-color var(--transition-normal); border: 1px solid var(--border-color);"
+            onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <div style="position: relative;">
                     <div class="status-dot"
-                        style="width: 0.75rem; height: 0.75rem; border-radius: 9999px; background: var(--slate-500); box-shadow: 0 0 10px #64748b;">
+                        style="width: 0.75rem; height: 0.75rem; border-radius: 9999px; background: var(--text-secondary); box-shadow: 0 0 10px var(--text-secondary);">
                     </div>
                     <div class="status-dot-ping"
-                        style="width: 0.75rem; height: 0.75rem; border-radius: 9999px; background: var(--slate-500); position: absolute; top: 0; animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.75;">
+                        style="width: 0.75rem; height: 0.75rem; border-radius: 9999px; background: var(--text-secondary); position: absolute; top: 0; animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.75;">
                     </div>
                 </div>
                 <div>
-                    <p style="font-weight: 700; font-size: 1.125rem; color: var(--slate-900); transition: color 0.2s;"
-                        onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--slate-900)'">
+                    <p style="font-weight: 700; font-size: 1.125rem; color: var(--text-primary); transition: color var(--transition-normal);"
+                        onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
                         <?= $name ?>
                     </p>
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
                         <p
-                            style="font-size: 0.625rem; font-family: monospace; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">
+                            style="font-size: 0.625rem; font-family: monospace; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">
                             <?= $id ?>
                         </p>
                         <span class="status-badge"
-                            style="padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(100, 116, 139, 0.1); color: var(--slate-700); border: 1px solid rgba(100, 116, 139, 0.2);">
+                            style="padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(100, 116, 139, 0.1); color: var(--text-secondary); border: 1px solid rgba(100, 116, 139, 0.2);">
                             CHECKING...
                         </span>
                     </div>
@@ -95,15 +94,15 @@ include 'layout/header.php';
             </div>
             <div style="display: flex; gap: 0.5rem;">
                 <button onclick="servAction('<?= $id ?>','restart')" title="Restart"
-                    style="padding: 0.75rem; background: var(--slate-50); border-radius: 0.75rem; color: #60a5fa; border: 1px solid var(--slate-300); transition: all 0.2s; box-shadow: var(--shadow-lg); cursor: pointer;"
-                    onmouseover="this.style.color='var(--slate-900)'; this.style.backgroundColor='#2563eb'"
-                    onmouseout="this.style.color='#60a5fa'; this.style.backgroundColor='var(--slate-50)'">
+                    style="padding: 0.75rem; background: var(--bg-body); border-radius: 0.75rem; color: var(--primary); border: 1px solid var(--border-color); transition: all var(--transition-normal); box-shadow: var(--shadow-md); cursor: pointer;"
+                    onmouseover="this.style.color='white'; this.style.backgroundColor='var(--primary)'; this.style.borderColor='var(--primary)'"
+                    onmouseout="this.style.color='var(--primary)'; this.style.backgroundColor='var(--bg-body)'; this.style.borderColor='var(--border-color)'">
                     <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i>
                 </button>
                 <button onclick="servAction('<?= $id ?>','stop')" title="Stop"
-                    style="padding: 0.75rem; background: var(--slate-50); border-radius: 0.75rem; color: #ef4444; border: 1px solid var(--slate-300); transition: all 0.2s; box-shadow: var(--shadow-lg); cursor: pointer;"
-                    onmouseover="this.style.color='var(--slate-900)'; this.style.backgroundColor='#dc2626'"
-                    onmouseout="this.style.color='#ef4444'; this.style.backgroundColor='var(--slate-50)'">
+                    style="padding: 0.75rem; background: var(--bg-body); border-radius: 0.75rem; color: var(--accent-red); border: 1px solid var(--border-color); transition: all var(--transition-normal); box-shadow: var(--shadow-md); cursor: pointer;"
+                    onmouseover="this.style.color='white'; this.style.backgroundColor='var(--accent-red)'; this.style.borderColor='var(--accent-red)'"
+                    onmouseout="this.style.color='var(--accent-red)'; this.style.backgroundColor='var(--bg-body)'; this.style.borderColor='var(--border-color)'">
                     <i data-lucide="power" style="width: 1rem; height: 1rem;"></i>
                 </button>
             </div>
@@ -136,20 +135,20 @@ include 'layout/header.php';
 
                         if (service.active) {
                             // Active state - green
-                            dot.style.background = '#10b981';
-                            dot.style.boxShadow = '0 0 10px #10b981';
-                            dotPing.style.background = '#10b981';
+                            dot.style.background = 'var(--accent-emerald)';
+                            dot.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.5)';
+                            dotPing.style.background = 'var(--accent-emerald)';
                             badge.style.background = 'rgba(16, 185, 129, 0.1)';
-                            badge.style.color = '#10b981';
+                            badge.style.color = 'var(--accent-emerald)';
                             badge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
                             badge.textContent = 'ACTIVE';
                         } else {
                             // Inactive state - red
-                            dot.style.background = '#ef4444';
-                            dot.style.boxShadow = '0 0 10px #ef4444';
-                            dotPing.style.background = '#ef4444';
+                            dot.style.background = 'var(--accent-red)';
+                            dot.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.5)';
+                            dotPing.style.background = 'var(--accent-red)';
                             badge.style.background = 'rgba(239, 68, 68, 0.1)';
-                            badge.style.color = '#ef4444';
+                            badge.style.color = 'var(--accent-red)';
                             badge.style.borderColor = 'rgba(239, 68, 68, 0.2)';
                             badge.textContent = 'INACTIVE';
                         }

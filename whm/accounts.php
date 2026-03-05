@@ -261,10 +261,11 @@ include 'layout/header.php';
 
 <!-- CRUD MODAL -->
 <div id="modal-acc" class="modal hidden"
-    style="position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1.5rem;">
-    <form id="form-acc" onsubmit="handleGeneric(event, 'save_account')" class="glass-card"
-        style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 32rem; background: white; box-shadow: var(--shadow-2xl); border: 1px solid var(--border-color);">
-        <h3 id="acc-title" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--slate-900);">
+    style="position: fixed; inset: 0; background: var(--bg-glass); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1.5rem; transition: all var(--transition-normal);">
+    <form id="form-acc" onsubmit="handleGeneric(event, 'save_account')" class="glass-card animate-slide-right"
+        style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 32rem; background: var(--bg-surface); box-shadow: var(--shadow-2xl); border: 1px solid var(--border-color);">
+        <h3 id="acc-title"
+            style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--text-primary);">
             Client Details</h3>
         <input type="hidden" name="id" id="acc-id">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -354,25 +355,25 @@ include 'layout/header.php';
         tbody.innerHTML = data.rows.map(c => {
             const safeUsername = c.username.replace(/'/g, "\\'");
             return `
-            <tr style="transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--slate-50)'" onmouseout="this.style.backgroundColor='transparent'">
+            <tr style="transition: background-color var(--transition-fast); border-bottom: 1px solid var(--border-color);" onmouseover="this.style.backgroundColor='var(--primary-light)'" onmouseout="this.style.backgroundColor='transparent'">
                 <td style="padding: 1.25rem;">
-                    <div style="font-weight: 700; color: var(--slate-900); font-size: 0.875rem;">${c.username}</div>
-                    <div style="font-size: 0.75rem; color: #60a5fa;">${c.domain || 'No domain'}</div>
+                    <div style="font-weight: 700; color: var(--text-primary); font-size: 0.875rem;">${c.username}</div>
+                    <div style="font-size: 0.75rem; color: var(--primary-hover);">${c.domain || 'No domain'}</div>
                 </td>
                 <td style="padding: 1.25rem;">
-                    <span style="background: var(--slate-100); border: 1px solid var(--slate-300); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 700; color: var(--slate-700);">${c.pkg_name}</span>
+                    <span style="background: var(--bg-body); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 700; color: var(--text-secondary);">${c.pkg_name}</span>
                 </td>
                 <td style="padding: 1.25rem;">
-                    <span style="padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 700; border: 1px solid ${c.status === 'active' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; background: ${c.status === 'active' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${c.status === 'active' ? '#10b981' : '#ef4444'};">
+                    <span style="padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 700; border: 1px solid ${c.status === 'active' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; background: ${c.status === 'active' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${c.status === 'active' ? 'var(--accent-emerald)' : 'var(--accent-red)'};">
                         ${c.status.toUpperCase()}
                     </span>
                 </td>
                 <td style="padding: 1.25rem; text-align: right; display: flex; justify-content: flex-end; gap: 0.25rem;">
-                    <button onclick="loginAs('${safeUsername}', ${c.id})" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#60a5fa'" onmouseout="this.style.color='var(--slate-700)'" title="Login"><i data-lucide="key" style="width: 1rem; height: 1rem;"></i></button>
-                    <button onclick="toggleSus('${safeUsername}', ${c.status === 'active'})" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#fb923c'" onmouseout="this.style.color='var(--slate-700)'" title="Suspend"><i data-lucide="${c.status === 'active' ? 'pause-circle' : 'play-circle'}" style="width: 1rem; height: 1rem;"></i></button>
-                    <button onclick="editClient(${c.id})" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--slate-900)'" onmouseout="this.style.color='var(--slate-700)'" title="Edit"><i data-lucide="edit-3" style="width: 1rem; height: 1rem;"></i></button>
-                    <button onclick="resetAcc('${safeUsername}')" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='var(--slate-700)'" title="Reset Files"><i data-lucide="rotate-ccw" style="width: 1rem; height: 1rem;"></i></button>
-                    <button onclick="delAcc(${c.id}, '${safeUsername}')" style="padding: 0.5rem; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--slate-700)'" title="Delete"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
+                    <button onclick="loginAs('${safeUsername}', ${c.id})" style="padding: 0.5rem; color: var(--text-secondary); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-hover)'" onmouseout="this.style.color='var(--text-secondary)'" title="Login"><i data-lucide="key" style="width: 1rem; height: 1rem;"></i></button>
+                    <button onclick="toggleSus('${safeUsername}', ${c.status === 'active'})" style="padding: 0.5rem; color: var(--text-secondary); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-amber)'" onmouseout="this.style.color='var(--text-secondary)'" title="Suspend"><i data-lucide="${c.status === 'active' ? 'pause-circle' : 'play-circle'}" style="width: 1rem; height: 1rem;"></i></button>
+                    <button onclick="editClient(${c.id})" style="padding: 0.5rem; color: var(--text-secondary); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'" title="Edit"><i data-lucide="edit-3" style="width: 1rem; height: 1rem;"></i></button>
+                    <button onclick="resetAcc('${safeUsername}')" style="padding: 0.5rem; color: var(--text-secondary); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-red)'" onmouseout="this.style.color='var(--text-secondary)'" title="Reset Files"><i data-lucide="rotate-ccw" style="width: 1rem; height: 1rem;"></i></button>
+                    <button onclick="delAcc(${c.id}, '${safeUsername}')" style="padding: 0.5rem; color: var(--text-secondary); background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-red)'" onmouseout="this.style.color='var(--text-secondary)'" title="Delete"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
                 </td>
             </tr>
         `}).join('');

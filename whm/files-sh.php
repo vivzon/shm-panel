@@ -321,107 +321,108 @@ function get_file_icon($is_dir, $ext) {
 include 'layout/header.php';
 ?>
 
-<div class="flex justify-between items-center mb-8 gap-4">
-    <div class="flex items-center gap-4">
-        <h2 class="text-2xl font-bold text-white font-heading">File Manager</h2>
-        <div class="text-sm text-slate-500 font-mono bg-slate-900/50 px-3 py-1 rounded-lg border border-slate-800">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-heading);">File Manager</h2>
+        <div style="font-size: 0.875rem; color: var(--text-secondary); font-family: monospace; background: var(--bg-surface); padding: 0.25rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-color);">
             <?= htmlspecialchars($current_path) ?>
         </div>
     </div>
 </div>
 
-<div class="glass-panel p-6 rounded-2xl mb-8">
-    <div class="flex flex-wrap gap-4 items-center">
-        <button onclick="togglePanel('upload-panel')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
-            <i data-lucide="upload" class="w-4 h-4"></i> Upload
+<div class="glass-card animate-slide-up hover-glow" style="padding: 1.5rem; margin-bottom: 2rem; border-radius: 1.5rem;">
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;">
+        <button onclick="togglePanel('upload-panel')" class="btn btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="upload" style="width: 1rem; height: 1rem;"></i> Upload
         </button>
-        <button onclick="togglePanel('folder-panel')" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-slate-700">
-            <i data-lucide="folder-plus" class="w-4 h-4"></i> New Folder
+        <button onclick="togglePanel('folder-panel')" style="background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: all var(--transition-normal);" onmouseover="this.style.background='var(--bg-surface)'" onmouseout="this.style.background='var(--bg-body)'">
+            <i data-lucide="folder-plus" style="width: 1rem; height: 1rem;"></i> New Folder
         </button>
-        <a href="?zip_project=1&path=<?= urlencode($current_path) ?>" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-slate-700">
-            <i data-lucide="download-cloud" class="w-4 h-4"></i> Full ZIP
+        <a href="?zip_project=1&path=<?= urlencode($current_path) ?>" style="background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-decoration: none; transition: all var(--transition-normal);" onmouseover="this.style.background='var(--bg-surface)'" onmouseout="this.style.background='var(--bg-body)'">
+            <i data-lucide="download-cloud" style="width: 1rem; height: 1rem;"></i> Full ZIP
         </a>
 
-        <div class="flex-1 min-w-[200px]">
-            <form method="get" class="relative">
+        <div style="flex: 1; min-width: 200px; position: relative;">
+            <form method="get" style="margin: 0;">
                 <input type="hidden" name="path" value="<?= htmlspecialchars($current_path) ?>">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-500"></i>
-                <input type="text" name="q" placeholder="Search files..." value="<?= htmlspecialchars($search_query) ?>"
-                    class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white outline-none focus:border-blue-500 transition">
+                <i data-lucide="search" style="width: 1rem; height: 1rem; position: absolute; left: 0.75rem; top: 0.625rem; color: var(--text-secondary);"></i>
+                <input type="text" name="q" placeholder="Search files..." value="<?= htmlspecialchars($search_query) ?>" class="form-input" style="width: 100%; padding-left: 2.5rem; border-radius: 0.75rem;">
             </form>
         </div>
     </div>
 
-    <div id="upload-panel" class="mt-6 p-6 bg-slate-900/50 rounded-xl border border-slate-800 hidden">
-        <form method="post" enctype="multipart/form-data" class="flex items-center gap-4">
-            <input type="file" name="file" required class="text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-blue-600/10 file:text-blue-400 hover:file:bg-blue-600/20">
-            <button type="submit" name="upload_file" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase transition hover:bg-blue-500">Start Upload</button>
+    <div id="upload-panel" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-body); border-radius: 1rem; border: 1px solid var(--border-color); display: none;">
+        <form method="post" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <input type="file" name="file" required style="font-size: 0.875rem; color: var(--text-secondary); cursor: pointer;">
+            <button type="submit" name="upload_file" class="btn btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; text-transform: uppercase;">Start Upload</button>
         </form>
     </div>
 
-    <div id="folder-panel" class="mt-6 p-6 bg-slate-900/50 rounded-xl border border-slate-800 hidden">
-        <form method="post" class="flex items-center gap-4">
-            <input type="text" name="folder_name" placeholder="Folder Name" required class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white outline-none">
-            <button type="submit" name="create_folder" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase transition hover:bg-blue-500">Create Folder</button>
+    <div id="folder-panel" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-body); border-radius: 1rem; border: 1px solid var(--border-color); display: none;">
+        <form method="post" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <input type="text" name="folder_name" placeholder="Folder Name" required class="form-input" style="flex: 1; border-radius: 0.75rem; min-width: 200px;">
+            <button type="submit" name="create_folder" class="btn btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; text-transform: uppercase;">Create Folder</button>
         </form>
     </div>
 </div>
 
-<div class="glass-panel rounded-2xl overflow-hidden border border-slate-800/50">
-    <table class="w-full text-left">
-        <thead class="bg-slate-900/80 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-800">
-            <tr>
-                <th class="p-4">Name</th>
-                <th class="p-4">Size</th>
-                <th class="p-4">Perms</th>
-                <th class="p-4">Modified</th>
-                <th class="p-4 text-right">Actions</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-800/50">
-            <?php if ($current_path !== '/'): ?>
-                <tr class="hover:bg-slate-800/30 transition">
-                    <td class="p-4" colspan="5">
-                        <a href="?path=<?= urlencode(dirname($current_path)) ?>" class="flex items-center gap-3 text-sm text-blue-400 font-bold">
-                            <i data-lucide="corner-left-up" class="w-4 h-4"></i> ..
-                        </a>
-                    </td>
+<div class="glass-card animate-slide-up hover-glow" style="overflow: hidden; border-radius: 1.5rem; animation-delay: 0.1s;">
+    <div style="overflow-x: auto;" class="custom-scrollbar">
+        <table style="width: 100%; text-align: left; border-collapse: collapse;">
+            <thead style="background: var(--bg-body); text-shadow: none; font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">
+                <tr>
+                    <th style="padding: 1rem;">Name</th>
+                    <th style="padding: 1rem;">Size</th>
+                    <th style="padding: 1rem;">Perms</th>
+                    <th style="padding: 1rem;">Modified</th>
+                    <th style="padding: 1rem; text-align: right;">Actions</th>
                 </tr>
-            <?php endif; ?>
+            </thead>
+            <tbody style="border-top: 1px solid var(--border-color);">
+                <?php if ($current_path !== '/'): ?>
+                    <tr style="border-bottom: 1px solid var(--border-color); transition: all var(--transition-normal);" onmouseover="this.style.background='var(--bg-body)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 1rem;" colspan="5">
+                            <a href="?path=<?= urlencode(dirname($current_path)) ?>" style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; color: var(--primary); font-weight: 700; text-decoration: none;">
+                                <i data-lucide="corner-left-up" style="width: 1rem; height: 1rem;"></i> ..
+                            </a>
+                        </td>
+                    </tr>
+                <?php endif; ?>
 
-            <?php foreach ($files as $f): ?>
-                <tr class="hover:bg-slate-800/30 transition group">
-                    <td class="p-4">
-                        <div class="flex items-center gap-3">
-                            <?= get_file_icon($f['is_dir'], $f['extension']) ?>
-                            <?php if ($f['is_dir']): ?>
-                                <a href="?path=<?= urlencode($f['relative']) ?>" class="text-sm font-bold text-white hover:text-blue-400 transition">
-                                    <?= htmlspecialchars($f['name']) ?>
-                                </a>
-                            <?php else: ?>
-                                <span class="text-sm font-medium text-slate-300"><?= htmlspecialchars($f['name']) ?></span>
-                            <?php endif; ?>
-                        </div>
-                    </td>
-                    <td class="p-4 text-xs text-slate-500"><?= $f['is_dir'] ? '-' : format_file_size($f['size']) ?></td>
-                    <td class="p-4 text-xs font-mono text-slate-500"><?= $f['permissions'] ?></td>
-                    <td class="p-4 text-xs text-slate-500"><?= $f['modified'] ?></td>
-                    <td class="p-4 text-right">
-                        <div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
-                            <?php if (!$f['is_dir']): ?>
-                                <a href="?download=<?= urlencode($f['relative']) ?>" class="p-2 text-slate-400 hover:text-blue-400" title="Download"><i data-lucide="download" class="w-4 h-4"></i></a>
-                            <?php endif; ?>
-                            <button onclick="renameItem('<?= addslashes($f['relative']) ?>', '<?= addslashes($f['name']) ?>')" class="p-2 text-slate-400 hover:text-white" title="Rename"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                            <button onclick="deleteItem('<?= addslashes($f['relative']) ?>', '<?= addslashes($f['name']) ?>')" class="p-2 text-slate-400 hover:text-red-500" title="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            <?php if (empty($files)): ?>
-                <tr><td colspan="5" class="p-8 text-center text-slate-600 text-sm">No files found.</td></tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+                <?php foreach ($files as $f): ?>
+                    <tr style="border-bottom: 1px solid var(--border-color); transition: all var(--transition-normal);" onmouseover="this.style.background='var(--bg-body)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <?= get_file_icon($f['is_dir'], $f['extension']) ?>
+                                <?php if ($f['is_dir']): ?>
+                                    <a href="?path=<?= urlencode($f['relative']) ?>" style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary); text-decoration: none; transition: color var(--transition-normal);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
+                                        <?= htmlspecialchars($f['name']) ?>
+                                    </a>
+                                <?php else: ?>
+                                    <span style="font-size: 0.875rem; font-weight: 500; color: var(--text-secondary);"><?= htmlspecialchars($f['name']) ?></span>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                        <td style="padding: 1rem; font-size: 0.75rem; color: var(--text-secondary);"><?= $f['is_dir'] ? '-' : format_file_size($f['size']) ?></td>
+                        <td style="padding: 1rem; font-size: 0.75rem; font-family: monospace; color: var(--text-secondary);"><?= $f['permissions'] ?></td>
+                        <td style="padding: 1rem; font-size: 0.75rem; color: var(--text-secondary);"><?= $f['modified'] ?></td>
+                        <td style="padding: 1rem; text-align: right;">
+                            <div style="display: flex; justify-content: flex-end; gap: 0.25rem;">
+                                <?php if (!$f['is_dir']): ?>
+                                    <a href="?download=<?= urlencode($f['relative']) ?>" title="Download" style="padding: 0.5rem; color: var(--text-secondary); cursor: pointer; transition: color var(--transition-normal);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'"><i data-lucide="download" style="width: 1rem; height: 1rem;"></i></a>
+                                <?php endif; ?>
+                                <button onclick="renameItem('<?= addslashes($f['relative']) ?>', '<?= addslashes($f['name']) ?>')" title="Rename" style="padding: 0.5rem; color: var(--text-secondary); cursor: pointer; border: none; background: transparent; transition: color var(--transition-normal);" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'"><i data-lucide="edit-3" style="width: 1rem; height: 1rem;"></i></button>
+                                <button onclick="deleteItem('<?= addslashes($f['relative']) ?>', '<?= addslashes($f['name']) ?>')" title="Delete" style="padding: 0.5rem; color: var(--text-secondary); cursor: pointer; border: none; background: transparent; transition: color var(--transition-normal);" onmouseover="this.style.color='var(--accent-red)'" onmouseout="this.style.color='var(--text-secondary)'"><i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                <?php if (empty($files)): ?>
+                    <tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-secondary); font-size: 0.875rem;">No files found.</td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <form id="js-form" method="post" style="display:none;">
@@ -434,7 +435,7 @@ include 'layout/header.php';
 <script>
     function togglePanel(id) {
         const el = document.getElementById(id);
-        el.classList.toggle('hidden');
+        el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
     }
 
     function deleteItem(path, name) {

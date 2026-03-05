@@ -75,9 +75,10 @@ include 'layout/header.php';
                 style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem;">
                 <div>
                     <h2
-                        style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); font-family: var(--font-heading);">
+                        style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-heading);">
                         Server Config Manager</h2>
-                    <p style="color: var(--slate-700); font-size: 0.875rem;">Manage Nginx, PHP and Upload Settings</p>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem;">Manage Nginx, PHP and Upload Settings
+                    </p>
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -97,14 +98,15 @@ include 'layout/header.php';
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
 
                 <!-- Nginx Upload Settings -->
-                <div class="glass-card" style="padding: 1.5rem; border-radius: 1rem;">
+                <div class="glass-card animate-slide-right hover-glow"
+                    style="padding: 1.5rem; border-radius: 1rem; position: relative;">
                     <div
                         style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
                         <div
-                            style="width: 2rem; height: 2rem; border-radius: 0.5rem; background: rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center; color: #60a5fa;">
+                            style="width: 2rem; height: 2rem; border-radius: 0.5rem; background: rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center; color: var(--primary);">
                             <i data-lucide="server" style="width: 1rem; height: 1rem;"></i>
                         </div>
-                        <h3 style="font-weight: 700; color: var(--slate-900);">Nginx Upload Settings</h3>
+                        <h3 style="font-weight: 700; color: var(--text-primary);">Nginx Upload Settings</h3>
                     </div>
 
                     <div
@@ -170,14 +172,15 @@ include 'layout/header.php';
                 </div>
 
                 <!-- FastCGI Timeout Settings -->
-                <div class="glass-card" style="padding: 1.5rem; border-radius: 1rem;">
+                <div class="glass-card animate-slide-right hover-glow"
+                    style="padding: 1.5rem; border-radius: 1rem; animation-delay: 0.1s; position: relative;">
                     <div
                         style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
                         <div
-                            style="width: 2rem; height: 2rem; border-radius: 0.5rem; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; color: #818cf8;">
+                            style="width: 2rem; height: 2rem; border-radius: 0.5rem; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; color: var(--secondary);">
                             <i data-lucide="network" style="width: 1rem; height: 1rem;"></i>
                         </div>
-                        <h3 style="font-weight: 700; color: var(--slate-900);">FastCGI & Proxy</h3>
+                        <h3 style="font-weight: 700; color: var(--text-primary);">FastCGI & Proxy</h3>
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 1rem;">
@@ -229,15 +232,16 @@ include 'layout/header.php';
                 </div>
 
                 <!-- PHP Configuration -->
-                <div class="glass-card" style="padding: 1.5rem; border-radius: 1rem; grid-column: 1 / -1;">
+                <div class="glass-card animate-slide-right hover-glow"
+                    style="padding: 1.5rem; border-radius: 1rem; grid-column: 1 / -1; animation-delay: 0.2s; position: relative;">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
                             <div
-                                style="width: 2rem; height: 2rem; border-radius: 0.5rem; background: rgba(236, 72, 153, 0.2); display: flex; align-items: center; justify-content: center; color: #f472b6;">
+                                style="width: 2rem; height: 2rem; border-radius: 0.5rem; background: rgba(236, 72, 153, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-purple);">
                                 <i data-lucide="file-code" style="width: 1rem; height: 1rem;"></i>
                             </div>
-                            <h3 style="font-weight: 700; color: var(--slate-900);">PHP Configuration</h3>
+                            <h3 style="font-weight: 700; color: var(--text-primary);">PHP Configuration</h3>
                         </div>
 
                         <div>
@@ -346,8 +350,9 @@ include 'layout/header.php';
                 </div>
 
                 <!-- Operations & Presets -->
-                <div class="glass-card" style="padding: 1.5rem; border-radius: 1rem; grid-column: 1 / -1;">
-                    <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Operations & Presets
+                <div class="glass-card animate-slide-right hover-glow"
+                    style="padding: 1.5rem; border-radius: 1rem; grid-column: 1 / -1; animation-delay: 0.3s; position: relative;">
+                    <h3 style="font-weight: 700; color: var(--text-primary); margin-bottom: 1rem;">Operations & Presets
                     </h3>
 
                     <div
@@ -412,39 +417,40 @@ include 'layout/header.php';
 
             <!-- Tabs -->
             <div
-                style="display: flex; gap: 0.5rem; padding: 0.25rem; background: rgba(255, 255, 255, 0.8); border-radius: 0.75rem; border: 1px solid var(--border-color);">
+                style="display: flex; gap: 0.5rem; padding: 0.25rem; background: var(--bg-surface); border-radius: 0.75rem; border: 1px solid var(--border-color);">
                 <button onclick="switchPreview('nginx', this)" class="preview-tab active"
-                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 700; transition: all 0.2s; background: var(--slate-50); color: var(--slate-900); box-shadow: var(--shadow-sm); border: none; cursor: pointer;">
+                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 700; transition: all 0.2s; background: var(--bg-body); color: var(--text-primary); box-shadow: var(--shadow-sm); border: none; cursor: pointer;">
                     nginx.conf
                 </button>
                 <button onclick="switchPreview('php', this)" class="preview-tab"
-                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 700; color: var(--slate-700); transition: all 0.2s; background: transparent; border: none; cursor: pointer;"
-                    onmouseover="this.style.color='var(--slate-900)'" onmouseout="this.style.color='var(--slate-700)'">
+                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); transition: all 0.2s; background: transparent; border: none; cursor: pointer;"
+                    onmouseover="this.style.color='var(--text-primary)'"
+                    onmouseout="this.style.color='var(--text-secondary)'">
                     php.ini
                 </button>
             </div>
 
             <!-- Code Windows -->
-            <div class="glass-card"
-                style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 500px; border-radius: 1rem;">
+            <div class="glass-card animate-slide-right"
+                style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 500px; border-radius: 1rem; animation-delay: 0.4s; position: relative;">
                 <div
-                    style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); background: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--slate-700); font-size: 0.75rem; font-family: 'Fira Code', monospace;"
+                    style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); background: var(--bg-body); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.75rem; font-family: 'Fira Code', monospace;"
                         id="previewTitle">
                         <i data-lucide="file-code" style="width: 0.875rem; height: 0.875rem;"></i> /etc/nginx/nginx.conf
                     </div>
                     <div
-                        style="color: #10b981; font-size: 0.625rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.25rem;">
+                        style="color: var(--accent-emerald); font-size: 0.625rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.25rem;">
                         <i data-lucide="check-circle-2" style="width: 0.75rem; height: 0.75rem;"></i> Valid
                     </div>
                 </div>
 
-                <div style="flex: 1; background: rgba(255, 255, 255, 0.8); padding: 1rem; overflow-y: auto;"
+                <div style="flex: 1; background: var(--bg-surface); padding: 1rem; overflow-y: auto;"
                     class="custom-scrollbar">
                     <pre id="preview-nginx"
-                        style="font-family: 'Fira Code', monospace; font-size: 0.75rem; line-height: 1.625; color: var(--slate-700); white-space: pre-wrap; word-break: break-word;"></pre>
+                        style="font-family: 'Fira Code', monospace; font-size: 0.75rem; line-height: 1.625; color: var(--text-secondary); white-space: pre-wrap; word-break: break-word;"></pre>
                     <pre id="preview-php" class="hidden"
-                        style="font-family: 'Fira Code', monospace; font-size: 0.75rem; line-height: 1.625; color: var(--slate-700); white-space: pre-wrap; word-break: break-word;"></pre>
+                        style="font-family: 'Fira Code', monospace; font-size: 0.75rem; line-height: 1.625; color: var(--text-secondary); white-space: pre-wrap; word-break: break-word;"></pre>
                 </div>
             </div>
 

@@ -161,8 +161,8 @@ include 'layout/header.php';
 <div
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
     <!-- CPU -->
-    <div class="glass-card"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s;"
+    <div class="glass-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.1s;"
         onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
         onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
         <div class="bg-icon"
@@ -184,8 +184,8 @@ include 'layout/header.php';
     </div>
 
     <!-- RAM -->
-    <div class="glass-card"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s;"
+    <div class="glass-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.2s;"
         onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
         onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
         <div class="bg-icon"
@@ -207,8 +207,8 @@ include 'layout/header.php';
     </div>
 
     <!-- DISK -->
-    <div class="glass-card"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s;"
+    <div class="glass-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.3s;"
         onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
         onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
         <div class="bg-icon"
@@ -230,8 +230,8 @@ include 'layout/header.php';
     </div>
 
     <!-- UPTIME -->
-    <div class="glass-card"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s;"
+    <div class="glass-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.4s;"
         onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
         onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
         <div class="bg-icon"
@@ -448,13 +448,13 @@ include 'layout/header.php';
                 maintainAspectRatio: false,
                 animation: false,
                 interaction: { mode: 'index', intersect: false },
-                plugins: { legend: { labels: { color: '#94a3b8' } } },
+                plugins: { legend: { labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-muted') || '#94a3b8' } } },
                 scales: {
                     y: {
                         beginAtZero: true,
                         max: 100,
-                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                        ticks: { color: '#64748b' }
+                        grid: { color: 'rgba(150, 150, 150, 0.1)' },
+                        ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#64748b' }
                     },
                     x: { display: false }
                 }
