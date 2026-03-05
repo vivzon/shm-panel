@@ -140,7 +140,7 @@ include 'layout/header.php';
             <div
                 style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; position: relative; z-index: 10;">
                 <div
-                    style="padding: 0.75rem; background: rgba(37, 99, 235, 0.1); color: var(--primary); border-radius: 0.75rem;">
+                    style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(37, 99, 235, 0.1); color: var(--primary); border-radius: 0.75rem;">
                     <i data-lucide="globe" style="width: 24px; height: 24px;"></i>
                 </div>
                 <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_dom ?> /
@@ -170,7 +170,7 @@ include 'layout/header.php';
             <div
                 style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; position: relative; z-index: 10;">
                 <div
-                    style="padding: 0.75rem; background: rgba(168, 85, 247, 0.1); color: #a855f7; border-radius: 0.75rem;">
+                    style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(168, 85, 247, 0.1); color: #a855f7; border-radius: 0.75rem;">
                     <i data-lucide="database" style="width: 24px; height: 24px;"></i>
                 </div>
                 <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_db ?> /
@@ -200,7 +200,7 @@ include 'layout/header.php';
             <div
                 style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; position: relative; z-index: 10;">
                 <div
-                    style="padding: 0.75rem; background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald); border-radius: 0.75rem;">
+                    style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald); border-radius: 0.75rem;">
                     <i data-lucide="mail" style="width: 24px; height: 24px;"></i>
                 </div>
                 <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_mail ?> /
@@ -230,7 +230,7 @@ include 'layout/header.php';
             <div
                 style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; position: relative; z-index: 10;">
                 <div
-                    style="padding: 0.75rem; background: rgba(249, 115, 22, 0.1); color: #f97316; border-radius: 0.75rem;">
+                    style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(249, 115, 22, 0.1); color: #f97316; border-radius: 0.75rem;">
                     <i data-lucide="hard-drive" style="width: 24px; height: 24px;"></i>
                 </div>
                 <span class="badge"
@@ -279,7 +279,7 @@ include 'layout/header.php';
                     onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(59, 130, 246, 0.3)'; this.style.boxShadow='0 20px 25px -5px rgba(59, 130, 246, 0.1), 0 8px 10px -6px rgba(59, 130, 246, 0.1)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
                     <div class="action-icon"
-                        style="padding: 1rem; background: rgba(59, 130, 246, 0.1); border-radius: 50%; color: var(--primary); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(59, 130, 246, 0.2);">
+                        style="display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(59, 130, 246, 0.1); border-radius: 50%; color: var(--primary); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(59, 130, 246, 0.2);">
                         <i data-lucide="mail-plus" style="width: 24px; height: 24px;"></i>
                     </div>
                     <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">New Email</span>
@@ -289,7 +289,7 @@ include 'layout/header.php';
                     onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(168, 85, 247, 0.3)'; this.style.boxShadow='0 20px 25px -5px rgba(168, 85, 247, 0.1), 0 8px 10px -6px rgba(168, 85, 247, 0.1)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
                     <div class="action-icon"
-                        style="padding: 1rem; background: rgba(168, 85, 247, 0.1); border-radius: 50%; color: #a855f7; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(168, 85, 247, 0.2);">
+                        style="display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(168, 85, 247, 0.1); border-radius: 50%; color: #a855f7; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(168, 85, 247, 0.2);">
                         <i data-lucide="database" style="width: 24px; height: 24px;"></i>
                     </div>
                     <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">Add Database</span>
@@ -299,7 +299,7 @@ include 'layout/header.php';
                     onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.boxShadow='0 20px 25px -5px rgba(16, 185, 129, 0.1), 0 8px 10px -6px rgba(16, 185, 129, 0.1)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
                     <div class="action-icon"
-                        style="padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 50%; color: var(--accent-emerald); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(16, 185, 129, 0.2);">
+                        style="display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 50%; color: var(--accent-emerald); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(16, 185, 129, 0.2);">
                         <i data-lucide="globe" style="width: 24px; height: 24px;"></i>
                     </div>
                     <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">Add Domain</span>
@@ -309,7 +309,7 @@ include 'layout/header.php';
                     onmouseover="this.style.transform='translateY(-6px)'; this.style.borderColor='rgba(249, 115, 22, 0.3)'; this.style.boxShadow='0 20px 25px -5px rgba(249, 115, 22, 0.1), 0 8px 10px -6px rgba(249, 115, 22, 0.1)';"
                     onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='transparent'; this.style.boxShadow='var(--shadow-md)';">
                     <div class="action-icon"
-                        style="padding: 1rem; background: rgba(249, 115, 22, 0.1); border-radius: 50%; color: #f97316; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(249, 115, 22, 0.2);">
+                        style="display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(249, 115, 22, 0.1); border-radius: 50%; color: #f97316; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(249, 115, 22, 0.2);">
                         <i data-lucide="wrench" style="width: 24px; height: 24px;"></i>
                     </div>
                     <span style="font-weight: 800; font-size: 0.875rem; color: var(--slate-800);">Tools &
@@ -346,19 +346,31 @@ include 'layout/header.php';
                     </div>
                     <div style="margin-top: 1rem; padding-top: 0.5rem;">
                         <?php
-                            $load_avg = sys_getloadavg();
-                            $load_val = isset($load_avg[0]) ? round($load_avg[0], 2) : 0;
-                            $load_pct = min(100, round($load_val / 4 * 100));
-                            if ($load_pct < 50)      { $lc = 'var(--accent-emerald)'; $ll = 'Healthy'; }
-                            elseif ($load_pct < 80)  { $lc = 'var(--accent-amber)';   $ll = 'Moderate'; }
-                            else                     { $lc = 'var(--accent-red)';     $ll = 'High'; }
+                        $load_avg = sys_getloadavg();
+                        $load_val = isset($load_avg[0]) ? round($load_avg[0], 2) : 0;
+                        $load_pct = min(100, round($load_val / 4 * 100));
+                        if ($load_pct < 50) {
+                            $lc = 'var(--accent-emerald)';
+                            $ll = 'Healthy';
+                        } elseif ($load_pct < 80) {
+                            $lc = 'var(--accent-amber)';
+                            $ll = 'Moderate';
+                        } else {
+                            $lc = 'var(--accent-red)';
+                            $ll = 'High';
+                        }
                         ?>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
                             <span style="color: var(--slate-700);">System Load</span>
-                            <span style="color: <?= $lc ?>; font-family: monospace;"><?= $load_val ?> &mdash; <?= $ll ?></span>
+                            <span style="color: <?= $lc ?>; font-family: monospace;"><?= $load_val ?> &mdash;
+                                <?= $ll ?></span>
                         </div>
-                        <div style="height: 6px; background: var(--slate-100); border-radius: 9999px; overflow: hidden;">
-                            <div style="height: 100%; background: <?= $lc ?>; width: <?= $load_pct ?>%; transition: width 0.6s ease;"></div>
+                        <div
+                            style="height: 6px; background: var(--slate-100); border-radius: 9999px; overflow: hidden;">
+                            <div
+                                style="height: 100%; background: <?= $lc ?>; width: <?= $load_pct ?>%; transition: width 0.6s ease;">
+                            </div>
                         </div>
                     </div>
                 </div>
