@@ -177,7 +177,7 @@ include 'layout/header.php';
             <h3
                 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-family: var(--font-heading);">
                 <div
-                    style="padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.5rem; border: 1px solid rgba(59, 130, 246, 0.2); color: var(--primary);">
+                    style="display: flex; align-items: center; justify-content: center;padding: 0.5rem; background: rgba(59, 130, 246, 0.1); border-radius: 0.5rem; border: 1px solid rgba(59, 130, 246, 0.2); color: var(--primary);">
                     <i data-lucide="folder-up" style="width: 1.25rem; height: 1.25rem;"></i>
                 </div>
                 Create FTP Account
@@ -247,7 +247,7 @@ include 'layout/header.php';
             <h3
                 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-family: var(--font-heading);">
                 <div
-                    style="padding: 0.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; border: 1px solid rgba(16, 185, 129, 0.2); color: var(--accent-emerald);">
+                    style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; background: rgba(16, 185, 129, 0.1); border-radius: 0.5rem; border: 1px solid rgba(16, 185, 129, 0.2); color: var(--accent-emerald);">
                     <i data-lucide="mail-plus" style="width: 1.25rem; height: 1.25rem;"></i>
                 </div>
                 Create Email Account
@@ -315,7 +315,7 @@ include 'layout/header.php';
         <h3
             style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-family: var(--font-heading);">
             <div
-                style="padding: 0.5rem; background: rgba(168, 85, 247, 0.1); border-radius: 0.5rem; border: 1px solid rgba(168, 85, 247, 0.2); color: var(--accent-purple);">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; background: rgba(168, 85, 247, 0.1); border-radius: 0.5rem; border: 1px solid rgba(168, 85, 247, 0.2); color: var(--accent-purple);">
                 <i data-lucide="code" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             PHP Handlers
@@ -364,7 +364,7 @@ include 'layout/header.php';
         <h3
             style="font-size: 1.25rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-family: var(--font-heading);">
             <div
-                style="padding: 0.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 0.5rem; border: 1px solid rgba(249, 115, 22, 0.2); color: #f97316;">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; background: rgba(249, 115, 22, 0.1); border-radius: 0.5rem; border: 1px solid rgba(249, 115, 22, 0.2); color: #f97316;">
                 <i data-lucide="network" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             Network Config

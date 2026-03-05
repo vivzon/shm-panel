@@ -95,7 +95,7 @@ include 'layout/header.php';
                 <button onclick='openPkgModal(<?= json_encode($p) ?>)' class="btn btn-outline"
                     style="flex: 1; padding: 0.625rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; border-radius: 0.75rem;">Edit</button>
                 <button onclick="delPkg(<?= $p['id'] ?>)"
-                    style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 0.75rem; padding: 0.625rem; transition: background-color 0.2s;"
+                    style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 0.75rem; padding: 0.625rem; transition: background-color 0.2s;display: flex; align-items: center; justify-content: center;"
                     onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'"
                     onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'"><i data-lucide="trash-2"
                         style="width: 1rem; height: 1rem;"></i></button>

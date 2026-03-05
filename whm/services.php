@@ -94,13 +94,13 @@ include 'layout/header.php';
             </div>
             <div style="display: flex; gap: 0.5rem;">
                 <button onclick="servAction('<?= $id ?>','restart')" title="Restart"
-                    style="padding: 0.75rem; background: var(--bg-body); border-radius: 0.75rem; color: var(--primary); border: 1px solid var(--border-color); transition: all var(--transition-normal); box-shadow: var(--shadow-md); cursor: pointer;"
+                    style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: var(--bg-body); border-radius: 0.75rem; color: var(--primary); border: 1px solid var(--border-color); transition: all var(--transition-normal); box-shadow: var(--shadow-md); cursor: pointer;"
                     onmouseover="this.style.color='white'; this.style.backgroundColor='var(--primary)'; this.style.borderColor='var(--primary)'"
                     onmouseout="this.style.color='var(--primary)'; this.style.backgroundColor='var(--bg-body)'; this.style.borderColor='var(--border-color)'">
                     <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i>
                 </button>
                 <button onclick="servAction('<?= $id ?>','stop')" title="Stop"
-                    style="padding: 0.75rem; background: var(--bg-body); border-radius: 0.75rem; color: var(--accent-red); border: 1px solid var(--border-color); transition: all var(--transition-normal); box-shadow: var(--shadow-md); cursor: pointer;"
+                    style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: var(--bg-body); border-radius: 0.75rem; color: var(--accent-red); border: 1px solid var(--border-color); transition: all var(--transition-normal); box-shadow: var(--shadow-md); cursor: pointer;"
                     onmouseover="this.style.color='white'; this.style.backgroundColor='var(--accent-red)'; this.style.borderColor='var(--accent-red)'"
                     onmouseout="this.style.color='var(--accent-red)'; this.style.backgroundColor='var(--bg-body)'; this.style.borderColor='var(--border-color)'">
                     <i data-lucide="power" style="width: 1rem; height: 1rem;"></i>

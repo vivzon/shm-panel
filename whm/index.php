@@ -171,7 +171,7 @@ include 'layout/header.php';
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <div
-                style="padding: 0.5rem; border-radius: 0.5rem; background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2);">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 0.5rem; background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2);">
                 <i data-lucide="cpu" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
@@ -194,7 +194,7 @@ include 'layout/header.php';
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <div
-                style="padding: 0.5rem; border-radius: 0.5rem; background: rgba(168, 85, 247, 0.1); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.2);">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 0.5rem; background: rgba(168, 85, 247, 0.1); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.2);">
                 <i data-lucide="layers" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
@@ -217,7 +217,7 @@ include 'layout/header.php';
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <div
-                style="padding: 0.5rem; border-radius: 0.5rem; background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2);">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 0.5rem; background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2);">
                 <i data-lucide="hard-drive" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
@@ -240,7 +240,7 @@ include 'layout/header.php';
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <div
-                style="padding: 0.5rem; border-radius: 0.5rem; background: rgba(249, 115, 22, 0.1); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.2);">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; border-radius: 0.5rem; background: rgba(249, 115, 22, 0.1); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.2);">
                 <i data-lucide="clock" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
@@ -276,7 +276,7 @@ include 'layout/header.php';
         <div
             style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; position: relative; z-index: 10;">
             <div
-                style="padding: 1rem; background: var(--slate-50); border-radius: 0.75rem; color: #60a5fa; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);">
+                style="display: flex; align-items: center; justify-content: center; padding: 1rem; background: var(--slate-50); border-radius: 0.75rem; color: #60a5fa; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);">
                 <i data-lucide="network" style="width: 2rem; height: 2rem;"></i>
             </div>
             <div>
@@ -339,7 +339,7 @@ include 'layout/header.php';
         <!-- OS Info -->
         <div style="display: flex; align-items: center; gap: 1rem;">
             <div
-                style="padding: 0.75rem; background: rgba(99, 102, 241, 0.1); border-radius: 0.5rem; color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2);">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(99, 102, 241, 0.1); border-radius: 0.5rem; color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2);">
                 <i data-lucide="monitor" style="width: 1.5rem; height: 1.5rem;"></i>
             </div>
             <div style="overflow: hidden;">
@@ -354,7 +354,7 @@ include 'layout/header.php';
         <!-- PHP Version -->
         <div style="display: flex; align-items: center; gap: 1rem;">
             <div
-                style="padding: 0.75rem; background: rgba(236, 72, 153, 0.1); border-radius: 0.5rem; color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.2);">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(236, 72, 153, 0.1); border-radius: 0.5rem; color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.2);">
                 <i data-lucide="code-2" style="width: 1.5rem; height: 1.5rem;"></i>
             </div>
             <div style="overflow: hidden;">
@@ -368,7 +368,7 @@ include 'layout/header.php';
         <!-- Web Server -->
         <div style="display: flex; align-items: center; gap: 1rem;">
             <div
-                style="padding: 0.75rem; background: rgba(20, 184, 166, 0.1); border-radius: 0.5rem; color: #2dd4bf; border: 1px solid rgba(20, 184, 166, 0.2);">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(20, 184, 166, 0.1); border-radius: 0.5rem; color: #2dd4bf; border: 1px solid rgba(20, 184, 166, 0.2);">
                 <i data-lucide="globe-2" style="width: 1.5rem; height: 1.5rem;"></i>
             </div>
             <div style="overflow: hidden;">
@@ -384,7 +384,7 @@ include 'layout/header.php';
         <!-- Architecture -->
         <div style="display: flex; align-items: center; gap: 1rem;">
             <div
-                style="padding: 0.75rem; background: rgba(245, 158, 11, 0.1); border-radius: 0.5rem; color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2);">
+                style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(245, 158, 11, 0.1); border-radius: 0.5rem; color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2);">
                 <i data-lucide="cpu" style="width: 1.5rem; height: 1.5rem;"></i>
             </div>
             <div style="overflow: hidden;">
