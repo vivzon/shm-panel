@@ -263,7 +263,7 @@ function fm_return($status, $msg = '', $data = [])
 
     // Add helpful tip for permission errors
     if ($status === 'error' && (stripos($msg, 'permission') !== false || stripos($msg, 'writable') !== false || stripos($msg, 'denied') !== false)) {
-        $msg .= "<br><br><strong>💡 Tip:</strong> Go to <b>Tools > Troubleshoot</b> and run <b>Fix Permissions</b>.";
+        $msg .= "<br><br><strong>Ã°Å¸â€™Â¡ Tip:</strong> Go to <b>Tools > Troubleshoot</b> and run <b>Fix Permissions</b>.";
     }
 
     $is_ajax = isset($_POST['ajax']) || isset($_POST['ajax_action']);
@@ -818,18 +818,979 @@ if (is_dir($full_path)) {
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title>File Manager | Vivzon Cloud</title>
-
+    <link rel="stylesheet" href="/assets/css/modern-design.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300 ;400;500;600;700;800&display=swap"
-        rel="stylesheet">
     <style>
-        /* Utility classes and file-manager specific styles are now in modern-design.css */
+        /* Ã¢â€â‚¬Ã¢â€â‚¬ File Manager Specific Styles Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+        .fm-shell {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--slate-50);
+        }
+
+        /* Ã¢â€â‚¬Ã¢â€â‚¬ Top Bar Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+        .fm-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 4rem;
+            padding: 0 1.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--slate-200);
+            flex-shrink: 0;
+            gap: 1rem;
+            z-index: 20;
+        }
+
+        .fm-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .fm-brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .fm-brand-title {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--slate-900);
+            letter-spacing: -0.02em;
+        }
+
+        .fm-divider {
+            width: 1px;
+            height: 1.5rem;
+            background: var(--slate-200);
+            flex-shrink: 0;
+        }
+
+        /* Breadcrumb */
+        .fm-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .fm-breadcrumb a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-md);
+            background: var(--primary-light);
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .fm-breadcrumb a:hover {
+            background: rgba(37, 99, 235, 0.2);
+            transform: scale(1.05);
+        }
+
+        .fm-breadcrumb .crumb {
+            padding: 0.3rem 0.6rem;
+            border-radius: var(--radius-md);
+            color: var(--slate-600);
+            transition: all 0.15s;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            display: inline-block;
+        }
+
+        .fm-breadcrumb .crumb:hover {
+            background: white;
+            color: var(--slate-900);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .fm-breadcrumb .crumb-sep {
+            color: var(--slate-300);
+            flex-shrink: 0;
+        }
+
+        /* Top bar right actions */
+        .fm-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .fm-search-wrap {
+            position: relative;
+        }
+
+        .fm-search-wrap>i {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--slate-400);
+            pointer-events: none;
+            width: 14px;
+            height: 14px;
+        }
+
+        .fm-search {
+            width: 200px;
+            height: 2.25rem;
+            padding: 0 0.875rem 0 2.5rem;
+            background: var(--slate-100);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-full);
+            font-size: 0.8125rem;
+            font-family: inherit;
+            color: var(--slate-900);
+            outline: none;
+            transition: all 0.25s;
+        }
+
+        .fm-search:focus {
+            width: 240px;
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .fm-view-toggle {
+            display: flex;
+            background: var(--slate-100);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-md);
+            padding: 2px;
+        }
+
+        .fm-view-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 26px;
+            border: none;
+            background: transparent;
+            border-radius: calc(var(--radius-md) - 2px);
+            color: var(--slate-500);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .fm-view-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Ã¢â€â‚¬Ã¢â€â‚¬ Left panel (domains sidebar) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+        .fm-left {
+            width: 220px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--slate-200);
+            background: white;
+            overflow: hidden;
+        }
+
+        .fm-left-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--slate-100);
+        }
+
+        .fm-new-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem;
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1.5px dashed rgba(37, 99, 235, 0.3);
+            border-radius: var(--radius-md);
+            font-size: 0.8125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .fm-new-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-style: solid;
+            border-color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .fm-left-section-label {
+            padding: 0.75rem 0.875rem 0.375rem;
+            font-size: 0.625rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--slate-400);
+            font-family: var(--font-heading);
+        }
+
+        .fm-left-links {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 0.5rem 1rem;
+        }
+
+        .fm-left-link {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-md);
+            color: var(--slate-600);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s;
+            margin-bottom: 1px;
+        }
+
+        .fm-left-link:hover {
+            background: var(--slate-50);
+            color: var(--slate-900);
+        }
+
+        .fm-left-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .fm-left-link.active i {
+            color: var(--primary);
+        }
+
+        /* Storage bar */
+        .fm-storage {
+            padding: 1rem;
+            border-top: 1px solid var(--slate-100);
+        }
+
+        .fm-storage-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            color: var(--slate-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .fm-storage-bar {
+            height: 4px;
+            background: var(--slate-100);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .fm-storage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 9999px;
+        }
+
+        /* Ã¢â€â‚¬Ã¢â€â‚¬ Main content area Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+        .fm-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--slate-50);
+        }
+
+        /* Ã¢â€â‚¬Ã¢â€â‚¬ Action bar (contextual) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+        .fm-action-bar {
+            position: relative;
+            height: 0;
+            overflow: visible;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        .fm-action-bar-inner {
+            position: absolute;
+            top: 0.75rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-xl);
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .fm-action-bar-inner.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .fm-bar-sep {
+            width: 1px;
+            height: 1.25rem;
+            background: rgba(255, 255, 255, 0.15);
+            margin: 0 0.25rem;
+        }
+
+        .fm-bar-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.45rem 0.75rem;
+            border-radius: var(--radius-md);
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .fm-bar-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .fm-bar-btn.danger {
+            color: #f87171;
+        }
+
+        .fm-bar-btn.danger:hover {
+            color: #fca5a5;
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .fm-bar-count {
+            background: rgba(59, 130, 246, 0.25);
+            color: #93c5fd;
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+
+        /* Ã¢â€â‚¬Ã¢â€â‚¬ File list area Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+        .fm-file-area {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #file-view {
+            height: 100%;
+            overflow-y: auto;
+            padding: 1.25rem;
+        }
+
+        /* List header */
+        .fm-list-header {
+            display: grid;
+            grid-template-columns: 1fr 90px 80px 130px;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem 0.5rem 3.25rem;
+            font-size: 0.6875rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--slate-400);
+            font-family: var(--font-heading);
+            border-bottom: 1px solid var(--slate-200);
+            margin-bottom: 0.5rem;
+            position: sticky;
+            top: 0;
+            background: var(--slate-50);
+            z-index: 5;
+        }
+
+        /* File item */
+        .file-item {
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: background 0.15s;
+            user-select: none;
+        }
+
+        .file-item:hover {
+            background: white;
+        }
+
+        .file-item.selected {
+            background: rgba(37, 99, 235, 0.06) !important;
+        }
+
+        .file-item.selected .fi-name {
+            color: var(--primary) !important;
+        }
+
+        /* List layout */
+        .list-layout {
+            display: grid;
+            grid-template-columns: 1fr 90px 80px 130px;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.625rem 1rem 0.625rem 0.75rem;
+        }
+
+        .fi-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .fi-checkbox {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            accent-color: var(--primary);
+            opacity: 0;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        .file-item:hover .fi-checkbox,
+        .file-item.selected .fi-checkbox {
+            opacity: 1;
+        }
+
+        .fi-icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .fi-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--slate-800);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+            transition: color 0.15s;
+        }
+
+        .fi-size {
+            font-size: 0.8125rem;
+            color: var(--slate-500);
+            font-family: var(--font-mono);
+        }
+
+        .fi-type {
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--slate-400);
+        }
+
+        .fi-date {
+            font-size: 0.75rem;
+            color: var(--slate-500);
+            font-family: var(--font-mono);
+        }
+
+        /* Grid layout */
+        #file-view.view-grid .list-layout {
+            display: none !important;
+        }
+
+        #file-view.view-grid .grid-layout {
+            display: flex !important;
+        }
+
+        #file-view.view-grid .fm-list-header {
+            display: none;
+        }
+
+        #file-view.view-grid #file-view-inner {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.75rem;
+        }
+
+        #file-view.view-list .grid-layout {
+            display: none !important;
+        }
+
+        .grid-layout {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 1.25rem 0.75rem 1rem;
+            gap: 0.625rem;
+            position: relative;
+        }
+
+        .grid-layout .fi-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 1rem;
+        }
+
+        .grid-layout .fi-name {
+            font-size: 0.75rem;
+            width: 100%;
+            white-space: normal;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .grid-cb-wrap {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .file-item:hover .grid-cb-wrap,
+        .file-item.selected .grid-cb-wrap {
+            opacity: 1;
+        }
+
+        /* Icon colours */
+        .ic-folder {
+            background: rgba(245, 158, 11, 0.12);
+            color: #f59e0b;
+        }
+
+        .ic-img {
+            background: rgba(139, 92, 246, 0.12);
+            color: #8b5cf6;
+        }
+
+        .ic-video {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+        }
+
+        .ic-audio {
+            background: rgba(236, 72, 153, 0.12);
+            color: #ec4899;
+        }
+
+        .ic-archive {
+            background: rgba(249, 115, 22, 0.12);
+            color: #f97316;
+        }
+
+        .ic-code {
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--primary);
+        }
+
+        .ic-file {
+            background: var(--slate-100);
+            color: var(--slate-500);
+        }
+
+        /* Parent dir row */
+        .fm-parent-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem 0.625rem 0.75rem;
+            border-radius: var(--radius-lg);
+            color: var(--slate-500);
+            font-size: 0.875rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            margin-bottom: 0.25rem;
+        }
+
+        .fm-parent-row:hover {
+            background: white;
+            color: var(--slate-900);
+        }
+
+        /* Empty state */
+        .fm-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5rem 2rem;
+            color: var(--slate-400);
+            text-align: center;
+        }
+
+        .fm-empty-icon {
+            width: 72px;
+            height: 72px;
+            background: var(--slate-100);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Drop overlay */
+        #drag-overlay {
+            position: absolute;
+            inset: 1rem;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border: 2.5px dashed var(--primary);
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        /* Ã¢â€â‚¬Ã¢â€â‚¬ Modals Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.25s;
+            pointer-events: none;
+            padding: 1rem;
+        }
+
+        .modal:not(.hidden) {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: var(--radius-2xl);
+            border: 1px solid var(--slate-200);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            overflow: hidden;
+            transform: translateY(16px) scale(0.98);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal:not(.hidden) .modal-box {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--slate-100);
+        }
+
+        .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 1.125rem;
+            color: var(--slate-900);
+        }
+
+        .modal-title-icon {
+            width: 34px;
+            height: 34px;
+            background: var(--primary-light);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-md);
+            color: var(--slate-400);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .modal-close:hover {
+            background: var(--slate-100);
+            color: var(--slate-700);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.625rem;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--slate-100);
+            background: var(--slate-50);
+        }
+
+        /* Drop zone */
+        .fm-drop-zone {
+            border: 2px dashed var(--slate-300);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.25rem;
+        }
+
+        .fm-drop-zone:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* Type toggle */
+        .fm-type-toggle {
+            display: flex;
+            background: var(--slate-100);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-md);
+            padding: 3px;
+            margin-bottom: 1.25rem;
+        }
+
+        .fm-type-btn {
+            flex: 1;
+            padding: 0.4rem;
+            border: none;
+            border-radius: calc(var(--radius-md) - 2px);
+            font-size: 0.875rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            color: var(--slate-500);
+            font-family: inherit;
+        }
+
+        .fm-type-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Context menu */
+        #ctx-menu {
+            position: fixed;
+            z-index: 70;
+            background: white;
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-xl);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.04);
+            width: 13rem;
+            padding: 0.375rem;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.1s;
+            transform-origin: top left;
+        }
+
+        #ctx-menu:not(.hidden) {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .ctx-item {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.5rem 0.875rem;
+            border-radius: var(--radius-md);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--slate-700);
+            cursor: pointer;
+            transition: all 0.12s;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .ctx-item:hover {
+            background: var(--slate-50);
+            color: var(--slate-900);
+        }
+
+        .ctx-item.danger {
+            color: var(--accent-red);
+        }
+
+        .ctx-item.danger:hover {
+            background: rgba(239, 68, 68, 0.08);
+            color: #dc2626;
+        }
+
+        .ctx-sep {
+            height: 1px;
+            background: var(--slate-100);
+            margin: 0.25rem 0;
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.875rem 1.25rem;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            color: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+            font-size: 0.875rem;
+            font-weight: 600;
+            min-width: 240px;
+            max-width: 380px;
+            transform: translateY(5rem) scale(0.9);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #toast.visible {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        #toast-icon-wrapper,
+        #toast-icon-wrap {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Scrollbar */
+        .fm-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .fm-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .fm-scroll::-webkit-scrollbar-thumb {
+            background: var(--slate-200);
+            border-radius: 9999px;
+        }
+
+        .fm-scroll::-webkit-scrollbar-thumb:hover {
+            background: var(--slate-300);
+        }
+
+        /* Warning box */
+        .fm-warning {
+            padding: 0.75rem 1rem;
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.625rem;
+            font-size: 0.8125rem;
+            color: #92400e;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes fm-bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .fm-upload-icon {
+            animation: fm-bounce 2s ease-in-out infinite;
+        }
     </style>
 </head>
 
-<body
-    style="display: flex; height: 100vh; overflow: hidden; font-size: 0.875rem; background: var(--slate-50); color: var(--slate-900);">
+<body style="background:var(--slate-50);">
 
     <?php
     $current_page = 'files.php';
@@ -837,1252 +1798,1075 @@ if (is_dir($full_path)) {
     include 'layout/sidebar.php';
     ?>
 
-    <main
-        style="flex: 1; display: flex; flex-direction: column; height: 100vh; position: relative; background: var(--slate-50); overflow: hidden;">
-        <!-- TOP NAVIGATION & ACTION BAR -->
-        <header class="glass-card"
-            style="height: 5rem; flex-shrink: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.4); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; z-index: 20; border-radius: 0; background: rgba(255,255,255,0.6); backdrop-filter: blur(20px);">
-            <div style="display: flex; align-items: center; gap: 1.5rem;">
-                <div style="display: flex; align-items: center; gap: 0.875rem;">
-                    <div
-                        style="padding: 0.625rem; background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%); border-radius: var(--radius-lg); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25), inset 0 2px 4px rgba(255,255,255,0.2);">
-                        <i data-lucide="folder-kanban" style="width: 22px; height: 22px; color: white;"></i>
-                    </div>
-                    <h1
-                        style="font-family: var(--font-heading); font-weight: 800; font-size: 1.25rem; color: var(--slate-900); letter-spacing: -0.025em;">
-                        File Manager</h1>
+    <!-- FILE MANAGER SHELL -->
+    <div style="flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;">
+
+        <!-- TOP BAR -->
+        <header class="fm-topbar">
+            <div class="fm-brand">
+                <div class="fm-brand-icon">
+                    <i data-lucide="folder-kanban" style="width:18px;height:18px;color:white;"></i>
                 </div>
-
-                <div style="height: 2rem; width: 1px; background: rgba(203, 213, 225, 0.5);"></div>
-
-                <!-- Breadcrumbs -->
-                <nav style="display: flex; align-items: center; font-size: 0.875rem; font-weight: 600;">
-                    <a href="?domain_id=<?= $domain_id ?>&path=/"
-                        style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-md); background: rgba(37, 99, 235, 0.1); color: var(--primary); text-decoration: none; transition: all 0.2s;"
-                        onmouseover="this.style.backgroundColor='rgba(37, 99, 235, 0.2)'; this.style.transform='scale(1.05)'"
-                        onmouseout="this.style.backgroundColor='rgba(37, 99, 235, 0.1)'; this.style.transform='scale(1)'">
-                        <i data-lucide="hard-drive" style="width: 16px; height: 16px;"></i>
-                    </a>
-                    <?php
-                    $crumbs = array_filter(explode('/', $current_path));
-                    $acc = '';
-                    foreach ($crumbs as $c):
-                        $acc .= '/' . $c;
-                        ?>
-                        <i data-lucide="chevron-right"
-                            style="width: 16px; height: 16px; color: var(--slate-400); margin: 0 0.5rem;"></i>
-                        <a href="?domain_id=<?= $domain_id ?>&path=<?= $acc ?>"
-                            style="color: var(--slate-700); text-decoration: none; padding: 0.375rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; border: 1px solid transparent;"
-                            onmouseover="this.style.backgroundColor='rgba(255,255,255,0.8)'; this.style.borderColor='rgba(203, 213, 225, 0.5)'; this.style.color='var(--slate-900)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.02)';"
-                            onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='transparent'; this.style.color='var(--slate-700)'; this.style.boxShadow='none';"><?= $c ?></a>
-                    <?php endforeach; ?>
-                </nav>
+                <span class="fm-brand-title">File Manager</span>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="fm-divider"></div>
+            <!-- Breadcrumbs -->
+            <nav class="fm-breadcrumb">
+                <a href="?domain_id=<?= $domain_id ?>&path=/" title="Root">
+                    <i data-lucide="hard-drive" style="width:14px;height:14px;"></i>
+                </a>
+                <?php
+                $crumbs = array_filter(explode('/', $current_path));
+                $acc = '';
+                foreach ($crumbs as $c):
+                    $acc .= '/' . $c;
+                    ?>
+                    <i data-lucide="chevron-right" class="crumb-sep" style="width:13px;height:13px;"></i>
+                    <a href="?domain_id=<?= $domain_id ?>&path=<?= $acc ?>" class="crumb"><?= htmlspecialchars($c) ?></a>
+                <?php endforeach; ?>
+            </nav>
+
+            <div class="fm-topbar-right">
                 <!-- Search -->
-                <div style="position: relative;">
-                    <i data-lucide="search"
-                        style="width: 16px; height: 16px; position: absolute; left: 1rem; top: 0.875rem; color: var(--slate-500);"></i>
-                    <input id="file-search" onkeyup="FM.filter()" placeholder="Search current folder..."
-                        class="form-input"
-                        style="padding: 0.75rem 1rem 0.75rem 2.75rem; width: 18rem; transition: all 0.3s; background: rgba(255,255,255,0.7); border: 1px solid rgba(203, 213, 225, 0.5); font-size: 0.875rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);"
-                        onfocus="this.style.width='22rem'; this.style.background='#ffffff'; this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
-                        onblur="this.style.width='18rem'; this.style.background='rgba(255,255,255,0.7)'; this.style.borderColor='rgba(203, 213, 225, 0.5)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
+                <div class="fm-search-wrap">
+                    <i data-lucide="search"></i>
+                    <input id="file-search" onkeyup="FM.filter()" placeholder="Search filesÃ¢â‚¬Â¦" class="fm-search">
                 </div>
-
-                <!-- View Toggles -->
-                <div
-                    style="display: flex; padding: 0.375rem; background: rgba(241, 245, 249, 0.8); border-radius: var(--radius-lg); border: 1px solid rgba(203, 213, 225, 0.4);">
-                    <button onclick="FM.setView('list')" id="btn-list"
-                        style="padding: 0.375rem 0.75rem; border-radius: var(--radius-md); border: none; background: #ffffff; color: var(--primary); cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);"><i
-                            data-lucide="list" style="width: 18px; height: 18px;"></i></button>
-                    <button onclick="FM.setView('grid')" id="btn-grid"
-                        style="padding: 0.375rem 0.75rem; border-radius: var(--radius-md); border: none; background: transparent; color: var(--slate-500); cursor: pointer; transition: all 0.2s;"
-                        onmouseover="this.style.color='var(--slate-900)'"
-                        onmouseout="this.style.color='var(--slate-500)'"><i data-lucide="layout-grid"
-                            style="width: 18px; height: 18px;"></i></button>
+                <!-- View Toggle -->
+                <div class="fm-view-toggle">
+                    <button onclick="FM.setView('list')" id="btn-list" class="fm-view-btn active" title="List">
+                        <i data-lucide="list" style="width:14px;height:14px;"></i>
+                    </button>
+                    <button onclick="FM.setView('grid')" id="btn-grid" class="fm-view-btn" title="Grid">
+                        <i data-lucide="layout-grid" style="width:14px;height:14px;"></i>
+                    </button>
                 </div>
-
-                <div style="height: 2rem; width: 1px; background: rgba(203, 213, 225, 0.5);"></div>
-
-                <button onclick="FM.openUpload()" class="btn btn-primary"
-                    style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem; font-weight: 700; font-size: 0.875rem; border-radius: var(--radius-lg); transition: transform 0.2s, box-shadow 0.2s;">
-                    <i data-lucide="upload-cloud" style="width: 18px; height: 18px;"></i> Upload
+                <div class="fm-divider"></div>
+                <button onclick="FM.openCreate()" class="btn btn-secondary btn-sm">
+                    <i data-lucide="plus" style="width:14px;height:14px;"></i> New
+                </button>
+                <button onclick="FM.openUpload()" class="btn btn-primary btn-sm">
+                    <i data-lucide="upload-cloud" style="width:14px;height:14px;"></i> Upload
                 </button>
             </div>
         </header>
 
-        <div style="display: flex; flex: 1; overflow: hidden;">
-            <!-- SIDEBAR (File System Nav) -->
-            <aside class="glass-card"
-                style="width: 18rem; border-right: 1px solid rgba(255, 255, 255, 0.4); display: flex; flex-direction: column; display: none; border-radius: 0; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px);">
-                <div style="padding: 1.5rem;">
-                    <button onclick="FM.openCreate()"
-                        style="width: 100%; padding: 0.875rem; border-radius: var(--radius-lg); border: 2px dashed rgba(203, 213, 225, 0.8); background: rgba(255,255,255,0.5); color: var(--slate-700); font-size: 0.875rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; transition: all 0.2s;"
-                        onmouseover="this.style.borderColor='var(--primary)'; this.style.backgroundColor='#ffffff'; this.style.color='var(--primary)'; this.style.borderStyle='solid'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05)';"
-                        onmouseout="this.style.borderColor='rgba(203, 213, 225, 0.8)'; this.style.backgroundColor='rgba(255,255,255,0.5)'; this.style.color='var(--slate-700)'; this.style.borderStyle='dashed'; this.style.boxShadow='none';">
-                        <i data-lucide="plus" style="width: 18px; height: 18px;"></i> New File / Folder
-                    </button>
-                </div>
-                <div style="flex: 1; overflow-y: auto; padding: 0 1rem; display: flex; flex-direction: column; gap: 0.375rem;"
-                    class="custom-scrollbar">
-                    <div
-                        style="padding: 0.5rem 0.75rem; font-size: 0.6875rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-heading);">
-                        Locations</div>
-                    <a href="?domain_id=<?= $domain_id ?>&path=/"
-                        style="display: flex; align-items: center; gap: 0.875rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%); color: var(--primary); font-weight: 700; font-size: 0.875rem; text-decoration: none; border: 1px solid rgba(37, 99, 235, 0.15);">
-                        <i data-lucide="home" style="width: 18px; height: 18px;"></i> Home Root
-                    </a>
+        <div style="display:flex;flex:1;overflow:hidden;">
 
-                    <div
-                        style="margin-top: 1.5rem; padding: 0.5rem 0.75rem; font-size: 0.6875rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-heading);">
-                        Domains</div>
+            <!-- LEFT PANEL (Domain switcher) -->
+            <aside class="fm-left">
+                <div class="fm-left-links fm-scroll">
+                    <div class="fm-left-section-label">Locations</div>
+                    <a href="?domain_id=<?= $domain_id ?>&path=/" class="fm-left-link active">
+                        <i data-lucide="home" style="width:14px;height:14px;flex-shrink:0;"></i> Home Root
+                    </a>
+                    <div class="fm-left-section-label" style="margin-top:0.75rem;">Domains</div>
                     <?php
                     $doms = $pdo->prepare("SELECT id, domain FROM domains WHERE client_id = ?");
                     $doms->execute([$user_id]);
                     while ($d = $doms->fetch()):
                         $isActive = $d['id'] == $domain_id;
-                        $bg = $isActive ? 'rgba(255,255,255,0.8)' : 'transparent';
-                        $color = $isActive ? 'var(--slate-900)' : 'var(--slate-600)';
-                        $weight = $isActive ? '700' : '500';
-                        $border = $isActive ? 'rgba(203, 213, 225, 0.5)' : 'transparent';
                         ?>
-                        <a href="?domain_id=<?= $d['id'] ?>" class="sidebar-domain-link"
-                            style="display: flex; align-items: center; gap: 0.875rem; padding: 0.75rem 1rem; border-radius: var(--radius-lg); background: <?= $bg ?>; color: <?= $color ?>; font-weight: <?= $weight ?>; transition: all 0.2s ease; font-size: 0.875rem; text-decoration: none; border: 1px solid <?= $border ?>;"
-                            onmouseover="this.style.backgroundColor='rgba(255,255,255,0.9)'; this.style.color='var(--slate-900)'; this.style.borderColor='rgba(203, 213, 225, 0.5)';"
-                            onmouseout="this.style.backgroundColor='<?= $bg ?>'; this.style.color='<?= $color ?>'; this.style.borderColor='<?= $border ?>';">
-                            <i data-lucide="globe"
-                                style="width: 18px; height: 18px; <?= $isActive ? 'color: var(--primary);' : '' ?>"></i>
-                            <?= $d['domain'] ?>
+                        <a href="?domain_id=<?= $d['id'] ?>" class="fm-left-link <?= $isActive ? 'active' : '' ?>">
+                            <i data-lucide="globe" style="width:14px;height:14px;flex-shrink:0;"></i>
+                            <span
+                                style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= htmlspecialchars($d['domain']) ?></span>
                         </a>
                     <?php endwhile; ?>
                 </div>
-
-                <!-- Storage Status -->
-                <div
-                    style="padding: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.4); background: linear-gradient(to top, rgba(255,255,255,0.3) 0%, transparent 100%);">
-                    <div
-                        style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.75rem;">
+                <div class="fm-storage">
+                    <div class="fm-storage-label">
+                        <span>Storage</span>
                         <span
-                            style="color: var(--slate-500); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Storage
-                            Usage</span>
-                        <span
-                            style="font-weight: 800; color: var(--slate-900); font-family: 'JetBrains Mono', monospace;"><?= $domain['disk_usage'] ?? '0' ?>
+                            style="color:var(--slate-700);font-family:var(--font-mono);"><?= $domain['disk_usage'] ?? '0' ?>
                             MB</span>
                     </div>
-                    <div
-                        style="height: 0.5rem; background: rgba(203, 213, 225, 0.4); border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
-                        <div
-                            style="height: 100%; background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%); width: 75%; border-radius: 9999px;">
+                    <div class="fm-storage-bar">
+                        <div class="fm-storage-fill" style="width:<?= min(100, ($domain['disk_usage'] ?? 0) / 10) ?>%;">
                         </div>
-                        <!-- Placeholder for real % -->
                     </div>
                 </div>
             </aside>
 
-
-
             <!-- MAIN FILE AREA -->
-            <main style="flex: 1; position: relative; background: white;" id="drop-zone-global">
+            <div class="fm-main" id="drop-zone-global" style="position:relative;">
 
-                <!-- ACTION BAR (Contextual) -->
-                <div id="action-bar" class="hidden glass-card"
-                    style="position: absolute; width: calc(100% - 3rem); left: 1.5rem; top: 1.5rem; height: 4rem; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); transform: translateY(-150%); z-index: 40; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-xl); color: white; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);">
-                    <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem; font-weight: 600;">
-                        <span
-                            style="color: #93c5fd; font-weight: 800; padding: 0.25rem 0.75rem; background: rgba(59, 130, 246, 0.2); border-radius: var(--radius-md);"
-                            id="selection-count">0 Selected</span>
-                        <div style="height: 1.5rem; width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
-                        <!-- FIX: Select All / Unselect All buttons -->
-                        <button onclick="FM.selectAll(true)" id="btn-select-all"
-                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"
-                            title="Select All (Ctrl+A)"><i data-lucide="check-square"
-                                style="width: 18px; height: 18px;"></i> Select All</button>
-                        <button onclick="FM.selectAll(false)" id="btn-unselect-all"
-                            style="display: none; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"
-                            title="Unselect All"><i data-lucide="square" style="width: 18px; height: 18px;"></i>
-                            Unselect All</button>
-                        <button onclick="FM.bulk('download')"
-                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"><i
-                                data-lucide="download" style="width: 18px; height: 18px;"></i> Download</button>
-                        <button onclick="FM.bulk('zip')"
-                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"><i
-                                data-lucide="archive" style="width: 18px; height: 18px;"></i> Archive</button>
-                        <button onclick="FM.bulk('copy')"
-                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"><i
-                                data-lucide="copy" style="width: 18px; height: 18px;"></i> Copy</button>
-                        <button onclick="FM.bulk('move')"
-                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: rgba(255, 255, 255, 0.8); background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
-                            onmouseout="this.style.color='rgba(255, 255, 255, 0.8)'; this.style.backgroundColor='transparent';"><i
-                                data-lucide="move" style="width: 18px; height: 18px;"></i> Move</button>
-                        <div style="height: 1.5rem; width: 1px; background: rgba(255, 255, 255, 0.2);"></div>
-                        <button onclick="FM.bulk('delete')"
-                            style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-md); transition: all 0.2s; color: #f87171; background: transparent; border: none; cursor: pointer;"
-                            onmouseover="this.style.color='#fca5a5'; this.style.backgroundColor='rgba(248, 113, 113, 0.15)';"
-                            onmouseout="this.style.color='#f87171'; this.style.backgroundColor='transparent';"
-                            title="Delete (Del key)"><i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
-                            Delete</button>
+                <!-- FLOATING ACTION BAR -->
+                <div class="fm-action-bar">
+                    <div class="fm-action-bar-inner" id="action-bar">
+                        <span class="fm-bar-count" id="selection-count">0 Selected</span>
+                        <div class="fm-bar-sep"></div>
+                        <button class="fm-bar-btn" id="btn-select-all" onclick="FM.selectAll(true)" title="Ctrl+A">
+                            <i data-lucide="check-square" style="width:13px;height:13px;"></i> All
+                        </button>
+                        <button class="fm-bar-btn hidden" id="btn-unselect-all" onclick="FM.selectAll(false)">
+                            <i data-lucide="square" style="width:13px;height:13px;"></i> None
+                        </button>
+                        <div class="fm-bar-sep"></div>
+                        <button class="fm-bar-btn" onclick="FM.bulk('download')">
+                            <i data-lucide="download" style="width:13px;height:13px;"></i> Download
+                        </button>
+                        <button class="fm-bar-btn" onclick="FM.bulk('zip')">
+                            <i data-lucide="archive" style="width:13px;height:13px;"></i> Archive
+                        </button>
+                        <button class="fm-bar-btn" onclick="FM.bulk('copy')">
+                            <i data-lucide="copy" style="width:13px;height:13px;"></i> Copy
+                        </button>
+                        <button class="fm-bar-btn" onclick="FM.bulk('move')">
+                            <i data-lucide="move" style="width:13px;height:13px;"></i> Move
+                        </button>
+                        <div class="fm-bar-sep"></div>
+                        <button class="fm-bar-btn danger" onclick="FM.bulk('delete')" title="Delete (Del)">
+                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Delete
+                        </button>
+                        <div class="fm-bar-sep"></div>
+                        <button class="fm-bar-btn" onclick="FM.clearSelection()" style="padding:0.45rem 0.5rem;">
+                            <i data-lucide="x" style="width:13px;height:13px;"></i>
+                        </button>
                     </div>
-                    <button onclick="FM.clearSelection()"
-                        style="color: rgba(255, 255, 255, 0.5); padding: 0.5rem; border-radius: 50%; transition: all 0.2s; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;"
-                        onmouseover="this.style.color='white'; this.style.backgroundColor='rgba(255,255,255,0.1)';"
-                        onmouseout="this.style.color='rgba(255, 255, 255, 0.5)'; this.style.backgroundColor='transparent';"
-                        title="Clear Selection"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
                 </div>
 
-                <div id="file-view" class="view-list custom-scrollbar"
-                    style="height: 100%; overflow-y: auto; padding: 1.5rem;">
+                <div id="file-view" class="view-list fm-scroll" style="background:white;">
 
                     <!-- LIST HEADER -->
-                    <div class="list-header hidden"
-                        style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; padding: 0.75rem 1.5rem; border-bottom: 2px solid rgba(226, 232, 240, 0.8); font-size: 0.6875rem; font-weight: 800; font-family: var(--font-heading); text-transform: uppercase; color: var(--slate-400); letter-spacing: 0.05em; margin-bottom: 0.5rem; position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); z-index: 10;">
-                        <div style="grid-column: span 6 / span 6; display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 1.25rem; display: flex; justify-content: center;">
-                                <input type="checkbox" id="header-select-all" onchange="FM.selectAll(this.checked)"
-                                    style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;"
-                                    title="Select All">
-                            </div>
+                    <div class="fm-list-header">
+                        <div style="display:flex;align-items:center;gap:0.625rem;">
+                            <input type="checkbox" id="header-select-all" onchange="FM.selectAll(this.checked)"
+                                style="accent-color:var(--primary);width:14px;height:14px;cursor:pointer;flex-shrink:0;">
                             Name
                         </div>
-                        <div style="grid-column: span 2 / span 2;">Size</div>
-                        <div style="grid-column: span 2 / span 2;">Type</div>
-                        <div style="grid-column: span 2 / span 2; text-align: right;">Modified</div>
+                        <div>Size</div>
+                        <div>Type</div>
+                        <div>Modified</div>
                     </div>
 
-                    <style>
-                        #file-view.view-list .list-header {
-                            display: grid !important;
-                        }
-                    </style>
-
-                    <!-- PARENT DIR -->
-                    <?php if ($current_path != '/'): ?>
-                        <div onclick="location.href='?domain_id=<?= $domain_id ?>&path=<?= dirname($current_path) ?>'"
-                            style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; padding: 0.75rem 1rem; border-radius: var(--radius-xl); cursor: pointer; align-items: center; color: var(--slate-700); transition: background 0.2s, color 0.2s; margin-bottom: 0.25rem;"
-                            onmouseover="this.style.backgroundColor='var(--slate-50)'; this.style.color='var(--slate-900)'"
-                            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)'">
-                            <div style="grid-column: span 6 / span 6; display: flex; align-items: center; gap: 1rem;">
-                                <i data-lucide="corner-left-up"
-                                    style="width: 20px; height: 20px; transition: color 0.2s;"></i>
-                                <span style="font-weight: 700;">..</span>
+                    <div id="file-view-inner">
+                        <!-- PARENT DIR -->
+                        <?php if ($current_path != '/'): ?>
+                            <div class="fm-parent-row"
+                                onclick="location.href='?domain_id=<?= $domain_id ?>&path=<?= dirname($current_path) ?>'">
+                                <i data-lucide="corner-left-up" style="width:15px;height:15px;flex-shrink:0;"></i>
+                                <span>Parent Directory</span>
                             </div>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
 
-                    <!-- ITEMS LOOP -->
-                    <?php foreach ($items as $i):
-                        $icon = $i['is_dir'] ? 'folder' : 'file';
-                        $color = $i['is_dir'] ? 'text-amber-400' : 'text-slate-700';
-                        $type = $i['is_dir'] ? 'Directory' : pathinfo($i['name'], PATHINFO_EXTENSION);
+                        <!-- ITEMS LOOP -->
+                        <?php foreach ($items as $i):
+                            $icon = 'file';
+                            $icClass = 'ic-file';
+                            $type = $i['is_dir'] ? 'DIR' : strtoupper(pathinfo($i['name'], PATHINFO_EXTENSION) ?: 'FILE');
+                            if ($i['is_dir']) {
+                                $icon = 'folder';
+                                $icClass = 'ic-folder';
+                            } else {
+                                $ext = strtolower(pathinfo($i['name'], PATHINFO_EXTENSION));
+                                if (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'])) {
+                                    $icon = 'image';
+                                    $icClass = 'ic-img';
+                                } elseif (in_array($ext, ['mp4', 'webm', 'mov', 'avi', 'flv'])) {
+                                    $icon = 'film';
+                                    $icClass = 'ic-video';
+                                } elseif (in_array($ext, ['mp3', 'wav', 'ogg', 'flac'])) {
+                                    $icon = 'music';
+                                    $icClass = 'ic-audio';
+                                } elseif (in_array($ext, ['zip', 'tar', 'gz', 'rar', '7z'])) {
+                                    $icon = 'archive';
+                                    $icClass = 'ic-archive';
+                                } elseif (in_array($ext, ['php', 'js', 'ts', 'css', 'html', 'htm', 'json', 'xml', 'sql', 'py', 'sh', 'env', 'ini', 'conf', 'htaccess', 'md'])) {
+                                    $icon = 'code-2';
+                                    $icClass = 'ic-code';
+                                }
+                            }
+                            ?>
+                            <div class="file-item" data-name="<?= strtolower(htmlspecialchars($i['name'])) ?>"
+                                data-path="<?= htmlspecialchars($i['rel']) ?>"
+                                data-type="<?= $i['is_dir'] ? 'dir' : 'file' ?>" onclick="FM.toggleSelect(this, event)"
+                                ondblclick="FM.open('<?= htmlspecialchars($i['rel']) ?>','<?= $i['is_dir'] ? 'dir' : 'file' ?>')">
 
-                        // Icon logic
-                        if (!$i['is_dir']) {
-                            $ext = strtolower($type);
-                            if (in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-                                $icon = 'image';
-                                $color = 'text-purple-400';
-                            }
-                            if (in_array($ext, ['mp4', 'webm', 'mov'])) {
-                                $icon = 'film';
-                                $color = 'text-red-400';
-                            }
-                            if (in_array($ext, ['mp3', 'wav'])) {
-                                $icon = 'music';
-                                $color = 'text-pink-400';
-                            }
-                            if (in_array($ext, ['zip', 'tar', 'gz', 'rar'])) {
-                                $icon = 'archive';
-                                $color = 'text-orange-400';
-                            }
-                            if (in_array($ext, ['php', 'js', 'css', 'html', 'json', 'sql'])) {
-                                $icon = 'code-2';
-                                $color = 'text-blue-400';
-                            }
-                        }
-                        ?>
-                        <div class="file-item" style="user-select: none; transition: all 0.2s; cursor: pointer;"
-                            data-name="<?= strtolower(htmlspecialchars($i['name'])) ?>"
-                            data-path="<?= htmlspecialchars($i['rel']) ?>" data-type="<?= $i['is_dir'] ? 'dir' : 'file' ?>"
-                            onclick="FM.toggleSelect(this, event)"
-                            ondblclick="FM.open('<?= htmlspecialchars($i['rel']) ?>', '<?= $i['is_dir'] ? 'dir' : 'file' ?>')"
-                            onmouseover="if(!this.classList.contains('selected')) { this.style.backgroundColor='var(--slate-50)'; }"
-                            onmouseout="if(!this.classList.contains('selected')) { this.style.backgroundColor='transparent'; }">
-
-                            <!-- Inner Content (CSS handles List/Grid layout) -->
-                            <div
-                                style="padding: 0.75rem 1.5rem; border-radius: var(--radius-xl); border: 1px solid transparent; transition: background 0.2s, border-color 0.2s;">
                                 <!-- List Layout -->
-                                <div class="list-layout"
-                                    style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1rem; align-items: center;">
-                                    <div
-                                        style="grid-column: span 6 / span 6; display: flex; align-items: center; gap: 1rem; overflow: hidden;">
-                                        <div style="width: 1.25rem; display: flex; justify-content: center;"
+                                <div class="list-layout">
+                                    <div class="fi-name-cell">
+                                        <input type="checkbox" class="fi-checkbox file-check"
                                             onclick="event.stopPropagation();">
-                                            <input type="checkbox" class="file-check"
-                                                style="accent-color: var(--primary); width: 16px; height: 16px; opacity: 0; transition: opacity 0.2s; cursor: pointer;"
-                                                onclick="event.stopPropagation();">
+                                        <div class="fi-icon-wrap <?= $icClass ?>">
+                                            <i data-lucide="<?= $icon ?>" style="width:15px;height:15px;"></i>
                                         </div>
-                                        <i data-lucide="<?= $icon ?>" class="<?= $color ?>"
-                                            style="width: 20px; height: 20px; flex-shrink: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));"></i>
-                                        <span
-                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; color: var(--slate-700); transition: color 0.2s;"
-                                            onmouseover="this.style.color='var(--primary)'"
-                                            onmouseout="this.style.color='var(--slate-700)'"><?= htmlspecialchars($i['name']) ?></span>
+                                        <span class="fi-name"><?= htmlspecialchars($i['name']) ?></span>
                                     </div>
-                                    <div
-                                        style="grid-column: span 2 / span 2; font-size: 0.875rem; color: var(--slate-500); font-family: 'JetBrains Mono', monospace;">
-                                        <?= htmlspecialchars($i['size']) ?>
-                                    </div>
-                                    <div
-                                        style="grid-column: span 2 / span 2; font-size: 0.75rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.05em;">
-                                        <?= htmlspecialchars($type) ?>
-                                    </div>
-                                    <div
-                                        style="grid-column: span 2 / span 2; text-align: right; font-size: 0.875rem; color: var(--slate-500); font-family: 'JetBrains Mono', monospace;">
-                                        <?= htmlspecialchars($i['date']) ?>
-                                    </div>
+                                    <div class="fi-size"><?= htmlspecialchars($i['size']) ?></div>
+                                    <div class="fi-type"><?= htmlspecialchars($type) ?></div>
+                                    <div class="fi-date"><?= htmlspecialchars($i['date']) ?></div>
                                 </div>
 
                                 <!-- Grid Layout -->
-                                <div class="grid-layout"
-                                    style="display: none; flex-direction: column; align-items: center; text-align: center; gap: 0.75rem; padding: 1rem 0; position: relative;">
-                                    <div style="position: absolute; top: 0.5rem; left: 0.5rem; opacity: 0; transition: opacity 0.2s;"
-                                        class="grid-checkbox-wrapper" onclick="event.stopPropagation();">
-                                        <input type="checkbox" class="file-check"
-                                            style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer;"
+                                <div class="grid-layout">
+                                    <div class="grid-cb-wrap" onclick="event.stopPropagation();">
+                                        <input type="checkbox" class="fi-checkbox file-check"
+                                            style="width:14px;height:14px;accent-color:var(--primary);"
                                             onclick="event.stopPropagation();">
                                     </div>
-                                    <div style="padding: 1.25rem; border-radius: 1.25rem; background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.6) 100%); transition: all 0.2s; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5), 0 4px 6px -1px rgba(0,0,0,0.02); border: 1px solid rgba(226, 232, 240, 0.8);"
-                                        onmouseover="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(248, 250, 252, 0.8) 100%)'; this.style.transform='translateY(-2px)';"
-                                        onmouseout="this.style.background='linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.6) 100%)'; this.style.transform='translateY(0)';">
-                                        <i data-lucide="<?= $icon ?>" class="<?= $color ?>"
-                                            style="width: 48px; height: 48px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));"></i>
+                                    <div class="fi-icon-wrap <?= $icClass ?>">
+                                        <i data-lucide="<?= $icon ?>" style="width:26px;height:26px;"></i>
                                     </div>
-                                    <div style="width: 100%;">
-                                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; font-size: 0.875rem; color: var(--slate-700); transition: color 0.2s;"
-                                            onmouseover="this.style.color='var(--primary)'"
-                                            onmouseout="this.style.color='var(--slate-700)'">
-                                            <?= htmlspecialchars($i['name']) ?>
-                                        </div>
-                                        <div
-                                            style="font-size: 0.75rem; font-weight: 500; color: var(--slate-400); margin-top: 0.25rem; font-family: 'JetBrains Mono', monospace;">
+                                    <div style="width:100%;">
+                                        <div class="fi-name"><?= htmlspecialchars($i['name']) ?></div>
+                                        <div class="fi-size" style="margin-top:0.2rem;font-size:0.6875rem;">
                                             <?= htmlspecialchars($i['size']) ?>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
 
-                    <?php if (empty($items)): ?>
-                        <div
-                            style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 16rem; color: var(--slate-400);">
-                            <div
-                                style="padding: 1.5rem; border-radius: 50%; background: rgba(241, 245, 249, 0.5); margin-bottom: 1rem;">
-                                <i data-lucide="folder-open" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+                        <?php if (empty($items)): ?>
+                            <div class="fm-empty">
+                                <div class="fm-empty-icon">
+                                    <i data-lucide="folder-open" style="width:30px;height:30px;opacity:0.4;"></i>
+                                </div>
+                                <p style="font-weight:700;color:var(--slate-600);">This folder is empty</p>
+                                <p style="font-size:0.8125rem;margin-top:0.375rem;color:var(--slate-400);">Drag & drop files
+                                    here to upload</p>
                             </div>
-                            <p style="font-weight: 600; font-size: 1rem; color: var(--slate-500);">This folder is empty</p>
-                            <p style="font-size: 0.875rem; margin-top: 0.25rem;">Drag and drop files here to upload</p>
-                        </div>
-                    <?php endif; ?>
-
-                    <style>
-                        .file-item:hover .file-check,
-                        .file-item:hover .grid-checkbox-wrapper {
-                            opacity: 1 !important;
-                        }
-                    </style>
-
+                        <?php endif; ?>
+                    </div>
                 </div>
 
-                <div id="drag-overlay" class="hidden"
-                    style="position: absolute; inset: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--slate-900); border: 3px dashed var(--primary); margin: 1.5rem; border-radius: 2rem; pointer-events: none; transition: all 0.3s; box-shadow: inset 0 0 50px rgba(37, 99, 235, 0.1);">
-                    <div
-                        style="padding: 2rem; border-radius: 50%; background: rgba(37, 99, 235, 0.1); margin-bottom: 1.5rem; animation: bounce 2s infinite;">
-                        <i data-lucide="cloud-upload" style="width: 64px; height: 64px; color: var(--primary);"></i>
+                <!-- DRAG OVERLAY -->
+                <div id="drag-overlay" class="hidden">
+                    <div class="fm-upload-icon" style="margin-bottom:1rem;">
+                        <i data-lucide="cloud-upload" style="width:52px;height:52px;color:var(--primary);"></i>
                     </div>
                     <h3
-                        style="font-size: 2.25rem; font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.025em;">
-                        Drop files to upload</h3>
-                    <p style="color: var(--slate-500); margin-top: 0.5rem; font-size: 1.125rem;">to <span
-                            style="font-weight: 700; color: var(--primary);"><?= htmlspecialchars($current_path) ?></span>
-                    </p>
+                        style="font-family:var(--font-heading);font-weight:800;font-size:1.5rem;color:var(--slate-900);">
+                        Drop to upload</h3>
+                    <p style="color:var(--slate-500);margin-top:0.375rem;font-size:0.875rem;">to <strong
+                            style="color:var(--primary);"><?= htmlspecialchars($current_path) ?></strong></p>
                 </div>
-            </main>
+
+            </div><!-- .fm-main -->
         </div>
-    </main>
+    </div><!-- shell -->
 
     <!-- UPLOAD MODAL -->
-    <div id="modal-upload" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
-        <div class="glass-card"
-            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 32rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <h3
-                style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1.5rem; font-family: var(--font-heading);">
-                Upload
-                Files</h3>
-            <div style="border: 2px dashed var(--slate-600); border-radius: var(--radius-xl); padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem;"
-                onclick="document.getElementById('inp-upload-files').click()"
-                ondrop="FM.handleDrop(event.dataTransfer.files); FM.closeModals();" ondragover="event.preventDefault()"
-                onmouseover="this.style.borderColor='var(--primary)'; this.style.backgroundColor='rgba(248, 250, 252, 0.5)'"
-                onmouseout="this.style.borderColor='var(--slate-600)'; this.style.backgroundColor='transparent'">
-                <i data-lucide="cloud-upload"
-                    style="width: 48px; height: 48px; color: var(--slate-700); margin-bottom: 0.75rem;"></i>
-                <p style="color: var(--slate-700); font-weight: 500;">Click to browse or drag files here</p>
-                <input type="file" id="inp-upload-files" multiple style="display: none;"
-                    onchange="FM.doUploadInput(this)">
+    <div id="modal-upload" class="modal hidden">
+        <div class="modal-box" style="max-width:34rem;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-title-icon"><i data-lucide="upload-cloud" style="width:16px;height:16px;"></i>
+                    </div>
+                    Upload Files
+                </div>
+                <button class="modal-close" onclick="FM.closeModals()"><i data-lucide="x"
+                        style="width:15px;height:15px;"></i></button>
             </div>
-            <div style="display: flex; justify-content: flex-end;">
-                <button onclick="FM.closeModals()" class="btn btn-outline">Close</button>
+            <div class="modal-body">
+                <div class="fm-drop-zone" onclick="document.getElementById('inp-upload-files').click()"
+                    ondrop="FM.handleDrop(event.dataTransfer.files); FM.closeModals();"
+                    ondragover="event.preventDefault()">
+                    <div class="fm-upload-icon" style="display:inline-flex;margin-bottom:0.75rem;">
+                        <i data-lucide="cloud-upload" style="width:40px;height:40px;color:var(--primary);"></i>
+                    </div>
+                    <p style="font-weight:700;color:var(--slate-700);margin-bottom:0.25rem;">Drop files or click to
+                        browse</p>
+                    <p style="font-size:0.8125rem;color:var(--slate-400);">Any file type accepted</p>
+                    <input type="file" id="inp-upload-files" multiple style="display:none;"
+                        onchange="FM.doUploadInput(this)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="FM.closeModals()" class="btn btn-secondary btn-sm">Close</button>
             </div>
         </div>
     </div>
 
     <!-- CHMOD MODAL -->
-    <div id="modal-chmod" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
-        <div class="glass-card"
-            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 28rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <h3
-                style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); margin-bottom: 1rem; font-family: var(--font-heading);">
-                Permissions
-            </h3>
-            <input type="hidden" id="chmod-target">
-            <div style="margin-bottom: 1rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <label
-                        style="display: block; color: var(--slate-700); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Numeric
-                        Value (Octal)</label>
-                    <span style="font-size: 0.75rem; color: var(--slate-700);">Current: <span id="chmod-current"
-                            style="color: var(--slate-700); font-family: monospace;">-</span></span>
+    <div id="modal-chmod" class="modal hidden">
+        <div class="modal-box" style="max-width:28rem;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-title-icon"><i data-lucide="lock" style="width:16px;height:16px;"></i></div>
+                    Permissions
                 </div>
-                <input type="text" id="chmod-val" value="0775" class="form-input" style="font-family: monospace;">
-                <p style="font-size: 0.625rem; color: var(--slate-700); margin-top: 0.5rem;">
-                    Examples: <span style="color: var(--primary); cursor: pointer;"
-                        onclick="document.getElementById('chmod-val').value='0775'">0775</span> (Folder),
-                    <span style="color: var(--primary); cursor: pointer;"
-                        onclick="document.getElementById('chmod-val').value='0664'">0664</span> (File)
-                </p>
+                <button class="modal-close" onclick="FM.closeModals()"><i data-lucide="x"
+                        style="width:15px;height:15px;"></i></button>
             </div>
-            <div id="chmod-warning" class="hidden"
-                style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-lg);">
-                <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+            <div class="modal-body">
+                <input type="hidden" id="chmod-target">
+                <div class="fm-warning hidden" id="chmod-warning">
                     <i data-lucide="alert-triangle"
-                        style="width: 16px; height: 16px; color: #fbbf24; margin-top: 0.125rem; flex-shrink: 0;"></i>
-                    <div style="font-size: 0.75rem; color: #fcd34d;">
-                        <p style="font-weight: 700; margin-bottom: 0.25rem;">Warning: Permission may be denied</p>
-                        <p>The web server user (<?= htmlspecialchars($process_user) ?>) may not own this file. Changes
-                            may fail.</p>
+                        style="width:15px;height:15px;color:#f59e0b;flex-shrink:0;margin-top:1px;"></i>
+                    <div>
+                        <p style="font-weight:700;margin-bottom:0.2rem;">Permission may be denied</p>
+                        <p>Web server user (<?= htmlspecialchars($process_user) ?>) may not own this file.</p>
                     </div>
                 </div>
+                <div style="margin-bottom:1rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                        <label class="form-label" style="margin:0;">Octal Value</label>
+                        <span style="font-size:0.75rem;color:var(--slate-500);">Current: <span id="chmod-current"
+                                style="font-family:var(--font-mono);">-</span></span>
+                    </div>
+                    <input type="text" id="chmod-val" value="0775" class="form-input"
+                        style="font-family:var(--font-mono);">
+                    <p style="font-size:0.75rem;color:var(--slate-400);margin-top:0.375rem;">
+                        Quick:
+                        <span style="color:var(--primary);cursor:pointer;font-weight:700;"
+                            onclick="document.getElementById('chmod-val').value='0775'">0775</span> (dir) Â·
+                        <span style="color:var(--primary);cursor:pointer;font-weight:700;"
+                            onclick="document.getElementById('chmod-val').value='0664'">0664</span> (file)
+                    </p>
+                </div>
             </div>
-            <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-                <button onclick="FM.closeModals()" class="btn btn-outline">Cancel</button>
-                <button onclick="FM.doChmod()" class="btn btn-primary">Save</button>
+            <div class="modal-footer">
+                <button onclick="FM.closeModals()" class="btn btn-secondary btn-sm">Cancel</button>
+                <button onclick="FM.doChmod()" class="btn btn-primary btn-sm">Save</button>
             </div>
         </div>
     </div>
 
-    <!-- CONTEXT MENU & MODALS (Kept in body) -->
     <!-- CONTEXT MENU -->
-    <div id="ctx-menu" class="hidden glass-card"
-        style="position: fixed; z-index: 50; background: rgba(255,255,255,0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.05); border-radius: var(--radius-xl); width: 14rem; padding: 0.5rem; transform: scale(0.95); opacity: 0; transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: top left;">
-        <button onclick="FM.openCtx()"
-            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
-            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--primary)';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-900)';"><i
-                data-lucide="folder-open" style="width: 18px; height: 18px; color: var(--primary);"></i> Open</button>
-        <button onclick="FM.editCtx()" id="ctx-btn-edit"
-            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
-            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='#10b981';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-900)';"><i
-                data-lucide="file-code" style="width: 18px; height: 18px; color: #10b981;"></i> Edit</button>
-        <button onclick="FM.renameCtx()"
-            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
-            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';"><i
-                data-lucide="edit-3" style="width: 18px; height: 18px;"></i> Rename</button>
-        <div style="height: 1px; background: rgba(226, 232, 240, 0.8); margin: 0.375rem 0;"></div>
-        <button onclick="FM.extractCtx()" id="ctx-btn-extract"
-            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: var(--slate-900); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
-            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='#f97316';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-900)';"><i
-                data-lucide="package-open" style="width: 18px; height: 18px; color: #f97316;"></i> Extract</button>
-        <button onclick="FM.chmodCtx()"
-            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
-            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';">
-            <i data-lucide="lock" style="width: 18px; height: 18px;"></i> Permissions
+    <div id="ctx-menu" class="hidden">
+        <button class="ctx-item" onclick="FM.openCtx()">
+            <i data-lucide="folder-open" style="width:14px;height:14px;color:var(--primary);"></i> Open
         </button>
-        <button onclick="FM.bulk('copy')"
-            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
-            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';"><i
-                data-lucide="copy" style="width: 18px; height: 18px;"></i> Copy</button>
-        <button onclick="FM.bulk('move')"
-            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
-            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';"><i
-                data-lucide="move" style="width: 18px; height: 18px;"></i> Move</button>
-        <button onclick="FM.bulk('zip')"
-            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 500; color: var(--slate-700); background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
-            onmouseover="this.style.backgroundColor='rgba(241, 245, 249, 0.8)'; this.style.color='var(--slate-900)';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-700)';"><i
-                data-lucide="archive" style="width: 18px; height: 18px;"></i> Archive</button>
-        <div style="height: 1px; background: rgba(226, 232, 240, 0.8); margin: 0.375rem 0;"></div>
-        <button onclick="FM.bulk('delete')"
-            style="width: 100%; text-align: left; padding: 0.625rem 1rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.75rem; font-weight: 600; color: #ef4444; background: transparent; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--radius-lg);"
-            onmouseover="this.style.backgroundColor='rgba(254, 226, 226, 0.5)'; this.style.color='#dc2626';"
-            onmouseout="this.style.backgroundColor='transparent'; this.style.color='#ef4444';"><i data-lucide="trash-2"
-                style="width: 18px; height: 18px;"></i> Delete</button>
+        <button class="ctx-item" onclick="FM.editCtx()" id="ctx-btn-edit">
+            <i data-lucide="file-code" style="width:14px;height:14px;color:#10b981;"></i> Edit
+        </button>
+        <button class="ctx-item" onclick="FM.renameCtx()">
+            <i data-lucide="edit-3" style="width:14px;height:14px;"></i> Rename
+        </button>
+        <div class="ctx-sep"></div>
+        <button class="ctx-item" onclick="FM.extractCtx()" id="ctx-btn-extract">
+            <i data-lucide="package-open" style="width:14px;height:14px;color:#f97316;"></i> Extract
+        </button>
+        <button class="ctx-item" onclick="FM.chmodCtx()">
+            <i data-lucide="lock" style="width:14px;height:14px;"></i> Permissions
+        </button>
+        <button class="ctx-item" onclick="FM.bulk('copy')">
+            <i data-lucide="copy" style="width:14px;height:14px;"></i> Copy
+        </button>
+        <button class="ctx-item" onclick="FM.bulk('move')">
+            <i data-lucide="move" style="width:14px;height:14px;"></i> Move
+        </button>
+        <button class="ctx-item" onclick="FM.bulk('zip')">
+            <i data-lucide="archive" style="width:14px;height:14px;"></i> Archive
+        </button>
+        <div class="ctx-sep"></div>
+        <button class="ctx-item danger" onclick="FM.bulk('delete')">
+            <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
+        </button>
     </div>
 
     <!-- CREATE MODAL -->
-    <div id="modal-create" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
-        <div class="glass-card"
-            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 24rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
-                <div style="padding: 0.5rem; border-radius: 50%; background: rgba(37, 99, 235, 0.1);">
-                    <i data-lucide="file-plus-2" style="width: 24px; height: 24px; color: var(--primary);"></i>
-                </div>
-                <h3
-                    style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+    <div id="modal-create" class="modal hidden">
+        <div class="modal-box" style="max-width:24rem;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-title-icon"><i data-lucide="file-plus-2" style="width:16px;height:16px;"></i>
+                    </div>
                     New Item
-                </h3>
+                </div>
+                <button class="modal-close" onclick="FM.closeModals()"><i data-lucide="x"
+                        style="width:15px;height:15px;"></i></button>
             </div>
-            <div
-                style="display: flex; background: rgba(241, 245, 249, 0.8); border: 1px solid rgba(203, 213, 225, 0.5); border-radius: var(--radius-lg); padding: 0.25rem; margin-bottom: 1.5rem;">
-                <button onclick="FM.setCreateType('file')" id="btn-c-file"
-                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.375rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);">File</button>
-                <button onclick="FM.setCreateType('folder')" id="btn-c-folder"
-                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.375rem; border: none; font-size: 0.875rem; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--slate-500);">Folder</button>
+            <div class="modal-body">
+                <div class="fm-type-toggle">
+                    <button onclick="FM.setCreateType('file')" id="btn-c-file" class="fm-type-btn active">
+                        <i data-lucide="file"
+                            style="width:14px;height:14px;vertical-align:middle;margin-right:0.25rem;"></i> File
+                    </button>
+                    <button onclick="FM.setCreateType('folder')" id="btn-c-folder" class="fm-type-btn">
+                        <i data-lucide="folder"
+                            style="width:14px;height:14px;vertical-align:middle;margin-right:0.25rem;"></i> Folder
+                    </button>
+                </div>
+                <input id="input-create" type="text" placeholder="Enter nameâ€¦" class="form-input">
             </div>
-            <input id="input-create" type="text" placeholder="Name" class="form-input" style="margin-bottom: 1.5rem;">
-            <div style="display: flex; gap: 0.75rem;">
-                <button onclick="FM.closeModals()" class="btn btn-outline" style="flex: 1;">Cancel</button>
-                <button onclick="FM.doCreate()" class="btn btn-primary" style="flex: 1;">Create</button>
+            <div class="modal-footer">
+                <button onclick="FM.closeModals()" class="btn btn-secondary btn-sm">Cancel</button>
+                <button onclick="FM.doCreate()" class="btn btn-primary btn-sm">Create</button>
             </div>
         </div>
     </div>
 
     <!-- RENAME MODAL -->
-    <div id="modal-rename" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
-        <div class="glass-card"
-            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 24rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
-                <div style="padding: 0.5rem; border-radius: 50%; background: rgba(37, 99, 235, 0.1);">
-                    <i data-lucide="edit-3" style="width: 24px; height: 24px; color: var(--primary);"></i>
-                </div>
-                <h3
-                    style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+    <div id="modal-rename" class="modal hidden">
+        <div class="modal-box" style="max-width:24rem;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-title-icon"><i data-lucide="edit-3" style="width:16px;height:16px;"></i></div>
                     Rename
-                </h3>
+                </div>
+                <button class="modal-close" onclick="FM.closeModals()"><i data-lucide="x"
+                        style="width:15px;height:15px;"></i></button>
             </div>
-            <input id="input-rename" type="text" class="form-input" style="margin-bottom: 1.5rem;">
-            <input id="rename-target" type="hidden">
-            <div style="display: flex; gap: 0.75rem;">
-                <button onclick="FM.closeModals()" class="btn btn-outline" style="flex: 1;">Cancel</button>
-                <button onclick="FM.doRename()" class="btn btn-primary" style="flex: 1;">Save</button>
+            <div class="modal-body">
+                <input id="input-rename" type="text" class="form-input" placeholder="New nameâ€¦">
+                <input id="rename-target" type="hidden">
+            </div>
+            <div class="modal-footer">
+                <button onclick="FM.closeModals()" class="btn btn-secondary btn-sm">Cancel</button>
+                <button onclick="FM.doRename()" class="btn btn-primary btn-sm">Save</button>
             </div>
         </div>
     </div>
 
     <!-- COPY/MOVE MODAL -->
-    <div id="modal-copymove" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s; pointer-events: none;">
-        <div class="glass-card"
-            style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 24rem; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
-                <div style="padding: 0.5rem; border-radius: 50%; background: rgba(37, 99, 235, 0.1);">
-                    <i data-lucide="folder-output" style="width: 24px; height: 24px; color: var(--primary);"></i>
+    <div id="modal-copymove" class="modal hidden">
+        <div class="modal-box" style="max-width:26rem;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-title-icon"><i data-lucide="folder-output" style="width:16px;height:16px;"></i>
+                    </div>
+                    <span id="cm-title">Move Items</span>
                 </div>
-                <h3 style="font-weight: 800; font-size: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);"
-                    id="cm-title">Move Items</h3>
+                <button class="modal-close" onclick="FM.closeModals()"><i data-lucide="x"
+                        style="width:15px;height:15px;"></i></button>
             </div>
-            <div
-                style="margin-bottom: 0.75rem; font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
-                Destination Folder</div>
-            <div style="display: flex; background: rgba(248, 250, 252, 0.8); border: 1px solid rgba(203, 213, 225, 0.8); border-radius: var(--radius-lg); padding: 0.75rem 1rem; margin-bottom: 1.5rem; align-items: center; gap: 0.75rem; transition: border-color 0.2s;"
-                onfocusin="this.style.borderColor='var(--primary)'"
-                onfocusout="this.style.borderColor='rgba(203, 213, 225, 0.8)'">
-                <i data-lucide="folder" style="width: 18px; height: 18px; color: var(--slate-500);"></i>
-                <input id="cm-dest" type="text"
-                    style="background: transparent; outline: none; border: none; flex: 1; color: var(--slate-900); font-size: 0.875rem; font-family: monospace;"
-                    placeholder="/path/to/folder">
+            <div class="modal-body">
+                <label class="form-label">Destination Path</label>
+                <div style="display:flex;align-items:center;gap:0.625rem;padding:0 0.875rem;border:1px solid var(--slate-200);border-radius:var(--radius-md);background:var(--slate-50);transition:border-color 0.2s;"
+                    onfocusin="this.style.borderColor='var(--primary)'"
+                    onfocusout="this.style.borderColor='var(--slate-200)'">
+                    <i data-lucide="folder" style="width:14px;height:14px;color:var(--slate-400);flex-shrink:0;"></i>
+                    <input id="cm-dest" type="text"
+                        style="flex:1;border:none;background:transparent;outline:none;padding:0.625rem 0;font-family:var(--font-mono);font-size:0.875rem;color:var(--slate-900);"
+                        placeholder="/path/to/folder">
+                </div>
+                <input type="hidden" id="cm-action">
             </div>
-            <input type="hidden" id="cm-action">
-            <div style="display: flex; gap: 0.75rem;">
-                <button onclick="FM.closeModals()" class="btn btn-outline" style="flex: 1;">Cancel</button>
-                <button onclick="FM.doCopyMove()" class="btn btn-primary" style="flex: 1;">Confirm</button>
+            <div class="modal-footer">
+                <button onclick="FM.closeModals()" class="btn btn-secondary btn-sm">Cancel</button>
+                <button onclick="FM.doCopyMove()" class="btn btn-primary btn-sm">Confirm</button>
             </div>
         </div>
     </div>
 
     <!-- PREVIEW MODAL -->
-    <div id="modal-preview" class="modal hidden"
-        style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); opacity: 0; transition: opacity 0.3s; pointer-events: none; padding: 2rem;">
-        <div class="glass-card"
-            style="border-radius: 1.5rem; width: 100%; max-width: 64rem; height: 85vh; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; overflow: hidden; padding: 0; transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); background: rgba(255, 255, 255, 0.95);">
-            <div
-                style="height: 4rem; border-bottom: 1px solid rgba(226, 232, 240, 0.8); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; background: rgba(248, 250, 252, 0.6); backdrop-filter: blur(8px);">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <i data-lucide="eye" style="width: 20px; height: 20px; color: var(--primary);"></i>
+    <div id="modal-preview" class="modal hidden" style="padding:1.5rem;">
+        <div class="modal-box" style="max-width:64rem;height:87vh;display:flex;flex-direction:column;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <div class="modal-title-icon"><i data-lucide="eye" style="width:16px;height:16px;"></i></div>
                     <span id="preview-title"
-                        style="font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; font-weight: 700; color: var(--slate-800);">filename.txt</span>
+                        style="font-family:var(--font-mono);font-size:0.875rem;">filename.txt</span>
                 </div>
-                <button onclick="FM.closeModals()"
-                    style="padding: 0.5rem; background: transparent; border: none; border-radius: 50%; color: var(--slate-500); cursor: pointer; transition: all 0.2s;"
-                    onmouseover="this.style.backgroundColor='rgba(226, 232, 240, 0.8)'; this.style.color='var(--slate-900)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--slate-500)'"><i
-                        data-lucide="x" style="width: 20px; height: 20px;"></i></button>
+                <button class="modal-close" onclick="FM.closeModals()"><i data-lucide="x"
+                        style="width:15px;height:15px;"></i></button>
             </div>
-            <div style="flex: 1; overflow: auto; background: white; padding: 0; position: relative; display: flex; align-items: center; justify-content: center; border-radius: 0 0 1.5rem 1.5rem;"
-                id="preview-content">
-                <!-- Content injected here -->
+            <div id="preview-content"
+                style="flex:1;overflow:auto;background:white;display:flex;align-items:center;justify-content:center;">
             </div>
         </div>
     </div>
 
     <!-- TOAST -->
-    <div id="toast"
-        style="position: fixed; bottom: 2rem; right: 2rem; z-index: 100; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); transform: translateY(5rem) scale(0.9); opacity: 0; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); color: white; padding: 1rem 1.5rem; border-radius: var(--radius-lg); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 1rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.1); min-width: 250px;">
-        <!-- Icon injected via JS -->
+    <div id="toast">
         <div id="toast-icon-wrapper"
-            style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%;">
+            style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;flex-shrink:0;">
         </div>
-        <span style="flex: 1;"></span>
-    </div>
+        <span style="flex:1;" id="toast-msg"></span>
+        <script>
+            // CONFIG
+            const CONFIG = {
+                domainId: <?= $domain_id ?>,
+                currentPath: '<?= htmlspecialchars($current_path, ENT_QUOTES) ?>',
+                isWritable: <?= $is_writable ? 'true' : 'false' ?>,
+                totalItems: <?= count($items) ?>,
+                processUser: '<?= htmlspecialchars($process_user) ?>',
+                processUid: <?= $process_uid ?>
+            };
 
-    <!-- HIDDEN FORMS FOR DOWNLOADS -->
-    <form id="form-download" method="POST" target="_blank">
-        <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
-        <input type="hidden" name="download_items" value="1">
-        <div id="download-inputs"></div>
-    </form>
+            // ICONS
+            lucide.createIcons();
 
-    <script>
-        // CONFIG
-        const CONFIG = {
-            domainId: <?= $domain_id ?>,
-            currentPath: '<?= htmlspecialchars($current_path, ENT_QUOTES) ?>',
-            isWritable: <?= $is_writable ? 'true' : 'false' ?>,
-            totalItems: <?= count($items) ?>,
-            processUser: '<?= htmlspecialchars($process_user) ?>',
-            processUid: <?= $process_uid ?>
-        };
-
-        // ICONS
-        lucide.createIcons();
-
-        // FILE MANAGER CLASS
-        class FileManager {
-            constructor() {
-                this.view = localStorage.getItem('fm_view') || 'list';
-                this.selected = new Set();
-                this.allSelected = false;
-                this.init();
-            }
-
-            init() {
-                this.setView(this.view);
-                this.initDragDrop();
-                document.addEventListener('keydown', e => {
-                    if (e.key === 'Escape') this.closeModals();
-                    if (e.ctrlKey && e.key === 'a') {
-                        e.preventDefault();
-                        this.selectAll(true);
-                    }
-                    if (e.key === 'Delete' && this.selected.size > 0) {
-                        e.preventDefault();
-                        this.bulk('delete');
-                    }
-                });
-
-                // Context Menu Listener
-                document.addEventListener('contextmenu', e => {
-                    const row = e.target.closest('.file-item');
-                    if (row) {
-                        e.preventDefault();
-                        this.openCtxMenu(e, row);
-                    } else {
-                        this.closeCtx();
-                    }
-                });
-                document.addEventListener('click', () => this.closeCtx());
-            }
-
-            closeCtx() {
-                document.getElementById('ctx-menu').classList.add('hidden', 'opacity-0', 'scale-95');
-            }
-
-            openCtxMenu(e, row) {
-                const path = row.dataset.path;
-                // Auto-select if not selected
-                if (!this.selected.has(path)) {
-                    this.clearSelection();
-                    this.selected.add(path);
-                    row.classList.add('selected');
-                    row.querySelector('.file-check').checked = true;
-                    // For grid view opacity
-                    const chk = row.querySelector('.file-check');
-                    if (chk) chk.classList.add('opacity-100');
-                    this.updateActionBar();
+            // FILE MANAGER CLASS
+            class FileManager {
+                constructor() {
+                    this.view = localStorage.getItem('fm_view') || 'list';
+                    this.selected = new Set();
+                    this.allSelected = false;
+                    this.init();
                 }
 
-                this.ctxItem = path;
-                this.ctxType = row.dataset.type;
-                const menu = document.getElementById('ctx-menu');
+                init() {
+                    this.setView(this.view);
+                    this.initDragDrop();
+                    document.addEventListener('keydown', e => {
+                        if (e.key === 'Escape') this.closeModals();
+                        if (e.ctrlKey && e.key === 'a') {
+                            e.preventDefault();
+                            this.selectAll(true);
+                        }
+                        if (e.key === 'Delete' && this.selected.size > 0) {
+                            e.preventDefault();
+                            this.bulk('delete');
+                        }
+                    });
 
-                // Show/Hide context buttons based on type
-                const isDir = this.ctxType === 'dir';
-                const ext = path.split('.').pop().toLowerCase();
-                const isZip = ext === 'zip';
-
-                // Toggle Edit button
-                const btnEdit = document.getElementById('ctx-btn-edit');
-                if (btnEdit) btnEdit.style.display = isDir ? 'none' : 'flex';
-
-                // Toggle Extract button
-                const btnExtract = document.getElementById('ctx-btn-extract');
-                if (btnExtract) btnExtract.style.display = isZip ? 'flex' : 'none';
-
-                // Adjust position
-                let x = e.clientX;
-                let y = e.clientY;
-                if (x + 200 > window.innerWidth) x -= 200;
-                if (y + 300 > window.innerHeight) y -= 300; // Increased height safety
-
-                menu.style.top = y + 'px';
-                menu.style.left = x + 'px';
-                menu.classList.remove('hidden', 'opacity-0', 'scale-95');
-            }
-
-            // Context Menu Actions
-            openCtx() { this.open(this.ctxItem, this.ctxType); }
-
-            editCtx() {
-                if (this.ctxType === 'file') {
-                    location.href = `editor.php?domain_id=${CONFIG.domainId}&file=${this.ctxItem}`;
-                }
-            }
-
-            extractCtx() {
-                this.request('unzip_item', { item: this.ctxItem });
-            }
-
-            renameCtx() {
-                document.getElementById('input-rename').value = this.ctxItem.split('/').pop();
-                document.getElementById('rename-target').value = this.ctxItem;
-                document.getElementById('modal-rename').classList.remove('hidden');
-            }
-
-            doRename() {
-                const oldName = document.getElementById('rename-target').value;
-                const newName = document.getElementById('input-rename').value;
-                if (newName && oldName) this.request('rename_item', { old: oldName, new_name: newName });
-            }
-
-            chmodCtx() {
-                // Find the file element to get current permissions
-                const fileEl = document.querySelector(`.file-item[data-path="${this.ctxItem}"]`);
-                let currentPerms = '';
-
-                if (fileEl) {
-                    // Get permissions from the list view (4th column in list layout)
-                    const permEl = null; // fileEl.querySelector('.list-layout > div:nth-child(4)');
-                    if (permEl) {
-                        currentPerms = permEl.textContent.trim();
-                    }
+                    // Context Menu Listener
+                    document.addEventListener('contextmenu', e => {
+                        const row = e.target.closest('.file-item');
+                        if (row) {
+                            e.preventDefault();
+                            this.openCtxMenu(e, row);
+                        } else {
+                            this.closeCtx();
+                        }
+                    });
+                    document.addEventListener('click', () => this.closeCtx());
                 }
 
-                // Determine suggestion based on type
-                const suggested = this.ctxType === 'dir' ? '0775' : '0664';
-                document.getElementById('chmod-val').value = suggested;
-                document.getElementById('chmod-target').value = this.ctxItem;
-
-                // Update current permissions display
-                const currentPermEl = document.getElementById('chmod-current');
-                if (currentPermEl) {
-                    currentPermEl.textContent = currentPerms || 'Unknown';
+                closeCtx() {
+                    document.getElementById('ctx-menu').classList.add('hidden', 'opacity-0', 'scale-95');
                 }
 
-                // Show warning if file might not be owned by web server
-                const warningEl = document.getElementById('chmod-warning');
-                if (warningEl) {
-                    warningEl.classList.remove('hidden');
-                }
-
-                document.getElementById('modal-chmod').classList.remove('hidden');
-            }
-
-            doChmod() {
-                const target = document.getElementById('chmod-target').value;
-                const mode = document.getElementById('chmod-val').value;
-                if (target && mode) {
-                    this.request('chmod_item', { item: target, mode: mode });
-                    this.closeModals();
-                }
-            }
-
-            // VIEW & UI
-            setView(mode) {
-                this.view = mode;
-                localStorage.setItem('fm_view', mode);
-                const container = document.getElementById('file-view');
-                const btnList = document.getElementById('btn-list');
-                const btnGrid = document.getElementById('btn-grid');
-
-                if (mode === 'grid') {
-                    container.classList.add('view-grid');
-                    container.classList.remove('view-list');
-                    btnGrid.classList.add('bg-slate-100', 'text-slate-900');
-                    btnGrid.classList.remove('text-slate-700');
-                    btnList.classList.remove('bg-slate-100', 'text-slate-900');
-                    btnList.classList.add('text-blue-400');
-                } else {
-                    container.classList.add('view-list');
-                    container.classList.remove('view-grid');
-                    btnList.classList.add('bg-slate-100', 'text-blue-400');
-                    btnGrid.classList.remove('bg-slate-100', 'text-slate-900');
-                    btnGrid.classList.add('text-slate-700');
-                }
-            }
-
-            // SELECTION
-            toggleSelect(el, e) {
-                // Allow checkbox clicks to work normally
-                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
-                    const path = el.dataset.path;
-                    if (e.target.checked) {
+                openCtxMenu(e, row) {
+                    const path = row.dataset.path;
+                    // Auto-select if not selected
+                    if (!this.selected.has(path)) {
+                        this.clearSelection();
                         this.selected.add(path);
-                        el.classList.add('selected');
+                        row.classList.add('selected');
+                        row.querySelector('.file-check').checked = true;
+                        // For grid view opacity
+                        const chk = row.querySelector('.file-check');
+                        if (chk) chk.classList.add('opacity-100');
+                        this.updateActionBar();
+                    }
+
+                    this.ctxItem = path;
+                    this.ctxType = row.dataset.type;
+                    const menu = document.getElementById('ctx-menu');
+
+                    // Show/Hide context buttons based on type
+                    const isDir = this.ctxType === 'dir';
+                    const ext = path.split('.').pop().toLowerCase();
+                    const isZip = ext === 'zip';
+
+                    // Toggle Edit button
+                    const btnEdit = document.getElementById('ctx-btn-edit');
+                    if (btnEdit) btnEdit.style.display = isDir ? 'none' : 'flex';
+
+                    // Toggle Extract button
+                    const btnExtract = document.getElementById('ctx-btn-extract');
+                    if (btnExtract) btnExtract.style.display = isZip ? 'flex' : 'none';
+
+                    // Adjust position
+                    let x = e.clientX;
+                    let y = e.clientY;
+                    if (x + 200 > window.innerWidth) x -= 200;
+                    if (y + 300 > window.innerHeight) y -= 300; // Increased height safety
+
+                    menu.style.top = y + 'px';
+                    menu.style.left = x + 'px';
+                    menu.classList.remove('hidden', 'opacity-0', 'scale-95');
+                }
+
+                // Context Menu Actions
+                openCtx() { this.open(this.ctxItem, this.ctxType); }
+
+                editCtx() {
+                    if (this.ctxType === 'file') {
+                        location.href = `editor.php?domain_id=${CONFIG.domainId}&file=${this.ctxItem}`;
+                    }
+                }
+
+                extractCtx() {
+                    this.request('unzip_item', { item: this.ctxItem });
+                }
+
+                renameCtx() {
+                    document.getElementById('input-rename').value = this.ctxItem.split('/').pop();
+                    document.getElementById('rename-target').value = this.ctxItem;
+                    document.getElementById('modal-rename').classList.remove('hidden');
+                }
+
+                doRename() {
+                    const oldName = document.getElementById('rename-target').value;
+                    const newName = document.getElementById('input-rename').value;
+                    if (newName && oldName) this.request('rename_item', { old: oldName, new_name: newName });
+                }
+
+                chmodCtx() {
+                    // Find the file element to get current permissions
+                    const fileEl = document.querySelector(`.file-item[data-path="${this.ctxItem}"]`);
+                    let currentPerms = '';
+
+                    if (fileEl) {
+                        // Get permissions from the list view (4th column in list layout)
+                        const permEl = null; // fileEl.querySelector('.list-layout > div:nth-child(4)');
+                        if (permEl) {
+                            currentPerms = permEl.textContent.trim();
+                        }
+                    }
+
+                    // Determine suggestion based on type
+                    const suggested = this.ctxType === 'dir' ? '0775' : '0664';
+                    document.getElementById('chmod-val').value = suggested;
+                    document.getElementById('chmod-target').value = this.ctxItem;
+
+                    // Update current permissions display
+                    const currentPermEl = document.getElementById('chmod-current');
+                    if (currentPermEl) {
+                        currentPermEl.textContent = currentPerms || 'Unknown';
+                    }
+
+                    // Show warning if file might not be owned by web server
+                    const warningEl = document.getElementById('chmod-warning');
+                    if (warningEl) {
+                        warningEl.classList.remove('hidden');
+                    }
+
+                    document.getElementById('modal-chmod').classList.remove('hidden');
+                }
+
+                doChmod() {
+                    const target = document.getElementById('chmod-target').value;
+                    const mode = document.getElementById('chmod-val').value;
+                    if (target && mode) {
+                        this.request('chmod_item', { item: target, mode: mode });
+                        this.closeModals();
+                    }
+                }
+
+                // VIEW & UI
+                setView(mode) {
+                    this.view = mode;
+                    localStorage.setItem('fm_view', mode);
+                    const container = document.getElementById('file-view');
+                    const btnList = document.getElementById('btn-list');
+                    const btnGrid = document.getElementById('btn-grid');
+
+                    if (mode === 'grid') {
+                        container.classList.add('view-grid');
+                        container.classList.remove('view-list');
+                        btnGrid.classList.add('active');
+                        btnList.classList.remove('active');
                     } else {
+                        container.classList.add('view-list');
+                        container.classList.remove('view-grid');
+                        btnList.classList.add('active');
+                        btnGrid.classList.remove('active');
+                    }
+                }
+
+                // SELECTION
+                toggleSelect(el, e) {
+                    // Allow checkbox clicks to work normally
+                    if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+                        const path = el.dataset.path;
+                        if (e.target.checked) {
+                            this.selected.add(path);
+                            el.classList.add('selected');
+                        } else {
+                            this.selected.delete(path);
+                            el.classList.remove('selected');
+                        }
+                        this.syncHeaderCheckbox();
+                        this.updateActionBar();
+                        return;
+                    }
+
+                    // Click on row (not checkbox)
+                    const path = el.dataset.path;
+                    if (this.selected.has(path)) {
                         this.selected.delete(path);
                         el.classList.remove('selected');
-                    }
-                    this.syncHeaderCheckbox();
-                    this.updateActionBar();
-                    return;
-                }
-
-                // Click on row (not checkbox)
-                const path = el.dataset.path;
-                if (this.selected.has(path)) {
-                    this.selected.delete(path);
-                    el.classList.remove('selected');
-                    const checkbox = el.querySelector('.file-check');
-                    if (checkbox) {
-                        checkbox.checked = false;
-                        checkbox.classList.remove('opacity-100');
-                    }
-                } else {
-                    this.selected.add(path);
-                    el.classList.add('selected');
-                    const checkbox = el.querySelector('.file-check');
-                    if (checkbox) {
-                        checkbox.checked = true;
-                        checkbox.classList.add('opacity-100');
-                    }
-                }
-                this.syncHeaderCheckbox();
-                this.updateActionBar();
-            }
-
-            syncHeaderCheckbox() {
-                const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
-                if (!headerCheckbox) return;
-
-                const fileItems = document.querySelectorAll('.file-item');
-                if (fileItems.length === 0) {
-                    headerCheckbox.checked = false;
-                    headerCheckbox.indeterminate = false;
-                    return;
-                }
-
-                if (this.selected.size === 0) {
-                    headerCheckbox.checked = false;
-                    headerCheckbox.indeterminate = false;
-                } else if (this.selected.size === fileItems.length) {
-                    headerCheckbox.checked = true;
-                    headerCheckbox.indeterminate = false;
-                } else {
-                    headerCheckbox.checked = false;
-                    headerCheckbox.indeterminate = true;
-                }
-            }
-
-            updateActionBar() {
-                const bar = document.getElementById('action-bar');
-                const count = document.getElementById('selection-count');
-                const btnSelectAll = document.getElementById('btn-select-all');
-                const btnUnselectAll = document.getElementById('btn-unselect-all');
-
-                if (this.selected.size > 0) {
-                    bar.classList.remove('hidden', '-translate-y-full', 'opacity-0');
-                    count.innerText = this.selected.size + ' Selected';
-
-                    // Show Select All or Unselect All based on current state
-                    if (this.selected.size === CONFIG.totalItems && CONFIG.totalItems > 0) {
-                        btnSelectAll.classList.add('hidden');
-                        btnUnselectAll.classList.remove('hidden');
+                        const checkbox = el.querySelector('.file-check');
+                        if (checkbox) {
+                            checkbox.checked = false;
+                            checkbox.classList.remove('opacity-100');
+                        }
                     } else {
-                        btnSelectAll.classList.remove('hidden');
-                        btnUnselectAll.classList.add('hidden');
-                    }
-                } else {
-                    bar.classList.add('-translate-y-full', 'opacity-0');
-                    setTimeout(() => bar.classList.add('hidden'), 300);
-                }
-            }
-
-            clearSelection() {
-                this.selected.clear();
-                this.allSelected = false;
-                document.querySelectorAll('.file-item.selected').forEach(el => {
-                    el.classList.remove('selected');
-                    const checkbox = el.querySelector('.file-check');
-                    if (checkbox) checkbox.checked = false;
-                });
-                // Also uncheck the header checkbox
-                const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
-                if (headerCheckbox) headerCheckbox.checked = false;
-                this.updateActionBar();
-            }
-
-            // FIX: Select All / Unselect All functionality
-            selectAll(checked) {
-                const fileItems = document.querySelectorAll('.file-item');
-                const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
-
-                if (checked === true) {
-                    // Select all
-                    this.selected.clear();
-                    fileItems.forEach(el => {
-                        const path = el.dataset.path;
                         this.selected.add(path);
                         el.classList.add('selected');
                         const checkbox = el.querySelector('.file-check');
-                        if (checkbox) checkbox.checked = true;
-                    });
-                    this.allSelected = true;
-                    if (headerCheckbox) {
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            checkbox.classList.add('opacity-100');
+                        }
+                    }
+                    this.syncHeaderCheckbox();
+                    this.updateActionBar();
+                }
+
+                syncHeaderCheckbox() {
+                    const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
+                    if (!headerCheckbox) return;
+
+                    const fileItems = document.querySelectorAll('.file-item');
+                    if (fileItems.length === 0) {
+                        headerCheckbox.checked = false;
+                        headerCheckbox.indeterminate = false;
+                        return;
+                    }
+
+                    if (this.selected.size === 0) {
+                        headerCheckbox.checked = false;
+                        headerCheckbox.indeterminate = false;
+                    } else if (this.selected.size === fileItems.length) {
                         headerCheckbox.checked = true;
                         headerCheckbox.indeterminate = false;
+                    } else {
+                        headerCheckbox.checked = false;
+                        headerCheckbox.indeterminate = true;
                     }
-                } else {
-                    // Unselect all (when checked is false or undefined)
+                }
+
+                updateActionBar() {
+                    const bar = document.getElementById('action-bar');
+                    const count = document.getElementById('selection-count');
+                    const btnSelectAll = document.getElementById('btn-select-all');
+                    const btnUnselectAll = document.getElementById('btn-unselect-all');
+
+                    if (this.selected.size > 0) {
+                        bar.classList.add('visible');
+                        count.innerText = this.selected.size + ' Selected';
+
+                        if (this.selected.size === CONFIG.totalItems && CONFIG.totalItems > 0) {
+                            btnSelectAll.classList.add('hidden');
+                            btnUnselectAll.classList.remove('hidden');
+                        } else {
+                            btnSelectAll.classList.remove('hidden');
+                            btnUnselectAll.classList.add('hidden');
+                        }
+                    } else {
+                        bar.classList.remove('visible');
+                    }
+                }
+
+                clearSelection() {
                     this.selected.clear();
                     this.allSelected = false;
-                    fileItems.forEach(el => {
+                    document.querySelectorAll('.file-item.selected').forEach(el => {
                         el.classList.remove('selected');
                         const checkbox = el.querySelector('.file-check');
                         if (checkbox) checkbox.checked = false;
                     });
-                    if (headerCheckbox) {
-                        headerCheckbox.checked = false;
-                        headerCheckbox.indeterminate = false;
-                    }
-                }
-                this.updateActionBar();
-            }
-
-            // NAVIGATION
-            open(path, type) {
-                if (type === 'dir') {
-                    location.href = `?domain_id=${CONFIG.domainId}&path=${encodeURIComponent(path)}`;
-                } else {
-                    const ext = path.split('.').pop().toLowerCase();
-                    const editable = ['php', 'html', 'css', 'js', 'json', 'xml', 'txt', 'md', 'sql', 'htaccess', 'env', 'ini', 'conf'];
-
-                    if (editable.includes(ext)) {
-                        location.href = `editor.php?domain_id=${CONFIG.domainId}&file=${encodeURIComponent(path)}`;
-                    } else {
-                        // Start Preview
-                        this.preview(path);
-                    }
-                }
-            }
-
-            // ACTIONS
-            async request(action, data = {}) {
-                const fd = new FormData();
-                fd.append('ajax', '1');
-                fd.append(action, '1');
-                fd.append('domain_id', CONFIG.domainId);
-                fd.append('path', CONFIG.currentPath);
-                fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-                for (let k in data) {
-                    if (Array.isArray(data[k])) data[k].forEach(v => fd.append(`${k}[]`, v));
-                    else fd.append(k, data[k]);
+                    // Also uncheck the header checkbox
+                    const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
+                    if (headerCheckbox) headerCheckbox.checked = false;
+                    this.updateActionBar();
                 }
 
-                // Show loading cursor
-                document.body.style.cursor = 'wait';
-                try {
-                    const res = await fetch('', { method: 'POST', body: fd });
+                // FIX: Select All / Unselect All functionality
+                selectAll(checked) {
+                    const fileItems = document.querySelectorAll('.file-item');
+                    const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
 
-                    // Check if response is JSON
-                    const contentType = res.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        const text = await res.text();
-                        console.error('Non-JSON response:', text);
-                        this.toast('error', 'Server returned invalid response. Check server logs.');
-                        document.body.style.cursor = 'default';
-                        return;
-                    }
-
-                    const json = await res.json();
-                    document.body.style.cursor = 'default';
-                    if (json.status === 'success') {
-                        this.toast('success', json.msg);
-                        setTimeout(() => location.reload(), 500);
-                    } else {
-                        // Handle detailed error with solutions
-                        let errorMsg = json.msg;
-                        if (typeof json.msg === 'object') {
-                            errorMsg = json.msg.msg || 'Operation failed';
-                            if (json.msg.details) {
-                                errorMsg += '\n\n' + json.msg.details;
-                            }
-                            if (json.msg.solutions && json.msg.solutions.length > 0) {
-                                errorMsg += '\n\nPossible solutions:\n• ' + json.msg.solutions.join('\n• ');
-                            }
-                            if (json.msg.current_perms) {
-                                errorMsg += '\n\nCurrent permissions: ' + json.msg.current_perms;
-                            }
+                    if (checked === true) {
+                        // Select all
+                        this.selected.clear();
+                        fileItems.forEach(el => {
+                            const path = el.dataset.path;
+                            this.selected.add(path);
+                            el.classList.add('selected');
+                            const checkbox = el.querySelector('.file-check');
+                            if (checkbox) checkbox.checked = true;
+                        });
+                        this.allSelected = true;
+                        if (headerCheckbox) {
+                            headerCheckbox.checked = true;
+                            headerCheckbox.indeterminate = false;
                         }
-                        this.toast('error', errorMsg);
-
-                        // Also log to console for debugging
-                        console.error('Operation failed:', json);
+                    } else {
+                        // Unselect all (when checked is false or undefined)
+                        this.selected.clear();
+                        this.allSelected = false;
+                        fileItems.forEach(el => {
+                            el.classList.remove('selected');
+                            const checkbox = el.querySelector('.file-check');
+                            if (checkbox) checkbox.checked = false;
+                        });
+                        if (headerCheckbox) {
+                            headerCheckbox.checked = false;
+                            headerCheckbox.indeterminate = false;
+                        }
                     }
-                } catch (e) {
-                    document.body.style.cursor = 'default';
-                    this.toast('error', 'Server Error: ' + e.message);
+                    this.updateActionBar();
                 }
-            }
 
-            bulk(action) {
-                if (this.selected.size === 0) return;
-                const paths = Array.from(this.selected);
+                // NAVIGATION
+                open(path, type) {
+                    if (type === 'dir') {
+                        location.href = `?domain_id=${CONFIG.domainId}&path=${encodeURIComponent(path)}`;
+                    } else {
+                        const ext = path.split('.').pop().toLowerCase();
+                        const editable = ['php', 'html', 'css', 'js', 'json', 'xml', 'txt', 'md', 'sql', 'htaccess', 'env', 'ini', 'conf'];
 
-                if (action === 'delete') {
-                    if (confirm(`Delete ${paths.length} items?`)) {
-                        this.request('delete_paths', { paths: paths });
+                        if (editable.includes(ext)) {
+                            location.href = `editor.php?domain_id=${CONFIG.domainId}&file=${encodeURIComponent(path)}`;
+                        } else {
+                            // Start Preview
+                            this.preview(path);
+                        }
                     }
-                } else if (action === 'download') {
-                    const form = document.getElementById('form-download');
-                    const inputs = document.getElementById('download-inputs');
-                    inputs.innerHTML = '';
-                    paths.forEach(p => inputs.innerHTML += `<input type="hidden" name="paths[]" value="${p}">`);
-                    form.submit();
-                } else if (action === 'zip') {
-                    this.request('zip_paths', { paths: paths });
-                } else if (action === 'copy' || action === 'move') {
-                    this.openCopyMove(action);
                 }
-            }
 
-            openCopyMove(action) {
-                if (this.selected.size === 0) return;
-                const paths = Array.from(this.selected);
-                document.getElementById('cm-title').innerText = (action === 'copy' ? 'Copy' : 'Move') + ' ' + paths.length + ' Items';
-                document.getElementById('cm-action').value = action;
-                document.getElementById('cm-dest').value = CONFIG.currentPath; // Pre-fill current
-                document.getElementById('modal-copymove').classList.remove('hidden');
-            }
-
-            doCopyMove() {
-                const action = document.getElementById('cm-action').value;
-                const dest = document.getElementById('cm-dest').value;
-                const paths = Array.from(this.selected);
-                this.request('copy_move_items', { action: action, destination: dest, paths: paths });
-            }
-
-            // PREVIEW
-            async preview(path) {
-                const ext = path.split('.').pop().toLowerCase();
-                const modal = document.getElementById('modal-preview');
-                const container = document.getElementById('preview-content');
-
-                modal.classList.remove('hidden');
-                container.innerHTML = '<div style="animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; color: var(--slate-700);">Loading...</div>';
-
-                if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                // ACTIONS
+                async request(action, data = {}) {
                     const fd = new FormData();
-                    fd.append('download_items', '1');
-                    fd.append('paths[]', path);
-                    // We fetch blob
+                    fd.append('ajax', '1');
+                    fd.append(action, '1');
+                    fd.append('domain_id', CONFIG.domainId);
+                    fd.append('path', CONFIG.currentPath);
+                    fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+                    for (let k in data) {
+                        if (Array.isArray(data[k])) data[k].forEach(v => fd.append(`${k}[]`, v));
+                        else fd.append(k, data[k]);
+                    }
+
+                    // Show loading cursor
+                    document.body.style.cursor = 'wait';
                     try {
                         const res = await fetch('', { method: 'POST', body: fd });
-                        const blob = await res.blob();
-                        const url = URL.createObjectURL(blob);
-                        container.innerHTML = `<img src="${url}" style="max-height: 100%; max-width: 100%; border-radius: 0.25rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);">`;
-                    } catch (e) { container.innerHTML = 'Error loading image'; }
-                } else {
-                    const fd = new FormData();
-                    fd.append('preview_item', '1');
-                    fd.append('item', path);
-                    const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-                    if (res.status === 'success') {
-                        container.innerHTML = `<pre style="font-size: 0.8125rem; font-family: 'JetBrains Mono', monospace; line-height: 1.6; color: var(--slate-700); padding: 1.5rem; width: 100%; height: 100%; overflow: auto; text-align: left; margin: 0; tab-size: 4;">${res.content}</pre>`;
-                    } else {
-                        container.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; color: #ef4444;"><i data-lucide="alert-circle" style="width: 48px; height: 48px;"></i><span style="font-weight: 600;">${res.msg}</span></div>`;
-                        lucide.createIcons();
+
+                        // Check if response is JSON
+                        const contentType = res.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            const text = await res.text();
+                            console.error('Non-JSON response:', text);
+                            this.toast('error', 'Server returned invalid response. Check server logs.');
+                            document.body.style.cursor = 'default';
+                            return;
+                        }
+
+                        const json = await res.json();
+                        document.body.style.cursor = 'default';
+                        if (json.status === 'success') {
+                            this.toast('success', json.msg);
+                            setTimeout(() => location.reload(), 500);
+                        } else {
+                            // Handle detailed error with solutions
+                            let errorMsg = json.msg;
+                            if (typeof json.msg === 'object') {
+                                errorMsg = json.msg.msg || 'Operation failed';
+                                if (json.msg.details) {
+                                    errorMsg += '\n\n' + json.msg.details;
+                                }
+                                if (json.msg.solutions && json.msg.solutions.length > 0) {
+                                    errorMsg += '\n\nPossible solutions:\nÃ¢â‚¬Â¢ ' + json.msg.solutions.join('\nÃ¢â‚¬Â¢ ');
+                                }
+                                if (json.msg.current_perms) {
+                                    errorMsg += '\n\nCurrent permissions: ' + json.msg.current_perms;
+                                }
+                            }
+                            this.toast('error', errorMsg);
+
+                            // Also log to console for debugging
+                            console.error('Operation failed:', json);
+                        }
+                    } catch (e) {
+                        document.body.style.cursor = 'default';
+                        this.toast('error', 'Server Error: ' + e.message);
                     }
                 }
-            }
 
-            // UTILS
-            toast(type, msg) {
-                const el = document.getElementById('toast');
-                const iconWrapper = el.querySelector('#toast-icon-wrapper');
-                const span = el.querySelector('span');
+                bulk(action) {
+                    if (this.selected.size === 0) return;
+                    const paths = Array.from(this.selected);
 
-                span.innerText = msg;
-
-                if (type === 'success') {
-                    iconWrapper.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
-                    iconWrapper.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px; color: #10b981;"></i>';
-                } else {
-                    iconWrapper.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-                    iconWrapper.innerHTML = '<i data-lucide="alert-circle" style="width: 14px; height: 14px; color: #ef4444;"></i>';
+                    if (action === 'delete') {
+                        if (confirm(`Delete ${paths.length} items?`)) {
+                            this.request('delete_paths', { paths: paths });
+                        }
+                    } else if (action === 'download') {
+                        const form = document.getElementById('form-download');
+                        const inputs = document.getElementById('download-inputs');
+                        inputs.innerHTML = '';
+                        paths.forEach(p => inputs.innerHTML += `<input type="hidden" name="paths[]" value="${p}">`);
+                        form.submit();
+                    } else if (action === 'zip') {
+                        this.request('zip_paths', { paths: paths });
+                    } else if (action === 'copy' || action === 'move') {
+                        this.openCopyMove(action);
+                    }
                 }
-                lucide.createIcons({ nameAttr: 'data-lucide', attrs: { class: "lucide" } });
 
-                el.style.transform = 'translateY(0) scale(1)';
-                el.style.opacity = '1';
+                openCopyMove(action) {
+                    if (this.selected.size === 0) return;
+                    const paths = Array.from(this.selected);
+                    document.getElementById('cm-title').innerText = (action === 'copy' ? 'Copy' : 'Move') + ' ' + paths.length + ' Items';
+                    document.getElementById('cm-action').value = action;
+                    document.getElementById('cm-dest').value = CONFIG.currentPath; // Pre-fill current
+                    document.getElementById('modal-copymove').classList.remove('hidden');
+                }
 
-                setTimeout(() => {
-                    el.style.transform = 'translateY(5rem) scale(0.9)';
-                    el.style.opacity = '0';
-                }, 3000);
-            }
+                doCopyMove() {
+                    const action = document.getElementById('cm-action').value;
+                    const dest = document.getElementById('cm-dest').value;
+                    const paths = Array.from(this.selected);
+                    this.request('copy_move_items', { action: action, destination: dest, paths: paths });
+                }
 
-            closeModals() {
-                document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-            }
+                // PREVIEW
+                async preview(path) {
+                    const ext = path.split('.').pop().toLowerCase();
+                    const modal = document.getElementById('modal-preview');
+                    const container = document.getElementById('preview-content');
 
-            filter() {
-                const q = document.getElementById('file-search').value.toLowerCase();
-                document.querySelectorAll('.file-item').forEach(el => {
-                    el.classList.toggle('hidden', !el.dataset.name.includes(q));
-                });
-            }
-
-            // Handlers for HTML Buttons
-            openUpload() {
-                const modal = document.getElementById('modal-upload');
-                if (modal) {
                     modal.classList.remove('hidden');
-                }
-            }
+                    container.innerHTML = '<div style="animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; color: var(--slate-700);">Loading...</div>';
 
-            openCreate() {
-                document.getElementById('modal-create').classList.remove('hidden');
-                this.setCreateType('file');
-            }
-
-            setCreateType(t) {
-                this.createType = t;
-                const activeStyle = "flex: 1; padding: 0.375rem 0; border-radius: 0.25rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: var(--primary); color: white; box-shadow: var(--shadow-sm);";
-                const inactiveStyle = "flex: 1; padding: 0.375rem 0; border-radius: 0.25rem; border: none; font-size: 0.875rem; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--slate-700);";
-                document.getElementById('btn-c-file').style.cssText = t === 'file' ? activeStyle : inactiveStyle;
-                document.getElementById('btn-c-folder').style.cssText = t === 'folder' ? activeStyle : inactiveStyle;
-            }
-
-            doCreate() {
-                const name = document.getElementById('input-create').value;
-                if (!name) return;
-                this.request('create_item', { name: name, type: this.createType || 'file' });
-            }
-
-            initDragDrop() {
-                const zone = document.getElementById('drop-zone-global');
-                const overlay = document.getElementById('drag-overlay');
-                let timer;
-
-                window.addEventListener('dragover', e => {
-                    e.preventDefault();
-                    overlay.classList.remove('hidden');
-                    clearTimeout(timer);
-                });
-
-                window.addEventListener('dragleave', e => {
-                    timer = setTimeout(() => overlay.classList.add('hidden'), 100);
-                });
-
-                window.addEventListener('drop', e => {
-                    e.preventDefault();
-                    overlay.classList.add('hidden');
-                    this.handleDrop(e.dataTransfer.files);
-                });
-            }
-
-            async handleDrop(files) {
-                if (files.length === 0) return;
-
-                const fd = new FormData();
-                fd.append('upload_files', '1');
-                fd.append('ajax', '1');
-                fd.append('domain_id', CONFIG.domainId);
-                fd.append('path', CONFIG.currentPath);
-
-                for (let i = 0; i < files.length; i++) {
-                    fd.append('files[]', files[i]);
-                }
-
-                this.toast('success', 'Uploading...');
-                try {
-                    const res = await fetch('', { method: 'POST', body: fd });
-
-                    // Check if response is JSON
-                    const contentType = res.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        const text = await res.text();
-                        console.error('Non-JSON response:', text);
-                        this.toast('error', 'Server returned invalid response. Check server logs.');
-                        return;
-                    }
-
-                    const json = await res.json();
-                    if (json.status === 'success') {
-                        this.toast('success', json.msg || 'Uploaded successfully');
-                        setTimeout(() => location.reload(), 500);
+                    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                        const fd = new FormData();
+                        fd.append('download_items', '1');
+                        fd.append('paths[]', path);
+                        // We fetch blob
+                        try {
+                            const res = await fetch('', { method: 'POST', body: fd });
+                            const blob = await res.blob();
+                            const url = URL.createObjectURL(blob);
+                            container.innerHTML = `<img src="${url}" style="max-height: 100%; max-width: 100%; border-radius: 0.25rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);">`;
+                        } catch (e) { container.innerHTML = 'Error loading image'; }
                     } else {
-                        console.error('Upload Error:', json);
-                        this.toast('error', json.msg || 'Upload failed');
+                        const fd = new FormData();
+                        fd.append('preview_item', '1');
+                        fd.append('item', path);
+                        const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+                        if (res.status === 'success') {
+                            container.innerHTML = `<pre style="font-size: 0.8125rem; font-family: 'JetBrains Mono', monospace; line-height: 1.6; color: var(--slate-700); padding: 1.5rem; width: 100%; height: 100%; overflow: auto; text-align: left; margin: 0; tab-size: 4;">${res.content}</pre>`;
+                        } else {
+                            container.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; color: #ef4444;"><i data-lucide="alert-circle" style="width: 48px; height: 48px;"></i><span style="font-weight: 600;">${res.msg}</span></div>`;
+                            lucide.createIcons();
+                        }
                     }
-                } catch (e) {
-                    console.error('Fetch Error:', e);
-                    this.toast('error', 'Network or Server Error: ' + e.message);
+                }
+
+                // UTILS
+                toast(type, msg) {
+                    const el = document.getElementById('toast');
+                    const iconWrapper = document.getElementById('toast-icon-wrapper');
+                    const span = document.getElementById('toast-msg');
+
+                    span.innerText = msg;
+
+                    if (type === 'success') {
+                        iconWrapper.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+                        iconWrapper.innerHTML = '<i data-lucide="check" style="width: 14px; height: 14px; color: #10b981;"></i>';
+                    } else {
+                        iconWrapper.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                        iconWrapper.innerHTML = '<i data-lucide="alert-circle" style="width: 14px; height: 14px; color: #ef4444;"></i>';
+                    }
+                    lucide.createIcons({ nameAttr: 'data-lucide', attrs: { class: "lucide" } });
+
+                    el.classList.add('visible');
+                    clearTimeout(this._toastTimer);
+                    this._toastTimer = setTimeout(() => el.classList.remove('visible'), 3500);
+                }
+
+                closeModals() {
+                    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+                }
+
+                filter() {
+                    const q = document.getElementById('file-search').value.toLowerCase();
+                    document.querySelectorAll('.file-item').forEach(el => {
+                        el.classList.toggle('hidden', !el.dataset.name.includes(q));
+                    });
+                }
+
+                // Handlers for HTML Buttons
+                openUpload() {
+                    const modal = document.getElementById('modal-upload');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                    }
+                }
+
+                openCreate() {
+                    document.getElementById('modal-create').classList.remove('hidden');
+                    this.setCreateType('file');
+                }
+
+                setCreateType(t) {
+                    this.createType = t;
+                    const btnFile = document.getElementById('btn-c-file');
+                    const btnFolder = document.getElementById('btn-c-folder');
+                    btnFile.classList.toggle('active', t === 'file');
+                    btnFolder.classList.toggle('active', t === 'folder');
+                }
+
+                doCreate() {
+                    const name = document.getElementById('input-create').value;
+                    if (!name) return;
+                    this.request('create_item', { name: name, type: this.createType || 'file' });
+                }
+
+                initDragDrop() {
+                    const zone = document.getElementById('drop-zone-global');
+                    const overlay = document.getElementById('drag-overlay');
+                    let timer;
+
+                    window.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        overlay.classList.remove('hidden');
+                        clearTimeout(timer);
+                    });
+
+                    window.addEventListener('dragleave', e => {
+                        timer = setTimeout(() => overlay.classList.add('hidden'), 100);
+                    });
+
+                    window.addEventListener('drop', e => {
+                        e.preventDefault();
+                        overlay.classList.add('hidden');
+                        this.handleDrop(e.dataTransfer.files);
+                    });
+                }
+
+                async handleDrop(files) {
+                    if (files.length === 0) return;
+
+                    const fd = new FormData();
+                    fd.append('upload_files', '1');
+                    fd.append('ajax', '1');
+                    fd.append('domain_id', CONFIG.domainId);
+                    fd.append('path', CONFIG.currentPath);
+
+                    for (let i = 0; i < files.length; i++) {
+                        fd.append('files[]', files[i]);
+                    }
+
+                    this.toast('success', 'Uploading...');
+                    try {
+                        const res = await fetch('', { method: 'POST', body: fd });
+
+                        // Check if response is JSON
+                        const contentType = res.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            const text = await res.text();
+                            console.error('Non-JSON response:', text);
+                            this.toast('error', 'Server returned invalid response. Check server logs.');
+                            return;
+                        }
+
+                        const json = await res.json();
+                        if (json.status === 'success') {
+                            this.toast('success', json.msg || 'Uploaded successfully');
+                            setTimeout(() => location.reload(), 500);
+                        } else {
+                            console.error('Upload Error:', json);
+                            this.toast('error', json.msg || 'Upload failed');
+                        }
+                    } catch (e) {
+                        console.error('Fetch Error:', e);
+                        this.toast('error', 'Network or Server Error: ' + e.message);
+                    }
+                }
+
+                doUploadInput(input) {
+                    if (input.files.length > 0) {
+                        this.handleDrop(input.files);
+                        this.closeModals();
+                    }
                 }
             }
 
-            doUploadInput(input) {
-                if (input.files.length > 0) {
-                    this.handleDrop(input.files);
-                    this.closeModals();
-                }
-            }
-        }
-
-        const FM = new FileManager();
-    </script>
+            const FM = new FileManager();
+        </script>
 </body>
 
 </html>
