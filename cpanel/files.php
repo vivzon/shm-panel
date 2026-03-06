@@ -894,7 +894,8 @@ if (is_dir($full_path)) {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
+            width: fit-content;
+            min-width: 28px;
             height: 28px;
             border-radius: var(--radius-md);
             background: var(--primary-light);
@@ -943,6 +944,9 @@ if (is_dir($full_path)) {
 
         .fm-search-wrap {
             position: relative;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         .fm-search-wrap>i {
@@ -1225,7 +1229,7 @@ if (is_dir($full_path)) {
         #file-view {
             height: 100%;
             overflow-y: auto;
-            padding: 1.25rem;
+            padding: 0px;
         }
 
         /* List header */
@@ -1831,7 +1835,7 @@ if (is_dir($full_path)) {
                 <!-- Search -->
                 <div class="fm-search-wrap">
                     <i data-lucide="search"></i>
-                    <input id="file-search" onkeyup="FM.filter()" placeholder="Search filesÃ¢â‚¬Â¦" class="fm-search">
+                    <input id="file-search" onkeyup="FM.filter()" placeholder="Search files..." class="fm-search">
                 </div>
                 <!-- View Toggle -->
                 <div class="fm-view-toggle">
@@ -2825,6 +2829,7 @@ if (is_dir($full_path)) {
                     fd.append('ajax', '1');
                     fd.append('domain_id', CONFIG.domainId);
                     fd.append('path', CONFIG.currentPath);
+                    fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
                     for (let i = 0; i < files.length; i++) {
                         fd.append('files[]', files[i]);
