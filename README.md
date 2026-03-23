@@ -20,39 +20,28 @@ SHM Panel is a lightweight, secure, and modern web hosting control panel designe
 
 ## 🛠️ Installation Guide
 
-There are two primary ways to install SHM Panel. The **Modular Installer** is recommended for most users.
+There are three ways to install SHM Panel. The **Unified Installer** is the recommended method for fresh servers.
 
-### Method 1: The Modular Installer (Recommended)
-This method uses a well-structured set of bash scripts to provision your server step-by-step.
+### Method 1: The Unified Installer (Recommended)
+This is a one-click script that prepares your system, clones the latest code, and launches the modular installer.
 
-1. **Log in to your server as root:**
+1. **Run the one-liner on your fresh Ubuntu server:**
    ```bash
-   ssh root@your_server_ip
+   curl -sSL https://raw.githubusercontent.com/vivzon/shm-panel/main/setup.sh | sudo bash
    ```
+   *Note: This script handles all dependencies (git, curl, etc.) and clones the project to `/root/shm-panel` automatically.*
 
-2. **Clone or upload the SHM Panel files** to your server (e.g., in `/root/shm-panel`).
+### Method 2: The Premium Web Installer
+If you have already uploaded the files to your server and have PHP/Nginx running, you can use the beautiful web-based wizard.
 
-3. **Make the installer executable:**
-   ```bash
-   cd /root/shm-panel
-   chmod +x install.sh
-   chmod +x installer/*.sh
-   ```
+1. **Access the installer in your browser:**
+   `http://your-server-ip/install.php`
+2. **Follow the Multi-Step Wizard** to configure your database and admin account.
 
-4. **Run the installer:**
-   ```bash
-   ./install.sh
-   ```
-   *The installer will prompt you for your primary domain name, administrator email, and server IP address. It will automatically generate secure passwords for your database and panel admin.*
-
-### Method 2: The Vivzon Core Installer (Alternative)
-If you are deploying specifically for the `vivzon.cloud` infrastructure, you can use the monolithic script.
-
-```bash
-cd /root/shm-panel
-chmod +x setup_vivzon.sh
-./setup_vivzon.sh
-```
+### Method 3: The Modular Installer (Manual)
+If you prefer to run the steps manually from an existing clone:
+1. `chmod +x install.sh installer/*.sh`
+2. `./install.sh`
 
 ---
 
