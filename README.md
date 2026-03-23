@@ -43,6 +43,9 @@ If you prefer to run the steps manually from an existing clone:
 1. `chmod +x install.sh installer/*.sh`
 2. `./install.sh`
 
+> [!NOTE]
+> Legacy configurations and example scripts have been moved to the `examples/` directory for reference.
+
 ---
 
 ## 🔒 Post-Installation Security Steps (CRITICAL)
