@@ -20,6 +20,13 @@ log() { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
+# --- Options ---
+DRY_RUN=false
+if [[ "$*" == *"--check-only"* ]]; then
+    DRY_RUN=true
+    log "DRY RUN MODE ENABLED - No changes will be made."
+fi
+
 # --- Root Check ---
 if [[ $EUID -ne 0 ]]; then
    error "This script must be run as root. Try: sudo bash $0"
@@ -38,24 +45,36 @@ fi
 
 # --- Dependency Installation ---
 log "Checking base dependencies..."
-apt-get update -y > /dev/null
-apt-get install -y git curl wget unzip software-properties-common > /dev/null
+if [ "$DRY_RUN" = false ]; then
+    apt-get update -y > /dev/null
+    apt-get install -y git curl wget unzip software-properties-common > /dev/null
+else
+    log "[DRY RUN] Would run: apt-get install -y git curl wget..."
+fi
 
 # --- Project Directory Setup ---
 INSTALL_DIR="/root/shm-panel"
 
 if [ ! -d "$INSTALL_DIR/.git" ]; then
     log "Cloning SHM Panel repository..."
-    if [ -d "$INSTALL_DIR" ]; then
-        warn "$INSTALL_DIR already exists but is not a git repo. Backing up to ${INSTALL_DIR}_old..."
-        mv "$INSTALL_DIR" "${INSTALL_DIR}_old"
+    if [ "$DRY_RUN" = false ]; then
+        if [ -d "$INSTALL_DIR" ]; then
+            warn "$INSTALL_DIR already exists but is not a git repo. Backing up to ${INSTALL_DIR}_old..."
+            mv "$INSTALL_DIR" "${INSTALL_DIR}_old"
+        fi
+        git clone https://github.com/vivzon/shm-panel.git "$INSTALL_DIR"
+    else
+        log "[DRY RUN] Would clone repository to $INSTALL_DIR"
     fi
-    git clone https://github.com/vivzon/shm-panel.git "$INSTALL_DIR"
 else
     log "SHM Panel repository already exists. Syncing latest updates..."
-    cd "$INSTALL_DIR"
-    git fetch --all > /dev/null
-    git reset --hard origin/main > /dev/null
+    if [ "$DRY_RUN" = false ]; then
+        cd "$INSTALL_DIR"
+        git fetch --all > /dev/null
+        git reset --hard origin/main > /dev/null
+    else
+        log "[DRY RUN] Would sync latest updates in $INSTALL_DIR"
+    fi
 fi
 
 cd "$INSTALL_DIR"
@@ -72,6 +91,11 @@ echo "  *****************************************"
 echo "  *        SHM PANEL INSTALLATION         *"
 echo "  *****************************************"
 echo -e "${NC}"
+
+if [ "$DRY_RUN" = true ]; then
+    log "[DRY RUN] Environment check passed. Ready for full deployment."
+    exit 0
+fi
 
 log "Launching internal installer modules..."
 ./install.sh
