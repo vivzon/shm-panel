@@ -58,7 +58,9 @@ $username = $_SESSION['client'];
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
                 <div
-                    style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; border-radius: 9999px; cursor: pointer; transition: all 0.2s; border: 1px solid var(--slate-200); background: var(--slate-100);">
+                    style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; border-radius: 9999px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--slate-200); background: var(--slate-100);"
+                    onmouseover="this.style.transform='scale(1.05)'; this.style.borderColor='var(--primary)';"
+                    onmouseout="this.style.transform='scale(1)'; this.style.borderColor='var(--slate-200)';">
                     <div
                         style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: 700; color: white; box-shadow: var(--shadow-sm);">
                         <?= strtoupper(substr($username, 0, 1)) ?>

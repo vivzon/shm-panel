@@ -91,9 +91,9 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' =>
             <!-- Left: hamburger + page info -->
             <div style="display: flex; align-items: center; gap: 0.875rem; min-width: 0;">
                 <button onclick="toggleSidebar()" class="show-mobile"
-                    style="background: transparent; border: none; color: var(--text-primary); cursor: pointer; padding: 0.375rem; border-radius: 0.5rem; display: flex; align-items: center;"
-                    onmouseover="this.style.background='var(--bg-body)'"
-                    onmouseout="this.style.background='transparent'">
+                    style="background: transparent; border: none; color: var(--text-primary); cursor: pointer; padding: 0.375rem; border-radius: 0.5rem; display: flex; align-items: center; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);"
+                    onmouseover="this.style.background='var(--bg-body)'; this.style.transform='scale(1.05)';"
+                    onmouseout="this.style.background='transparent'; this.style.transform='scale(1)';">
                     <i data-lucide="menu" style="width: 1.25rem; height: 1.25rem;"></i>
                 </button>
 
@@ -127,9 +127,9 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' =>
 
                 <!-- Theme toggle -->
                 <button onclick="toggleTheme()" title="Toggle Dark Mode"
-                    style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); cursor: pointer; padding: 0.4375rem; border-radius: 0.5rem; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center;"
-                    onmouseover="this.style.background='var(--bg-body)'; this.style.color='var(--text-primary)'; this.style.borderColor='var(--primary)'"
-                    onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-color)'">
+                    style="background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); cursor: pointer; padding: 0.4375rem; border-radius: 0.5rem; transition: all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center;"
+                    onmouseover="this.style.background='var(--bg-body)'; this.style.color='var(--text-primary)'; this.style.borderColor='var(--primary)'; this.style.transform='scale(1.05)';"
+                    onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'; this.style.borderColor='var(--border-color)'; this.style.transform='scale(1)';">
                     <i data-lucide="moon" id="themeIcon" style="width: 1.0625rem; height: 1.0625rem;"></i>
                 </button>
 

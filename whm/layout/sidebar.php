@@ -53,13 +53,8 @@ $nav_links = [
                         $is_active = ($current_page === $link['href']);
                         ?>
                         <a href="<?= $link['href'] ?>"
-                            class="<?= $is_active ? 'active-sidebar-link' : '' ?>"
-                            style="display: flex; align-items: center; gap: 0.625rem; padding: 0.5rem 0.625rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: <?= $is_active ? '700' : '500' ?>; color: <?= $is_active ? 'var(--primary)' : 'var(--text-secondary)' ?>; background: <?= $is_active ? 'transparent' : 'transparent' ?>; border: 1px solid <?= $is_active ? 'transparent' : 'transparent' ?>; transition: all var(--transition-fast); text-decoration: none; position: relative;"
-                            onmouseover="if(!this.dataset.active){this.style.background='var(--bg-body)';this.style.color='var(--text-primary)';}"
-                            onmouseout="if(!this.dataset.active){this.style.background='transparent';this.style.color='var(--text-secondary)';}"
-                            <?= $is_active ? "data-active='1'" : '' ?>>
-                            <i data-lucide="<?= $link['icon'] ?>"
-                                style="width: 0.9375rem; height: 0.9375rem; flex-shrink: 0;"></i>
+                            class="sidebar-nav-link <?= $is_active ? 'active-sidebar-link' : '' ?>">
+                            <i data-lucide="<?= $link['icon'] ?>"></i>
                             <?= $link['label'] ?>
                         </a>
                     <?php endforeach; ?>

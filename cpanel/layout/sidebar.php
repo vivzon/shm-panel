@@ -20,51 +20,51 @@
         <div
             style="font-size: 0.625rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.75rem; margin-bottom: 0.5rem;">
             Core</div>
-        <nav style="display: flex; flex-direction: column; gap: 2px;">
-            <a href="index.php" class="nav-btn <?= $current_page == 'index.php' ? 'active active-sidebar-link' : '' ?>" style="position: relative;">
-                <i data-lucide="layout-dashboard" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Overview
+        <nav style="display: flex; flex-direction: column; gap: 0.125rem;">
+            <a href="index.php" class="sidebar-nav-link <?= $current_page == 'index.php' ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="layout-dashboard"></i> Overview
             </a>
-            <a href="files.php" target="_blank" class="nav-btn <?= $current_page == 'files.php' ? 'active' : '' ?>">
-                <i data-lucide="folder-open" style="width: 16px; height: 16px; flex-shrink: 0;"></i> File Manager
+            <a href="files.php" target="_blank" class="sidebar-nav-link <?= $current_page == 'files.php' ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="folder-open"></i> File Manager
             </a>
-            <a href="billing.php" class="nav-btn <?= $current_page == 'billing.php' ? 'active' : '' ?>">
-                <i data-lucide="credit-card" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Billing History
+            <a href="billing.php" class="sidebar-nav-link <?= $current_page == 'billing.php' ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="credit-card"></i> Billing History
             </a>
         </nav>
 
         <div
             style="font-size: 0.625rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.75rem; margin-bottom: 0.5rem; margin-top: 1.5rem;">
             Hosting Services</div>
-        <nav style="display: flex; flex-direction: column; gap: 2px;">
-            <a href="databases.php" class="nav-btn <?= $current_page == 'databases.php' ? 'active' : '' ?>">
-                <i data-lucide="database" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Databases
+        <nav style="display: flex; flex-direction: column; gap: 0.125rem;">
+            <a href="databases.php" class="sidebar-nav-link <?= $current_page == 'databases.php' ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="database"></i> Databases
             </a>
-            <a href="emails.php" class="nav-btn <?= $current_page == 'emails.php' ? 'active' : '' ?>">
-                <i data-lucide="mail" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Email Accounts
+            <a href="emails.php" class="sidebar-nav-link <?= $current_page == 'emails.php' ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="mail"></i> Email Accounts
             </a>
-            <a href="domains.php" class="nav-btn <?= $current_page == 'domains.php' ? 'active' : '' ?>">
-                <i data-lucide="globe" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Domains &amp; DNS
+            <a href="domains.php" class="sidebar-nav-link <?= $current_page == 'domains.php' ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="globe"></i> Domains &amp; DNS
             </a>
-            <a href="traffic.php" class="nav-btn <?= $current_page == 'traffic.php' ? 'active' : '' ?>">
-                <i data-lucide="activity" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Traffic &amp; Stats
+            <a href="traffic.php" class="sidebar-nav-link <?= $current_page == 'traffic.php' ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="activity"></i> Traffic &amp; Stats
             </a>
         </nav>
 
         <div
             style="font-size: 0.625rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.75rem; margin-bottom: 0.5rem; margin-top: 1.5rem;">
             Tools</div>
-        <nav style="display: flex; flex-direction: column; gap: 2px;">
+        <nav style="display: flex; flex-direction: column; gap: 0.125rem;">
             <a href="tools.php?tab=apps"
-                class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? 'apps') == 'apps') ? 'active' : '' ?>">
-                <i data-lucide="box" style="width: 16px; height: 16px; flex-shrink: 0;"></i> App Installer
+                class="sidebar-nav-link <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? 'apps') == 'apps') ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="box"></i> App Installer
             </a>
             <a href="tools.php?tab=security"
-                class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? '') == 'security') ? 'active' : '' ?>">
-                <i data-lucide="shield" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Security (SSH)
+                class="sidebar-nav-link <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? '') == 'security') ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="shield"></i> Security (SSH)
             </a>
             <a href="tools.php?tab=backups"
-                class="nav-btn <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? '') == 'backups') ? 'active' : '' ?>">
-                <i data-lucide="save" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Backups
+                class="sidebar-nav-link <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? '') == 'backups') ? 'active-sidebar-link' : '' ?>">
+                <i data-lucide="save"></i> Backups
             </a>
         </nav>
     </div>
