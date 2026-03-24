@@ -153,19 +153,61 @@ include 'layout/header.php';
    ========================================== -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<h2
-    style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--slate-900); font-family: var(--font-heading);">
+<?php
+// Fetch account summary for strip
+$total_clients = 0;
+$active_clients = 0;
+$suspended_clients = 0;
+try {
+    $r = $pdo->query("SELECT COUNT(*) FROM clients");
+    $total_clients = (int)$r->fetchColumn();
+    $r2 = $pdo->query("SELECT COUNT(*) FROM clients WHERE status='active'");
+    $active_clients = (int)$r2->fetchColumn();
+    $r3 = $pdo->query("SELECT COUNT(*) FROM clients WHERE status='suspended'");
+    $suspended_clients = (int)$r3->fetchColumn();
+} catch (Exception $e) {}
+?>
+<h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary); font-family: var(--font-heading);">
     System Overview</h2>
+
+<!-- Account Summary Strip -->
+<div class="pkg-strip" style="margin-bottom: 1.5rem;">
+    <div class="pkg-strip-item">
+        <i data-lucide="users" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
+        <span class="pkg-label">Total Accounts</span>
+        <span class="pkg-value"><?= $total_clients ?></span>
+    </div>
+    <div class="pkg-strip-item">
+        <i data-lucide="user-check" style="width: 1rem; height: 1rem; color: var(--accent-emerald);"></i>
+        <span class="pkg-label">Active</span>
+        <span class="pkg-value" style="color: var(--accent-emerald);"><?= $active_clients ?></span>
+    </div>
+    <?php if ($suspended_clients > 0): ?>
+    <div class="pkg-strip-item">
+        <i data-lucide="user-x" style="width: 1rem; height: 1rem; color: var(--accent-red);"></i>
+        <span class="pkg-label">Suspended</span>
+        <span class="pkg-value" style="color: var(--accent-red);"><?= $suspended_clients ?></span>
+    </div>
+    <?php endif; ?>
+    <div class="pkg-strip-item">
+        <i data-lucide="server" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
+        <span class="pkg-label">Server</span>
+        <span class="pkg-value" style="font-family: monospace;"><?= htmlspecialchars($system_hostname) ?></span>
+    </div>
+    <div class="pkg-strip-item">
+        <span class="badge badge-success">WHM Online</span>
+    </div>
+</div>
 
 <!-- TOP METRICS GRID -->
 <div
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
     <!-- CPU -->
-    <div class="premium-card animate-slide-right hover-glow"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.1s;">
+    <div class="stat-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; position: relative; overflow: hidden; animation-delay: 0.1s;">
         <div class="bg-icon"
-            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
-            <i data-lucide="cpu" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
+            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.06; transition: transform 0.5s;">
+            <i data-lucide="cpu" style="width: 4rem; height: 4rem; color: var(--text-primary);"></i>
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <div
@@ -173,7 +215,7 @@ include 'layout/header.php';
                 <i data-lucide="cpu" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
-                style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">CPU
+                style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">CPU
                 Load</span>
         </div>
         <p class="metric-value">
@@ -182,11 +224,11 @@ include 'layout/header.php';
     </div>
 
     <!-- RAM -->
-    <div class="premium-card animate-slide-right hover-glow"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.2s;">
+    <div class="stat-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; position: relative; overflow: hidden; animation-delay: 0.2s;">
         <div class="bg-icon"
-            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
-            <i data-lucide="layers" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
+            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.06; transition: transform 0.5s;">
+            <i data-lucide="layers" style="width: 4rem; height: 4rem; color: var(--text-primary);"></i>
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <div
@@ -194,7 +236,7 @@ include 'layout/header.php';
                 <i data-lucide="layers" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
-                style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">RAM
+                style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">RAM
                 Usage</span>
         </div>
         <p class="metric-value">
@@ -203,11 +245,11 @@ include 'layout/header.php';
     </div>
 
     <!-- DISK -->
-    <div class="premium-card animate-slide-right hover-glow"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.3s;">
+    <div class="stat-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; position: relative; overflow: hidden; animation-delay: 0.3s;">
         <div class="bg-icon"
-            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
-            <i data-lucide="hard-drive" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
+            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.06; transition: transform 0.5s;">
+            <i data-lucide="hard-drive" style="width: 4rem; height: 4rem; color: var(--text-primary);"></i>
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <div
@@ -215,7 +257,7 @@ include 'layout/header.php';
                 <i data-lucide="hard-drive" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
-                style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">Disk
+                style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">Disk
                 Space</span>
         </div>
         <p class="metric-value">
@@ -224,11 +266,11 @@ include 'layout/header.php';
     </div>
 
     <!-- UPTIME -->
-    <div class="premium-card animate-slide-right hover-glow"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.4s;">
+    <div class="stat-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; position: relative; overflow: hidden; animation-delay: 0.4s;">
         <div class="bg-icon"
-            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
-            <i data-lucide="clock" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
+            style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.06; transition: transform 0.5s;">
+            <i data-lucide="clock" style="width: 4rem; height: 4rem; color: var(--text-primary);"></i>
         </div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <div
@@ -236,7 +278,7 @@ include 'layout/header.php';
                 <i data-lucide="clock" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
-                style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">Uptime</span>
+                style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">Uptime</span>
         </div>
         <p class="metric-value">
             <span id="uptime-text" style="font-size: 1.25rem;">...</span>
