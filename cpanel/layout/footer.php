@@ -9,11 +9,11 @@
     function showToast(type, title, message) {
         const toast = document.createElement('div');
         const colors = {
-            success: 'border-left-color: #10b981; background-color: #fff;',
-            error: 'border-left-color: #ef4444; background-color: #fff;',
-            info: 'border-left-color: #3b82f6; background-color: #fff;',
+            success: 'border-left-color: #10b981;',
+            error: 'border-left-color: #ef4444;',
+            info: 'border-left-color: #3b82f6;',
         };
-        toast.style.cssText = `position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 100; width: 24rem; padding: 1rem; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid var(--slate-200); display: flex; align-items: flex-start; gap: 1rem; transition: all 0.5s; transform: translateX(100%); opacity: 0; border-left-width: 4px; border-left-style: solid; ${colors[type] || colors.info}`;
+        toast.style.cssText = `position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 100; width: 24rem; padding: 1rem; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-color); display: flex; align-items: flex-start; gap: 1rem; transition: all 0.5s; transform: translateX(100%); opacity: 0; border-left-width: 4px; border-left-style: solid; background: var(--bg-surface); ${colors[type] || colors.info}`;
 
         const iconBgs = { success: 'background-color: #d1fae5; color: #059669;', error: 'background-color: #fee2e2; color: #dc2626;', info: 'background-color: #dbeafe; color: #2563eb;' };
         const iconNames = { success: 'check-circle', error: 'x-circle', info: 'info' };
@@ -22,10 +22,10 @@
         toast.innerHTML = `
             ${iconHtml}
             <div style="flex: 1; min-width: 0;">
-                <h4 style="font-weight: 700; color: #1e293b; font-size: 0.875rem; margin-bottom: 0.125rem;">${title}</h4>
-                <p style="font-size: 0.75rem; color: #64748b; line-height: 1.625; margin: 0;">${message}</p>
+                <h4 style="font-weight: 700; color: var(--text-primary); font-size: 0.875rem; margin-bottom: 0.125rem;">${title}</h4>
+                <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.625; margin: 0;">${message}</p>
             </div>
-            <button onclick="this.parentElement.remove()" style="color: #94a3b8; flex-shrink: 0; background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='#475569'" onmouseout="this.style.color='#94a3b8'"><i data-lucide="x" style="width: 1rem; height: 1rem;"></i></button>
+            <button onclick="this.parentElement.remove()" style="color: var(--text-muted); flex-shrink: 0; background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--text-secondary)'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width: 1rem; height: 1rem;"></i></button>
         `;
 
         document.body.appendChild(toast);
