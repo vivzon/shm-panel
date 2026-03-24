@@ -33,8 +33,8 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' =>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title><?= htmlspecialchars($page_meta['title']) ?> | <?= htmlspecialchars(get_branding()) ?></title>
-    <link rel="stylesheet" href="/assets/css/modern-design.css">
-    <link rel="stylesheet" href="/assets/css/premium-glass.css">
+    <link rel="stylesheet" href="../../assets/css/modern-design.css">
+    <link rel="stylesheet" href="../../assets/css/premium-glass.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* WHM-specific: slimmer nav links */

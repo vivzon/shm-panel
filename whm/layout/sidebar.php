@@ -44,10 +44,7 @@ $nav_links = [
         class="custom-scrollbar">
         <?php foreach ($nav_links as $section => $links): ?>
             <div>
-                <div
-                    style="font-size: 0.5625rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; padding: 0 0.5rem; margin-bottom: 0.375rem;">
-                    <?= ucfirst($section) ?>
-                </div>
+                <span class="sidebar-section-label"><?= ucfirst($section) ?></span>
                 <nav style="display: flex; flex-direction: column; gap: 0.125rem;">
                     <?php foreach ($links as $link):
                         $is_active = ($current_page === $link['href']);

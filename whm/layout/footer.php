@@ -21,21 +21,13 @@
         const c = cfg[type] || cfg.info;
 
         const toast = document.createElement('div');
-        toast.style.cssText = [
-            'position:fixed', 'bottom:1.5rem', 'right:1.5rem', 'z-index:9999',
-            'min-width:18rem', 'max-width:24rem',
-            'padding:.875rem 1.125rem',
-            'border-radius:.875rem',
-            `box-shadow:0 20px 40px -10px rgba(0,0,0,.25)`,
-            `background:var(--bg-surface)`,
-            `border:1px solid ${c.border}`,
-            `border-left:4px solid ${c.accent}`,
-            'display:flex', 'align-items:center', 'gap:.75rem',
-            'transform:translateX(120%)', 'opacity:0',
-            'transition:all .35s cubic-bezier(.4,0,.2,1)',
-            'font-family:inherit',
-            `backdrop-filter:blur(16px)`,
-        ].join(';');
+        const colors = {
+            success: 'border-left-color: #10b981;',
+            error: 'border-left-color: #ef4444;',
+            info: 'border-left-color: #3b82f6;',
+            warning: 'border-left-color: #f59e0b;', // Added warning color
+        };
+        toast.style.cssText = `position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 100; width: 24rem; padding: 1rem; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid var(--border-color); display: flex; align-items: flex-start; gap: 1rem; transition: all 0.5s cubic-bezier(.4,0,.2,1); transform: translateX(100%); opacity: 0; border-left-width: 4px; border-left-style: solid; background: var(--bg-surface); font-family:inherit; backdrop-filter:blur(16px); ${colors[type] || colors.info}`;
 
         toast.innerHTML = `
             <div style="width:2rem;height:2rem;border-radius:.5rem;background:${c.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
