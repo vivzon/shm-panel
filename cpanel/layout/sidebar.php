@@ -1,14 +1,21 @@
 <?php
 // Fetch package name for the user info strip
+// Read from session directly so this works regardless of calling scope
+$_sidebar_cid      = $_SESSION['cid'] ?? 0;
+$_sidebar_username = $_SESSION['client'] ?? '';
 $pkg_name = '';
-try {
-    $stmt_pkg = $pdo->prepare("SELECT p.name FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = ?");
-    $stmt_pkg->execute([$cid]);
-    $pkg_row = $stmt_pkg->fetch();
-    $pkg_name = $pkg_row['name'] ?? 'Standard';
-} catch (Exception $e) {
-    $pkg_name = 'Standard';
+if ($_sidebar_cid) {
+    try {
+        $stmt_pkg = $pdo->prepare("SELECT p.name FROM clients c JOIN packages p ON c.package_id = p.id WHERE c.id = ?");
+        $stmt_pkg->execute([$_sidebar_cid]);
+        $pkg_row = $stmt_pkg->fetch();
+        $pkg_name = $pkg_row['name'] ?? 'Standard';
+    } catch (Exception $e) {
+        $pkg_name = 'Standard';
+    }
 }
+// Allow pages to suppress the sidebar (e.g. file manager full-screen)
+if (!empty($no_sidebar)) return;
 ?>
 <aside id="sidebar" class="sidebar-wrapper custom-scrollbar premium-sidebar"
     style="width: 260px; display: flex; flex-direction: column; z-index: 60; height: 100vh; overflow-y: auto; overflow-x: hidden; transition: transform var(--transition-normal); flex-shrink: 0;">
@@ -34,11 +41,11 @@ try {
     <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); background: var(--primary-light);">
         <div style="display: flex; align-items: center; gap: 0.625rem;">
             <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">
-                <?= strtoupper(substr($username, 0, 1)) ?>
+                <?= strtoupper(substr($_sidebar_username, 0, 1)) ?>
             </div>
             <div style="min-width: 0; flex: 1;">
                 <div style="font-size: 0.8125rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    <?= htmlspecialchars($username) ?>
+                    <?= htmlspecialchars($_sidebar_username) ?>
                 </div>
                 <div style="font-size: 0.625rem; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">
                     <?= htmlspecialchars($pkg_name) ?> Plan
