@@ -47,9 +47,16 @@ $usage_mail = $stmt_mail->fetchColumn();
 
 // Calculate Disk Usage
 $used_bytes = 0;
-if (function_exists('cmd')) {
-    $used_bytes = (int) cmd("get-client-usage " . escapeshellarg($username));
+try {
+    if (function_exists('cmd')) {
+        $used_bytes = (int) cmd("get-client-usage " . escapeshellarg($username));
+    }
+} catch (Exception $e) {
+    // shm-manage not installed or command failed — treat as 0 bytes used
+    error_log("SHM Panel: disk usage command failed: " . $e->getMessage());
+    $used_bytes = 0;
 }
+
 $used_mb = round($used_bytes / 1024 / 1024, 2);
 $disk_percent = ($clientData['disk_mb'] > 0) ? ($used_mb / $clientData['disk_mb']) * 100 : 0;
 if ($disk_percent > 100)
