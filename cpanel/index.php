@@ -113,13 +113,13 @@ include 'layout/header.php';
     ?>
     <!-- Welcome Section -->
     <div
-        style="display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; border-bottom: 1px solid var(--slate-200); padding-bottom: 1.5rem; flex-wrap: wrap;">
+        style="display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; flex-wrap: wrap;">
         <div>
             <h2
-                style="font-size: 2rem; font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); letter-spacing: -0.02em; margin-bottom: 0.5rem;">
+                style="font-size: 2rem; font-weight: 800; color: var(--text-primary); font-family: var(--font-heading); letter-spacing: -0.02em; margin-bottom: 0.5rem;">
                 <?= $greeting ?>, <?= htmlspecialchars($username) ?> 👋
             </h2>
-            <p style="color: var(--slate-600); font-size: 1rem;">Here is what's happening with your server today.</p>
+            <p style="color: var(--text-secondary); font-size: 1rem;">Here is what's happening with your server today.</p>
         </div>
         <div style="display: flex; gap: 0.75rem;">
             <a href="files.php" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -128,11 +128,38 @@ include 'layout/header.php';
         </div>
     </div>
 
+    <!-- Package Summary Strip -->
+    <div class="pkg-strip">
+        <div class="pkg-strip-item">
+            <i data-lucide="package" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
+            <span class="pkg-label">Plan</span>
+            <span class="pkg-value"><?= htmlspecialchars($clientData['pkg_name']) ?></span>
+        </div>
+        <div class="pkg-strip-item">
+            <i data-lucide="hard-drive" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
+            <span class="pkg-label">Disk</span>
+            <span class="pkg-value"><?= $used_mb ?> / <?= $clientData['disk_mb'] ?> MB</span>
+        </div>
+        <div class="pkg-strip-item">
+            <i data-lucide="globe" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
+            <span class="pkg-label">Domains</span>
+            <span class="pkg-value"><?= $usage_dom ?> / <?= $clientData['max_domains'] ?></span>
+        </div>
+        <div class="pkg-strip-item">
+            <i data-lucide="database" style="width: 1rem; height: 1rem; color: var(--primary);"></i>
+            <span class="pkg-label">Databases</span>
+            <span class="pkg-value"><?= $usage_db ?> / <?= $clientData['max_databases'] ?></span>
+        </div>
+        <div class="pkg-strip-item">
+            <span class="badge badge-success">Active</span>
+        </div>
+    </div>
+
     <!-- Stats Grid -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
         <!-- Domains -->
-        <div class="premium-card"
-            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;">
+        <div class="stat-card animate-count"
+            style="padding: 1.5rem; position: relative; overflow: hidden;">
             <div
                 style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(37, 99, 235, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
@@ -142,25 +169,29 @@ include 'layout/header.php';
                     style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(37, 99, 235, 0.1); color: var(--primary); border-radius: 0.75rem;">
                     <i data-lucide="globe" style="width: 24px; height: 24px;"></i>
                 </div>
-                <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_dom ?> /
-                    <?= $clientData['max_domains'] ?></span>
+                <?php
+                $dom_pct = ($clientData['max_domains'] > 0) ? round(($usage_dom / $clientData['max_domains']) * 100) : 0;
+                $dom_trend_class = $dom_pct > 80 ? 'trend-down' : ($dom_pct > 50 ? 'trend-neutral' : 'trend-up');
+                $dom_trend_icon = $dom_pct > 80 ? '↑' : ($dom_pct > 50 ? '→' : '✓');
+                ?>
+                <span class="stat-trend <?= $dom_trend_class ?>"><?= $dom_trend_icon ?> <?= $dom_pct ?>%</span>
             </div>
-            <h3 class="metric-value">
+            <h3 class="metric-value animate-count">
                 <?= $usage_dom ?>
             </h3>
-            <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
-                Active Domains</p>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; position: relative; z-index: 10; margin-top: 0.25rem;">
+                Active Domains &mdash; <?= $usage_dom ?> / <?= $clientData['max_domains'] ?></p>
             <div
-                style="width: 100%; background: var(--slate-100); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                style="width: 100%; background: var(--bg-body); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
                 <div class="progress-bar-fill"
-                    style="background: linear-gradient(90deg, #60a5fa, #3b82f6); height: 100%; border-radius: 9999px; width: <?= ($usage_dom / max(1, $clientData['max_domains'])) * 100 ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(59,130,246,0.3);">
+                    style="background: linear-gradient(90deg, #60a5fa, #3b82f6); height: 100%; border-radius: 9999px; width: <?= $dom_pct ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(59,130,246,0.3);">
                 </div>
             </div>
         </div>
 
         <!-- Databases -->
-        <div class="premium-card"
-            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;">
+        <div class="stat-card animate-count"
+            style="padding: 1.5rem; position: relative; overflow: hidden; animation-delay: 0.1s;">
             <div
                 style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(168, 85, 247, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
@@ -170,25 +201,29 @@ include 'layout/header.php';
                     style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(168, 85, 247, 0.1); color: #a855f7; border-radius: 0.75rem;">
                     <i data-lucide="database" style="width: 24px; height: 24px;"></i>
                 </div>
-                <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_db ?> /
-                    <?= $clientData['max_databases'] ?></span>
+                <?php
+                $db_pct = ($clientData['max_databases'] > 0) ? round(($usage_db / $clientData['max_databases']) * 100) : 0;
+                $db_trend_class = $db_pct > 80 ? 'trend-down' : ($db_pct > 50 ? 'trend-neutral' : 'trend-up');
+                $db_trend_icon = $db_pct > 80 ? '↑' : ($db_pct > 50 ? '→' : '✓');
+                ?>
+                <span class="stat-trend <?= $db_trend_class ?>"><?= $db_trend_icon ?> <?= $db_pct ?>%</span>
             </div>
             <h3 class="metric-value">
                 <?= $usage_db ?>
             </h3>
-            <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
-                MySQL Databases</p>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; position: relative; z-index: 10; margin-top: 0.25rem;">
+                Databases &mdash; <?= $usage_db ?> / <?= $clientData['max_databases'] ?></p>
             <div
-                style="width: 100%; background: var(--slate-100); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                style="width: 100%; background: var(--bg-body); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
                 <div class="progress-bar-fill"
-                    style="background: linear-gradient(90deg, #c084fc, #a855f7); height: 100%; border-radius: 9999px; width: <?= ($usage_db / max(1, $clientData['max_databases'])) * 100 ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(168,85,247,0.3);">
+                    style="background: linear-gradient(90deg, #c084fc, #a855f7); height: 100%; border-radius: 9999px; width: <?= $db_pct ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(168,85,247,0.3);">
                 </div>
             </div>
         </div>
 
         <!-- Emails -->
-        <div class="premium-card"
-            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;">
+        <div class="stat-card animate-count"
+            style="padding: 1.5rem; position: relative; overflow: hidden; animation-delay: 0.2s;">
             <div
                 style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(16, 185, 129, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
@@ -198,25 +233,29 @@ include 'layout/header.php';
                     style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald); border-radius: 0.75rem;">
                     <i data-lucide="mail" style="width: 24px; height: 24px;"></i>
                 </div>
-                <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_mail ?> /
-                    <?= $clientData['max_emails'] ?></span>
+                <?php
+                $mail_pct = ($clientData['max_emails'] > 0) ? round(($usage_mail / $clientData['max_emails']) * 100) : 0;
+                $mail_trend_class = $mail_pct > 80 ? 'trend-down' : ($mail_pct > 50 ? 'trend-neutral' : 'trend-up');
+                $mail_trend_icon = $mail_pct > 80 ? '↑' : ($mail_pct > 50 ? '→' : '✓');
+                ?>
+                <span class="stat-trend <?= $mail_trend_class ?>"><?= $mail_trend_icon ?> <?= $mail_pct ?>%</span>
             </div>
             <h3 class="metric-value">
                 <?= $usage_mail ?>
             </h3>
-            <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
-                Email Accounts</p>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; position: relative; z-index: 10; margin-top: 0.25rem;">
+                Email Accounts &mdash; <?= $usage_mail ?> / <?= $clientData['max_emails'] ?></p>
             <div
-                style="width: 100%; background: var(--slate-100); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                style="width: 100%; background: var(--bg-body); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
                 <div class="progress-bar-fill"
-                    style="background: linear-gradient(90deg, #34d399, #10b981); height: 100%; border-radius: 9999px; width: <?= ($usage_mail / max(1, $clientData['max_emails'])) * 100 ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(16,185,129,0.3);">
+                    style="background: linear-gradient(90deg, #34d399, #10b981); height: 100%; border-radius: 9999px; width: <?= $mail_pct ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(16,185,129,0.3);">
                 </div>
             </div>
         </div>
 
         <!-- Storage -->
-        <div class="premium-card"
-            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;">
+        <div class="stat-card animate-count"
+            style="padding: 1.5rem; position: relative; overflow: hidden; animation-delay: 0.3s;">
             <div
                 style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(249, 115, 22, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
@@ -226,16 +265,16 @@ include 'layout/header.php';
                     style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; background: rgba(249, 115, 22, 0.1); color: #f97316; border-radius: 0.75rem;">
                     <i data-lucide="hard-drive" style="width: 24px; height: 24px;"></i>
                 </div>
-                <span class="badge"
-                    style="background: rgba(249, 115, 22, 0.1); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.2);"><?= htmlspecialchars($clientData['pkg_name']) ?></span>
+                <?php $disk_trend_class = $disk_percent > 80 ? 'trend-down' : ($disk_percent > 50 ? 'trend-neutral' : 'trend-up'); ?>
+                <span class="stat-trend <?= $disk_trend_class ?>"><?= $disk_percent > 80 ? '↑' : ($disk_percent > 50 ? '→' : '✓') ?> <?= round($disk_percent) ?>%</span>
             </div>
             <h3 class="metric-value">
-                <?= $used_mb ?> MB
+                <?= $used_mb ?> <span style="font-size: 1rem; font-weight: 600;">MB</span>
             </h3>
-            <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
+            <p style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; position: relative; z-index: 10; margin-top: 0.25rem;">
                 of <?= $clientData['disk_mb'] ?> MB Used</p>
             <div
-                style="width: 100%; background: var(--slate-100); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+                style="width: 100%; background: var(--bg-body); height: 6px; margin-top: 1rem; border-radius: 9999px; overflow: hidden;">
                 <div class="progress-bar-fill"
                     style="background: linear-gradient(90deg, #fb923c, #f97316); height: 100%; border-radius: 9999px; width: <?= $disk_percent ?>%; transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(249,115,22,0.3);">
                 </div>
