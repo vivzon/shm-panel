@@ -19,10 +19,11 @@ $page_titles = [
     'services.php' => ['title' => 'Service Engine', 'icon' => 'cpu'],
     'server_config.php' => ['title' => 'Server Config', 'icon' => 'server-cog'],
     'tools.php' => ['title' => 'System Tools', 'icon' => 'wrench'],
+    'terminal.php' => ['title' => 'Web Terminal', 'icon' => 'terminal'],
     'logs.php' => ['title' => 'Security Monitor', 'icon' => 'shield-alert'],
     'files-sh.php' => ['title' => 'File Manager', 'icon' => 'folder-open'],
 ];
-$page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' => 'terminal'];
+$page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' => 'monitor'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -33,6 +34,7 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' =>
     <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title><?= htmlspecialchars($page_meta['title']) ?> | <?= htmlspecialchars(get_branding()) ?></title>
     <link rel="stylesheet" href="/assets/css/modern-design.css">
+    <link rel="stylesheet" href="/assets/css/premium-glass.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* WHM-specific: slimmer nav links */
@@ -58,7 +60,14 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' =>
 </head>
 
 <body
-    style="display: flex; height: 100vh; overflow: hidden; font-size: 0.875rem; background: var(--bg-body); color: var(--text-primary);">
+    style="display: flex; height: 100vh; overflow: hidden; font-size: 0.875rem; background: var(--bg-body); color: var(--text-primary); font-family: var(--font-premium);">
+    
+    <!-- Premium Aura Background -->
+    <div class="aura-bg">
+        <div class="aura-1"></div>
+        <div class="aura-2"></div>
+    </div>
+
     <script>
         // Apply theme immediately to prevent flash
         (function () {
@@ -77,8 +86,8 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' =>
         style="flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; min-width: 0;">
 
         <!-- Top Header -->
-        <header
-            style="height: 3.75rem; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); background: var(--bg-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); position: sticky; top: 0; z-index: 10; box-shadow: var(--shadow-sm); flex-shrink: 0; gap: 1rem;">
+        <header class="premium-glass"
+            style="height: 3.75rem; margin: 0.75rem 1rem 0; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; flex-shrink: 0; gap: 1rem; border-radius: 0.875rem;">
             <!-- Left: hamburger + page info -->
             <div style="display: flex; align-items: center; gap: 0.875rem; min-width: 0;">
                 <button onclick="toggleSidebar()" class="show-mobile"

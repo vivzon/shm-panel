@@ -1,5 +1,5 @@
-<aside class="dashboard-sidebar custom-scrollbar <?= isset($collapse_sidebar) && $collapse_sidebar ? 'hidden' : '' ?>"
-    style="width: 260px; background: white; border-right: 1px solid var(--slate-200); display: flex; flex-direction: column; z-index: 20; height: 100vh; overflow-y: auto;">
+<aside class="dashboard-sidebar custom-scrollbar premium-sidebar <?= isset($collapse_sidebar) && $collapse_sidebar ? 'hidden' : '' ?>"
+    style="width: 260px; display: flex; flex-direction: column; z-index: 20; height: 100vh; overflow-y: auto;">
     <div style="padding: 1.5rem 1.5rem 1rem;">
         <!-- Brand -->
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem;">
@@ -9,7 +9,7 @@
             </div>
             <div>
                 <h1
-                    style="font-size: 1rem; font-weight: 700; color: var(--slate-900); font-family: 'Outfit', sans-serif; letter-spacing: -0.02em; line-height: 1;">
+                    style="font-size: 1rem; font-weight: 700; color: var(--slate-900); font-family: var(--font-premium); letter-spacing: -0.02em; line-height: 1;">
                     Vivzon Cloud</h1>
                 <span
                     style="font-size: 0.625rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em;">Client
@@ -21,7 +21,7 @@
             style="font-size: 0.625rem; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.75rem; margin-bottom: 0.5rem;">
             Core</div>
         <nav style="display: flex; flex-direction: column; gap: 2px;">
-            <a href="index.php" class="nav-btn <?= $current_page == 'index.php' ? 'active' : '' ?>">
+            <a href="index.php" class="nav-btn <?= $current_page == 'index.php' ? 'active active-sidebar-link' : '' ?>" style="position: relative;">
                 <i data-lucide="layout-dashboard" style="width: 16px; height: 16px; flex-shrink: 0;"></i> Overview
             </a>
             <a href="files.php" target="_blank" class="nav-btn <?= $current_page == 'files.php' ? 'active' : '' ?>">

@@ -11,12 +11,13 @@ $nav_links = [
         ['href' => 'server_config.php', 'icon' => 'server-cog', 'label' => 'Server Config'],
         ['href' => 'files-sh.php', 'icon' => 'folder-open', 'label' => 'File Manager'],
         ['href' => 'tools.php', 'icon' => 'wrench', 'label' => 'Tools'],
+        ['href' => 'terminal.php', 'icon' => 'terminal', 'label' => 'Web Terminal'],
         ['href' => 'logs.php', 'icon' => 'shield-alert', 'label' => 'Security Logs'],
     ],
 ];
 ?>
-<aside id="sidebar" class="sidebar-wrapper custom-scrollbar"
-    style="width: 15rem; background: var(--bg-surface); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 60; box-shadow: var(--shadow-lg); height: 100vh; overflow-y: auto; overflow-x: hidden; transition: transform var(--transition-normal); flex-shrink: 0;">
+<aside id="sidebar" class="sidebar-wrapper custom-scrollbar premium-sidebar"
+    style="width: 15rem; display: flex; flex-direction: column; z-index: 60; height: 100vh; overflow-y: auto; overflow-x: hidden; transition: transform var(--transition-normal); flex-shrink: 0;">
 
     <!-- Brand Header -->
     <div style="padding: 1.25rem 1rem 1rem; border-bottom: 1px solid var(--border-color);">
@@ -52,14 +53,11 @@ $nav_links = [
                         $is_active = ($current_page === $link['href']);
                         ?>
                         <a href="<?= $link['href'] ?>"
-                            style="display: flex; align-items: center; gap: 0.625rem; padding: 0.5rem 0.625rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: <?= $is_active ? '700' : '500' ?>; color: <?= $is_active ? 'var(--primary)' : 'var(--text-secondary)' ?>; background: <?= $is_active ? 'var(--primary-light)' : 'transparent' ?>; border: 1px solid <?= $is_active ? 'rgba(59,130,246,0.2)' : 'transparent' ?>; transition: all var(--transition-fast); text-decoration: none; position: relative;"
+                            class="<?= $is_active ? 'active-sidebar-link' : '' ?>"
+                            style="display: flex; align-items: center; gap: 0.625rem; padding: 0.5rem 0.625rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: <?= $is_active ? '700' : '500' ?>; color: <?= $is_active ? 'var(--primary)' : 'var(--text-secondary)' ?>; background: <?= $is_active ? 'transparent' : 'transparent' ?>; border: 1px solid <?= $is_active ? 'transparent' : 'transparent' ?>; transition: all var(--transition-fast); text-decoration: none; position: relative;"
                             onmouseover="if(!this.dataset.active){this.style.background='var(--bg-body)';this.style.color='var(--text-primary)';}"
                             onmouseout="if(!this.dataset.active){this.style.background='transparent';this.style.color='var(--text-secondary)';}"
                             <?= $is_active ? "data-active='1'" : '' ?>>
-                            <?php if ($is_active): ?>
-                                <span
-                                    style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 1.25rem; background: var(--primary); border-radius: 0 3px 3px 0;"></span>
-                            <?php endif; ?>
                             <i data-lucide="<?= $link['icon'] ?>"
                                 style="width: 0.9375rem; height: 0.9375rem; flex-shrink: 0;"></i>
                             <?= $link['label'] ?>

@@ -161,10 +161,8 @@ include 'layout/header.php';
 <div
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
     <!-- CPU -->
-    <div class="glass-card animate-slide-right hover-glow"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.1s;"
-        onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
-        onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
+    <div class="premium-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.1s;">
         <div class="bg-icon"
             style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
             <i data-lucide="cpu" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
@@ -178,16 +176,14 @@ include 'layout/header.php';
                 style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">CPU
                 Load</span>
         </div>
-        <p style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); letter-spacing: -0.025em;">
+        <p class="metric-value">
             <span id="cpu-text">0</span>%
         </p>
     </div>
 
     <!-- RAM -->
-    <div class="glass-card animate-slide-right hover-glow"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.2s;"
-        onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
-        onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
+    <div class="premium-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.2s;">
         <div class="bg-icon"
             style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
             <i data-lucide="layers" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
@@ -201,16 +197,14 @@ include 'layout/header.php';
                 style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">RAM
                 Usage</span>
         </div>
-        <p style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); letter-spacing: -0.025em;">
+        <p class="metric-value">
             <span id="ram-text">0</span>%
         </p>
     </div>
 
     <!-- DISK -->
-    <div class="glass-card animate-slide-right hover-glow"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.3s;"
-        onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
-        onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
+    <div class="premium-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.3s;">
         <div class="bg-icon"
             style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
             <i data-lucide="hard-drive" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
@@ -224,16 +218,14 @@ include 'layout/header.php';
                 style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">Disk
                 Space</span>
         </div>
-        <p style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); letter-spacing: -0.025em;">
+        <p class="metric-value">
             <span id="disk-text">0</span>%
         </p>
     </div>
 
     <!-- UPTIME -->
-    <div class="glass-card animate-slide-right hover-glow"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.4s;"
-        onmouseover="this.querySelector('.bg-icon').style.transform='scale(1.1)'"
-        onmouseout="this.querySelector('.bg-icon').style.transform='scale(1)'">
+    <div class="premium-card animate-slide-right hover-glow"
+        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; transition: all 0.3s; animation-delay: 0.4s;">
         <div class="bg-icon"
             style="position: absolute; right: 0; top: 0; padding: 1.5rem; opacity: 0.1; transition: transform 0.5s;">
             <i data-lucide="clock" style="width: 4rem; height: 4rem; color: var(--slate-900);"></i>
@@ -246,7 +238,7 @@ include 'layout/header.php';
             <span
                 style="font-size: 0.6875rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.1em;">Uptime</span>
         </div>
-        <p style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); letter-spacing: -0.025em;">
+        <p class="metric-value">
             <span id="uptime-text" style="font-size: 1.25rem;">...</span>
         </p>
     </div>
@@ -257,7 +249,7 @@ include 'layout/header.php';
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
 
     <!-- Live Graph -->
-    <div class="glass-card" style="grid-column: span 2 / span 2; padding: 1.5rem; border-radius: 1rem;">
+    <div class="premium-glass" style="grid-column: span 2 / span 2; padding: 1.5rem; border-radius: 1.25rem;">
         <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Live Resource
             History</h3>
         <div style="height: 300px; width: 100%;">
@@ -266,8 +258,8 @@ include 'layout/header.php';
     </div>
 
     <!-- Network Configuration Card -->
-    <div class="glass-card"
-        style="padding: 1.5rem; border-radius: 1rem; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+    <div class="premium-glass"
+        style="padding: 1.5rem; border-radius: 1.25rem; position: relative; overflow: hidden; display: flex; flex-direction: column;">
         <!-- Decoration -->
         <div
             style="position: absolute; right: -1.5rem; top: -1.5rem; width: 8rem; height: 8rem; background: rgba(59, 130, 246, 0.1); border-radius: 9999px; filter: blur(3xl);">
@@ -331,7 +323,7 @@ include 'layout/header.php';
 </div>
 
 <!-- SOFTWARE & HARDWARE SPECIFICATIONS -->
-<div class="glass-card" style="padding: 1.5rem; border-radius: 1rem;">
+<div class="premium-glass" style="padding: 1.5rem; border-radius: 1.25rem;">
     <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1.5rem;">Server
         Specifications</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
@@ -426,20 +418,20 @@ include 'layout/header.php';
                         borderColor: '#60A5FA',
                         backgroundColor: gradCpu,
                         data: Array(20).fill(0),
-                        tension: 0.4,
+                        tension: 0.3,
                         fill: true,
                         pointRadius: 0,
-                        borderWidth: 2
+                        borderWidth: 3
                     },
                     {
                         label: 'RAM %',
                         borderColor: '#C084FC',
                         backgroundColor: gradRam,
                         data: Array(20).fill(0),
-                        tension: 0.4,
+                        tension: 0.3,
                         fill: true,
                         pointRadius: 0,
-                        borderWidth: 2
+                        borderWidth: 3
                     }
                 ]
             },

@@ -31,9 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login | <?= htmlspecialchars(get_branding()) ?></title>
     <link rel="stylesheet" href="/assets/css/modern-design.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/premium-glass.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* Modern Design System loaded via CSS */
@@ -41,7 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body
-    style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-body); position: relative; overflow: hidden;">
+    style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-body); position: relative; overflow: hidden; font-family: var(--font-premium);">
+    
+    <!-- Premium Aura Background -->
+    <div class="aura-bg">
+        <div class="aura-1"></div>
+        <div class="aura-2"></div>
+    </div>
     <div class="bg-grid"></div>
     <div
         style="position: absolute; width: 400px; height: 400px; background: var(--primary); filter: blur(100px); opacity: 0.15; border-radius: 50%; top: -100px; left: -100px; animation: pulseGlow 8s infinite alternate ease-in-out;">
@@ -65,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <div class="glass-card fade-up d1 hover-glow" style="padding: 2.5rem; border-radius: 1.5rem;">
+        <div class="premium-card fade-up d1 hover-glow" style="padding: 2.5rem; border-radius: 1.5rem;">
 
             <!-- Icon + Title -->
             <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem;">

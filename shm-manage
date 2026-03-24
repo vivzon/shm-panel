@@ -2161,6 +2161,21 @@ EOF
         log_action "Started Malware Scan for $DOM ($DID)"
         ;;
 
+    malware-scan-all)
+        log_action "Starting Global Malware Scan"
+        
+        # Iterate over all domains
+        mysql -N -s -e "SELECT id, domain FROM domains" "$DB_NAME" 2>/dev/null | while read DID DOM; do
+            if [ -n "$DID" ]; then
+                echo "Queuing scan for domain: $DOM (ID: $DID)"
+                $0 malware-scan "$DID" > /dev/null 2>&1
+            fi
+        done
+        
+        echo "Global malware scan queued."
+        log_action "Queued Global Malware Scan"
+        ;;
+
     # --------------------------------------------------------------------------
     # MAINTENANCE MODE
     # --------------------------------------------------------------------------
@@ -2517,6 +2532,163 @@ EOF
         ;;
         
     # --------------------------------------------------------------------------
+    # MAIL TOOL
+    # --------------------------------------------------------------------------
+    mail-tool)
+        SUB="$2"
+        
+        case "$SUB" in
+            add-user)
+                # $3: client_username, $4: email, $5: pass
+                CLIENT_USER="$3"
+                EMAIL_VAL="$4"
+                PASS="$5"
+                
+                validate_input "$CLIENT_USER" "username"
+                validate_input "$EMAIL_VAL" "email"
+                
+                # Extract domain from email
+                DOM="${EMAIL_VAL#*@}"
+                
+                # Get client ID
+                CID=$(mysql -N -s -e "SELECT id FROM clients WHERE username='$CLIENT_USER'" "$DB_NAME" 2>/dev/null || echo "")
+                if [ -z "$CID" ]; then
+                    echo "Client not found"
+                    exit 1
+                fi
+                
+                # Get or create domain ID in mail_domains
+                DID=$(mysql -N -s -e "SELECT id FROM mail_domains WHERE domain='$DOM'" "$DB_NAME" 2>/dev/null || echo "")
+                if [ -z "$DID" ]; then
+                    mysql -e "INSERT INTO mail_domains (client_id, domain) VALUES ($CID, '$DOM');" "$DB_NAME" || exit 1
+                    DID=$(mysql -N -s -e "SELECT LAST_INSERT_ID();" 2>/dev/null || echo "")
+                fi
+                
+                # Hash password via PHP's password_hash (BCRYPT)
+                HASHED_PASS=$(php -r "echo password_hash('$PASS', PASSWORD_BCRYPT);")
+                
+                # Insert
+                ESCAPED_EMAIL=$(mysql -N -s -e "SELECT QUOTE('$EMAIL_VAL')" | sed "s/^'//;s/'$//")
+                ESCAPED_HASH=$(mysql -N -s -e "SELECT QUOTE('$HASHED_PASS')" | sed "s/^'//;s/'$//")
+                mysql -e "INSERT INTO mail_users (client_id, domain_id, email, password) VALUES ($CID, $DID, '$ESCAPED_EMAIL', '$ESCAPED_HASH');" "$DB_NAME" || exit 1
+                
+                log_action "Created Mail User: $EMAIL_VAL for $CLIENT_USER"
+                echo "Mailbox created"
+                ;;
+                
+            delete-user)
+                # $3: email
+                EMAIL_VAL="$3"
+                validate_input "$EMAIL_VAL" "email"
+                
+                ESCAPED_EMAIL=$(mysql -N -s -e "SELECT QUOTE('$EMAIL_VAL')" | sed "s/^'//;s/'$//")
+                mysql -e "DELETE FROM mail_users WHERE email='$ESCAPED_EMAIL';" "$DB_NAME" || exit 1
+                log_action "Deleted Mail User: $EMAIL_VAL"
+                echo "Mailbox deleted"
+                ;;
+                
+            reset-pass)
+                # $3: email, $4: new_pass
+                EMAIL_VAL="$3"
+                NEW_PASS="$4"
+                validate_input "$EMAIL_VAL" "email"
+                
+                HASHED_PASS=$(php -r "echo password_hash('$NEW_PASS', PASSWORD_BCRYPT);")
+                ESCAPED_EMAIL=$(mysql -N -s -e "SELECT QUOTE('$EMAIL_VAL')" | sed "s/^'//;s/'$//")
+                ESCAPED_HASH=$(mysql -N -s -e "SELECT QUOTE('$HASHED_PASS')" | sed "s/^'//;s/'$//")
+                
+                mysql -e "UPDATE mail_users SET password='$ESCAPED_HASH' WHERE email='$ESCAPED_EMAIL';" "$DB_NAME" || exit 1
+                
+                log_action "Reset Pass Mail User: $EMAIL_VAL"
+                echo "Password reset"
+                ;;
+                
+            *)
+                echo "Unknown mail-tool subcommand: $SUB"
+                exit 1
+                ;;
+        esac
+        ;;
+
+    # --------------------------------------------------------------------------
+    # FTP TOOL
+    # --------------------------------------------------------------------------
+    ftp-tool)
+        SUB="$2"
+        
+        case "$SUB" in
+            add-user)
+                # $3: client_username, $4: ftp_user, $5: pass, $6: homedir
+                CLIENT_USER="$3"
+                FTP_USER="$4"
+                PASS="$5"
+                HOMEDIR="$6"
+                
+                validate_input "$CLIENT_USER" "username"
+                
+                # Check for basic weird characters in FTP User
+                if ! [[ "$FTP_USER" =~ ^[a-zA-Z0-9_.-]+@[a-zA-Z0-9_-]+$ ]]; then
+                    echo "Invalid FTP username format"
+                    exit 1
+                fi
+                
+                # Get client ID
+                CID=$(mysql -N -s -e "SELECT id FROM clients WHERE username='$CLIENT_USER'" "$DB_NAME" 2>/dev/null || echo "")
+                if [ -z "$CID" ]; then
+                    echo "Client not found"
+                    exit 1
+                fi
+                
+                # Hash pass with SHA-512 crypt
+                HASHED_PASS=$(php -r "\$salt=substr(bin2hex(random_bytes(8)),0,16); echo crypt('$PASS', '\$6\$rounds=5000\$'.\$salt.'\$');")
+                
+                # Sys user info
+                UID_VAL=$(id -u "$CLIENT_USER" 2>/dev/null || echo 1000)
+                GID_VAL=$(id -g "$CLIENT_USER" 2>/dev/null || echo 1000)
+                
+                ESCAPED_USER=$(mysql -N -s -e "SELECT QUOTE('$FTP_USER')" | sed "s/^'//;s/'$//")
+                ESCAPED_HASH=$(mysql -N -s -e "SELECT QUOTE('$HASHED_PASS')" | sed "s/^'//;s/'$//")
+                ESCAPED_HOME=$(mysql -N -s -e "SELECT QUOTE('$HOMEDIR')" | sed "s/^'//;s/'$//")
+                
+                mysql -e "INSERT INTO ftp_users (client_id, userid, passwd, homedir, uid, gid) VALUES ($CID, '$ESCAPED_USER', '$ESCAPED_HASH', '$ESCAPED_HOME', $UID_VAL, $GID_VAL);" "$DB_NAME" || exit 1
+                
+                log_action "Created FTP User: $FTP_USER for $CLIENT_USER"
+                echo "FTP user created"
+                ;;
+                
+            delete-user)
+                # $3: ftp_user
+                FTP_USER="$3"
+                
+                ESCAPED_USER=$(mysql -N -s -e "SELECT QUOTE('$FTP_USER')" | sed "s/^'//;s/'$//")
+                mysql -e "DELETE FROM ftp_users WHERE userid='$ESCAPED_USER';" "$DB_NAME" || exit 1
+                log_action "Deleted FTP User: $FTP_USER"
+                echo "FTP user deleted"
+                ;;
+                
+            reset-pass)
+                # $3: ftp_user, $4: new_pass
+                FTP_USER="$3"
+                NEW_PASS="$4"
+                
+                HASHED_PASS=$(php -r "\$salt=substr(bin2hex(random_bytes(8)),0,16); echo crypt('$NEW_PASS', '\$6\$rounds=5000\$'.\$salt.'\$');")
+                ESCAPED_USER=$(mysql -N -s -e "SELECT QUOTE('$FTP_USER')" | sed "s/^'//;s/'$//")
+                ESCAPED_HASH=$(mysql -N -s -e "SELECT QUOTE('$HASHED_PASS')" | sed "s/^'//;s/'$//")
+                
+                mysql -e "UPDATE ftp_users SET passwd='$ESCAPED_HASH' WHERE userid='$ESCAPED_USER';" "$DB_NAME" || exit 1
+                
+                log_action "Reset Pass FTP User: $FTP_USER"
+                echo "Password reset"
+                ;;
+                
+            *)
+                echo "Unknown ftp-tool subcommand: $SUB"
+                exit 1
+                ;;
+        esac
+        ;;
+
+    # --------------------------------------------------------------------------
     # HELP
     # --------------------------------------------------------------------------
     help|--help|-h)
@@ -2541,6 +2713,16 @@ DATABASE:
   mysql-tool delete-db DB_NAME
   mysql-tool reset-pass DB_USER NEW_PASS
   mysql-tool delete-user DB_USER
+
+MAIL:
+  mail-tool add-user CLIENT_USER EMAIL PASSWORD
+  mail-tool delete-user EMAIL
+  mail-tool reset-pass EMAIL NEW_PASS
+
+FTP:
+  ftp-tool add-user CLIENT_USER FTP_USER PASSWORD HOMEDIR
+  ftp-tool delete-user FTP_USER
+  ftp-tool reset-pass FTP_USER NEW_PASS
 
 DNS:
   dns-tool sync DOMAIN_ID
@@ -2579,6 +2761,7 @@ TROUBLESHOOTING:
 
 SECURITY:
   malware-scan DOMAIN_ID
+  malware-scan-all
 
 MAINTENANCE:
   maintenance [on|off] DOMAIN

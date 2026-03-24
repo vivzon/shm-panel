@@ -50,17 +50,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Client Portal — <?= htmlspecialchars(get_branding()) ?>">
     <title>Client Portal | <?= htmlspecialchars(get_branding()) ?></title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/modern-design.css">
+    <link rel="stylesheet" href="/assets/css/premium-glass.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* Modern Design System loaded via CSS */
     </style>
 </head>
 
-<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+<body style="display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: var(--font-premium); background: var(--bg-body);">
+    <!-- Premium Aura Background -->
+    <div class="aura-bg">
+        <div class="aura-1"></div>
+        <div class="aura-2"></div>
+    </div>
     <div class="bg-grid"></div>
 
     <div class="login-wrapper fade-up" style="position: relative; z-index: 10;">
@@ -76,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div>
                         <div
-                            style="font-size: 0.875rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: rgba(255,255,255,0.9);">
+                            style="font-size: 0.875rem; font-weight: 700; font-family: var(--font-premium); color: rgba(255,255,255,0.9);">
                             <?= htmlspecialchars(get_branding()) ?>
                         </div>
                         <div style="font-size: 0.625rem; color: rgba(255,255,255,0.4); font-weight: 500;">Client Portal
@@ -85,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <h2
-                    style="font-size: 1.5rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: #fff; margin-bottom: 0.5rem; line-height: 1.375;">
+                    style="font-size: 1.5rem; font-weight: 700; font-family: var(--font-premium); color: #fff; margin-bottom: 0.5rem; line-height: 1.375;">
                     Your hosting,<br>fully in
                     control.</h2>
                 <p
@@ -134,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="fade-up d1" style="margin-bottom: 1.75rem;">
                 <h1
-                    style="font-size: 1.5rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: #0f172a; margin-bottom: 0.25rem;">
+                    style="font-size: 1.5rem; font-weight: 700; font-family: var(--font-premium); color: #0f172a; margin-bottom: 0.25rem;">
                     Welcome back</h1>
                 <p style="color: #94a3b8; font-size: 0.875rem;">Sign in to your <span
                         style="color: #475569; font-weight: 600;"><?= htmlspecialchars(get_branding()) ?></span> client

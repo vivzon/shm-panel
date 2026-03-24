@@ -50,6 +50,7 @@ if (strpos($abs_path, $base_path) !== 0 || !is_file($abs_path)) {
 // SAVE ACTION
 $msg = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     file_put_contents($abs_path, $_POST['content']);
     $msg = "Saved successfully at " . date("H:i:s");
 }
@@ -124,6 +125,7 @@ $content = file_get_contents($abs_path);
     <div id="editor"><?= htmlspecialchars($content) ?></div>
 
     <form id="save-form" method="POST" style="display: none;">
+        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
         <textarea name="content" id="form-content"></textarea>
     </form>
 

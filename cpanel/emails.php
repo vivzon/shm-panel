@@ -29,13 +29,12 @@ if (isset($_POST['ajax_action'])) {
             $curr = $pdo->query("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (SELECT id FROM mail_domains WHERE domain IN (SELECT domain FROM domains WHERE client_id = $cid))")->fetchColumn();
             if ($curr >= $limits['max_emails'])
                 throw new Exception("Email limit reached.");
-            $did = $pdo->query("SELECT id FROM mail_domains WHERE domain = '{$_POST['domain']}'")->fetchColumn();
-            if (!$did) {
-                // Should exist if domain exists, but just in case
-                $pdo->prepare("INSERT INTO mail_domains (client_id, domain) VALUES (?, ?)")->execute([$cid, $_POST['domain']]);
-                $did = $pdo->lastInsertId();
-            }
-            $pdo->prepare("INSERT INTO mail_users (client_id, domain_id, email, password) VALUES (?, ?, ?, ?)")->execute([$cid, $did, $_POST['user'] . "@" . $_POST['domain'], password_hash($_POST['pass'], PASSWORD_BCRYPT)]);
+            
+            $client_user = $pdo->query("SELECT username FROM clients WHERE id = $cid")->fetchColumn();
+            $email = $_POST['user'] . "@" . $_POST['domain'];
+            
+            cmd("mail-tool add-user " . escapeshellarg($client_user) . " " . escapeshellarg($email) . " " . escapeshellarg($_POST['pass']));
+            
             sendResponse($res);
             exit;
         }
@@ -47,7 +46,7 @@ if (isset($_POST['ajax_action'])) {
             if (!$check->fetch())
                 throw new Exception("Access Denied");
 
-            $pdo->prepare("DELETE FROM mail_users WHERE email = ?")->execute([$email]);
+            cmd("mail-tool delete-user " . escapeshellarg($email));
             sendResponse($res);
             exit;
         }
@@ -62,7 +61,7 @@ if (isset($_POST['ajax_action'])) {
             if (!$check->fetch())
                 throw new Exception("Access Denied");
 
-            $pdo->prepare("UPDATE mail_users SET password = ? WHERE email = ?")->execute([password_hash($pass, PASSWORD_BCRYPT), $email]);
+            cmd("mail-tool reset-pass " . escapeshellarg($email) . " " . escapeshellarg($pass));
             sendResponse($res);
             exit;
         }

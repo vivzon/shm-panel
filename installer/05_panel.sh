@@ -149,6 +149,13 @@ CRON
 CRON_M
     chmod 644 /etc/cron.d/shm-metrics
     
+    # Malware Scan (Daily at 3 AM)
+    cat > /etc/cron.daily/shm-malware-scan << CRON_S
+#!/bin/bash
+/usr/local/bin/shm-manage malware-scan-all 2>/dev/null || true
+CRON_S
+    chmod +x /etc/cron.daily/shm-malware-scan
+    
     # 5. Fail2ban Jails
     log "Configuring Fail2ban..."
     cat > /etc/fail2ban/jail.local << FAIL2BAN

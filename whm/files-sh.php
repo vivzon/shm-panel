@@ -196,6 +196,7 @@ if (isset($_GET['zip_project'])) {
 
 // -------------------- ACTIONS (POST) --------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $action_taken = false;
     $success_msg = '';
     $error_msg = '';
@@ -353,6 +354,7 @@ include 'layout/header.php';
 
     <div id="upload-panel" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-body); border-radius: 1rem; border: 1px solid var(--border-color); display: none;">
         <form method="post" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
             <input type="file" name="file" required style="font-size: 0.875rem; color: var(--text-secondary); cursor: pointer;">
             <button type="submit" name="upload_file" class="btn btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; text-transform: uppercase;">Start Upload</button>
         </form>
@@ -360,6 +362,7 @@ include 'layout/header.php';
 
     <div id="folder-panel" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-body); border-radius: 1rem; border: 1px solid var(--border-color); display: none;">
         <form method="post" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
             <input type="text" name="folder_name" placeholder="Folder Name" required class="form-input" style="flex: 1; border-radius: 0.75rem; min-width: 200px;">
             <button type="submit" name="create_folder" class="btn btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; text-transform: uppercase;">Create Folder</button>
         </form>
@@ -426,6 +429,7 @@ include 'layout/header.php';
 </div>
 
 <form id="js-form" method="post" style="display:none;">
+    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
     <input type="hidden" name="file_path" id="js-path">
     <input type="hidden" name="new_name" id="js-name">
     <input type="hidden" name="rename_path" id="js-rename" value="1">

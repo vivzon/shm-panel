@@ -23,12 +23,19 @@ $username = $_SESSION['client'];
     <title><?= get_branding() ?> | Client Portal</title>
     <!-- Modern Vanilla CSS System -->
     <link rel="stylesheet" href="/assets/css/modern-design.css">
+    <link rel="stylesheet" href="/assets/css/premium-glass.css">
 
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body
-    style="display: flex; height: 100vh; overflow: hidden; background: var(--bg-body); color: var(--text-primary); font-family: 'Plus Jakarta Sans', sans-serif;">
+    style="display: flex; height: 100vh; overflow: hidden; background: var(--bg-body); color: var(--text-primary); font-family: var(--font-premium);">
+
+    <!-- Premium Aura Background -->
+    <div class="aura-bg">
+        <div class="aura-1"></div>
+        <div class="aura-2"></div>
+    </div>
 
     <!-- Sidebar -->
     <?php include __DIR__ . '/sidebar.php'; ?>
@@ -36,8 +43,8 @@ $username = $_SESSION['client'];
     <main class="dashboard-main custom-scrollbar"
         style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
         <!-- Top Header -->
-        <header class="dashboard-header"
-            style="display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; padding: 1rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--slate-200); height: 60px;">
+        <header class="premium-glass"
+            style="display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0.75rem; z-index: 10; padding: 1rem; margin: 0 1rem; border-radius: 0.875rem; height: 60px;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <span style="position: relative; display: flex; width: 8px; height: 8px;">
                     <span class="animate-pulse"

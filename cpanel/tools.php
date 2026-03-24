@@ -63,19 +63,15 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Passwords do not match");
 
             $ftp_user = strtolower($_POST['ftp_user'] . '@' . $username);
-            $pass = md5($_POST['pass']);
+            $pass = $_POST['pass'];
             $home = "/var/www/clients/$username/public_html" . ($_POST['dir'] ? '/' . trim($_POST['dir'], '/') : '');
-
-            $sys_user_info = function_exists('posix_getpwnam') ? posix_getpwnam($username) : ['uid' => 1000, 'gid' => 1000];
-            $uid = $sys_user_info['uid'] ?? 1000;
-            $gid = $sys_user_info['gid'] ?? 1000;
 
             $check = $pdo->prepare("SELECT count(*) FROM ftp_users WHERE userid = ?");
             $check->execute([$ftp_user]);
             if ($check->fetchColumn() > 0)
                 throw new Exception("FTP User already exists");
 
-            $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir, uid, gid) VALUES (?,?,?,?,?)")->execute([$ftp_user, $pass, $home, $uid, $gid]);
+            cmd("ftp-tool add-user " . escapeshellarg($username) . " " . escapeshellarg($ftp_user) . " " . escapeshellarg($pass) . " " . escapeshellarg($home));
             sendResponse($res);
             exit;
         }
@@ -84,7 +80,8 @@ if (isset($_POST['ajax_action'])) {
             $userToDelete = $_POST['user'];
             if (!str_ends_with($userToDelete, "@$username"))
                 throw new Exception("Permission Denied");
-            $pdo->prepare("DELETE FROM ftp_users WHERE userid = ?")->execute([$userToDelete]);
+            
+            cmd("ftp-tool delete-user " . escapeshellarg($userToDelete));
             sendResponse($res);
             exit;
         }

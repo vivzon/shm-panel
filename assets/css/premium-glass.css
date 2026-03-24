@@ -1,0 +1,161 @@
+/* ============================================================
+   SHM PANEL – Premium Glassmorphism Design System
+   ============================================================ */
+
+/* 1. Typography Integration (Lexend) */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --font-premium: 'Lexend', sans-serif;
+    
+    /* Glassmorphism Tokens (Light Mode) */
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-blur: blur(12px) saturate(180%);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    
+    /* Aura Glow Tokens */
+    --glow-primary: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0) 70%);
+    --glow-purple: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%);
+}
+
+[data-theme="dark"] {
+    /* Glassmorphism Tokens (Dark Mode) */
+    --glass-bg: rgba(17, 24, 39, 0.65);
+    --glass-border: rgba(55, 65, 81, 0.5);
+    --glass-blur: blur(16px) saturate(160%);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    
+    --glow-primary: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0) 70%);
+}
+
+/* 2. Global Typography Overrides */
+body {
+    font-family: var(--font-premium);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-premium {
+    font-family: var(--font-premium);
+    letter-spacing: -0.02em;
+}
+
+/* 3. Premium Glass Components */
+.premium-glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 1.25rem;
+}
+
+.premium-sidebar {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid var(--glass-border);
+}
+
+.premium-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* 4. Aura Glow Decorations */
+.aura-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.aura-1 {
+    position: absolute;
+    width: 800px;
+    height: 800px;
+    top: -200px;
+    right: -200px;
+    background: var(--glow-primary);
+    filter: blur(60px);
+}
+
+.aura-2 {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    bottom: -150px;
+    left: -150px;
+    background: var(--glow-purple);
+    filter: blur(60px);
+}
+
+/* 5. Nav Link Enhancements */
+.nav-link-premium {
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link-premium::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    transition: width 0.3s ease;
+}
+
+.nav-link-premium:hover::after {
+    width: 100%;
+}
+
+.active-sidebar-link {
+    background: var(--primary-light) !important;
+    color: var(--primary) !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+    box-shadow: inset 0 0 10px rgba(59, 130, 246, 0.05), var(--shadow-sm);
+}
+
+.active-sidebar-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 1.5rem;
+    background: linear-gradient(to bottom, var(--primary), var(--secondary));
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 0 10px var(--primary);
+}
+
+.active-glow {
+    box-shadow: 0 0 15px var(--primary-light);
+    border: 1px solid var(--primary) !important;
+}
+
+/* 6. Dashboard Metrics Specifics */
+.metric-value {
+    font-size: 2.25rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--slate-500) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.05em;
+}

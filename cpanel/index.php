@@ -131,9 +131,8 @@ include 'layout/header.php';
     <!-- Stats Grid -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
         <!-- Domains -->
-        <div class="glass-card"
-            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;"
-            onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='translateY(0)';">
+        <div class="premium-card"
+            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;">
             <div
                 style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(37, 99, 235, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
@@ -146,8 +145,7 @@ include 'layout/header.php';
                 <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_dom ?> /
                     <?= $clientData['max_domains'] ?></span>
             </div>
-            <h3
-                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
+            <h3 class="metric-value">
                 <?= $usage_dom ?>
             </h3>
             <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
@@ -161,9 +159,8 @@ include 'layout/header.php';
         </div>
 
         <!-- Databases -->
-        <div class="glass-card"
-            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;"
-            onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='translateY(0)';">
+        <div class="premium-card"
+            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;">
             <div
                 style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(168, 85, 247, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
@@ -176,8 +173,7 @@ include 'layout/header.php';
                 <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_db ?> /
                     <?= $clientData['max_databases'] ?></span>
             </div>
-            <h3
-                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
+            <h3 class="metric-value">
                 <?= $usage_db ?>
             </h3>
             <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
@@ -191,9 +187,8 @@ include 'layout/header.php';
         </div>
 
         <!-- Emails -->
-        <div class="glass-card"
-            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;"
-            onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='translateY(0)';">
+        <div class="premium-card"
+            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;">
             <div
                 style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(16, 185, 129, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
@@ -206,8 +201,7 @@ include 'layout/header.php';
                 <span class="badge" style="background: rgba(0,0,0,0.05); color: var(--slate-700);"><?= $usage_mail ?> /
                     <?= $clientData['max_emails'] ?></span>
             </div>
-            <h3
-                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
+            <h3 class="metric-value">
                 <?= $usage_mail ?>
             </h3>
             <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
@@ -221,9 +215,8 @@ include 'layout/header.php';
         </div>
 
         <!-- Storage -->
-        <div class="glass-card"
-            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;"
-            onmouseover="this.style.transform='translateY(-4px)';" onmouseout="this.style.transform='translateY(0)';">
+        <div class="premium-card"
+            style="padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s;">
             <div
                 style="position: absolute; right: -1rem; top: -1rem; width: 6rem; height: 6rem; background: rgba(249, 115, 22, 0.1); border-radius: 50%; filter: blur(20px);">
             </div>
@@ -236,8 +229,7 @@ include 'layout/header.php';
                 <span class="badge"
                     style="background: rgba(249, 115, 22, 0.1); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.2);"><?= htmlspecialchars($clientData['pkg_name']) ?></span>
             </div>
-            <h3
-                style="font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem; position: relative; z-index: 10;">
+            <h3 class="metric-value">
                 <?= $used_mb ?> MB
             </h3>
             <p style="font-size: 0.875rem; color: var(--slate-600); font-weight: 500; position: relative; z-index: 10;">
@@ -255,7 +247,7 @@ include 'layout/header.php';
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
         <!-- Left Column: Traffic Graph -->
         <div style="grid-column: span 2 / span 2; display: flex; flex-direction: column; gap: 2rem;">
-            <div class="glass-card" style="padding: 1.5rem;">
+            <div class="premium-glass" style="padding: 1.5rem; border-radius: 1.25rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
                         <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900);">Network Traffic</h3>
@@ -321,7 +313,7 @@ include 'layout/header.php';
         <!-- Right Column: Logs & Info -->
         <div style="display: flex; flex-direction: column; gap: 2rem;">
             <!-- Server Info -->
-            <div class="glass-card" style="padding: 1.5rem;">
+            <div class="premium-glass" style="padding: 1.5rem; border-radius: 1.25rem;">
                 <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Server
                     Info</h3>
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -377,8 +369,8 @@ include 'layout/header.php';
             </div>
 
             <!-- Error Logs -->
-            <div class="glass-card"
-                style="overflow: hidden; display: flex; flex-direction: column; height: 300px; padding: 0;">
+            <div class="premium-glass"
+                style="overflow: hidden; display: flex; flex-direction: column; height: 300px; padding: 0; border-radius: 1.25rem;">
                 <div
                     style="padding: 1rem; border-bottom: 1px solid var(--slate-200); display: flex; justify-content: space-between; align-items: center; background: var(--slate-50);">
                     <h3
