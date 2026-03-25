@@ -62,7 +62,7 @@ setup_mail() {
 driver = mysql
 connect = host=127.0.0.1 dbname=$DB_NAME user=$DB_USER password=$DB_PASS
 default_pass_scheme = SHA512-CRYPT
-password_query = SELECT email as user, password FROM mail_users WHERE email='%u' AND is_active=1;
+password_query = SELECT email as user, password FROM mail_users WHERE email='%u';
 user_query = SELECT 5000 as uid, 5000 as gid, '/var/mail/vhosts/%d/%n' as home, CONCAT('*:bytes=', quota_mb, 'M') as quota_rule FROM mail_users WHERE email='%u';
 DOVECOT_SQL
     
@@ -161,7 +161,7 @@ user = $DB_USER
 password = $DB_PASS
 hosts = 127.0.0.1
 dbname = $DB_NAME
-query = SELECT 1 FROM mail_users WHERE email='%s' AND is_active=1
+query = SELECT 1 FROM mail_users WHERE email='%s'
 POSTFIX_MAILBOXES
 
     cat > /etc/postfix/mysql-virtual-alias-maps.cf << POSTFIX_ALIASES
@@ -169,7 +169,7 @@ user = $DB_USER
 password = $DB_PASS
 hosts = 127.0.0.1
 dbname = $DB_NAME
-query = SELECT destination FROM mail_aliases WHERE source='%s'
+query = SELECT email FROM mail_users WHERE email='%s'
 POSTFIX_ALIASES
 
     # Secure the SQL map files

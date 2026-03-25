@@ -15,25 +15,28 @@ if (isset($_POST['ajax_action'])) {
         verify_csrf();
         // --- FTP HANDLERS ---
         if ($action == 'add_ftp') {
+            if (!check_rate_limit('add_ftp', 10, 3600))
+                throw new Exception("Too many attempts. Please wait an hour.");
+            
+            if (empty($_POST['ftp_user']) || empty($_POST['sys_user']) || empty($_POST['pass']))
+                throw new Exception("All fields are required");
+
             if ($_POST['pass'] !== $_POST['pass2'])
                 throw new Exception("Passwords do not match");
 
-            $sys_user = $_POST['sys_user'];
-            $ftp_user = $_POST['ftp_user'] . '@' . $sys_user; // Enforce user@client
-            $pass = md5($_POST['pass']);
+            $sys_user = shm_clean($_POST['sys_user']);
+            $ftp_user = shm_clean($_POST['ftp_user']) . '@' . $sys_user; 
+            $pass = md5($_POST['pass']); // Note: ProFTPD Crypt expectation
 
-            // Default home to /var/www/clients/user/public_html
             $home = "/var/www/clients/$sys_user/public_html";
 
-            // Get System User UID/GID
             if (function_exists('posix_getpwnam')) {
-                $sys_user_info = posix_getpwnam($sys_user);
+                $sys_user_info = @posix_getpwnam($sys_user);
                 if (!$sys_user_info)
-                    throw new Exception("System user not found on server");
+                    throw new Exception("System user '$sys_user' not found on server");
                 $uid = $sys_user_info['uid'];
                 $gid = $sys_user_info['gid'];
             } else {
-                // Fallback for Windows Dev
                 $uid = 1000;
                 $gid = 1000;
             }
@@ -45,7 +48,6 @@ if (isset($_POST['ajax_action'])) {
 
             $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir, uid, gid) VALUES (?,?,?,?,?)")->execute([$ftp_user, $pass, $home, $uid, $gid]);
             sendResponse($res);
-            exit;
         }
 
         if ($action == 'list_ftp') {
@@ -62,18 +64,30 @@ if (isset($_POST['ajax_action'])) {
 
         // --- MAIL HANDLERS ---
         if ($action == 'add_mail') {
-            $full = $_POST['prefix'] . "@" . $_POST['domain'];
+            if (!check_rate_limit('add_mail', 10, 3600))
+                throw new Exception("Too many attempts. Please wait an hour.");
+
+            $prefix = shm_clean($_POST['prefix'] ?? '');
+            $domain = shm_clean($_POST['domain'] ?? '');
+            $full = $prefix . "@" . $domain;
+            
+            if (!is_valid_email($full))
+                throw new Exception("Invalid email format");
+
             $pass = password_hash($_POST['mail_pass'], PASSWORD_BCRYPT);
-            $did = $pdo->query("SELECT id FROM mail_domains WHERE domain = '{$_POST['domain']}'")->fetchColumn();
-            if (!$did)
-                throw new Exception("Domain not found for mail");
-            // Get client_id from domain
-            $client_id = $pdo->query("SELECT client_id FROM mail_domains WHERE id = $did")->fetchColumn();
-            if (!$client_id)
-                throw new Exception("Client not found for domain");
+            
+            $stmt = $pdo->prepare("SELECT id, client_id FROM mail_domains WHERE domain = ?");
+            $stmt->execute([$domain]);
+            $dinfo = $stmt->fetch();
+            
+            if (!$dinfo)
+                throw new Exception("Domain '$domain' not found in mail system");
+            
+            $did = $dinfo['id'];
+            $client_id = $dinfo['client_id'];
+
             $pdo->prepare("INSERT INTO mail_users (client_id, domain_id, email, password) VALUES (?,?,?,?)")->execute([$client_id, $did, $full, $pass]);
             sendResponse($res);
-            exit;
         }
 
         if ($action == 'list_mail') {
@@ -91,25 +105,32 @@ if (isset($_POST['ajax_action'])) {
         }
 
         if ($action == 'set_php_handler') {
-            $user = $_POST['sys_user'];
-            $ver = $_POST['php_version'];
+            $user = shm_clean($_POST['sys_user']);
+            $ver = shm_clean($_POST['php_version']);
 
-            // Get domain for this user to update vhost
-            $dom = $pdo->query("SELECT domain FROM domains WHERE client_id = (SELECT id FROM clients WHERE username='$user') LIMIT 1")->fetchColumn();
+            $stmt = $pdo->prepare("SELECT domain FROM domains WHERE client_id = (SELECT id FROM clients WHERE username=?) LIMIT 1");
+            $stmt->execute([$user]);
+            $dom = $stmt->fetchColumn();
 
             if (!$dom)
-                throw new Exception("No domain found for user");
+                throw new Exception("No domain found for user '$user'");
+
+            echo json_encode(['status' => 'success', 'msg' => "PHP Version update initiated for $dom"]);
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
 
             cmd("php-tool set-version " . escapeshellarg($user) . " " . escapeshellarg($dom) . " " . escapeshellarg($ver));
-
-            echo json_encode(['status' => 'success', 'msg' => "PHP Version set to $ver for $dom"]);
             exit;
         }
 
         if ($action == 'set_network_card') {
-            $iface = $_POST['interface'];
+            $iface = shm_clean($_POST['interface']);
+            echo json_encode(['status' => 'success', 'msg' => "Network interface update initiated for $iface"]);
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
             cmd("network-tool set-interface " . escapeshellarg($iface));
-            echo json_encode(['status' => 'success', 'msg' => "Primary Interface updated to $iface"]);
             exit;
         }
 

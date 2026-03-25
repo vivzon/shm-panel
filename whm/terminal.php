@@ -13,15 +13,17 @@ if (isset($_POST['ajax_action'])) {
         if ($_POST['ajax_action'] == 'execute_command') {
             $cmd = $_POST['command'];
             
+            // Prevent terminal commands from timing out the PHP worker too quickly
+            set_time_limit(120);
+
             // Execute command and capture both stdout and stderr
             $output = shell_exec($cmd . ' 2>&1');
             
-            echo json_encode(['status' => 'success', 'output' => $output]);
-            exit;
+            sendResponse(['status' => 'success', 'output' => $output]);
         }
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+        sendResponse(['status' => 'error', 'msg' => $e->getMessage()]);
     }
     exit;
 }

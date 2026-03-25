@@ -45,9 +45,18 @@ include 'layout/header.php';
             <option value="web">Web Server Errors</option>
             <option value="sys">System Log (Syslog)</option>
         </select>
+        <button id="pause-btn" onclick="togglePause()" class="btn" title="Pause/Resume"
+            style="background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem; border-radius: 0.5rem; transition: all var(--transition-normal);">
+            <i data-lucide="pause" style="width: 1rem; height: 1rem;"></i>
+        </button>
+        <button onclick="clearTerminal()" class="btn" title="Clear Terminal"
+            style="background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem; border-radius: 0.5rem; transition: all var(--transition-normal);">
+            <i data-lucide="trash-2" style="width: 1rem; height: 1rem;"></i>
+        </button>
         <button onclick="fetchLogs()" class="btn btn-primary"
-            style="padding: 0.5rem; border-radius: 0.5rem; transition: all var(--transition-normal); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);"><i
-                data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i></button>
+            style="padding: 0.5rem; border-radius: 0.5rem; transition: all var(--transition-normal); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);">
+            <i data-lucide="refresh-cw" id="refresh-icon" style="width: 1rem; height: 1rem;"></i>
+        </button>
     </div>
 </div>
 <div class="glass-card animate-slide-right hover-glow"
@@ -68,11 +77,33 @@ include 'layout/header.php';
 
 <script>
     let logInterval = null;
+    let isPaused = false;
+
+    function togglePause() {
+        isPaused = !isPaused;
+        const btn = document.getElementById('pause-btn');
+        btn.innerHTML = isPaused ? '<i data-lucide="play" style="width: 1rem; height: 1rem;"></i>' : '<i data-lucide="pause" style="width: 1rem; height: 1rem;"></i>';
+        btn.style.color = isPaused ? 'var(--accent-emerald)' : 'var(--text-primary)';
+        lucide.createIcons();
+        
+        if (typeof showToast !== 'undefined') {
+            showToast(isPaused ? 'info' : 'success', isPaused ? 'Paused' : 'Resumed', isPaused ? 'Auto-refresh disabled' : 'Auto-refresh enabled');
+        }
+    }
+
+    function clearTerminal() {
+        document.getElementById('log-terminal').textContent = 'Terminal cleared. Waiting for next update...';
+    }
 
     async function fetchLogs() {
+        if (isPaused) return;
+
         const type = document.getElementById('log-type').value;
         const term = document.getElementById('log-terminal');
         const time = document.getElementById('log-time');
+        const refreshIcon = document.getElementById('refresh-icon');
+
+        if (refreshIcon) refreshIcon.classList.add('animate-spin');
 
         const fd = new FormData();
         fd.append('ajax_action', 'get_logs');
@@ -82,14 +113,23 @@ include 'layout/header.php';
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             if (res.status === 'success') {
-                term.innerText = res.data || 'No logs available or empty.';
+                term.textContent = res.data || 'No logs available or empty.';
                 term.scrollTop = term.scrollHeight; // Auto-scroll
                 time.innerText = 'Last updated: ' + new Date().toLocaleTimeString();
             }
-        } catch (e) { console.error('Log fetch error'); }
+        } catch (e) { 
+            console.error('Log fetch error'); 
+        } finally {
+            if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+        }
     }
 
-    // Auto-start
+    // Initial Load
     fetchLogs();
     logInterval = setInterval(fetchLogs, 3000);
+
+    // Cleanup on unmount (if in SPA-like environment, though here it's simple redirect)
+    window.addEventListener('beforeunload', () => {
+        if (logInterval) clearInterval(logInterval);
+    });
 </script>

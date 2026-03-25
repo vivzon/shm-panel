@@ -112,29 +112,38 @@ function shm_zip_dir($source, $destination) {
     if (!$zip->open($destination, ZipArchive::CREATE)) {
         return false;
     }
-    $source = str_replace('\\', '/', realpath($source));
-    if (is_dir($source)) {
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
-        );
-        foreach ($files as $file) {
-            $file = str_replace('\\', '/', $file);
-            if (in_array(substr($file, strrpos($file, '/') + 1), ['.', '..'])) continue;
+    
+    try {
+        $source = str_replace('\\', '/', realpath($source));
+        if (is_dir($source)) {
+            $files = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::SELF_FIRST
+            );
+            foreach ($files as $file) {
+                $file = str_replace('\\', '/', $file);
+                if (in_array(substr($file, strrpos($file, '/') + 1), ['.', '..'])) continue;
 
-            $file = realpath($file);
-            $file = str_replace('\\', '/', $file);
+                $file = realpath($file);
+                if ($file === false) continue;
+                $file = str_replace('\\', '/', $file);
 
-            if (is_dir($file)) {
-                $zip->addEmptyDir(str_replace($source . '/', '', $file . '/'));
-            } else if (is_file($file)) {
-                $zip->addFromString(str_replace($source . '/', '', $file), file_get_contents($file));
+                if (is_dir($file)) {
+                    $zip->addEmptyDir(str_replace($source . '/', '', $file . '/'));
+                } else if (is_file($file)) {
+                    if (is_readable($file)) {
+                        $zip->addFile($file, str_replace($source . '/', '', $file));
+                    }
+                }
             }
+        } else if (is_file($source)) {
+            $zip->addFile($source, basename($source));
         }
-    } else if (is_file($source)) {
-        $zip->addFromString(basename($source), file_get_contents($source));
+        return $zip->close();
+    } catch (Exception $e) {
+        error_log("Zip Error: " . $e->getMessage());
+        return false;
     }
-    return $zip->close();
 }
 
 
@@ -175,8 +184,17 @@ if (isset($_GET['download'])) {
 
 // ZIP ENTIRE PROJECT
 if (isset($_GET['zip_project'])) {
-    $zip_filename = 'shm_panel_backup_' . date('Y-m-d') . '.zip';
+    $zip_filename = 'shm_panel_backup_' . date('Y-m-d_H-i-s') . '.zip';
     $temp_zip_path = sys_get_temp_dir() . '/' . $zip_filename;
+
+    if (function_exists('fastcgi_finish_request')) {
+        // Since we can't easily stream a zip *after* finishing request (the socket closes),
+        // we will process it and then typical headers won't work.
+        // For Zip Project, we'll just set a very long timeout and hope for the best, 
+        // OR better yet, we just start zipping and redirect back with a "processing" message.
+        // Given this is a panel download, we'll use set_time_limit.
+        set_time_limit(300);
+    }
 
     if (shm_zip_dir($panel_root, $temp_zip_path)) {
         header('Content-Description: File Transfer');
@@ -186,7 +204,7 @@ if (isset($_GET['zip_project'])) {
         header('Pragma: public');
         header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
         readfile($temp_zip_path);
-        @unlink($temp_zip_path); // Clean up temp file
+        @unlink($temp_zip_path);
         exit;
     } else {
         header('Location: files-sh.php?path=' . urlencode($current_path) . '&error=' . urlencode('Failed to create project ZIP. Check permissions or PHP ZipArchive extension.'));
@@ -196,10 +214,33 @@ if (isset($_GET['zip_project'])) {
 
 // -------------------- ACTIONS (POST) --------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    verify_csrf();
     $action_taken = false;
     $success_msg = '';
     $error_msg = '';
+
+    // Handle AJAX actions (like View File)
+    if (isset($_POST['ajax_action'])) {
+        verify_csrf();
+        header('Content-Type: application/json');
+        
+        if ($_POST['ajax_action'] === 'view_file') {
+            $rel = shm_clean($_POST['file_path'] ?? '');
+            $abs = shm_build_path($panel_root, $rel);
+            if ($abs && is_file($abs)) {
+                $content = @file_get_contents($abs);
+                if ($content !== false) {
+                    echo json_encode(['status' => 'success', 'content' => $content]);
+                } else {
+                    echo json_encode(['status' => 'error', 'msg' => 'Failed to read file content']);
+                }
+            } else {
+                echo json_encode(['status' => 'error', 'msg' => 'Invalid file path']);
+            }
+            exit;
+        }
+    }
+
+    verify_csrf();
 
     // UPLOAD FILE
     if (isset($_POST['upload_file']) && isset($_FILES['file'])) {
@@ -314,9 +355,25 @@ if ($search_query !== '') {
 // -------- SVG ICONS --------
 function get_file_icon($is_dir, $ext) {
     if ($is_dir) {
-        return '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-blue-400"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>';
+        return '<i data-lucide="folder" style="width: 1rem; height: 1rem; color: #60a5fa;"></i>';
     }
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-slate-400"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14.5 2 14.5 7.5 20 7.5"/></svg>';
+    $icon = 'file';
+    $color = 'var(--text-secondary)';
+    
+    switch ($ext) {
+        case 'php': $icon = 'file-code'; $color = '#7c3aed'; break;
+        case 'css': $icon = 'file-type-2'; $color = '#3b82f6'; break;
+        case 'html': $icon = 'file-type'; $color = '#ea580c'; break;
+        case 'js': $icon = 'file-json'; $color = '#eab308'; break;
+        case 'json': $icon = 'braces'; $color = '#eab308'; break;
+        case 'zip': case 'gz': case 'tar': $icon = 'archive'; $color = '#10b981'; break;
+        case 'jpg': case 'jpeg': case 'png': case 'svg': case 'gif': $icon = 'image'; $color = '#ec4899'; break;
+        case 'log': $icon = 'file-text'; $color = '#64748b'; break;
+        case 'sh': $icon = 'terminal'; $color = '#22c55e'; break;
+        case 'sql': $icon = 'database'; $color = '#f59e0b'; break;
+    }
+    
+    return '<i data-lucide="' . $icon . '" style="width: 1rem; height: 1rem; color: ' . $color . ';"></i>';
 }
 
 include 'layout/header.php';
@@ -412,6 +469,7 @@ include 'layout/header.php';
                         <td style="padding: 1rem; text-align: right;">
                             <div style="display: flex; justify-content: flex-end; gap: 0.25rem;">
                                 <?php if (!$f['is_dir']): ?>
+                                    <button onclick="viewFile('<?= addslashes($f['relative']) ?>', '<?= addslashes($f['name']) ?>')" title="View" style="padding: 0.5rem; color: var(--text-secondary); cursor: pointer; border: none; background: transparent; transition: color var(--transition-normal);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'"><i data-lucide="eye" style="width: 1rem; height: 1rem;"></i></button>
                                     <a href="?download=<?= urlencode($f['relative']) ?>" title="Download" style="padding: 0.5rem; color: var(--text-secondary); cursor: pointer; transition: color var(--transition-normal);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'"><i data-lucide="download" style="width: 1rem; height: 1rem;"></i></a>
                                 <?php endif; ?>
                                 <button onclick="renameItem('<?= addslashes($f['relative']) ?>', '<?= addslashes($f['name']) ?>')" title="Rename" style="padding: 0.5rem; color: var(--text-secondary); cursor: pointer; border: none; background: transparent; transition: color var(--transition-normal);" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'"><i data-lucide="edit-3" style="width: 1rem; height: 1rem;"></i></button>
@@ -442,6 +500,32 @@ include 'layout/header.php';
         el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
     }
 
+    async function viewFile(path, name) {
+        if (typeof showToast !== 'undefined') showToast('info', 'Loading', `Fetching ${name}...`);
+        
+        const fd = new FormData();
+        fd.append('ajax_action', 'view_file');
+        fd.append('file_path', path);
+        fd.append('csrf_token', '<?= csrf_token() ?>');
+
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success') {
+                document.getElementById('view-title').textContent = name;
+                document.getElementById('view-content').textContent = res.content;
+                document.getElementById('view-modal').style.display = 'flex';
+            } else {
+                if (typeof showToast !== 'undefined') showToast('error', 'Error', res.msg);
+            }
+        } catch (e) {
+            if (typeof showToast !== 'undefined') showToast('error', 'Error', 'Failed to read file');
+        }
+    }
+
+    function closeView() {
+        document.getElementById('view-modal').style.display = 'none';
+    }
+
     function deleteItem(path, name) {
         if (!confirm(`Delete ${name}?`)) return;
         const f = document.getElementById('js-form');
@@ -462,5 +546,24 @@ include 'layout/header.php';
         f.submit();
     }
 </script>
+
+<!-- View Modal -->
+<div id="view-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 2rem;">
+    <div class="glass-card" style="width: 100%; max-width: 60rem; max-height: 80vh; display: flex; flex-direction: column; border-radius: 1.5rem; overflow: hidden;">
+        <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-body);">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="file-text" style="width: 1.25rem; height: 1.25rem; color: var(--primary);"></i>
+                <h3 id="view-title" style="font-weight: 700; color: var(--text-primary);">File Viewer</h3>
+            </div>
+            <button onclick="closeView()" style="background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem; border-radius: 0.5rem;" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--accent-red)'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'">
+                <i data-lucide="x" style="width: 1.25rem; height: 1.25rem;"></i>
+            </button>
+        </div>
+        <div style="flex: 1; padding: 1.5rem; overflow-y: auto; background: var(--bg-surface);">
+            <pre id="view-content" style="margin: 0; font-family: 'Fira Code', monospace; font-size: 0.8125rem; line-height: 1.6; color: var(--text-secondary); white-space: pre-wrap; word-break: break-all;"></pre>
+        </div>
+    </div>
+</div>
+
 
 <?php include 'layout/footer.php'; ?>

@@ -7,20 +7,32 @@ if (isset($_SESSION['admin'])) {
 
 $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $u = trim($_POST['u'] ?? '');
+    $u = shm_clean($_POST['u'] ?? '');
     $p = $_POST['p'] ?? '';
-    if ($u && $p) {
-        $stmt = $pdo->prepare("SELECT * FROM admins WHERE username = ?");
-        $stmt->execute([$u]);
-        $user = $stmt->fetch();
-        if ($user && password_verify($p, $user['password'])) {
-            session_regenerate_id(true);
-            $_SESSION['admin'] = $user['username'];
-            header("Location: /index.php");
-            exit;
+
+    // Advanced Brute Force Protection
+    if (!check_rate_limit('admin_login_' . $_SERVER['REMOTE_ADDR'], 5, 900)) { // 5 fails / 15 mins
+        $error = "Too many failed attempts. Please try again in 15 minutes.";
+        log_security_event("Admin Login Blocked (Rate Limit)", ['ip' => $_SERVER['REMOTE_ADDR'], 'user' => $u]);
+    } else {
+        if ($u && $p) {
+            $stmt = $pdo->prepare("SELECT * FROM admins WHERE username = ?");
+            $stmt->execute([$u]);
+            $user = $stmt->fetch();
+            if ($user && password_verify($p, $user['password'])) {
+                // Clear rate limit on success
+                unset($_SESSION['rate_limit_admin_login_' . $_SERVER['REMOTE_ADDR']]);
+                
+                session_regenerate_id(true);
+                $_SESSION['admin'] = $user['username'];
+                log_security_event("Admin Login Success", ['ip' => $_SERVER['REMOTE_ADDR'], 'user' => $u]);
+                header("Location: /index.php");
+                exit;
+            }
         }
+        $error = "Invalid credentials. Please try again.";
+        log_security_event("Admin Login Failed", ['ip' => $_SERVER['REMOTE_ADDR'], 'user' => $u]);
     }
-    $error = "Invalid credentials. Please try again.";
 }
 ?>
 <!DOCTYPE html>

@@ -11,36 +11,52 @@ if (isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
     try {
         verify_csrf();
+        
         if ($_POST['ajax_action'] == 'save_config') {
+            // Basic validation
+            $nginx_max = (int)($_POST['nginx_client_max_body_size'] ?? 50);
+            $php_ver = $_POST['php_version'] ?? '8.2';
+            
             $cmd = "set-server-config " .
-                escapeshellarg($_POST['nginx_client_max_body_size']) . " " .
-                escapeshellarg($_POST['nginx_client_body_timeout']) . " " .
-                escapeshellarg($_POST['nginx_send_timeout']) . " " .
-                escapeshellarg($_POST['fcgi_read_timeout']) . " " .
-                escapeshellarg($_POST['fcgi_send_timeout']) . " " .
-                escapeshellarg($_POST['proxy_read_timeout']) . " " .
-                escapeshellarg($_POST['php_version']) . " " .
-                escapeshellarg($_POST['php_upload_max_filesize']) . " " .
-                escapeshellarg($_POST['php_post_max_size']) . " " .
-                escapeshellarg($_POST['php_memory_limit']) . " " .
-                escapeshellarg($_POST['php_max_execution_time']) . " " .
-                escapeshellarg($_POST['php_max_input_time']) . " " .
-                escapeshellarg($_POST['php_default_socket_timeout']);
+                escapeshellarg($nginx_max) . " " .
+                escapeshellarg($_POST['nginx_client_body_timeout'] ?? 60) . " " .
+                escapeshellarg($_POST['nginx_send_timeout'] ?? 60) . " " .
+                escapeshellarg($_POST['fcgi_read_timeout'] ?? 60) . " " .
+                escapeshellarg($_POST['fcgi_send_timeout'] ?? 60) . " " .
+                escapeshellarg($_POST['proxy_read_timeout'] ?? 60) . " " .
+                escapeshellarg($php_ver) . " " .
+                escapeshellarg($_POST['php_upload_max_filesize'] ?? 50) . " " .
+                escapeshellarg($_POST['php_post_max_size'] ?? 64) . " " .
+                escapeshellarg($_POST['php_memory_limit'] ?? 256) . " " .
+                escapeshellarg($_POST['php_max_execution_time'] ?? 60) . " " .
+                escapeshellarg($_POST['php_max_input_time'] ?? 60) . " " .
+                escapeshellarg($_POST['php_default_socket_timeout'] ?? 60);
+            
+            // Background the task to prevent timeouts
+            echo json_encode(['status' => 'success', 'msg' => 'Configuration save initiated. Please check the status in a moment.']);
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
+            
             cmd($cmd);
-            echo json_encode(['status' => 'success', 'msg' => 'Configuration saved successfully! Please restart services to apply.']);
             exit;
         }
+        
         if ($_POST['ajax_action'] == 'restart_services') {
+            echo json_encode(['status' => 'success', 'msg' => 'Service reload initiated globally.']);
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
             cmd("reload-all-services");
-            echo json_encode(['status' => 'success', 'msg' => 'Services restarted successfully!']);
             exit;
         }
+        
         if ($_POST['ajax_action'] == 'test_config') {
-            ob_start();
-            cmd("test-config");
-            $out = ob_get_clean();
+            // test-config returns "OK" on success
+            $out = shell_exec("sudo /usr/local/bin/shm-manage test-config 2>&1");
             $out = trim($out);
-            if ($out == 'OK') {
+            
+            if ($out === 'OK') {
                 echo json_encode(['status' => 'success', 'msg' => 'Syntax OK']);
             } else {
                 echo json_encode(['status' => 'error', 'msg' => $out ?: 'Configuration test failed.']);
@@ -48,8 +64,11 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
     } catch (Exception $e) {
-        http_response_code(500);
-        echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+        if (!headers_sent()) {
+            http_response_code(500);
+            echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
+        }
+        error_log("Server Config Exception: " . $e->getMessage());
     }
     exit;
 }
@@ -247,8 +266,8 @@ include 'layout/header.php';
                         <div>
                             <select id="php_version" onchange="updatePreview()" class="form-input"
                                 style="padding: 0.375rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem;">
-                                <option value="8.3">PHP 8.3 (Default)</option>
-                                <option value="8.2">PHP 8.2</option>
+                                <option value="8.3">PHP 8.3</option>
+                                <option value="8.2" selected>PHP 8.2 (Default)</option>
                                 <option value="8.1">PHP 8.1</option>
                                 <option value="8.0">PHP 8.0</option>
                                 <option value="7.4">PHP 7.4</option>

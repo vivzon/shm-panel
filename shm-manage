@@ -2407,6 +2407,30 @@ EOF
         
         echo "Config written successfully"
         ;;
+        
+    reload-all-services)
+        log_action "Global service reload triggered"
+        # Reload Nginx
+        systemctl reload nginx >/dev/null 2>&1 || systemctl restart nginx
+        
+        # Reload all active PHP-FPM versions
+        for v in 7.4 8.0 8.1 8.2 8.3; do
+            if systemctl is-active --quiet php$v-fpm; then
+                systemctl reload php$v-fpm || systemctl restart php$v-fpm
+            fi
+        done
+        echo "All services reloaded"
+        ;;
+        
+    test-config)
+        # Test Nginx
+        NGINX_TEST=$(nginx -t 2>&1)
+        if [ $? -eq 0 ]; then
+            echo "OK"
+        else
+            echo "$NGINX_TEST" | head -n 5
+        fi
+        ;;
 
     # --------------------------------------------------------------------------
     # SYSTEM INFO

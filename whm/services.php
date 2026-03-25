@@ -6,6 +6,16 @@ if (!isset($_SESSION['admin'])) {
     exit;
 }
 
+// 1. Central Service Definition Map (Matches shm-manage service names)
+$SERVICES_MAP = [
+    'nginx'      => 'Web Server',
+    'mariadb'    => 'MariaDB SQL',
+    'php8.2-fpm' => 'PHP 8.2 Engine',
+    'proftpd'    => 'FTP Server',
+    'postfix'    => 'Mail Delivery',
+    'dovecot'    => 'Mail Inbox (IMAP)'
+];
+
 if (isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
     $action = $_POST['ajax_action'];
@@ -13,34 +23,54 @@ if (isset($_POST['ajax_action'])) {
 
     try {
         verify_csrf();
+
+        // POLL STATUSES (Hardened)
         if ($action == 'get_service_status') {
-            $services = ['nginx' => 'Web Server', 'mariadb' => 'MariaDB SQL', 'php8.2-fpm' => 'PHP 8.2 Engine', 'proftpd' => 'FTP Server', 'postfix' => 'Mail Delivery'];
             $statuses = [];
 
-            foreach ($services as $id => $name) {
-                $status = trim(cmd("service-status $id"));
-                $statuses[$id] = [
-                    'name' => $name,
-                    'active' => $status === 'active'
-                ];
+            foreach ($SERVICES_MAP as $id => $name) {
+                try {
+                    // Individually check each service to prevent one failure from crashing the whole update
+                    $status = trim(cmd("service-status $id"));
+                    $statuses[$id] = [
+                        'name' => $name,
+                        'active' => $status === 'active',
+                        'error' => false
+                    ];
+                } catch (Exception $e) {
+                    $statuses[$id] = [
+                        'name' => $name,
+                        'active' => false,
+                        'error' => true,
+                        'msg' => $e->getMessage()
+                    ];
+                }
             }
 
             echo json_encode(['status' => 'success', 'services' => $statuses]);
             exit;
         }
 
+        // CONTROL SERVICES
         if ($action == 'service_action') {
             $op = $_POST['op'];
+            $srv = $_POST['service'];
+
             if (!in_array($op, ['start', 'stop', 'restart', 'reload']))
                 throw new Exception("Invalid Operation");
+
+            if (!isset($SERVICES_MAP[$srv]))
+                 throw new Exception("Unauthorized Service Context");
 
             echo json_encode($res);
             if (ob_get_level() > 0)
                 ob_end_flush();
             flush();
+
             if (function_exists('fastcgi_finish_request'))
                 fastcgi_finish_request();
-            cmd("service-control " . $op . " " . escapeshellarg($_POST['service']));
+
+            cmd("service-control " . $op . " " . escapeshellarg($srv));
             exit;
         }
 
@@ -52,8 +82,6 @@ if (isset($_POST['ajax_action'])) {
     exit;
 }
 
-$services = ['nginx' => 'Web Server', 'mariadb' => 'MariaDB SQL', 'php8.2-fpm' => 'PHP 8.2 Engine', 'proftpd' => 'FTP Server', 'postfix' => 'Mail Delivery'];
-
 include 'layout/header.php';
 ?>
 
@@ -62,7 +90,7 @@ include 'layout/header.php';
     Service Engine</h2>
 <div id="services-container"
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-    <?php foreach ($services as $id => $name): ?>
+    <?php foreach ($SERVICES_MAP as $id => $name): ?>
         <div data-service="<?= $id ?>" class="glass-card animate-slide-up hover-glow"
             style="padding: 1.5rem; border-radius: 1rem; display: flex; justify-content: space-between; align-items: center; transition: border-color var(--transition-normal); border: 1px solid var(--border-color);"
             onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
@@ -133,7 +161,17 @@ include 'layout/header.php';
                         const dotPing = card.querySelector('.status-dot-ping');
                         const badge = card.querySelector('.status-badge');
 
-                        if (service.active) {
+                        if (service.error) {
+                            // Error state - orange (Service check failed)
+                            dot.style.background = 'var(--accent-amber)';
+                            dot.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.5)';
+                            dotPing.style.background = 'var(--accent-amber)';
+                            badge.style.background = 'rgba(245, 158, 11, 0.1)';
+                            badge.style.color = 'var(--accent-amber)';
+                            badge.style.borderColor = 'rgba(245, 158, 11, 0.2)';
+                            badge.textContent = 'ERROR';
+                            card.title = service.msg;
+                        } else if (service.active) {
                             // Active state - green
                             dot.style.background = 'var(--accent-emerald)';
                             dot.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.5)';
@@ -142,6 +180,7 @@ include 'layout/header.php';
                             badge.style.color = 'var(--accent-emerald)';
                             badge.style.borderColor = 'rgba(16, 185, 129, 0.2)';
                             badge.textContent = 'ACTIVE';
+                            card.title = '';
                         } else {
                             // Inactive state - red
                             dot.style.background = 'var(--accent-red)';
@@ -151,6 +190,7 @@ include 'layout/header.php';
                             badge.style.color = 'var(--accent-red)';
                             badge.style.borderColor = 'rgba(239, 68, 68, 0.2)';
                             badge.textContent = 'INACTIVE';
+                            card.title = '';
                         }
                     }
                 });

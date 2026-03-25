@@ -61,6 +61,14 @@ function sanitize_filename($filename)
 }
 
 /**
+ * Simple input cleaner (trim and strip tags)
+ */
+function shm_clean($value) {
+    if (is_array($value)) return $value;
+    return trim(strip_tags($value));
+}
+
+/**
  * Validate domain name format
  * @param string $domain Domain to validate
  * @return bool True if valid

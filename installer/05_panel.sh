@@ -44,7 +44,8 @@ CONFIG
     mkdir -p /var/log/shm
     
     chown -R www-data:www-data /var/www/panel /var/www/apps /var/log/shm
-    chmod -R 755 /var/www/panel
+    find /var/www/panel -type d -exec chmod 755 {} \;
+    find /var/www/panel -type f -exec chmod 644 {} \;
     
     # Copy Files
     [ -d "whm" ] && cp -r whm/* /var/www/panel/whm/

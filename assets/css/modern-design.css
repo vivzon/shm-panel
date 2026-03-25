@@ -207,7 +207,7 @@ a:hover {
     padding: 0.5rem 0.625rem;
     border-radius: 0.5rem;
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--text-secondary);
     background: transparent;
     border: 1px solid transparent;
@@ -229,8 +229,8 @@ a:hover {
 }
 
 .sidebar-nav-link i {
-    width: 0.9375rem; 
-    height: 0.9375rem; 
+    width: 0.9375rem;
+    height: 0.9375rem;
     flex-shrink: 0;
 }
 

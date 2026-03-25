@@ -15,7 +15,7 @@ if (isset($_POST['ajax_action'])) {
         verify_csrf();
         if ($action == 'save_package') {
             $id = $_POST['id'] ?? null;
-            $name = trim($_POST['name']);
+            $name = shm_clean($_POST['name'] ?? '');
             if (empty($name))
                 throw new Exception("Package name is required.");
 
@@ -40,7 +40,7 @@ if (isset($_POST['ajax_action'])) {
             $pdo->prepare("DELETE FROM packages WHERE id = ?")->execute([$_POST['id']]);
         }
 
-        echo json_encode($res);
+        sendResponse($res);
     } catch (Exception $e) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
@@ -171,10 +171,20 @@ include 'layout/header.php';
 
     async function delPkg(id) {
         if (!confirm('Delete this package?')) return;
+        
         const fd = new FormData();
-        fd.append('ajax_action', 'delete_package');
         fd.append('id', id);
-        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-        fetch('', { method: 'POST', body: fd }).then(() => location.reload());
+        
+        // Use a dummy form event wrapper to utilize handleGeneric for consistent toasts and CSRF appending
+        const dummyForm = document.createElement('form');
+        dummyForm.innerHTML = `<button type="submit"></button>`; // Needs a submit button for the generic handler to hook into
+        dummyForm.onsubmit = (e) => {
+            // Append data
+            for (let pair of fd.entries()) {
+                e.target.appendChild(Object.assign(document.createElement('input'), {type:'hidden', name:pair[0], value:pair[1]}));
+            }
+            handleGeneric(e, 'delete_package');
+        };
+        dummyForm.querySelector('button').click();
     }
 </script>
