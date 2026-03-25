@@ -143,21 +143,40 @@ if (isset($_POST['ajax_action'])) {
 
             $pdo->beginTransaction();
 
-            // Execute system command first while DB records still exist for the bash script to query
-            cmd("delete-account " . escapeshellarg($user));
-
+            // 2. Comprehensive Database Cleanup (Children first to satisfy Foreign Keys)
             foreach ($doms as $dm) {
                 $pdo->prepare("DELETE FROM dns_records WHERE domain_id = ?")->execute([$dm['id']]);
                 $pdo->prepare("DELETE FROM mail_domains WHERE domain = ?")->execute([$dm['domain']]);
+                $pdo->prepare("DELETE FROM mail_users WHERE domain_id = ?")->execute([$dm['id']]);
+                $pdo->prepare("DELETE FROM app_installations WHERE domain_id = ?")->execute([$dm['id']]);
+                $pdo->prepare("DELETE FROM php_config WHERE domain_id = ?")->execute([$dm['id']]);
+                $pdo->prepare("DELETE FROM domain_traffic WHERE domain_id = ?")->execute([$dm['id']]);
+                $pdo->prepare("DELETE FROM malware_scans WHERE domain_id = ?")->execute([$dm['id']]);
             }
-            $pdo->prepare("DELETE FROM ftp_users WHERE homedir LIKE ?")->execute(["%/home/$user%"]);
-            $pdo->prepare("DELETE FROM domains WHERE client_id = ?")->execute([$id]);
-            $pdo->prepare("DELETE FROM clients WHERE id = ?")->execute([$id]);
+
+            // Cleanup remaining related client data
+            $pdo->prepare("DELETE FROM ftp_users WHERE client_id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM client_databases WHERE client_id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM client_db_users WHERE client_id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM cron_jobs WHERE client_id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM backups WHERE client_id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM transactions WHERE client_id = ?")->execute([$id]);
+            
             $pdo->commit();
 
+            // 3. Send success response immediately (Prevent timeout/500 error in browser)
             echo json_encode($res);
-            if (function_exists('fastcgi_finish_request'))
+            if (function_exists('fastcgi_finish_request')) {
                 fastcgi_finish_request();
+            }
+
+            // 4. Background System Cleanup
+            // Note: executed while domains/clients records still exist so bash can query them
+            cmd("delete-account " . escapeshellarg($user));
+
+            // 5. Final Primary Record Removal
+            $pdo->prepare("DELETE FROM domains WHERE client_id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM clients WHERE id = ?")->execute([$id]);
             exit;
         }
 
