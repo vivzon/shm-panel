@@ -104,7 +104,7 @@ $content = file_get_contents($abs_path);
             </a>
             <div style="display: flex; flex-direction: column;">
                 <span
-                    style="font-weight: 700; color: #0f172a; font-size: 0.875rem;"><?= basename($cleaned_file) ?></span>
+                    style="font-weight: 500; color: #0f172a; font-size: 0.875rem;"><?= basename($cleaned_file) ?></span>
                 <span style="font-family: monospace; font-size: 0.75rem; color: #334155;"><?= $cleaned_file ?></span>
             </div>
 
@@ -116,7 +116,7 @@ $content = file_get_contents($abs_path);
             <?php endif; ?>
         </div>
         <button onclick="saveFile()"
-            style="background-color: #2563eb; color: #0f172a; padding: 0.625rem 1.5rem; border-radius: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s, box-shadow 0.2s; font-size: 0.875rem; border: none; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);"
+            style="background-color: #2563eb; color: #0f172a; padding: 0.625rem 1.5rem; border-radius: 0.75rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s, box-shadow 0.2s; font-size: 0.875rem; border: none; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);"
             onmouseover="this.style.backgroundColor='#3b82f6'" onmouseout="this.style.backgroundColor='#2563eb'">
             <i data-lucide="save" style="width: 1rem; height: 1rem;"></i> Save Changes
         </button>

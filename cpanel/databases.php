@@ -176,7 +176,7 @@ include 'layout/header.php';
                     onfocusin="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
                     onfocusout="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
                     <div
-                        style="padding: 0.75rem 1rem; background: rgba(248, 250, 252, 0.8); color: var(--slate-600); font-family: monospace; font-size: 0.875rem; border-right: 1px solid rgba(255, 255, 255, 0.4); font-weight: 600;">
+                        style="padding: 0.75rem 1rem; background: rgba(248, 250, 252, 0.8); color: var(--slate-600); font-family: monospace; font-size: 0.875rem; border-right: 1px solid rgba(255, 255, 255, 0.4); font-weight: 500;">
                         <?= htmlspecialchars($username) ?>_
                     </div>
                     <input name="db_name" required placeholder="dbname"
@@ -192,7 +192,7 @@ include 'layout/header.php';
                     <?php endforeach; ?>
                 </select>
                 <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 0.75rem; font-weight: 600; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s;"><i
+                    style="width: 100%; padding: 0.75rem; font-weight: 500; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s;"><i
                         data-lucide="database" style="width: 1.25rem; height: 1.25rem;"></i> Create Database</button>
             </form>
         </div>
@@ -208,7 +208,7 @@ include 'layout/header.php';
                     onfocusin="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
                     onfocusout="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
                     <div
-                        style="padding: 0.75rem 1rem; background: rgba(248, 250, 252, 0.8); color: var(--slate-600); font-family: monospace; font-size: 0.875rem; border-right: 1px solid rgba(255, 255, 255, 0.4); font-weight: 600;">
+                        style="padding: 0.75rem 1rem; background: rgba(248, 250, 252, 0.8); color: var(--slate-600); font-family: monospace; font-size: 0.875rem; border-right: 1px solid rgba(255, 255, 255, 0.4); font-weight: 500;">
                         <?= htmlspecialchars($username) ?>_
                     </div>
                     <input name="db_user" required placeholder="dbuser"
@@ -227,7 +227,7 @@ include 'layout/header.php';
                     <?php endforeach; ?>
                 </select>
                 <button type="submit" class="btn btn-secondary"
-                    style="width: 100%; padding: 0.75rem; font-weight: 600; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s;"><i
+                    style="width: 100%; padding: 0.75rem; font-weight: 500; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s;"><i
                         data-lucide="user-plus" style="width: 1.25rem; height: 1.25rem;"></i> Create User</button>
             </form>
         </div>
@@ -246,10 +246,10 @@ include 'layout/header.php';
                         <thead>
                             <tr style="border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50);">
                                 <th
-                                    style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                                    style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                                     Name</th>
                                 <th
-                                    style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; text-align: right;">
+                                    style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; text-align: right;">
                                     Action</th>
                             </tr>
                         </thead>
@@ -272,7 +272,7 @@ include 'layout/header.php';
                                         onmouseout="this.style.backgroundColor='transparent'">
                                         <td style="padding: 1rem 1.5rem;">
                                             <div
-                                                style="font-weight: 700; color: var(--slate-900); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                                                style="font-weight: 500; color: var(--slate-900); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
                                                 <i data-lucide="database"
                                                     style="width: 1.25rem; height: 1.25rem; color: var(--slate-400);"></i>
                                                 <?= htmlspecialchars($db['db_name']) ?>
@@ -285,7 +285,7 @@ include 'layout/header.php';
                                         <td
                                             style="padding: 1rem 1.5rem; text-align: right; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 1rem;">
                                             <a href="http://phpmyadmin.<?= $base_domain ?>" target="_blank"
-                                                style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; text-decoration: none; display: flex; align-items: center; gap: 0.25rem; transition: opacity 0.2s;"
+                                                style="font-size: 0.75rem; font-weight: 500; color: var(--primary); text-transform: uppercase; text-decoration: none; display: flex; align-items: center; gap: 0.25rem; transition: opacity 0.2s;"
                                                 onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"><i
                                                     data-lucide="external-link" style="width: 14px; height: 14px;"></i>
                                                 Login</a>
@@ -316,10 +316,10 @@ include 'layout/header.php';
                         <thead>
                             <tr style="border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50);">
                                 <th
-                                    style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                                    style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                                     Username</th>
                                 <th
-                                    style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; text-align: right;">
+                                    style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; text-align: right;">
                                     Action</th>
                             </tr>
                         </thead>
@@ -346,7 +346,7 @@ include 'layout/header.php';
                                         onmouseover="this.style.backgroundColor='var(--slate-50)'"
                                         onmouseout="this.style.backgroundColor='transparent'">
                                         <td
-                                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-900); font-size: 0.875rem;">
+                                            style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-900); font-size: 0.875rem;">
                                             <div style="display: flex; align-items: center; gap: 0.5rem;">
                                                 <i data-lucide="user"
                                                     style="width: 1.25rem; height: 1.25rem; color: var(--slate-400);"></i>

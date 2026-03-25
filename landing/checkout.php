@@ -150,7 +150,7 @@ $PAYPAL_CLIENT_ID = "AYIVFYREiP7uVVPDu7MjTI3ltKT53EKfkAK-Q3i6qcDUtVkSsjQUzRezXDv
         .label {
             display: block;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 500;
             color: var(--slate-400);
             text-transform: uppercase;
             margin-bottom: 0.5rem;
@@ -193,7 +193,7 @@ $PAYPAL_CLIENT_ID = "AYIVFYREiP7uVVPDu7MjTI3ltKT53EKfkAK-Q3i6qcDUtVkSsjQUzRezXDv
             padding: 1rem;
             background: var(--primary);
             color: white;
-            font-weight: 700;
+            font-weight: 500;
             border-radius: var(--radius-md);
             border: none;
             cursor: pointer;
@@ -225,7 +225,7 @@ $PAYPAL_CLIENT_ID = "AYIVFYREiP7uVVPDu7MjTI3ltKT53EKfkAK-Q3i6qcDUtVkSsjQUzRezXDv
         <div class="glass-panel-dark">
             <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:2rem;">
                 <a href="index.php" class="back-btn"><i data-lucide="arrow-left"></i></a>
-                <h1 style="font-size:1.5rem;font-family:'Outfit',sans-serif;font-weight:700;">Configure Your Server</h1>
+                <h1 style="font-size:1.5rem;font-family:'Outfit',sans-serif;font-weight: 500;">Configure Your Server</h1>
             </div>
 
             <form id="checkoutForm">
@@ -260,19 +260,19 @@ $PAYPAL_CLIENT_ID = "AYIVFYREiP7uVVPDu7MjTI3ltKT53EKfkAK-Q3i6qcDUtVkSsjQUzRezXDv
                 </div>
 
                 <div style="border-top:1px solid rgba(255,255,255,0.05);padding-top:1.5rem;">
-                    <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:1rem;">Payment Method</h3>
+                    <h3 style="font-size:1.125rem;font-weight: 500;margin-bottom:1rem;">Payment Method</h3>
                     <div class="grid-2">
                         <label>
                             <input type="radio" name="gateway" value="razorpay" class="payment-radio" checked>
                             <div class="payment-option">
-                                <span style="font-weight:700;">Razorpay</span>
+                                <span style="font-weight: 500;">Razorpay</span>
                                 <span style="font-size:0.75rem;color:var(--slate-400);">Cards, UPI, Netbanking</span>
                             </div>
                         </label>
                         <label>
                             <input type="radio" name="gateway" value="paypal" class="payment-radio">
                             <div class="payment-option">
-                                <span style="font-weight:700;">PayPal</span>
+                                <span style="font-weight: 500;">PayPal</span>
                                 <span style="font-size:0.75rem;color:var(--slate-400);">International Cards</span>
                             </div>
                         </label>
@@ -289,13 +289,13 @@ $PAYPAL_CLIENT_ID = "AYIVFYREiP7uVVPDu7MjTI3ltKT53EKfkAK-Q3i6qcDUtVkSsjQUzRezXDv
 
         <!-- Right: Summary -->
         <div class="glass-panel-dark" style="height:fit-content;">
-            <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:1.5rem;color:var(--slate-300);">Order Summary
+            <h3 style="font-size:1.125rem;font-weight: 500;margin-bottom:1.5rem;color:var(--slate-300);">Order Summary
             </h3>
 
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                <span style="font-weight:700;font-size:1.25rem;"><?= htmlspecialchars($package['name']) ?></span>
+                <span style="font-weight: 500;font-size:1.25rem;"><?= htmlspecialchars($package['name']) ?></span>
                 <span
-                    style="font-weight:700;font-size:1.25rem;color:var(--primary);">₹<?= number_format($package['price'], 2) ?></span>
+                    style="font-weight: 500;font-size:1.25rem;color:var(--primary);">₹<?= number_format($package['price'], 2) ?></span>
             </div>
 
             <ul class="summary-list">
@@ -307,9 +307,9 @@ $PAYPAL_CLIENT_ID = "AYIVFYREiP7uVVPDu7MjTI3ltKT53EKfkAK-Q3i6qcDUtVkSsjQUzRezXDv
 
             <div
                 style="border-top:1px solid rgba(255,255,255,0.1);padding-top:1rem;display:flex;justify-content:space-between;align-items:center;">
-                <span style="font-weight:700;">Total Due Today</span>
+                <span style="font-weight: 500;">Total Due Today</span>
                 <span
-                    style="font-weight:700;font-size:1.5rem;color:white;">₹<?= number_format($package['price'], 2) ?></span>
+                    style="font-weight: 500;font-size:1.5rem;color:white;">₹<?= number_format($package['price'], 2) ?></span>
             </div>
 
             <div style="margin-top:2rem;font-size:0.75rem;color:var(--slate-500);text-align:center;">
@@ -390,7 +390,7 @@ $PAYPAL_CLIENT_ID = "AYIVFYREiP7uVVPDu7MjTI3ltKT53EKfkAK-Q3i6qcDUtVkSsjQUzRezXDv
             formData.append('transaction_id', txId);
 
             // Show loading state
-            document.body.innerHTML = '<div style="color:white;text-align:center;"><h1 style="font-size:1.5rem;font-weight:700;">Provisioning Server...</h1><p>Please do not close this window.</p></div>';
+            document.body.innerHTML = '<div style="color:white;text-align:center;"><h1 style="font-size:1.5rem;font-weight: 500;">Provisioning Server...</h1><p>Please do not close this window.</p></div>';
 
             try {
                 const res = await fetch('process_payment.php', { method: 'POST', body: formData });
@@ -399,7 +399,7 @@ $PAYPAL_CLIENT_ID = "AYIVFYREiP7uVVPDu7MjTI3ltKT53EKfkAK-Q3i6qcDUtVkSsjQUzRezXDv
                 if (data.status === 'success') {
                     if (data.msg && data.msg.includes('manual review')) {
                         // Payment succeeded but provisioning had a warning/error
-                        document.body.innerHTML = '<div style="color:white;text-align:center;"><h1 style="font-size:1.5rem;font-weight:700;color:#fbbf24;">Payment Successful, Provisioning Pending</h1><p style="margin-top:1rem;color:var(--slate-300);">' + data.msg + '</p><a href="index.php" style="display:inline-block;margin-top:2rem;color:white;text-decoration:underline;">Return to Home</a></div>';
+                        document.body.innerHTML = '<div style="color:white;text-align:center;"><h1 style="font-size:1.5rem;font-weight: 500;color:#fbbf24;">Payment Successful, Provisioning Pending</h1><p style="margin-top:1rem;color:var(--slate-300);">' + data.msg + '</p><a href="index.php" style="display:inline-block;margin-top:2rem;color:white;text-decoration:underline;">Return to Home</a></div>';
                     } else {
                         // Fully successful setup
                         window.location.href = '../cpanel/login.php?msg=welcome';

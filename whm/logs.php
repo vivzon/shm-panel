@@ -35,12 +35,12 @@ include 'layout/header.php';
 ?>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-heading);">
+    <h2 style="font-size: 1.5rem; font-weight: 500; color: var(--text-primary); font-family: var(--font-heading);">
         Security
         Monitor</h2>
     <div style="display: flex; gap: 0.5rem;">
         <select id="log-type" onchange="fetchLogs()" class="form-input"
-            style="background: var(--bg-body); color: var(--text-primary); padding: 0.5rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-size: 0.875rem; font-weight: 700;">
+            style="background: var(--bg-body); color: var(--text-primary); padding: 0.5rem; border-radius: 0.5rem; border: 1px solid var(--border-color); font-size: 0.875rem; font-weight: 500;">
             <option value="auth">Auth Logs (SSH/Sudo)</option>
             <option value="web">Web Server Errors</option>
             <option value="sys">System Log (Syslog)</option>

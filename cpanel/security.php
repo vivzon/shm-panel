@@ -42,24 +42,24 @@ include 'layout/header.php';
 
 <div style="max-width: 56rem; margin-left: auto; margin-right: auto;">
     <h2
-        style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; color: var(--slate-900); font-family: 'Lexend', sans-serif; margin-bottom: 2rem;">
+        style="font-size: 1.5rem; line-height: 2rem; font-weight: 500; color: var(--slate-900); font-family: 'Lexend', sans-serif; margin-bottom: 2rem;">
         SSH Key Management</h2>
 
     <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
-        <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Add Public Key</h3>
+        <h3 style="font-weight: 500; color: var(--slate-900); margin-bottom: 1rem;">Add Public Key</h3>
         <form onsubmit="handleGeneric(event, 'add_ssh')" style="display: flex; flex-direction: column; gap: 1rem;">
             <textarea name="key" required placeholder="ssh-rsa AAAA..." rows="4"
                 style="width: 100%; background-color: var(--slate-50); border: 1px solid var(--slate-300); padding: 1rem; border-radius: 0.75rem; color: var(--slate-900); font-family: monospace; font-size: 0.75rem; outline: none; transition: border-color 0.2s; resize: vertical;"
                 onfocus="this.style.borderColor='#3b82f6'"
                 onblur="this.style.borderColor='var(--slate-300)'"></textarea>
             <button class="btn btn-primary"
-                style="align-self: flex-start; padding: 0.75rem 1.5rem; font-weight: 700; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">Add
+                style="align-self: flex-start; padding: 0.75rem 1.5rem; font-weight: 500; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">Add
                 Key</button>
         </form>
     </div>
 
     <div class="glass-panel" style="padding: 2rem;">
-        <h3 style="font-weight: 700; color: var(--slate-900); font-size: 1.125rem; margin-bottom: 1.5rem;">Authorized
+        <h3 style="font-weight: 500; color: var(--slate-900); font-size: 1.125rem; margin-bottom: 1.5rem;">Authorized
             Keys</h3>
         <div id="ssh-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
             <div style="display: flex; gap: 1rem; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">

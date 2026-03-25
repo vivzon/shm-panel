@@ -101,7 +101,7 @@ $brandName = get_branding();
             align-items: center;
             gap: 12px;
             font-size: 1.125rem;
-            font-weight: 700;
+            font-weight: 500;
             font-family: 'Outfit', sans-serif;
             color: var(--slate-800);
         }

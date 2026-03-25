@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div>
                         <div
-                            style="font-size: 0.875rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: rgba(255,255,255,0.9);">
+                            style="font-size: 0.875rem; font-weight: 500; font-family: 'Outfit', sans-serif; color: rgba(255,255,255,0.9);">
                             <?= htmlspecialchars(get_branding()) ?>
                         </div>
                         <div style="font-size: 0.625rem; color: rgba(255,255,255,0.4); font-weight: 500;">Client Portal
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <h2
-                    style="font-size: 1.5rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: #fff; margin-bottom: 0.5rem; line-height: 1.375;">
+                    style="font-size: 1.5rem; font-weight: 500; font-family: 'Outfit', sans-serif; color: #fff; margin-bottom: 0.5rem; line-height: 1.375;">
                     Your hosting,<br>fully in
                     control.</h2>
                 <p
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         style="width: 0.375rem; height: 0.375rem; border-radius: 9999px; background-color: #34d399; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">
                     </div>
                     <span
-                        style="font-size: 0.625rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em;">All
+                        style="font-size: 0.625rem; font-weight: 500; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em;">All
                         Systems
                         Operational</span>
                 </div>
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="form-panel">
             <div class="fade-up d1" style="margin-bottom: 1.75rem;">
                 <h1
-                    style="font-size: 1.5rem; font-weight: 700; font-family: 'Outfit', sans-serif; color: #0f172a; margin-bottom: 0.25rem;">
+                    style="font-size: 1.5rem; font-weight: 500; font-family: 'Outfit', sans-serif; color: #0f172a; margin-bottom: 0.25rem;">
                     Reset Password</h1>
                 <p style="color: #94a3b8; font-size: 0.875rem;">Enter your credentials to recover access</p>
             </div>
@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="error-box" style="margin-bottom: 1.25rem;">
                     <i data-lucide="alert-circle" style="width: 1rem; height: 1rem; color: #ef4444; flex-shrink: 0;"></i>
                     <span
-                        style="color: #dc2626; font-size: 0.75rem; font-weight: 600;"><?= htmlspecialchars($error) ?></span>
+                        style="color: #dc2626; font-size: 0.75rem; font-weight: 500;"><?= htmlspecialchars($error) ?></span>
                 </div>
             <?php endif; ?>
 

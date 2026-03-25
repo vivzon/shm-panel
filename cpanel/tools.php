@@ -182,7 +182,7 @@ include 'layout/header.php';
 
 <!-- Dashboard Header -->
 <div style="margin-bottom: 2rem;">
-    <h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem;">
+    <h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 500; color: var(--slate-900); margin-bottom: 0.5rem;">
         System Tools</h2>
     <p style="color: var(--slate-700); font-size: 0.875rem;">Manage applications, security, and backups.</p>
 </div>
@@ -190,26 +190,26 @@ include 'layout/header.php';
 <!-- TABS -->
 <div style="display: flex; border-bottom: 1px solid var(--slate-300); margin-bottom: 2rem; overflow-x: auto;">
     <a href="?tab=apps"
-        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'apps' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'apps' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500; border-bottom: 2px solid <?= $active_tab == 'apps' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'apps' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
         onmouseover="this.style.color='var(--slate-900)'"
         onmouseout="this.style.color='<?= $active_tab == 'apps' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">App
         Installer</a>
     <a href="?tab=ftp"
-        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'ftp' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'ftp' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500; border-bottom: 2px solid <?= $active_tab == 'ftp' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'ftp' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
         onmouseover="this.style.color='var(--slate-900)'"
         onmouseout="this.style.color='<?= $active_tab == 'ftp' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">FTP
         Manager</a>
     <a href="?tab=security"
-        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'security' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'security' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500; border-bottom: 2px solid <?= $active_tab == 'security' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'security' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
         onmouseover="this.style.color='var(--slate-900)'"
         onmouseout="this.style.color='<?= $active_tab == 'security' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">Security
         (SSH)</a>
     <a href="?tab=backups"
-        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'backups' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'backups' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500; border-bottom: 2px solid <?= $active_tab == 'backups' ? '#3b82f6' : 'transparent' ?>; color: <?= $active_tab == 'backups' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
         onmouseover="this.style.color='var(--slate-900)'"
         onmouseout="this.style.color='<?= $active_tab == 'backups' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">Backups</a>
     <a href="?tab=troubleshoot"
-        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 700; border-bottom: 2px solid <?= $active_tab == 'troubleshoot' ? '#10b981' : 'transparent' ?>; color: <?= $active_tab == 'troubleshoot' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500; border-bottom: 2px solid <?= $active_tab == 'troubleshoot' ? '#10b981' : 'transparent' ?>; color: <?= $active_tab == 'troubleshoot' ? 'var(--slate-900)' : 'var(--slate-700)' ?>; transition: all 0.2s; white-space: nowrap; text-decoration: none;"
         onmouseover="this.style.color='var(--slate-900)'"
         onmouseout="this.style.color='<?= $active_tab == 'troubleshoot' ? 'var(--slate-900)' : 'var(--slate-700)' ?>'">Troubleshoot</a>
 </div>
@@ -251,7 +251,7 @@ include 'layout/header.php';
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 0.875rem; border-radius: var(--radius-lg); display: flex; justify-content: center; font-weight: 700; margin-top: 0.5rem; transition: transform 0.2s, box-shadow 0.2s;">
+                    style="width: 100%; padding: 0.875rem; border-radius: var(--radius-lg); display: flex; justify-content: center; font-weight: 500; margin-top: 0.5rem; transition: transform 0.2s, box-shadow 0.2s;">
                     Install Now
                 </button>
             </form>
@@ -286,7 +286,7 @@ include 'layout/header.php';
                                 <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
                                     <i data-lucide="loader-2" class="animate-spin"
                                         style="width: 24px; height: 24px; color: var(--primary);"></i>
-                                    <span style="font-size: 0.875rem; font-weight: 600;">Loading installations...</span>
+                                    <span style="font-size: 0.875rem; font-weight: 500;">Loading installations...</span>
                                 </div>
                             </td>
                         </tr>
@@ -316,7 +316,7 @@ include 'layout/header.php';
                         <input name="ftp_user" required placeholder="user"
                             style="background: transparent; padding: 0.875rem 1rem; width: 100%; color: var(--slate-900); font-size: 0.875rem; outline: none; border: none;">
                         <span
-                            style="padding: 0.875rem 1rem; color: var(--slate-500); font-weight: 700; background-color: rgba(248, 250, 252, 0.5); border-left: 1px solid rgba(255, 255, 255, 0.4);">@<?= $username ?></span>
+                            style="padding: 0.875rem 1rem; color: var(--slate-500); font-weight: 500; background-color: rgba(248, 250, 252, 0.5); border-left: 1px solid rgba(255, 255, 255, 0.4);">@<?= $username ?></span>
                     </div>
                 </div>
                 <div>
@@ -343,7 +343,7 @@ include 'layout/header.php';
                         onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
                 </div>
                 <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 0.875rem; border-radius: var(--radius-lg); display: flex; justify-content: center; font-weight: 700; margin-top: 0.5rem; transition: transform 0.2s, box-shadow 0.2s;">
+                    style="width: 100%; padding: 0.875rem; border-radius: var(--radius-lg); display: flex; justify-content: center; font-weight: 500; margin-top: 0.5rem; transition: transform 0.2s, box-shadow 0.2s;">
                     Create FTP User
                 </button>
             </form>
@@ -377,7 +377,7 @@ include 'layout/header.php';
                                 <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
                                     <i data-lucide="loader-2" class="animate-spin"
                                         style="width: 24px; height: 24px; color: var(--primary);"></i>
-                                    <span style="font-size: 0.875rem; font-weight: 600;">Loading FTP accounts...</span>
+                                    <span style="font-size: 0.875rem; font-weight: 500;">Loading FTP accounts...</span>
                                 </div>
                             </td>
                         </tr>
@@ -409,7 +409,7 @@ include 'layout/header.php';
                 <p style="font-size: 0.75rem; color: var(--slate-500); line-height: 1.4;">Fixes common website display issues.</p>
             </div>
             <button onclick="fixWebsite()"
-                style="width: 100%; padding: 0.875rem; margin-top: 0.5rem; background-color: #4f46e5; color: white; border-radius: var(--radius-lg); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1); border: none; cursor: pointer;"
+                style="width: 100%; padding: 0.875rem; margin-top: 0.5rem; background-color: #4f46e5; color: white; border-radius: var(--radius-lg); font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1); border: none; cursor: pointer;"
                 onmouseover="this.style.backgroundColor='#4338ca'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(79, 70, 229, 0.3), 0 4px 6px -2px rgba(79, 70, 229, 0.15)';"
                 onmouseout="this.style.backgroundColor='#4f46e5'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(79, 70, 229, 0.2), 0 2px 4px -1px rgba(79, 70, 229, 0.1)';">
                 <i data-lucide="wand-2" style="width: 1.25rem; height: 1.25rem;"></i> Fix Website Display
@@ -426,7 +426,7 @@ include 'layout/header.php';
                 <p style="font-size: 0.75rem; color: var(--slate-500); line-height: 1.4;">Safely reloads backend web services.</p>
             </div>
             <button onclick="restartServices()"
-                style="width: 100%; padding: 0.875rem; margin-top: 0.5rem; background-color: #334155; color: white; border-radius: var(--radius-lg); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(51, 65, 85, 0.2), 0 2px 4px -1px rgba(51, 65, 85, 0.1); border: none; cursor: pointer;"
+                style="width: 100%; padding: 0.875rem; margin-top: 0.5rem; background-color: #334155; color: white; border-radius: var(--radius-lg); font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(51, 65, 85, 0.2), 0 2px 4px -1px rgba(51, 65, 85, 0.1); border: none; cursor: pointer;"
                 onmouseover="this.style.backgroundColor='#1e293b'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(51, 65, 85, 0.3), 0 4px 6px -2px rgba(51, 65, 85, 0.15)';"
                 onmouseout="this.style.backgroundColor='#334155'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(51, 65, 85, 0.2), 0 2px 4px -1px rgba(51, 65, 85, 0.1)';">
                 <i data-lucide="power" style="width: 1.25rem; height: 1.25rem;"></i> Restart Services
@@ -444,7 +444,7 @@ include 'layout/header.php';
                 <p style="font-size: 0.75rem; color: var(--slate-500); line-height: 1.4;">Rebuilds server configuration files.</p>
             </div>
             <button onclick="fixConfig()"
-                style="width: 100%; padding: 0.875rem; margin-top: 0.5rem; background-color: #e11d48; color: white; border-radius: var(--radius-lg); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.2), 0 2px 4px -1px rgba(225, 29, 72, 0.1); border: none; cursor: pointer;"
+                style="width: 100%; padding: 0.875rem; margin-top: 0.5rem; background-color: #e11d48; color: white; border-radius: var(--radius-lg); font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.2), 0 2px 4px -1px rgba(225, 29, 72, 0.1); border: none; cursor: pointer;"
                 onmouseover="this.style.backgroundColor='#be123c'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(225, 29, 72, 0.3), 0 4px 6px -2px rgba(225, 29, 72, 0.15)';"
                 onmouseout="this.style.backgroundColor='#e11d48'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(225, 29, 72, 0.2), 0 2px 4px -1px rgba(225, 29, 72, 0.1)';">
                 <i data-lucide="wrench" style="width: 1.25rem; height: 1.25rem;"></i> Fix Config
@@ -508,7 +508,7 @@ include 'layout/header.php';
             ${app.app_type}
         </div>
     </td>
-    <td style="padding: 1.25rem 1.5rem; color: var(--slate-700); font-size: 0.875rem; font-weight: 600;">${app.domain}</td>
+    <td style="padding: 1.25rem 1.5rem; color: var(--slate-700); font-size: 0.875rem; font-weight: 500;">${app.domain}</td>
     <td style="padding: 1.25rem 1.5rem;">
         <span style="padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.25rem; ${app.status === 'active' ? 'background-color: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2);' :
                         (app.status === 'failed' ? 'background-color: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2);' :
@@ -560,7 +560,7 @@ include 'layout/header.php';
             ${user.userid}
         </div>
     </td>
-    <td style="padding: 1.25rem 1.5rem; color: var(--primary); font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; font-weight: 700;">${user.homedir}</td>
+    <td style="padding: 1.25rem 1.5rem; color: var(--primary); font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; font-weight: 500;">${user.homedir}</td>
     <td style="padding: 1.25rem 1.5rem; text-align: right;">
         <button onclick="delFTP('${user.userid}')" style="padding: 0.5rem; color: var(--accent-red); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-md); transition: all 0.2s; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'; this.style.borderColor='rgba(239, 68, 68, 0.3)';" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.2)';"><i
                 data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>

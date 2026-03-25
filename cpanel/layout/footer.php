@@ -22,7 +22,7 @@
         toast.innerHTML = `
             ${iconHtml}
             <div style="flex: 1; min-width: 0;">
-                <h4 style="font-weight: 700; color: var(--text-primary); font-size: 0.875rem; margin-bottom: 0.125rem;">${title}</h4>
+                <h4 style="font-weight: 500; color: var(--text-primary); font-size: 0.875rem; margin-bottom: 0.125rem;">${title}</h4>
                 <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.625; margin: 0;">${message}</p>
             </div>
             <button onclick="this.parentElement.remove()" style="color: var(--text-muted); flex-shrink: 0; background: transparent; border: none; cursor: pointer; transition: color 0.2s;" onmouseover="this.style.color='var(--text-secondary)'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width: 1rem; height: 1rem;"></i></button>

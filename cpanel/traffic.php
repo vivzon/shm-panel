@@ -49,7 +49,7 @@ include 'layout/header.php';
         style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1rem; border-bottom: 1px solid var(--slate-300); padding-bottom: 1.5rem;">
         <div>
             <h2
-                style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 700; color: var(--slate-900); font-family: 'Lexend', sans-serif; letter-spacing: -0.025em; margin-bottom: 0.5rem;">
+                style="font-size: 1.875rem; line-height: 2.25rem; font-weight: 500; color: var(--slate-900); font-family: 'Lexend', sans-serif; letter-spacing: -0.025em; margin-bottom: 0.5rem;">
                 Traffic & Stats</h2>
             <p style="color: var(--slate-700);">Monitor website activity and bandwidth consumption across your domains.
             </p>
@@ -73,7 +73,7 @@ include 'layout/header.php';
                         style="font-weight: 800; color: var(--slate-500); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
                         Total Hits</h3>
                     <p
-                        style="font-size: 0.625rem; color: var(--slate-400); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                        style="font-size: 0.625rem; color: var(--slate-400); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">
                         All Time</p>
                 </div>
                 <div
@@ -98,7 +98,7 @@ include 'layout/header.php';
                         style="font-weight: 800; color: var(--slate-500); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
                         Total Bandwidth</h3>
                     <p
-                        style="font-size: 0.625rem; color: var(--slate-400); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                        style="font-size: 0.625rem; color: var(--slate-400); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">
                         All Time</p>
                 </div>
                 <div
@@ -109,7 +109,7 @@ include 'layout/header.php';
             <div
                 style="font-size: 2.25rem; line-height: 2.5rem; font-weight: 800; font-family: var(--font-heading); color: var(--slate-900); display: flex; align-items: baseline; gap: 0.5rem;">
                 <?= round($monthly_total_bytes / 1024 / 1024, 2) ?>
-                <span style="font-size: 1rem; font-weight: 700; color: var(--slate-500);">MB</span>
+                <span style="font-size: 1rem; font-weight: 500; color: var(--slate-500);">MB</span>
             </div>
         </div>
     </div>
@@ -159,7 +159,7 @@ include 'layout/header.php';
                                         <?= htmlspecialchars($t['domain']) ?>
                                     </div>
                                     <div
-                                        style="font-size: 0.6875rem; color: var(--slate-500); margin-top: 0.375rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; display: flex; align-items: center; gap: 0.25rem;">
+                                        style="font-size: 0.6875rem; color: var(--slate-500); margin-top: 0.375rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 500; display: flex; align-items: center; gap: 0.25rem;">
                                         <i data-lucide="clock" style="width: 12px; height: 12px; opacity: 0.7;"></i>
                                         Last Activity:
                                         <span
@@ -172,7 +172,7 @@ include 'layout/header.php';
                                     </span>
                                 </td>
                                 <td
-                                    style="padding: 1.25rem 1.5rem; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; font-weight: 700; color: var(--primary);">
+                                    style="padding: 1.25rem 1.5rem; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; font-weight: 500; color: var(--primary);">
                                     <?= round((float) $t['total_bytes'] / 1024 / 1024, 2) ?> MB
                                 </td>
                             </tr>

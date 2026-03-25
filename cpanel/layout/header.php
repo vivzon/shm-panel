@@ -101,7 +101,7 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'Client Portal', 'icon' 
                         <span style="animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 9999px; background: var(--accent-emerald); opacity: 0.75;"></span>
                         <span style="position: relative; display: inline-flex; border-radius: 9999px; height: 0.5rem; width: 0.5rem; background: var(--accent-emerald);"></span>
                     </span>
-                    <span style="font-size: 0.6875rem; font-weight: 700; color: var(--accent-emerald); font-family: monospace; letter-spacing: 0.05em;">ONLINE</span>
+                    <span style="font-size: 0.6875rem; font-weight: 500; color: var(--accent-emerald); font-family: monospace; letter-spacing: 0.05em;">ONLINE</span>
                 </div>
 
                 <!-- Theme toggle -->
@@ -113,10 +113,10 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'Client Portal', 'icon' 
                 <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; border-radius: 9999px; border: 1px solid var(--border-color); background: var(--bg-surface); cursor: pointer; transition: all 0.2s ease;"
                     onmouseover="this.style.borderColor='var(--primary)'"
                     onmouseout="this.style.borderColor='var(--border-color)'">
-                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: 700; color: white; box-shadow: var(--shadow-sm);">
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: 500; color: white; box-shadow: var(--shadow-sm);">
                         <?= strtoupper(substr($username, 0, 1)) ?>
                     </div>
-                    <span style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); padding-right: 2px;" class="hidden-mobile"><?= htmlspecialchars($username) ?></span>
+                    <span style="font-size: 0.8125rem; font-weight: 500; color: var(--text-primary); padding-right: 2px;" class="hidden-mobile"><?= htmlspecialchars($username) ?></span>
                     <i data-lucide="chevron-down" style="width: 12px; height: 12px; color: var(--text-muted);"></i>
                 </div>
             </div>

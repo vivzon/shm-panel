@@ -129,7 +129,7 @@ include 'layout/header.php';
                 onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
                 onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
             <button class="btn btn-primary"
-                style="padding: 0.75rem; font-weight: 600; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.1);"><i
+                style="padding: 0.75rem; font-weight: 500; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.1);"><i
                     data-lucide="mail-plus" style="width: 1.25rem; height: 1.25rem;"></i> Create
                 Mailbox</button>
         </form>
@@ -142,10 +142,10 @@ include 'layout/header.php';
                 <thead>
                     <tr style="border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50);">
                         <th
-                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                             Active Email Account</th>
                         <th
-                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; text-align: right;">
+                            style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase; text-align: right;">
                             Webmail / Action</th>
                     </tr>
                 </thead>
@@ -166,7 +166,7 @@ include 'layout/header.php';
                                 onmouseout="this.style.backgroundColor='transparent'">
                                 <td style="padding: 1rem 1.5rem;">
                                     <div
-                                        style="font-weight: 700; color: var(--slate-900); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        style="font-weight: 500; color: var(--slate-900); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i data-lucide="mail"
                                             style="width: 1.25rem; height: 1.25rem; color: var(--slate-400);"></i>
                                         <?= htmlspecialchars($mail['email']) ?>
@@ -175,7 +175,7 @@ include 'layout/header.php';
                                 <td
                                     style="padding: 1rem 1.5rem; text-align: right; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem;">
                                     <a href="http://webmail.<?= $base_domain ?>" target="_blank"
-                                        style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; text-decoration: none; display: flex; align-items: center; gap: 0.25rem; transition: opacity 0.2s;"
+                                        style="font-size: 0.75rem; font-weight: 500; color: var(--primary); text-transform: uppercase; text-decoration: none; display: flex; align-items: center; gap: 0.25rem; transition: opacity 0.2s;"
                                         onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"><i
                                             data-lucide="external-link" style="width: 14px; height: 14px;"></i> Login</a>
 
@@ -203,7 +203,7 @@ include 'layout/header.php';
 
     <?php if ($total_pages > 1): ?>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
-            <div style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700;">
+            <div style="font-size: 0.75rem; color: var(--slate-700); font-weight: 500;">
                 Page <?= $page ?> of <?= $total_pages ?>
             </div>
             <div style="display: flex; gap: 0.5rem;">

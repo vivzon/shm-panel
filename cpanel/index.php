@@ -276,7 +276,7 @@ include 'layout/header.php';
                 <span class="stat-trend <?= $disk_trend_class ?>"><?= $disk_percent > 80 ? '↑' : ($disk_percent > 50 ? '→' : '✓') ?> <?= round($disk_percent) ?>%</span>
             </div>
             <h3 class="metric-value">
-                <?= $used_mb ?> <span style="font-size: 1rem; font-weight: 600;">MB</span>
+                <?= $used_mb ?> <span style="font-size: 1rem; font-weight: 500;">MB</span>
             </h3>
             <p style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; position: relative; z-index: 10; margin-top: 0.25rem;">
                 of <?= $clientData['disk_mb'] ?> MB Used</p>
@@ -296,7 +296,7 @@ include 'layout/header.php';
             <div class="premium-glass" style="padding: 1.5rem; border-radius: 1.25rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
-                        <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900);">Network Traffic</h3>
+                        <h3 style="font-size: 1.125rem; font-weight: 500; color: var(--slate-900);">Network Traffic</h3>
                         <p style="font-size: 0.75rem; color: var(--slate-700);">Hits & Bandwidth (Last 7 Days)</p>
                     </div>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -360,7 +360,7 @@ include 'layout/header.php';
         <div style="display: flex; flex-direction: column; gap: 2rem;">
             <!-- Server Info -->
             <div class="premium-glass" style="padding: 1.5rem; border-radius: 1.25rem;">
-                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Server
+                <h3 style="font-size: 1.125rem; font-weight: 500; color: var(--slate-900); margin-bottom: 1rem;">Server
                     Info</h3>
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                     <div
@@ -420,7 +420,7 @@ include 'layout/header.php';
                 <div
                     style="padding: 1rem; border-bottom: 1px solid var(--slate-200); display: flex; justify-content: space-between; align-items: center; background: var(--slate-50);">
                     <h3
-                        style="font-weight: 700; color: var(--slate-900); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                        style="font-weight: 500; color: var(--slate-900); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
                         <i data-lucide="terminal" style="width: 16px; height: 16px; color: var(--slate-700);"></i> Error
                         Stream
                     </h3>
@@ -439,7 +439,7 @@ include 'layout/header.php';
                 <div
                     style="padding: 0.5rem 1rem; background: var(--slate-50); border-top: 1px solid var(--slate-200); display: flex; justify-content: space-between; align-items: center;">
                     <span
-                        style="display: flex; align-items: center; gap: 0.5rem; font-size: 10px; color: var(--accent-emerald); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">
+                        style="display: flex; align-items: center; gap: 0.5rem; font-size: 10px; color: var(--accent-emerald); font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em;">
                         <span style="position: relative; display: flex; height: 8px; width: 8px;">
                             <span class="animate-ping"
                                 style="position: absolute; display: inline-flex; height: 100%; width: 100%; border-radius: 50%; background: var(--accent-emerald); opacity: 0.75;"></span>

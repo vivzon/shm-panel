@@ -53,7 +53,7 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' =>
             border: 1px solid var(--border-color);
             border-radius: var(--radius-full);
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--text-secondary);
         }
     </style>
@@ -104,7 +104,7 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' =>
                         <i data-lucide="<?= $page_meta['icon'] ?>" style="width: 1rem; height: 1rem;"></i>
                     </div>
                     <h1
-                        style="font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-heading);">
+                        style="font-size: 0.9375rem; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-heading);">
                         <?= htmlspecialchars($page_meta['title']) ?>
                     </h1>
                 </div>
@@ -122,7 +122,7 @@ $page_meta = $page_titles[$current_page] ?? ['title' => 'WHM Console', 'icon' =>
                             style="position: relative; display: inline-flex; border-radius: 9999px; height: 0.5rem; width: 0.5rem; background: var(--accent-emerald);"></span>
                     </span>
                     <span
-                        style="font-size: 0.6875rem; font-weight: 700; color: var(--accent-emerald); font-family: monospace; letter-spacing: 0.05em;">ONLINE</span>
+                        style="font-size: 0.6875rem; font-weight: 500; color: var(--accent-emerald); font-family: monospace; letter-spacing: 0.05em;">ONLINE</span>
                 </div>
 
                 <!-- Theme toggle -->

@@ -228,7 +228,7 @@ include 'layout/header.php';
 <!-- HEADER & REAL-TIME SEARCH -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
     <div style="display: flex; align-items: center; gap: 1rem;">
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900); font-family: var(--font-heading);">
+        <h2 style="font-size: 1.5rem; font-weight: 500; color: var(--slate-900); font-family: var(--font-heading);">
             Clients <span id="client-count"
                 style="color: var(--slate-700); font-size: 1.125rem; margin-left: 0.5rem;"></span></h2>
         <div style="position: relative; display: flex; gap: 0.5rem;">
@@ -284,29 +284,29 @@ include 'layout/header.php';
     <form id="form-acc" onsubmit="handleGeneric(event, 'save_account')" class="glass-card animate-slide-right"
         style="padding: 2.5rem; border-radius: 1.5rem; width: 100%; max-width: 32rem; background: var(--bg-surface); box-shadow: var(--shadow-2xl); border: 1px solid var(--border-color);">
         <h3 id="acc-title"
-            style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--text-primary);">
+            style="font-size: 1.5rem; font-weight: 500; margin-bottom: 2rem; color: var(--text-primary);">
             Client Details</h3>
         <input type="hidden" name="id" id="acc-id">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div>
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Username</label>
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 500; text-transform: uppercase;">Username</label>
                 <input name="user" id="acc-user" required class="form-input" style="width: 100%;">
             </div>
             <div>
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Domain</label>
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 500; text-transform: uppercase;">Domain</label>
                 <input name="dom" id="acc-dom" required placeholder="domain.com" class="form-input"
                     style="width: 100%;">
             </div>
             <div style="grid-column: span 2;">
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Email</label>
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 500; text-transform: uppercase;">Email</label>
                 <input name="email" id="acc-email" type="email" required class="form-input" style="width: 100%;">
             </div>
             <div>
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Password</label>
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 500; text-transform: uppercase;">Password</label>
                 <div style="display: flex; gap: 0.5rem;">
                     <input name="pass" id="acc-pass" type="password" class="form-input" style="width: 100%;"
                         placeholder="(Leave blank to keep)">
@@ -314,11 +314,11 @@ include 'layout/header.php';
                         title="Generate Password"><i data-lucide="key" style="width:1rem;height:1rem;"></i></button>
                 </div>
                 <div id="gen-pass-display"
-                    style="font-size: 0.75rem; color: var(--primary); margin-top: 0.25rem; font-weight: bold;"></div>
+                    style="font-size: 0.75rem; color: var(--primary); margin-top: 0.25rem; font-weight: 500;"></div>
             </div>
             <div>
                 <label
-                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Plan</label>
+                    style="font-size: 0.625rem; color: var(--slate-700); font-weight: 500; text-transform: uppercase;">Plan</label>
                 <select name="package_id" id="acc-pkg" class="form-input" style="width: 100%;">
                     <?php foreach ($packages as $p): ?>
                         <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['name']) ?></option>
@@ -376,14 +376,14 @@ include 'layout/header.php';
             return `
             <tr style="transition: background-color var(--transition-fast); border-bottom: 1px solid var(--border-color);" onmouseover="this.style.backgroundColor='var(--primary-light)'" onmouseout="this.style.backgroundColor='transparent'">
                 <td style="padding: 1.25rem;">
-                    <div style="font-weight: 700; color: var(--text-primary); font-size: 0.875rem;">${c.username}</div>
+                    <div style="font-weight: 500; color: var(--text-primary); font-size: 0.875rem;">${c.username}</div>
                     <div style="font-size: 0.75rem; color: var(--primary-hover);">${c.domain || 'No domain'}</div>
                 </td>
                 <td style="padding: 1.25rem;">
-                    <span style="background: var(--bg-body); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 700; color: var(--text-secondary);">${c.pkg_name}</span>
+                    <span style="background: var(--bg-body); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 500; color: var(--text-secondary);">${c.pkg_name}</span>
                 </td>
                 <td style="padding: 1.25rem;">
-                    <span style="padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 700; border: 1px solid ${c.status === 'active' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; background: ${c.status === 'active' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${c.status === 'active' ? 'var(--accent-emerald)' : 'var(--accent-red)'};">
+                    <span style="padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.625rem; font-weight: 500; border: 1px solid ${c.status === 'active' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; background: ${c.status === 'active' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${c.status === 'active' ? 'var(--accent-emerald)' : 'var(--accent-red)'};">
                         ${c.status.toUpperCase()}
                     </span>
                 </td>
@@ -405,7 +405,7 @@ include 'layout/header.php';
         const container = document.getElementById('pagination-container');
         if (totalPages <= 1) { container.innerHTML = ''; return; }
         container.innerHTML = `
-            <div style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700; text-transform: uppercase;">Page ${currentPage} / ${totalPages}</div>
+            <div style="font-size: 0.75rem; color: var(--slate-700); font-weight: 500; text-transform: uppercase;">Page ${currentPage} / ${totalPages}</div>
             <div style="display: flex; gap: 0.5rem;">
                 <button onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''} class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.5rem;" ${currentPage === 1 ? 'style="opacity: 0.5; cursor: not-allowed;"' : ''}>Prev</button>
                 <button onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''} class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.5rem;" ${currentPage === totalPages ? 'style="opacity: 0.5; cursor: not-allowed;"' : ''}>Next</button>

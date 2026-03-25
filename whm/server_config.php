@@ -94,7 +94,7 @@ include 'layout/header.php';
                 style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem;">
                 <div>
                     <h2
-                        style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-heading);">
+                        style="font-size: 1.5rem; font-weight: 500; color: var(--text-primary); font-family: var(--font-heading);">
                         Server Config Manager</h2>
                     <p style="color: var(--text-secondary); font-size: 0.875rem;">Manage Nginx, PHP and Upload Settings
                     </p>
@@ -102,7 +102,7 @@ include 'layout/header.php';
 
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
                     <div id="status-badge"
-                        style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; border-radius: 9999px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                        style="display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; border-radius: 9999px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">
                         <div style="width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: #34d399;"></div>
                         <span id="status-text">Running</span>
                     </div>
@@ -125,7 +125,7 @@ include 'layout/header.php';
                             style="width: 2rem; height: 2rem; border-radius: 0.5rem; background: rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center; color: var(--primary);">
                             <i data-lucide="server" style="width: 1rem; height: 1rem;"></i>
                         </div>
-                        <h3 style="font-weight: 700; color: var(--text-primary);">Nginx Upload Settings</h3>
+                        <h3 style="font-weight: 500; color: var(--text-primary);">Nginx Upload Settings</h3>
                     </div>
 
                     <div
@@ -145,7 +145,7 @@ include 'layout/header.php';
                     <div style="display: flex; flex-direction: column; gap: 1rem;">
                         <div id="grp-client-max-body">
                             <label
-                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Client
+                                style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Client
                                 Max
                                 Body Size <span
                                     style="color: var(--slate-700); text-transform: none; letter-spacing: normal; margin-left: 0.25rem;">client_max_body_size</span></label>
@@ -161,7 +161,7 @@ include 'layout/header.php';
 
                         <div>
                             <label
-                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Client
+                                style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Client
                                 Body
                                 Timeout</label>
                             <div style="display: flex;">
@@ -176,7 +176,7 @@ include 'layout/header.php';
 
                         <div>
                             <label
-                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Send
+                                style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Send
                                 Timeout</label>
                             <div style="display: flex;">
                                 <input type="number" id="nginx_send_timeout" value="60" oninput="updatePreview()"
@@ -199,13 +199,13 @@ include 'layout/header.php';
                             style="width: 2rem; height: 2rem; border-radius: 0.5rem; background: rgba(99, 102, 241, 0.2); display: flex; align-items: center; justify-content: center; color: var(--secondary);">
                             <i data-lucide="network" style="width: 1rem; height: 1rem;"></i>
                         </div>
-                        <h3 style="font-weight: 700; color: var(--text-primary);">FastCGI & Proxy</h3>
+                        <h3 style="font-weight: 500; color: var(--text-primary);">FastCGI & Proxy</h3>
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 1rem;">
                         <div>
                             <label
-                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">FastCGI
+                                style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">FastCGI
                                 Read
                                 Timeout</label>
                             <div style="display: flex;">
@@ -220,7 +220,7 @@ include 'layout/header.php';
 
                         <div>
                             <label
-                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">FastCGI
+                                style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">FastCGI
                                 Send
                                 Timeout</label>
                             <div style="display: flex;">
@@ -235,7 +235,7 @@ include 'layout/header.php';
 
                         <div>
                             <label
-                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Proxy
+                                style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Proxy
                                 Read
                                 Timeout</label>
                             <div style="display: flex;">
@@ -260,7 +260,7 @@ include 'layout/header.php';
                                 style="width: 2rem; height: 2rem; border-radius: 0.5rem; background: rgba(236, 72, 153, 0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-purple);">
                                 <i data-lucide="file-code" style="width: 1rem; height: 1rem;"></i>
                             </div>
-                            <h3 style="font-weight: 700; color: var(--text-primary);">PHP Configuration</h3>
+                            <h3 style="font-weight: 500; color: var(--text-primary);">PHP Configuration</h3>
                         </div>
 
                         <div>
@@ -280,7 +280,7 @@ include 'layout/header.php';
                         <div style="display: flex; flex-direction: column; gap: 1rem;">
                             <div>
                                 <label
-                                    style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Upload
+                                    style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Upload
                                     Max Filesize</label>
                                 <div style="display: flex;">
                                     <input type="number" id="php_upload_max_filesize" value="50"
@@ -294,7 +294,7 @@ include 'layout/header.php';
 
                             <div>
                                 <label
-                                    style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Post
+                                    style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Post
                                     Max
                                     Size</label>
                                 <div style="display: flex;">
@@ -309,7 +309,7 @@ include 'layout/header.php';
 
                             <div>
                                 <label
-                                    style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Memory
+                                    style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Memory
                                     Limit</label>
                                 <div style="display: flex;">
                                     <input type="number" id="php_memory_limit" value="256" oninput="updatePreview()"
@@ -326,7 +326,7 @@ include 'layout/header.php';
                             <div>
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
                                     <label
-                                        style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.025em;">Max
+                                        style="font-size: 0.75rem; font-weight: 500; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.025em;">Max
                                         Execution
                                         Time</label>
                                     <span
@@ -340,7 +340,7 @@ include 'layout/header.php';
                             <div>
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
                                     <label
-                                        style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.025em;">Max
+                                        style="font-size: 0.75rem; font-weight: 500; color: var(--slate-700); text-transform: uppercase; letter-spacing: 0.025em;">Max
                                         Input
                                         Time</label>
                                     <span
@@ -353,7 +353,7 @@ include 'layout/header.php';
 
                             <div>
                                 <label
-                                    style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Default
+                                    style="display: block; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.025em;">Default
                                     Socket Timeout</label>
                                 <div style="display: flex;">
                                     <input type="number" id="php_default_socket_timeout" value="60"
@@ -371,7 +371,7 @@ include 'layout/header.php';
                 <!-- Operations & Presets -->
                 <div class="glass-card animate-slide-right hover-glow"
                     style="padding: 1.5rem; border-radius: 1rem; grid-column: 1 / -1; animation-delay: 0.3s; position: relative;">
-                    <h3 style="font-weight: 700; color: var(--text-primary); margin-bottom: 1rem;">Operations & Presets
+                    <h3 style="font-weight: 500; color: var(--text-primary); margin-bottom: 1rem;">Operations & Presets
                     </h3>
 
                     <div
@@ -381,7 +381,7 @@ include 'layout/header.php';
                             onmouseover="this.style.background='var(--slate-50)'; this.style.borderColor='#3b82f6'"
                             onmouseout="this.style.background='rgba(248, 250, 252, 0.3)'; this.style.borderColor='var(--border-color)'">
                             <div
-                                style="color: var(--slate-900); font-weight: 700; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                                style="color: var(--slate-900); font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">
                                 Default</div>
                             <div style="color: var(--slate-700); font-size: 0.75rem;">Standard (50MB)</div>
                         </button>
@@ -390,7 +390,7 @@ include 'layout/header.php';
                             onmouseover="this.style.background='var(--slate-50)'; this.style.borderColor='#3b82f6'"
                             onmouseout="this.style.background='rgba(248, 250, 252, 0.3)'; this.style.borderColor='var(--border-color)'">
                             <div
-                                style="color: var(--slate-900); font-weight: 700; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                                style="color: var(--slate-900); font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">
                                 Large Media</div>
                             <div style="color: var(--slate-700); font-size: 0.75rem;">Videos (500MB)</div>
                         </button>
@@ -399,7 +399,7 @@ include 'layout/header.php';
                             onmouseover="this.style.background='var(--slate-50)'; this.style.borderColor='#3b82f6'"
                             onmouseout="this.style.background='rgba(248, 250, 252, 0.3)'; this.style.borderColor='var(--border-color)'">
                             <div
-                                style="color: var(--slate-900); font-weight: 700; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                                style="color: var(--slate-900); font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">
                                 Backup Mode</div>
                             <div style="color: var(--slate-700); font-size: 0.75rem;">Massive (2GB)</div>
                         </button>
@@ -408,7 +408,7 @@ include 'layout/header.php';
                             onmouseover="this.style.background='var(--slate-50)'; this.style.borderColor='#3b82f6'"
                             onmouseout="this.style.background='rgba(248, 250, 252, 0.3)'; this.style.borderColor='var(--border-color)'">
                             <div
-                                style="color: var(--slate-900); font-weight: 700; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                                style="color: var(--slate-900); font-weight: 500; font-size: 0.875rem; margin-bottom: 0.25rem;">
                                 Unlimited</div>
                             <div style="color: var(--slate-700); font-size: 0.75rem;">No Limits</div>
                         </button>
@@ -438,11 +438,11 @@ include 'layout/header.php';
             <div
                 style="display: flex; gap: 0.5rem; padding: 0.25rem; background: var(--bg-surface); border-radius: 0.75rem; border: 1px solid var(--border-color);">
                 <button onclick="switchPreview('nginx', this)" class="preview-tab active"
-                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 700; transition: all 0.2s; background: var(--bg-body); color: var(--text-primary); box-shadow: var(--shadow-sm); border: none; cursor: pointer;">
+                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; background: var(--bg-body); color: var(--text-primary); box-shadow: var(--shadow-sm); border: none; cursor: pointer;">
                     nginx.conf
                 </button>
                 <button onclick="switchPreview('php', this)" class="preview-tab"
-                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 700; color: var(--text-secondary); transition: all 0.2s; background: transparent; border: none; cursor: pointer;"
+                    style="flex: 1; padding: 0.5rem 0; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); transition: all 0.2s; background: transparent; border: none; cursor: pointer;"
                     onmouseover="this.style.color='var(--text-primary)'"
                     onmouseout="this.style.color='var(--text-secondary)'">
                     php.ini
@@ -459,7 +459,7 @@ include 'layout/header.php';
                         <i data-lucide="file-code" style="width: 0.875rem; height: 0.875rem;"></i> /etc/nginx/nginx.conf
                     </div>
                     <div
-                        style="color: var(--accent-emerald); font-size: 0.625rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.25rem;">
+                        style="color: var(--accent-emerald); font-size: 0.625rem; text-transform: uppercase; font-weight: 500; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.25rem;">
                         <i data-lucide="check-circle-2" style="width: 0.75rem; height: 0.75rem;"></i> Valid
                     </div>
                 </div>

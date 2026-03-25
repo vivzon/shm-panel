@@ -45,19 +45,19 @@ include 'layout/header.php';
                 <thead>
                     <tr style="border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50);">
                         <th
-                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                             Date</th>
                         <th
-                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                             Transaction ID</th>
                         <th
-                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                             Amount</th>
                         <th
-                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                             Gateway</th>
                         <th
-                            style="padding: 1rem 1.5rem; font-weight: 700; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
+                            style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                             Status</th>
                     </tr>
                 </thead>
@@ -77,7 +77,7 @@ include 'layout/header.php';
                                 onmouseover="this.style.backgroundColor='var(--slate-50)'"
                                 onmouseout="this.style.backgroundColor='transparent'">
                                 <td style="padding: 1rem 1.5rem;">
-                                    <div style="font-weight: 600; color: var(--slate-800);">
+                                    <div style="font-weight: 500; color: var(--slate-800);">
                                         <?= date('M d, Y', strtotime($tx['created_at'])) ?>
                                     </div>
                                     <div style="font-size: 0.75rem; color: var(--slate-500);">

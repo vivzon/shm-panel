@@ -86,7 +86,7 @@ include 'layout/header.php';
 ?>
 
 <h2
-    style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: var(--text-primary); font-family: var(--font-heading);">
+    style="font-size: 1.5rem; font-weight: 500; margin-bottom: 2rem; color: var(--text-primary); font-family: var(--font-heading);">
     Service Engine</h2>
 <div id="services-container"
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
@@ -104,7 +104,7 @@ include 'layout/header.php';
                     </div>
                 </div>
                 <div>
-                    <p style="font-weight: 700; font-size: 1.125rem; color: var(--text-primary); transition: color var(--transition-normal);"
+                    <p style="font-weight: 500; font-size: 1.125rem; color: var(--text-primary); transition: color var(--transition-normal);"
                         onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
                         <?= $name ?>
                     </p>
@@ -114,7 +114,7 @@ include 'layout/header.php';
                             <?= $id ?>
                         </p>
                         <span class="status-badge"
-                            style="padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(100, 116, 139, 0.1); color: var(--text-secondary); border: 1px solid rgba(100, 116, 139, 0.2);">
+                            style="padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.5625rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(100, 116, 139, 0.1); color: var(--text-secondary); border: 1px solid rgba(100, 116, 139, 0.2);">
                             CHECKING...
                         </span>
                     </div>

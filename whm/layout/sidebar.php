@@ -32,7 +32,7 @@ $nav_links = [
                     <?= htmlspecialchars(get_branding()) ?>
                 </div>
                 <div
-                    style="font-size: 0.625rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.1rem;">
+                    style="font-size: 0.625rem; font-weight: 500; color: var(--primary); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.1rem;">
                     WHM Console
                 </div>
             </div>
@@ -66,15 +66,15 @@ $nav_links = [
         <div
             style="display: flex; align-items: center; gap: 0.625rem; padding: 0.625rem; border-radius: 0.625rem; background: var(--bg-body); border: 1px solid var(--border-color); margin-bottom: 0.5rem;">
             <div
-                style="width: 1.875rem; height: 1.875rem; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent-purple)); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.6875rem; font-weight: 700; flex-shrink: 0;">
+                style="width: 1.875rem; height: 1.875rem; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent-purple)); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.6875rem; font-weight: 500; flex-shrink: 0;">
                 <?= strtoupper(substr($_SESSION['admin'] ?? 'A', 0, 1)) ?>
             </div>
             <div style="min-width: 0; flex: 1;">
                 <div
-                    style="font-size: 0.8125rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    style="font-size: 0.8125rem; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     <?= htmlspecialchars($_SESSION['admin'] ?? 'Admin') ?>
                 </div>
-                <div style="font-size: 0.625rem; color: var(--text-muted); font-weight: 600;">Super Administrator</div>
+                <div style="font-size: 0.625rem; color: var(--text-muted); font-weight: 500;">Super Administrator</div>
             </div>
         </div>
         <a href="logout.php" class="sidebar-logout">

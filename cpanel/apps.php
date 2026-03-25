@@ -74,7 +74,7 @@ $installations = $pdo->query("SELECT i.*, d.domain FROM app_installations i JOIN
 include 'layout/header.php';
 ?>
 
-<h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; mb-8; color: var(--slate-900); font-family: 'Lexend', sans-serif; margin-bottom: 2rem;">Application Installer</h2>
+<h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 500; mb-8; color: var(--slate-900); font-family: 'Lexend', sans-serif; margin-bottom: 2rem;">Application Installer</h2>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
     <?php
     $apps = [
@@ -87,14 +87,14 @@ include 'layout/header.php';
         <div class="glass-panel" style="padding: 2rem; position: relative; overflow: hidden; transition: transform 0.5s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="position: absolute; right: -1.5rem; top: -1.5rem; width: 8rem; height: 8rem; border-radius: 9999px; filter: blur(24px); transition: opacity 0.3s; opacity: 0.2; background-color: <?= $info[2] ?>;">
             </div>
-            <h3 style="font-size: 1.25rem; line-height: 1.75rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem; position: relative; z-index: 10;">
+            <h3 style="font-size: 1.25rem; line-height: 1.75rem; font-weight: 500; color: var(--slate-900); margin-bottom: 0.5rem; position: relative; z-index: 10;">
                 <?= $info[0] ?>
             </h3>
             <p style="color: var(--slate-700); font-size: 0.875rem; margin-bottom: 1.5rem; position: relative; z-index: 10; height: 2.5rem;">
                 <?= $info[1] ?>
             </p>
             <button onclick="openAppModal('<?= $key ?>', '<?= $info[0] ?>')"
-                style="width: 100%; padding: 0.75rem; background-color: <?= $info[2] ?>; color: #fff; font-weight: 700; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: opacity 0.2s; position: relative; z-index: 10; border: none; cursor: pointer;"
+                style="width: 100%; padding: 0.75rem; background-color: <?= $info[2] ?>; color: #fff; font-weight: 500; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: opacity 0.2s; position: relative; z-index: 10; border: none; cursor: pointer;"
                 onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
                 Install
             </button>
@@ -103,18 +103,18 @@ include 'layout/header.php';
 </div>
 
 <div style="margin-top: 3rem;">
-    <h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 700; color: var(--slate-900); font-family: 'Lexend', sans-serif; margin-bottom: 1.5rem;">Installed Applications</h2>
+    <h2 style="font-size: 1.5rem; line-height: 2rem; font-weight: 500; color: var(--slate-900); font-family: 'Lexend', sans-serif; margin-bottom: 1.5rem;">Installed Applications</h2>
     <div class="glass-panel" style="padding: 0; overflow: hidden;">
         <div class="table-container">
             <table class="modern-table" style="width: 100%; text-align: left; color: var(--slate-900);">
                 <thead style="background-color: var(--slate-50); font-size: 0.75rem; text-transform: uppercase; color: var(--slate-700); border-bottom: 1px solid var(--slate-300);">
                     <tr>
-                        <th style="padding: 1rem; font-weight: 700;">Application</th>
-                        <th style="padding: 1rem; font-weight: 700;">Domain</th>
-                        <th style="padding: 1rem; font-weight: 700;">Database</th>
-                        <th style="padding: 1rem; font-weight: 700;">Status</th>
-                        <th style="padding: 1rem; font-weight: 700;">Date</th>
-                        <th style="padding: 1rem; font-weight: 700; text-align: right;">Actions</th>
+                        <th style="padding: 1rem; font-weight: 500;">Application</th>
+                        <th style="padding: 1rem; font-weight: 500;">Domain</th>
+                        <th style="padding: 1rem; font-weight: 500;">Database</th>
+                        <th style="padding: 1rem; font-weight: 500;">Status</th>
+                        <th style="padding: 1rem; font-weight: 500;">Date</th>
+                        <th style="padding: 1rem; font-weight: 500; text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -134,7 +134,7 @@ include 'layout/header.php';
                                 <td style="padding: 1rem; color: var(--slate-700); font-size: 0.875rem;"><?= date('M d, Y', strtotime($inst['created_at'])) ?></td>
                                 <td style="padding: 1rem; text-align: right;">
                                     <button onclick="uninstallApp(<?= $inst['id'] ?>, '<?= $inst['app_type'] ?>', '<?= $inst['domain'] ?>')" 
-                                            style="color: #f87171; font-size: 0.875rem; font-weight: 700; transition: color 0.2s; background: transparent; border: none; cursor: pointer;" onmouseover="this.style.color='#fca5a5'" onmouseout="this.style.color='#f87171'">Uninstall</button>
+                                            style="color: #f87171; font-size: 0.875rem; font-weight: 500; transition: color 0.2s; background: transparent; border: none; cursor: pointer;" onmouseover="this.style.color='#fca5a5'" onmouseout="this.style.color='#f87171'">Uninstall</button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

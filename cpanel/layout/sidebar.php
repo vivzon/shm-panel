@@ -30,7 +30,7 @@ if (!empty($no_sidebar)) return;
                 <div style="font-size: 0.9375rem; font-weight: 800; color: var(--text-primary); font-family: var(--font-heading); letter-spacing: -0.025em; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     <?= htmlspecialchars(get_branding()) ?>
                 </div>
-                <div style="font-size: 0.625rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.1rem;">
+                <div style="font-size: 0.625rem; font-weight: 500; color: var(--primary); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.1rem;">
                     Client Area
                 </div>
             </div>
@@ -40,14 +40,14 @@ if (!empty($no_sidebar)) return;
     <!-- Account Info Strip -->
     <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); background: var(--primary-light);">
         <div style="display: flex; align-items: center; gap: 0.625rem;">
-            <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">
+            <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 500; flex-shrink: 0;">
                 <?= strtoupper(substr($_sidebar_username, 0, 1)) ?>
             </div>
             <div style="min-width: 0; flex: 1;">
-                <div style="font-size: 0.8125rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div style="font-size: 0.8125rem; font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     <?= htmlspecialchars($_sidebar_username) ?>
                 </div>
-                <div style="font-size: 0.625rem; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">
+                <div style="font-size: 0.625rem; color: var(--primary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;">
                     <?= htmlspecialchars($pkg_name) ?> Plan
                 </div>
             </div>

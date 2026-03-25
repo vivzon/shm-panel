@@ -33,7 +33,7 @@
             <div style="width:2rem;height:2rem;border-radius:.5rem;background:${c.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <i data-lucide="${c.icon}" style="width:1rem;height:1rem;color:${c.accent};"></i>
             </div>
-            <span style="font-size:.8125rem;font-weight:600;color:var(--text-primary);line-height:1.4;flex:1;">${msg}</span>
+            <span style="font-size:.8125rem;font-weight: 500;color:var(--text-primary);line-height:1.4;flex:1;">${msg}</span>
             <button onclick="this.closest('div[style]').style.transform='translateX(120%)';this.closest('div[style]').style.opacity='0';" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:.25rem;border-radius:.25rem;display:flex;align-items:center;" title="Dismiss">
                 <i data-lucide="x" style="width:.875rem;height:.875rem;"></i>
             </button>

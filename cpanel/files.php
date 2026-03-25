@@ -885,7 +885,7 @@ if (is_dir($full_path)) {
             align-items: center;
             gap: 0.25rem;
             font-size: 0.8125rem;
-            font-weight: 600;
+            font-weight: 500;
             min-width: 0;
             flex: 1;
         }
@@ -1037,7 +1037,7 @@ if (is_dir($full_path)) {
             border: 1.5px dashed rgba(37, 99, 235, 0.3);
             border-radius: var(--radius-md);
             font-size: 0.8125rem;
-            font-weight: 700;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
             font-family: inherit;
@@ -1090,7 +1090,7 @@ if (is_dir($full_path)) {
         .fm-left-link.active {
             background: var(--primary-light);
             color: var(--primary);
-            font-weight: 700;
+            font-weight: 500;
         }
 
         .fm-left-link.active i {
@@ -1107,7 +1107,7 @@ if (is_dir($full_path)) {
             display: flex;
             justify-content: space-between;
             font-size: 0.6875rem;
-            font-weight: 700;
+            font-weight: 500;
             color: var(--slate-500);
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -1160,7 +1160,7 @@ if (is_dir($full_path)) {
             gap: 0.5rem;
             color: white;
             font-size: 0.8125rem;
-            font-weight: 600;
+            font-weight: 500;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
             opacity: 0;
@@ -1190,7 +1190,7 @@ if (is_dir($full_path)) {
             background: transparent;
             color: rgba(255, 255, 255, 0.75);
             font-size: 0.8125rem;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.15s;
             font-family: inherit;
@@ -1316,7 +1316,7 @@ if (is_dir($full_path)) {
 
         .fi-name {
             font-size: 0.875rem;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--slate-800);
             white-space: nowrap;
             overflow: hidden;
@@ -1333,7 +1333,7 @@ if (is_dir($full_path)) {
 
         .fi-type {
             font-size: 0.6875rem;
-            font-weight: 700;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.04em;
             color: var(--slate-400);
@@ -1452,7 +1452,7 @@ if (is_dir($full_path)) {
             border-radius: var(--radius-lg);
             color: var(--slate-500);
             font-size: 0.875rem;
-            font-weight: 700;
+            font-weight: 500;
             cursor: pointer;
             transition: background 0.15s, color 0.15s;
             margin-bottom: 0.25rem;
@@ -1630,7 +1630,7 @@ if (is_dir($full_path)) {
             border: none;
             border-radius: calc(var(--radius-md) - 2px);
             font-size: 0.875rem;
-            font-weight: 700;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
             background: transparent;
@@ -1672,7 +1672,7 @@ if (is_dir($full_path)) {
             padding: 0.5rem 0.875rem;
             border-radius: var(--radius-md);
             font-size: 0.8125rem;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--slate-700);
             cursor: pointer;
             transition: all 0.12s;
@@ -1720,7 +1720,7 @@ if (is_dir($full_path)) {
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
             font-size: 0.875rem;
-            font-weight: 600;
+            font-weight: 500;
             min-width: 240px;
             max-width: 380px;
             transform: translateY(5rem) scale(0.9);
@@ -2028,7 +2028,7 @@ if (is_dir($full_path)) {
                                 <div class="fm-empty-icon">
                                     <i data-lucide="folder-open" style="width:30px;height:30px;opacity:0.4;"></i>
                                 </div>
-                                <p style="font-weight:700;color:var(--slate-600);">This folder is empty</p>
+                                <p style="font-weight: 500;color:var(--slate-600);">This folder is empty</p>
                                 <p style="font-size:0.8125rem;margin-top:0.375rem;color:var(--slate-400);">Drag & drop files
                                     here to upload</p>
                             </div>
@@ -2071,7 +2071,7 @@ if (is_dir($full_path)) {
                     <div class="fm-upload-icon" style="display:inline-flex;margin-bottom:0.75rem;">
                         <i data-lucide="cloud-upload" style="width:40px;height:40px;color:var(--primary);"></i>
                     </div>
-                    <p style="font-weight:700;color:var(--slate-700);margin-bottom:0.25rem;">Drop files or click to
+                    <p style="font-weight: 500;color:var(--slate-700);margin-bottom:0.25rem;">Drop files or click to
                         browse</p>
                     <p style="font-size:0.8125rem;color:var(--slate-400);">Any file type accepted</p>
                     <input type="file" id="inp-upload-files" multiple style="display:none;"
@@ -2101,7 +2101,7 @@ if (is_dir($full_path)) {
                     <i data-lucide="alert-triangle"
                         style="width:15px;height:15px;color:#f59e0b;flex-shrink:0;margin-top:1px;"></i>
                     <div>
-                        <p style="font-weight:700;margin-bottom:0.2rem;">Permission may be denied</p>
+                        <p style="font-weight: 500;margin-bottom:0.2rem;">Permission may be denied</p>
                         <p>Web server user (<?= htmlspecialchars($process_user) ?>) may not own this file.</p>
                     </div>
                 </div>
@@ -2115,9 +2115,9 @@ if (is_dir($full_path)) {
                         style="font-family:var(--font-mono);">
                     <p style="font-size:0.75rem;color:var(--slate-400);margin-top:0.375rem;">
                         Quick:
-                        <span style="color:var(--primary);cursor:pointer;font-weight:700;"
+                        <span style="color:var(--primary);cursor:pointer;font-weight: 500;"
                             onclick="document.getElementById('chmod-val').value='0775'">0775</span> (dir) Â·
-                        <span style="color:var(--primary);cursor:pointer;font-weight:700;"
+                        <span style="color:var(--primary);cursor:pointer;font-weight: 500;"
                             onclick="document.getElementById('chmod-val').value='0664'">0664</span> (file)
                     </p>
                 </div>
@@ -2733,7 +2733,7 @@ if (is_dir($full_path)) {
                         if (res.status === 'success') {
                             container.innerHTML = `<pre style="font-size: 0.8125rem; font-family: 'JetBrains Mono', monospace; line-height: 1.6; color: var(--slate-700); padding: 1.5rem; width: 100%; height: 100%; overflow: auto; text-align: left; margin: 0; tab-size: 4;">${res.content}</pre>`;
                         } else {
-                            container.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; color: #ef4444;"><i data-lucide="alert-circle" style="width: 48px; height: 48px;"></i><span style="font-weight: 600;">${res.msg}</span></div>`;
+                            container.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; color: #ef4444;"><i data-lucide="alert-circle" style="width: 48px; height: 48px;"></i><span style="font-weight: 500;">${res.msg}</span></div>`;
                             lucide.createIcons();
                         }
                     }

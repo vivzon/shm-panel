@@ -35,7 +35,7 @@ include 'layout/header.php';
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-heading);">
+    <h2 style="font-size: 1.5rem; font-weight: 500; color: var(--text-primary); font-family: var(--font-heading);">
         Server Terminal
     </h2>
 </div>
@@ -47,7 +47,7 @@ include 'layout/header.php';
     
     <!-- Input Form -->
     <form id="terminal-form" onsubmit="executeCommand(event)" style="display: flex; gap: 0.5rem; position: relative; margin-top: auto;">
-        <span style="color: #10b981; font-family: 'Fira Code', monospace; font-weight: 700; position: absolute; left: 1rem; top: 0.75rem; z-index: 10;">root@server:~#</span>
+        <span style="color: #10b981; font-family: 'Fira Code', monospace; font-weight: 500; position: absolute; left: 1rem; top: 0.75rem; z-index: 10;">root@server:~#</span>
         <input type="text" id="terminal-input" required autocomplete="off" spellcheck="false" class="form-input" style="flex: 1; padding: 0.75rem 1rem 0.75rem 10.5rem; background: #1e293b; color: #f8fafc; border: 1px solid #334155; border-radius: 0.5rem; font-family: 'Fira Code', monospace; font-size: 0.875rem; transition: border-color var(--transition-fast);" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#334155'">
         <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.5rem; transition: background-color var(--transition-fast);"><i data-lucide="terminal-square" style="width: 1rem; height: 1rem;"></i> Execute</button>
     </form>

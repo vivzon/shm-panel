@@ -46,15 +46,15 @@ header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
         }
         .pass {
             color: #10b981;
-            font-weight: bold;
+            font-weight: 500;
         }
         .fail {
             color: #ef4444;
-            font-weight: bold;
+            font-weight: 500;
         }
         .warning {
             color: #f59e0b;
-            font-weight: bold;
+            font-weight: 500;
         }
         .info {
             color: #60a5fa;

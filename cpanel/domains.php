@@ -471,7 +471,7 @@ include 'layout/header.php';
 <div
     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
     <div style="display: flex; align-items: center; gap: 1rem;">
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--slate-900);">Domain Management</h2>
+        <h2 style="font-size: 1.5rem; font-weight: 500; color: var(--slate-900);">Domain Management</h2>
         <form method="GET" style="position: relative;">
             <i data-lucide="search"
                 style="width: 16px; height: 16px; position: absolute; left: 0.75rem; top: 0.75rem; color: var(--slate-400);"></i>
@@ -497,7 +497,7 @@ include 'layout/header.php';
             <?= csrf_field() ?>
             <input name="sub" required placeholder="sub (e.g. blog)" class="form-input"
                 style="width: 8rem; text-align: right;">
-            <span style="align-self: center; font-weight: 700; color: var(--slate-700);">.</span>
+            <span style="align-self: center; font-weight: 500; color: var(--slate-700);">.</span>
             <select name="parent_id" class="form-select" style="width: 10rem;">
                 <?php foreach ($all_domains as $d): ?>
                     <option value="<?= $d['domain'] ?>">
@@ -523,7 +523,7 @@ include 'layout/header.php';
     <?php if (count($domains) === 0): ?>
         <div class="glass-card" style="padding: 2.5rem; text-align: center;">
             <i data-lucide="globe" style="width: 3rem; height: 3rem; color: var(--slate-700); margin: 0 auto 1rem;"></i>
-            <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-700);">No domains found</h3>
+            <h3 style="font-size: 1.125rem; font-weight: 500; color: var(--slate-700);">No domains found</h3>
             <p style="font-size: 0.875rem; color: var(--slate-700); margin-top: 0.5rem;">
                 <?= $search_query ? 'Try a different search term' : 'Add your first domain to get started' ?>
             </p>
@@ -574,32 +574,32 @@ include 'layout/header.php';
                             style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                             <i data-lucide="activity" style="width: 12px; height: 12px;"></i>
                             <span
-                                style="font-weight: 700;"><?= $d['traffic_today'] ? round($d['traffic_today'] / 1024 / 1024, 2) . ' MB' : '0 MB' ?></span>
+                                style="font-weight: 500;"><?= $d['traffic_today'] ? round($d['traffic_today'] / 1024 / 1024, 2) . ' MB' : '0 MB' ?></span>
                         </div>
                         <?php if ($d['ssl_active']): ?>
                             <div class="badge badge-emerald"
                                 style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <i data-lucide="lock" style="width: 12px; height: 12px;"></i> <span
-                                    style="font-weight: 700;">SSL</span>
+                                    style="font-weight: 500;">SSL</span>
                             </div>
                         <?php endif; ?>
                         <?php if ($d['scan_status'] == 'clean'): ?>
                             <div class="badge badge-emerald"
                                 style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> <span
-                                    style="font-weight: 700;">Clean</span>
+                                    style="font-weight: 500;">Clean</span>
                             </div>
                         <?php elseif ($d['scan_status'] == 'infected'): ?>
                             <div class="badge badge-red"
                                 style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <i data-lucide="shield-alert" style="width: 12px; height: 12px;"></i> <span
-                                    style="font-weight: 700;">Infected</span>
+                                    style="font-weight: 500;">Infected</span>
                             </div>
                         <?php elseif ($d['scan_status'] == 'running'): ?>
                             <div class="badge badge-blue"
                                 style="padding: 0.375rem 0.625rem; border-radius: 9999px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                                 <i data-lucide="loader-2" style="width: 12px; height: 12px;" class="animate-spin"></i> <span
-                                    style="font-weight: 700;">Scanning</span>
+                                    style="font-weight: 500;">Scanning</span>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -643,7 +643,7 @@ include 'layout/header.php';
                             <label
                                 style="font-size: 0.625rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em;">PHP</label>
                             <select name="php_version" class="form-select"
-                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 600; color: var(--slate-800); background-color: white; border-color: var(--slate-200); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 500; color: var(--slate-800); background-color: white; border-color: var(--slate-200); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
                                 onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
                                 onblur="this.style.borderColor='var(--slate-200)'; this.style.boxShadow='none';">
                                 <option value="8.1" <?= $d['php_version'] == '8.1' ? 'selected' : '' ?>>8.1</option>
@@ -655,7 +655,7 @@ include 'layout/header.php';
                             <label
                                 style="font-size: 0.625rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em;">Memory</label>
                             <select name="mem" class="form-select"
-                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 600; color: var(--slate-800); background-color: white; border-color: var(--slate-200); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 500; color: var(--slate-800); background-color: white; border-color: var(--slate-200); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
                                 onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
                                 onblur="this.style.borderColor='var(--slate-200)'; this.style.boxShadow='none';">
                                 <?php
@@ -673,7 +673,7 @@ include 'layout/header.php';
                             <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                                 <input type="checkbox" name="ssl" <?= $d['ssl_active'] ? 'checked' : '' ?>
                                     style="width: 16px; height: 16px; accent-color: var(--accent-emerald); cursor: pointer;">
-                                <span style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700);">AutoSSL</span>
+                                <span style="font-size: 0.75rem; font-weight: 500; color: var(--slate-700);">AutoSSL</span>
                             </label>
                         </div>
                         <?php $is_maint = file_exists("/etc/nginx/sites-available/{$d['domain']}.backup"); ?>
@@ -684,7 +684,7 @@ include 'layout/header.php';
                                     <?= $is_maint ? 'checked' : '' ?>
                                     style="width: 16px; height: 16px; accent-color: var(--accent-orange); cursor: pointer;">
                                 <span
-                                    style="font-size: 0.75rem; font-weight: 700; color: var(--slate-700);">Maintenance</span>
+                                    style="font-size: 0.75rem; font-weight: 500; color: var(--slate-700);">Maintenance</span>
                             </label>
                         </div>
                         <button class="btn btn-primary"
@@ -701,7 +701,7 @@ include 'layout/header.php';
                             style="text-align: center; padding: 2rem; background: var(--slate-50); border-radius: 0.75rem; border: 1px dashed var(--slate-300);">
                             <i data-lucide="git-merge"
                                 style="width: 2rem; height: 2rem; color: var(--slate-700); margin: 0 auto 0.5rem;"></i>
-                            <p style="font-size: 0.875rem; font-weight: 700; color: var(--slate-700);">DNS Managed by Parent
+                            <p style="font-size: 0.875rem; font-weight: 500; color: var(--slate-700);">DNS Managed by Parent
                                 Domain</p>
                             <p style="font-size: 0.75rem; color: var(--slate-700);">This subdomain is a record of <span
                                     style="color: #60a5fa;"><?= $pname ?></span></p>
@@ -716,7 +716,7 @@ include 'layout/header.php';
                             style="margin-bottom: 1.5rem; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <h4
-                                    style="color: var(--slate-900); font-weight: 700; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    style="color: var(--slate-900); font-weight: 500; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
                                     <i data-lucide="shield" style="width: 16px; height: 16px; color: #a855f7;"></i> Malware
                                     Protection
                                 </h4>
@@ -748,7 +748,7 @@ include 'layout/header.php';
                                     <button type="button" onclick="setDnsType(<?= $d['id'] ?>, '<?= $t ?>')"
                                         id="btn-dns-<?= $t ?>-<?= $d['id'] ?>"
                                         class="dns-type-btn <?= $t === 'A' ? 'btn-primary' : 'btn-secondary' ?>"
-                                        style="padding: 0.5rem 1rem; border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 700; transition: all 0.2s; border: 1px solid <?= $t === 'A' ? 'var(--primary)' : 'var(--slate-300)' ?>;">
+                                        style="padding: 0.5rem 1rem; border-radius: var(--radius-md); font-size: 0.75rem; font-weight: 500; transition: all 0.2s; border: 1px solid <?= $t === 'A' ? 'var(--primary)' : 'var(--slate-300)' ?>;">
                                         <?= $t ?>
                                     </button>
                                 <?php endforeach; ?>
@@ -768,12 +768,12 @@ include 'layout/header.php';
                                     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: flex-end;">
                                     <div>
                                         <label
-                                            style="font-size: 0.625rem; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label>
+                                            style="font-size: 0.625rem; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label>
                                         <input name="host" value="@" class="form-input">
                                     </div>
                                     <div style="grid-column: span 2 / span 2;">
                                         <label
-                                            style="font-size: 0.625rem; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">IPv4
+                                            style="font-size: 0.625rem; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">IPv4
                                             Address</label>
                                         <input name="value" placeholder="192.168.1.1" class="form-input">
                                     </div>
@@ -808,7 +808,7 @@ include 'layout/header.php';
                                         $has_records = true;
                                         ?>
                                         <tr>
-                                            <td style="font-weight: 700; color: var(--slate-900);"><?= $r['name'] ?></td>
+                                            <td style="font-weight: 500; color: var(--slate-900);"><?= $r['name'] ?></td>
                                             <td><span class="badge"
                                                     style="background: var(--slate-100); border: 1px solid var(--slate-200); color: var(--slate-700);"><?= $r['type'] ?></span>
                                             </td>
@@ -846,7 +846,7 @@ include 'layout/header.php';
 
     <?php if ($total_pages > 1): ?>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
-            <div style="font-size: 0.75rem; color: var(--slate-700); font-weight: 700;">
+            <div style="font-size: 0.75rem; color: var(--slate-700); font-weight: 500;">
                 Page <?= $page ?> of <?= $total_pages ?>
                 <?php if ($search_query): ?>
                     (filtered)
@@ -1077,46 +1077,46 @@ include 'layout/header.php';
 
     const dnsTemplates = {
         'A': `
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">IPv4 Address</label><input name="value" placeholder="192.168.1.1" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">IPv4 Address</label><input name="value" placeholder="192.168.1.1" class="form-input" style="width: 100%;" required></div>
         `,
         'AAAA': `
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">IPv6 Address</label><input name="value" placeholder="2001:0db8:..." class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">IPv6 Address</label><input name="value" placeholder="2001:0db8:..." class="form-input" style="width: 100%;" required></div>
         `,
         'MX': `
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Priority</label><input name="priority" type="number" value="10" class="form-input" style="width: 100%;" required></div>
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Destination</label><input name="value" placeholder="mail.example.com" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Priority</label><input name="priority" type="number" value="10" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Destination</label><input name="value" placeholder="mail.example.com" class="form-input" style="width: 100%;" required></div>
         `,
         'CNAME': `
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" placeholder="www" class="form-input" style="width: 100%;" required></div>
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Target</label><input name="value" placeholder="example.com" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" placeholder="www" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Target</label><input name="value" placeholder="example.com" class="form-input" style="width: 100%;" required></div>
         `,
         'NS': `
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Nameserver</label><input name="value" placeholder="ns1.example.com" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Nameserver</label><input name="value" placeholder="ns1.example.com" class="form-input" style="width: 100%;" required></div>
         `,
         'TXT': `
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">TXT Value</label><input name="value" placeholder="v=spf1..." class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Host</label><input name="host" value="@" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">TXT Value</label><input name="value" placeholder="v=spf1..." class="form-input" style="width: 100%;" required></div>
         `,
         'SRV': `
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Service</label><input name="host" placeholder="_sip._tcp" class="form-input" style="width: 100%;" required></div>
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Priority</label><input name="priority" type="number" value="10" class="form-input" style="width: 100%;" required></div>
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Weight</label><input name="weight" type="number" value="10" class="form-input" style="width: 100%;" required></div>
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Port</label><input name="port" type="number" value="5060" class="form-input" style="width: 100%;" required></div>
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Target</label><input name="value" placeholder="sip.example.com" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Service</label><input name="host" placeholder="_sip._tcp" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Priority</label><input name="priority" type="number" value="10" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Weight</label><input name="weight" type="number" value="10" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Port</label><input name="port" type="number" value="5060" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Target</label><input name="value" placeholder="sip.example.com" class="form-input" style="width: 100%;" required></div>
         `,
         'SOA': `
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">MNAME</label><input name="mname" placeholder="ns1.example.com" class="form-input" style="width: 100%;" required></div>
-            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">RNAME</label><input name="rname" placeholder="admin.example.com" class="form-input" style="width: 100%;" required></div>
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Serial</label><input name="serial" placeholder="2024010101" class="form-input" style="width: 100%;" required></div>
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">TTL</label><input name="ttl" value="86400" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">MNAME</label><input name="mname" placeholder="ns1.example.com" class="form-input" style="width: 100%;" required></div>
+            <div style="grid-column: span 2 / span 2;"><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">RNAME</label><input name="rname" placeholder="admin.example.com" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Serial</label><input name="serial" placeholder="2024010101" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">TTL</label><input name="ttl" value="86400" class="form-input" style="width: 100%;" required></div>
             
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Refresh</label><input name="refresh" value="3600" class="form-input" style="width: 100%;" required></div>
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Retry</label><input name="retry" value="7200" class="form-input" style="width: 100%;" required></div>
-            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Expire</label><input name="expire" value="1209600" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Refresh</label><input name="refresh" value="3600" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Retry</label><input name="retry" value="7200" class="form-input" style="width: 100%;" required></div>
+            <div><label style="font-size: 10px; text-transform: uppercase; font-weight: 500; color: var(--slate-700); margin-bottom: 0.25rem; display: block;">Expire</label><input name="expire" value="1209600" class="form-input" style="width: 100%;" required></div>
             <input type="hidden" name="host" value="@">
         `
     };

@@ -120,7 +120,7 @@ try {
             align-items: center;
             gap: 12px;
             font-size: 1.125rem;
-            font-weight: 700;
+            font-weight: 500;
             font-family: 'Outfit', sans-serif;
             color: var(--slate-800);
             letter-spacing: -0.02em;
@@ -192,7 +192,7 @@ try {
             padding: 0.5rem 1.25rem;
             border-radius: var(--radius-full);
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             background: rgba(37, 99, 235, 0.08);
@@ -279,7 +279,7 @@ try {
 
         .stat-value {
             font-size: 2rem;
-            font-weight: 700;
+            font-weight: 500;
             font-family: 'Outfit', sans-serif;
             color: var(--slate-800);
             margin: 0.5rem 0;
@@ -287,7 +287,7 @@ try {
 
         .stat-label {
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 500;
             color: var(--slate-500);
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -306,7 +306,7 @@ try {
         .badge-label {
             display: inline-block;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             color: var(--secondary);
@@ -407,7 +407,7 @@ try {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             font-size: 0.625rem;
-            font-weight: 700;
+            font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             padding: 0.375rem 1rem;
@@ -416,7 +416,7 @@ try {
 
         .pricing-price {
             font-size: 3.5rem;
-            font-weight: 700;
+            font-weight: 500;
             font-family: 'Outfit', sans-serif;
             color: var(--text-primary);
             margin: 1rem 0 1.5rem;
@@ -678,7 +678,7 @@ try {
                         <?php if ($featured): ?>
                             <div class="pricing-badge">Most Popular</div>
                         <?php endif; ?>
-                        <h3 style="font-size:1.25rem; font-weight:700;"><?= $plan['name'] ?></h3>
+                        <h3 style="font-size:1.25rem; font-weight: 500;"><?= $plan['name'] ?></h3>
                         <div class="pricing-price"><?= $plan['price'] ?><span
                                 style="font-size:0.875rem;color:var(--slate-500);font-weight:400;font-family:'Plus Jakarta Sans',sans-serif;">/mo</span>
                         </div>
@@ -725,10 +725,10 @@ try {
                         decision we've made."</p>
                     <div style="display: flex; align-items: center; gap: 1rem;">
                         <div
-                            style="width: 40px; height: 40px; border-radius: 50%; background: rgba(37, 99, 235, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: bold; font-family: 'Outfit', sans-serif;">
+                            style="width: 40px; height: 40px; border-radius: 50%; background: rgba(37, 99, 235, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 500; font-family: 'Outfit', sans-serif;">
                             AR</div>
                         <div>
-                            <div style="font-weight: 600; color: var(--slate-900);">Alex Rivera</div>
+                            <div style="font-weight: 500; color: var(--slate-900);">Alex Rivera</div>
                             <div style="font-size: 0.875rem; color: var(--slate-500);">E-commerce Owner</div>
                         </div>
                     </div>
@@ -747,10 +747,10 @@ try {
                         hours every week."</p>
                     <div style="display: flex; align-items: center; gap: 1rem;">
                         <div
-                            style="width: 40px; height: 40px; border-radius: 50%; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Outfit', sans-serif;">
+                            style="width: 40px; height: 40px; border-radius: 50%; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: 'Outfit', sans-serif;">
                             SK</div>
                         <div>
-                            <div style="font-weight: 600; color: var(--slate-900);">Sarah Khan</div>
+                            <div style="font-weight: 500; color: var(--slate-900);">Sarah Khan</div>
                             <div style="font-size: 0.875rem; color: var(--slate-500);">Digital Agency Founder</div>
                         </div>
                     </div>
@@ -769,10 +769,10 @@ try {
                         Incredible service."</p>
                     <div style="display: flex; align-items: center; gap: 1rem;">
                         <div
-                            style="width: 40px; height: 40px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Outfit', sans-serif;">
+                            style="width: 40px; height: 40px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: 'Outfit', sans-serif;">
                             MJ</div>
                         <div>
-                            <div style="font-weight: 600; color: var(--slate-900);">Mark Johnson</div>
+                            <div style="font-weight: 500; color: var(--slate-900);">Mark Johnson</div>
                             <div style="font-size: 0.875rem; color: var(--slate-500);">Software Developer</div>
                         </div>
                     </div>
@@ -793,7 +793,7 @@ try {
                         <i data-lucide="help-circle"
                             style="color: var(--primary); flex-shrink: 0; margin-top: 0.125rem;"></i>
                         <div>
-                            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">What is NVMe Cloud
+                            <h3 style="font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem;">What is NVMe Cloud
                                 Hosting?</h3>
                             <p style="color: var(--slate-600); font-size: 0.875rem;">NVMe (Non-Volatile Memory Express)
                                 is a modern storage protocol designed for high-speed data transfer. It is up to 10x
@@ -805,7 +805,7 @@ try {
                     <div style="display: flex; align-items: flex-start; gap: 1rem;">
                         <i data-lucide="save" style="color: var(--primary); flex-shrink: 0; margin-top: 0.125rem;"></i>
                         <div>
-                            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">Do you provide
+                            <h3 style="font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem;">Do you provide
                                 free backups?</h3>
                             <p style="color: var(--slate-600); font-size: 0.875rem;">Yes! JetBackup is included with all
                                 plans to take automatic daily backups of your files, emails, and databases. You can
@@ -817,7 +817,7 @@ try {
                     <div style="display: flex; align-items: flex-start; gap: 1rem;">
                         <i data-lucide="globe" style="color: var(--primary); flex-shrink: 0; margin-top: 0.125rem;"></i>
                         <div>
-                            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">Can I host
+                            <h3 style="font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem;">Can I host
                                 multiple domains?</h3>
                             <p style="color: var(--slate-600); font-size: 0.875rem;">Yes, except for the Basic Plan, all
                                 our plans allow you to host multiple domains from a single interface, making it perfect

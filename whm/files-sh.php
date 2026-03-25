@@ -381,7 +381,7 @@ include 'layout/header.php';
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
     <div style="display: flex; align-items: center; gap: 1rem;">
-        <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-heading);">File Manager</h2>
+        <h2 style="font-size: 1.5rem; font-weight: 500; color: var(--text-primary); font-family: var(--font-heading);">File Manager</h2>
         <div style="font-size: 0.875rem; color: var(--text-secondary); font-family: monospace; background: var(--bg-surface); padding: 0.25rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-color);">
             <?= htmlspecialchars($current_path) ?>
         </div>
@@ -393,10 +393,10 @@ include 'layout/header.php';
         <button onclick="togglePanel('upload-panel')" class="btn btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
             <i data-lucide="upload" style="width: 1rem; height: 1rem;"></i> Upload
         </button>
-        <button onclick="togglePanel('folder-panel')" style="background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: all var(--transition-normal);" onmouseover="this.style.background='var(--bg-surface)'" onmouseout="this.style.background='var(--bg-body)'">
+        <button onclick="togglePanel('folder-panel')" style="background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: all var(--transition-normal);" onmouseover="this.style.background='var(--bg-surface)'" onmouseout="this.style.background='var(--bg-body)'">
             <i data-lucide="folder-plus" style="width: 1rem; height: 1rem;"></i> New Folder
         </button>
-        <a href="?zip_project=1&path=<?= urlencode($current_path) ?>" style="background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-decoration: none; transition: all var(--transition-normal);" onmouseover="this.style.background='var(--bg-surface)'" onmouseout="this.style.background='var(--bg-body)'">
+        <a href="?zip_project=1&path=<?= urlencode($current_path) ?>" style="background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; text-decoration: none; transition: all var(--transition-normal);" onmouseover="this.style.background='var(--bg-surface)'" onmouseout="this.style.background='var(--bg-body)'">
             <i data-lucide="download-cloud" style="width: 1rem; height: 1rem;"></i> Full ZIP
         </a>
 
@@ -429,7 +429,7 @@ include 'layout/header.php';
 <div class="glass-card animate-slide-up hover-glow" style="overflow: hidden; border-radius: 1.5rem; animation-delay: 0.1s;">
     <div style="overflow-x: auto;" class="custom-scrollbar">
         <table style="width: 100%; text-align: left; border-collapse: collapse;">
-            <thead style="background: var(--bg-body); text-shadow: none; font-size: 0.625rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">
+            <thead style="background: var(--bg-body); text-shadow: none; font-size: 0.625rem; font-weight: 500; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.05em; border-bottom: 1px solid var(--border-color);">
                 <tr>
                     <th style="padding: 1rem;">Name</th>
                     <th style="padding: 1rem;">Size</th>
@@ -442,7 +442,7 @@ include 'layout/header.php';
                 <?php if ($current_path !== '/'): ?>
                     <tr style="border-bottom: 1px solid var(--border-color); transition: all var(--transition-normal);" onmouseover="this.style.background='var(--bg-body)'" onmouseout="this.style.background='transparent'">
                         <td style="padding: 1rem;" colspan="5">
-                            <a href="?path=<?= urlencode(dirname($current_path)) ?>" style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; color: var(--primary); font-weight: 700; text-decoration: none;">
+                            <a href="?path=<?= urlencode(dirname($current_path)) ?>" style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; color: var(--primary); font-weight: 500; text-decoration: none;">
                                 <i data-lucide="corner-left-up" style="width: 1rem; height: 1rem;"></i> ..
                             </a>
                         </td>
@@ -455,7 +455,7 @@ include 'layout/header.php';
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
                                 <?= get_file_icon($f['is_dir'], $f['extension']) ?>
                                 <?php if ($f['is_dir']): ?>
-                                    <a href="?path=<?= urlencode($f['relative']) ?>" style="font-size: 0.875rem; font-weight: 700; color: var(--text-primary); text-decoration: none; transition: color var(--transition-normal);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
+                                    <a href="?path=<?= urlencode($f['relative']) ?>" style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary); text-decoration: none; transition: color var(--transition-normal);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-primary)'">
                                         <?= htmlspecialchars($f['name']) ?>
                                     </a>
                                 <?php else: ?>
@@ -553,7 +553,7 @@ include 'layout/header.php';
         <div style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-body);">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <i data-lucide="file-text" style="width: 1.25rem; height: 1.25rem; color: var(--primary);"></i>
-                <h3 id="view-title" style="font-weight: 700; color: var(--text-primary);">File Viewer</h3>
+                <h3 id="view-title" style="font-weight: 500; color: var(--text-primary);">File Viewer</h3>
             </div>
             <button onclick="closeView()" style="background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem; border-radius: 0.5rem;" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='var(--accent-red)'" onmouseout="this.style.background='transparent'; this.style.color='var(--text-secondary)'">
                 <i data-lucide="x" style="width: 1.25rem; height: 1.25rem;"></i>

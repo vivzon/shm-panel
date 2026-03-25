@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div style="width: 0.375rem; height: 0.375rem; border-radius: 9999px; background: var(--primary);">
                 </div>
                 <span
-                    style="font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase;">
+                    style="font-size: 11px; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase;">
                     <?= htmlspecialchars(get_branding()) ?>
                 </span>
             </div>
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     style="width: 4rem; height: 4rem; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; background: var(--primary); box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);">
                     <i data-lucide="shield-check" style="width: 2rem; height: 2rem; color: white;"></i>
                 </div>
-                <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;"
+                <h1 style="font-size: 1.5rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.25rem;"
                     class="font-heading">Admin Console</h1>
                 <p style="color: var(--text-secondary); font-size: 0.875rem; font-weight: 500;">Authorized personnel
                     only</p>
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i data-lucide="alert-circle"
                         style="width: 1rem; height: 1rem; color: var(--accent-red); flex-shrink: 0;"></i>
                     <span
-                        style="color: var(--accent-red); font-size: 0.75rem; font-weight: 600;"><?= htmlspecialchars($error) ?></span>
+                        style="color: var(--accent-red); font-size: 0.75rem; font-weight: 500;"><?= htmlspecialchars($error) ?></span>
                 </div>
             <?php endif; ?>
 
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div style="display: flex; flex-direction: column; gap: 0.375rem;">
                     <label
-                        style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: block; padding-left: 0.25rem;">Username</label>
+                        style="font-size: 0.6875rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: block; padding-left: 0.25rem;">Username</label>
                     <div style="position: relative; display: flex; align-items: center;">
                         <i data-lucide="user"
                             style="position: absolute; left: 1rem; width: 1.25rem; height: 1.25rem; color: var(--text-secondary);"></i>
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div style="display: flex; flex-direction: column; gap: 0.375rem;">
                     <label
-                        style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.25rem; padding-left: 0.25rem;">Password</label>
+                        style="font-size: 0.6875rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.25rem; padding-left: 0.25rem;">Password</label>
                     <div style="position: relative; display: flex; align-items: center;">
                         <i data-lucide="lock"
                             style="position: absolute; left: 1rem; width: 1.25rem; height: 1.25rem; color: var(--text-secondary);"></i>
@@ -155,14 +155,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div
                 style="margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; gap: 1rem;">
                 <div
-                    style="font-size: 0.6875rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 0.375rem;">
+                    style="font-size: 0.6875rem; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 0.375rem;">
                     <div
                         style="width: 0.375rem; height: 0.375rem; border-radius: 9999px; background: var(--accent-emerald);">
                     </div>
                     TLS Secured
                 </div>
                 <div
-                    style="font-size: 0.6875rem; font-weight: 600; color: var(--text-secondary); display: flex; align-items: center; gap: 0.375rem;">
+                    style="font-size: 0.6875rem; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 0.375rem;">
                     <div
                         style="width: 0.375rem; height: 0.375rem; border-radius: 9999px; background: var(--accent-emerald);">
                     </div>

@@ -167,7 +167,7 @@ try {
     $suspended_clients = (int)$r3->fetchColumn();
 } catch (Exception $e) {}
 ?>
-<h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary); font-family: var(--font-heading);">
+<h2 style="font-size: 1.5rem; font-weight: 500; margin-bottom: 1rem; color: var(--text-primary); font-family: var(--font-heading);">
     System Overview</h2>
 
 <!-- Account Summary Strip -->
@@ -215,7 +215,7 @@ try {
                 <i data-lucide="cpu" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
-                style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">CPU
+                style="font-size: 0.6875rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">CPU
                 Load</span>
         </div>
         <p class="metric-value">
@@ -236,7 +236,7 @@ try {
                 <i data-lucide="layers" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
-                style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">RAM
+                style="font-size: 0.6875rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">RAM
                 Usage</span>
         </div>
         <p class="metric-value">
@@ -257,7 +257,7 @@ try {
                 <i data-lucide="hard-drive" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
-                style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">Disk
+                style="font-size: 0.6875rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">Disk
                 Space</span>
         </div>
         <p class="metric-value">
@@ -278,7 +278,7 @@ try {
                 <i data-lucide="clock" style="width: 1.25rem; height: 1.25rem;"></i>
             </div>
             <span
-                style="font-size: 0.6875rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">Uptime</span>
+                style="font-size: 0.6875rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em;">Uptime</span>
         </div>
         <p class="metric-value">
             <span id="uptime-text" style="font-size: 1.25rem;">...</span>
@@ -292,7 +292,7 @@ try {
 
     <!-- Live Graph -->
     <div class="premium-glass" style="grid-column: span 2 / span 2; padding: 1.5rem; border-radius: 1.25rem;">
-        <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1rem;">Live Resource
+        <h3 style="font-size: 1.125rem; font-weight: 500; color: var(--slate-900); margin-bottom: 1rem;">Live Resource
             History</h3>
         <div style="height: 300px; width: 100%;">
             <canvas id="resourceChart"></canvas>
@@ -314,7 +314,7 @@ try {
                 <i data-lucide="network" style="width: 2rem; height: 2rem;"></i>
             </div>
             <div>
-                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem;">
+                <h3 style="font-size: 1.125rem; font-weight: 500; color: var(--slate-900); margin-bottom: 0.25rem;">
                     Network Config</h3>
                 <div style="font-size: 0.875rem; color: var(--slate-700); font-family: monospace;"><?= $main_domain ?>
                 </div>
@@ -366,7 +366,7 @@ try {
 
 <!-- SOFTWARE & HARDWARE SPECIFICATIONS -->
 <div class="premium-glass" style="padding: 1.5rem; border-radius: 1.25rem;">
-    <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--slate-900); margin-bottom: 1.5rem;">Server
+    <h3 style="font-size: 1.125rem; font-weight: 500; color: var(--slate-900); margin-bottom: 1.5rem;">Server
         Specifications</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
 
@@ -378,7 +378,7 @@ try {
             </div>
             <div style="overflow: hidden;">
                 <div
-                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 700;">
+                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 500;">
                     Operating System</div>
                 <div style="color: var(--slate-900); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
                     title="<?= $os_name ?>"><?= $os_name ?></div>
@@ -393,7 +393,7 @@ try {
             </div>
             <div style="overflow: hidden;">
                 <div
-                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 700;">
+                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 500;">
                     PHP Version</div>
                 <div style="color: var(--slate-900); font-weight: 500;">v<?= $php_version ?></div>
             </div>
@@ -407,7 +407,7 @@ try {
             </div>
             <div style="overflow: hidden;">
                 <div
-                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 700;">
+                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 500;">
                     Web Server</div>
                 <div style="color: var(--slate-900); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
                     title="<?= $web_server ?>"><?= $web_server_display ?>
@@ -423,7 +423,7 @@ try {
             </div>
             <div style="overflow: hidden;">
                 <div
-                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 700;">
+                    style="font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-700); font-weight: 500;">
                     Architecture</div>
                 <div style="color: var(--slate-900); font-weight: 500;"><?= $arch ?></div>
             </div>
