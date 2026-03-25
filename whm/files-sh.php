@@ -16,13 +16,6 @@ $panel_root = str_replace('\\', '/', $panel_root);
 
 // -------------------- HELPER FUNCTIONS --------------------
 
-/**
- * Simple local cleaner
- */
-function shm_clean($value) {
-    if (is_array($value)) return $value;
-    return trim(strip_tags($value));
-}
 
 /**
  * Format file size nicely

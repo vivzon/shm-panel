@@ -63,9 +63,11 @@ function sanitize_filename($filename)
 /**
  * Simple input cleaner (trim and strip tags)
  */
-function shm_clean($value) {
-    if (is_array($value)) return $value;
-    return trim(strip_tags($value));
+if (!function_exists('shm_clean')) {
+    function shm_clean($value) {
+        if (is_array($value)) return $value;
+        return trim(strip_tags($value));
+    }
 }
 
 /**
