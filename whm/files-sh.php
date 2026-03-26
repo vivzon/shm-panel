@@ -403,7 +403,7 @@ include 'layout/header.php';
     </div>
 
     <div id="upload-panel" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-body); border-radius: 1rem; border: 1px solid var(--border-color); display: none;">
-        <form method="post" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <form method="post" action="?path=<?= urlencode($current_path) ?>" enctype="multipart/form-data" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
             <input type="file" name="file" required style="font-size: 0.875rem; color: var(--text-secondary); cursor: pointer;">
             <button type="submit" name="upload_file" class="btn btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.75rem; text-transform: uppercase;">Start Upload</button>
@@ -479,12 +479,11 @@ include 'layout/header.php';
     </div>
 </div>
 
-<form id="js-form" method="post" style="display:none;">
+<form id="js-form" method="post" action="?path=<?= urlencode($current_path) ?>" style="display:none;">
     <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
     <input type="hidden" name="file_path" id="js-path">
     <input type="hidden" name="new_name" id="js-name">
-    <input type="hidden" name="rename_path" id="js-rename" value="1">
-    <input type="hidden" name="delete_path" id="js-delete" value="1">
+    <!-- delete_path / rename_path injected dynamically by JS to avoid both being submitted -->
 </form>
 
 <script>
@@ -522,9 +521,13 @@ include 'layout/header.php';
     function deleteItem(path, name) {
         if (!confirm(`Delete ${name}?`)) return;
         const f = document.getElementById('js-form');
+        // Remove any previously injected action fields
+        f.querySelectorAll('.js-action-field').forEach(el => el.remove());
         document.getElementById('js-path').value = path;
-        document.getElementById('js-delete').disabled = false;
-        document.getElementById('js-rename').disabled = true;
+        // Only inject delete_path — rename_path must NOT be present
+        const del = document.createElement('input');
+        del.type = 'hidden'; del.name = 'delete_path'; del.value = '1'; del.className = 'js-action-field';
+        f.appendChild(del);
         f.submit();
     }
 
@@ -532,10 +535,14 @@ include 'layout/header.php';
         const newName = prompt("Enter new name:", oldName);
         if (!newName || newName === oldName) return;
         const f = document.getElementById('js-form');
+        // Remove any previously injected action fields
+        f.querySelectorAll('.js-action-field').forEach(el => el.remove());
         document.getElementById('js-path').value = path;
         document.getElementById('js-name').value = newName;
-        document.getElementById('js-delete').disabled = true;
-        document.getElementById('js-rename').disabled = false;
+        // Only inject rename_path — delete_path must NOT be present
+        const ren = document.createElement('input');
+        ren.type = 'hidden'; ren.name = 'rename_path'; ren.value = '1'; ren.className = 'js-action-field';
+        f.appendChild(ren);
         f.submit();
     }
 </script>
