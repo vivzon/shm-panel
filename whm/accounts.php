@@ -136,14 +136,19 @@ if (isset($_POST['ajax_action'])) {
             $id = (int) $_POST['id'];
             $user = $_POST['user'];
 
-            // 1. Fetch all domains for this client to clean up records
+            // 1. Fetch primary domain for background cleanup before records are gone
+            $stmt = $pdo->prepare("SELECT domain FROM domains WHERE client_id = ? LIMIT 1");
+            $stmt->execute([$id]);
+            $primary_dom = $stmt->fetchColumn() ?: '';
+
+            // Fetch all domains for cleanup
             $stmt = $pdo->prepare("SELECT id, domain FROM domains WHERE client_id = ?");
             $stmt->execute([$id]);
             $doms = $stmt->fetchAll();
 
             $pdo->beginTransaction();
 
-            // 2. Comprehensive Database Cleanup (Children first to satisfy Foreign Keys)
+            // 2. Comprehensive Database Cleanup (Children first)
             foreach ($doms as $dm) {
                 $pdo->prepare("DELETE FROM dns_records WHERE domain_id = ?")->execute([$dm['id']]);
                 $pdo->prepare("DELETE FROM mail_domains WHERE domain = ?")->execute([$dm['domain']]);
@@ -162,21 +167,21 @@ if (isset($_POST['ajax_action'])) {
             $pdo->prepare("DELETE FROM backups WHERE client_id = ?")->execute([$id]);
             $pdo->prepare("DELETE FROM transactions WHERE client_id = ?")->execute([$id]);
             
+            // 3. Final Primary Record Removal (BEFORE finishing request to prevent race in UI)
+            $pdo->prepare("DELETE FROM domains WHERE client_id = ?")->execute([$id]);
+            $pdo->prepare("DELETE FROM clients WHERE id = ?")->execute([$id]);
+            
             $pdo->commit();
 
-            // 3. Send success response immediately (Prevent timeout/500 error in browser)
+            // 4. Send success response immediately
             echo json_encode($res);
             if (function_exists('fastcgi_finish_request')) {
                 fastcgi_finish_request();
             }
 
-            // 4. Background System Cleanup
-            // Note: executed while domains/clients records still exist so bash can query them
-            cmd("delete-account " . escapeshellarg($user));
-
-            // 5. Final Primary Record Removal
-            $pdo->prepare("DELETE FROM domains WHERE client_id = ?")->execute([$id]);
-            $pdo->prepare("DELETE FROM clients WHERE id = ?")->execute([$id]);
+            // 5. Background System Cleanup
+            // Pass primary domain so shm-manage doesn't need to query empty DB records
+            cmd("delete-account " . escapeshellarg($user) . " " . escapeshellarg($primary_dom));
             exit;
         }
 
@@ -483,11 +488,14 @@ include 'layout/header.php';
 
     function delAcc(id, user) {
         if (!confirm(`PERMANENTLY DELETE user ${user}? This will delete all files, DNS, mail and databases.`)) return;
-        const fd = new FormData();
-        fd.append('ajax_action', 'delete_account');
-        fd.append('id', id); fd.append('user', user);
-        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-        fetch('', { method: 'POST', body: fd }).then(() => loadClients());
+        
+        // Create a dummy form to utilize the robust handleGeneric AJAX handler
+        const dummyForm = document.createElement('form');
+        dummyForm.innerHTML = `<input type="hidden" name="id" value="${id}"><input type="hidden" name="user" value="${user}"><button type="submit"></button>`;
+        dummyForm.onsubmit = (e) => handleGeneric(e, 'delete_account');
+        
+        // Background click
+        dummyForm.querySelector('button').click();
     }
 
     function loginAs(user, cid) {

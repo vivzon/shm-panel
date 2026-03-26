@@ -37,7 +37,7 @@ if (isset($_POST['ajax_action'])) {
                         'active' => $status === 'active',
                         'error' => false
                     ];
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     $statuses[$id] = [
                         'name' => $name,
                         'active' => false,
@@ -75,7 +75,7 @@ if (isset($_POST['ajax_action'])) {
         }
 
         echo json_encode($res);
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
     }

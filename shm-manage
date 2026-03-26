@@ -442,15 +442,18 @@ EOF
         ;;
 
     delete-account)
-        # $2: user
+        # $2: user, $3: domain (optional)
         USER="$2"
+        DOM="$3"
         
         validate_input "$USER" "username"
         
         log_action "Deleting account: $USER"
         
-        # Find domain to remove vhost
-        DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" "$DB_NAME" 2>/dev/null || echo "")
+        # Find domain to remove vhost if not provided
+        if [ -z "$DOM" ]; then
+            DOM=$(mysql -N -s -e "SELECT domain FROM domains d JOIN clients c ON d.client_id=c.id WHERE c.username='$USER'" "$DB_NAME" 2>/dev/null || echo "")
+        fi
         
         # Backup before deletion
         BACKUP_DIR="/tmp/deleted_backups"

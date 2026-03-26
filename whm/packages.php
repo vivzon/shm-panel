@@ -172,19 +172,12 @@ include 'layout/header.php';
     async function delPkg(id) {
         if (!confirm('Delete this package?')) return;
         
-        const fd = new FormData();
-        fd.append('id', id);
-        
-        // Use a dummy form event wrapper to utilize handleGeneric for consistent toasts and CSRF appending
+        // Create a dummy form to utilize handleGeneric for consistent toasts and CSRF appending
         const dummyForm = document.createElement('form');
-        dummyForm.innerHTML = `<button type="submit"></button>`; // Needs a submit button for the generic handler to hook into
-        dummyForm.onsubmit = (e) => {
-            // Append data
-            for (let pair of fd.entries()) {
-                e.target.appendChild(Object.assign(document.createElement('input'), {type:'hidden', name:pair[0], value:pair[1]}));
-            }
-            handleGeneric(e, 'delete_package');
-        };
+        dummyForm.innerHTML = `<input type="hidden" name="id" value="${id}"><button type="submit"></button>`;
+        dummyForm.onsubmit = (e) => handleGeneric(e, 'delete_package');
+        
+        // Trigger submission
         dummyForm.querySelector('button').click();
     }
 </script>

@@ -82,14 +82,22 @@ try {
  */
 function cmd($command)
 {
-    // Windows Safety Check
-    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+    // Robust Mock Detection (For Windows, WSL, or missing backend)
+    $is_win = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+    $binary = '/usr/local/bin/shm-manage';
+    $binary_exists = !$is_win && file_exists($binary);
+
+    // If we are on Windows, or the binary is missing, or we've explicitly set dev mode
+    if ($is_win || !$binary_exists || defined('SHM_DEV_MODE')) {
         // Mock responses for development
         if (strpos($command, 'list_ssh') !== false)
             return "mock-key-rsa AAAA...";
         if (strpos($command, 'list_backups') !== false)
             return "1024K Jan 01 12:00 backup_test.tar.gz";
-        return "Command '$command' simulated on Windows.";
+        if (strpos($command, 'service-status') !== false)
+            return "active"; // Return active so UI looks good in dev
+
+        return "Command '$command' simulated on " . ($is_win ? "Windows" : "Mock Mode") . ".";
     }
 
     // Production Linux Execution
