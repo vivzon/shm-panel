@@ -28,23 +28,31 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'get_service_status') {
             $statuses = [];
 
+            // Detect dev/mock mode: Windows or shm-manage binary missing
+            $is_win    = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+            $binary    = '/usr/local/bin/shm-manage';
+            $mock_mode = $is_win || !file_exists($binary) || defined('SHM_DEV_MODE');
+
             foreach ($SERVICES_MAP as $id => $name) {
-                try {
-                    // Individually check each service to prevent one failure from crashing the whole update
-                    $status = trim(cmd("service-status $id"));
-                    $statuses[$id] = [
-                        'name' => $name,
-                        'active' => $status === 'active',
-                        'error' => false
-                    ];
-                } catch (Throwable $e) {
-                    $statuses[$id] = [
-                        'name' => $name,
-                        'active' => false,
-                        'error' => true,
-                        'msg' => $e->getMessage()
-                    ];
+                if ($mock_mode) {
+                    // Development: report all services as active
+                    $statuses[$id] = ['name' => $name, 'active' => true, 'error' => false];
+                    continue;
                 }
+
+                // Production: call systemctl is-active directly — NO sudo required
+                $svc    = escapeshellarg($id);
+                $out    = [];
+                $retval = 0;
+                exec("systemctl is-active $svc 2>/dev/null", $out, $retval);
+                $status = trim($out[0] ?? 'unknown');
+
+                $statuses[$id] = [
+                    'name'   => $name,
+                    'active' => ($retval === 0 && $status === 'active'),
+                    'status' => $status,  // e.g. 'active', 'inactive', 'failed', 'unknown'
+                    'error'  => false,
+                ];
             }
 
             echo json_encode(['status' => 'success', 'services' => $statuses]);
