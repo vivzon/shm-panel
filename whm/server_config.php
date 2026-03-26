@@ -52,14 +52,16 @@ if (isset($_POST['ajax_action'])) {
         }
         
         if ($_POST['ajax_action'] == 'test_config') {
-            // test-config returns "OK" on success
-            $out = shell_exec("sudo /usr/local/bin/shm-manage test-config 2>&1");
-            $out = trim($out);
-            
-            if ($out === 'OK') {
-                echo json_encode(['status' => 'success', 'msg' => 'Syntax OK']);
-            } else {
-                echo json_encode(['status' => 'error', 'msg' => $out ?: 'Configuration test failed.']);
+            // Use cmd() so it works in both mock and production mode
+            try {
+                $out = trim(cmd("test-config"));
+                if ($out === 'OK' || stripos($out, 'simulated') !== false) {
+                    echo json_encode(['status' => 'success', 'msg' => 'Syntax OK']);
+                } else {
+                    echo json_encode(['status' => 'error', 'msg' => $out ?: 'Configuration test failed.']);
+                }
+            } catch (Throwable $e) {
+                echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
             }
             exit;
         }
@@ -680,7 +682,7 @@ file_uploads = On
             updatePreview();
 
             if (typeof showToast !== 'undefined') {
-                showToast('success', 'Preset Applied', 'Settings updated to ' + type);
+                showToast('success', 'Preset applied: ' + type);
             }
         }
 
@@ -694,7 +696,7 @@ file_uploads = On
         }
 
         async function simulateAction(action, msg, needsRestartVarChanged) {
-            if (typeof showToast !== 'undefined') showToast('info', 'Executing', msg);
+            showToast('info', msg);
 
             const fd = new FormData();
             fd.append('ajax_action', action);
@@ -703,9 +705,9 @@ file_uploads = On
             try {
                 const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                 if (res.status === 'success') {
-                    if (typeof showToast !== 'undefined') showToast('success', 'Done', res.msg);
+                    showToast('success', res.msg);
 
-                    if (needsRestartVarChanged && action === 'restart_services') {
+                    if (action === 'restart_services') {
                         needRestart = false;
                         const badge = document.getElementById('status-badge');
                         badge.style.background = 'rgba(16, 185, 129, 0.1)';
@@ -714,10 +716,10 @@ file_uploads = On
                         badge.innerHTML = '<div style="width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: #34d399;"></div><span>Running</span>';
                     }
                 } else {
-                    if (typeof showToast !== 'undefined') showToast('error', 'Error', res.msg);
+                    showToast('error', res.msg || 'Action failed');
                 }
             } catch (e) {
-                if (typeof showToast !== 'undefined') showToast('error', 'Error', 'Failed to communicate with server.');
+                showToast('error', 'Failed to communicate with server.');
             }
         }
 
@@ -731,18 +733,18 @@ file_uploads = On
             }
             fd.append('php_version', document.getElementById('php_version').value);
 
-            if (typeof showToast !== 'undefined') showToast('info', 'Executing', 'Saving configuration changes...');
+            showToast('info', 'Saving configuration changes…');
 
             fetch('', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(res => {
                     if (res.status === 'success') {
-                        if (typeof showToast !== 'undefined') showToast('success', 'Done', res.msg);
-                        setRestartWarning();
+                        showToast('success', res.msg);
+                        setRestartWarning(); // Config saved but services need restart
                     } else {
-                        if (typeof showToast !== 'undefined') showToast('error', 'Error', res.msg);
+                        showToast('error', res.msg || 'Save failed');
                     }
                 })
-                .catch(e => showToast('error', 'Error', 'Failed to communicate with server.'));
+                .catch(() => showToast('error', 'Failed to communicate with server.'));
         }
     </script>

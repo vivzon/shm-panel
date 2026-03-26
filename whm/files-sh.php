@@ -53,7 +53,7 @@ function shm_rrmdir($path) {
         RecursiveIteratorIterator::CHILD_FIRST
     );
     foreach ($items as $item) {
-        $item->isDir() ? rmdir($item->getRealPath()) : unlink($item->getRealPath());
+        $item->isDir() ? @rmdir($item->getRealPath()) : @unlink($item->getRealPath());
     }
     return @rmdir($path);
 }
@@ -207,6 +207,7 @@ if (isset($_GET['zip_project'])) {
 
 // -------------------- ACTIONS (POST) --------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    ob_start(); // Buffer output so any stray warnings don't break header() redirect
     $action_taken = false;
     $success_msg = '';
     $error_msg = '';
@@ -268,6 +269,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $target_abs = shm_build_path($panel_root, $file_path_rel);
 
         if ($target_abs !== false && file_exists($target_abs)) {
+            // Safety: block deletion of critical panel directories
+            $blocked = [$panel_root . '/.git', $panel_root . '/shared', $panel_root . '/installer'];
+            $is_blocked = false;
+            foreach ($blocked as $b) {
+                if (strpos(realpath($target_abs) ?: '', realpath($b) ?: $b) === 0) {
+                    $is_blocked = true; break;
+                }
+            }
+            if ($is_blocked) {
+                $error_msg = 'This path is protected and cannot be deleted.';
+            } else
             // Change Permissions
             if (isset($_POST['change_permissions'])) {
                 $permissions = shm_clean($_POST['permissions'] ?? '');
@@ -297,9 +309,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action_taken) {
+        ob_end_clean(); // Discard any warnings before sending the redirect header
         $redirect_url = 'files-sh.php?path=' . urlencode($current_path);
         if ($success_msg) $redirect_url .= '&success=' . urlencode($success_msg);
-        if ($error_msg) $redirect_url .= '&error=' . urlencode($error_msg);
+        if ($error_msg)   $redirect_url .= '&error='   . urlencode($error_msg);
         header('Location: ' . $redirect_url);
         exit;
     }
