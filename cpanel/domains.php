@@ -140,7 +140,7 @@ if (isset($_POST['ajax_action'])) {
             if (!empty(trim($out))) {
                 throw new Exception("PHP Output Error: " . strip_tags($out));
             }
-            sendResponse($res);
+            echo json_encode($res);
             exit;
         }
 
@@ -254,7 +254,7 @@ if (isset($_POST['ajax_action'])) {
                 throw $e;
             }
 
-            sendResponse($res);
+            echo json_encode($res);
             exit;
         }
 
@@ -292,7 +292,7 @@ if (isset($_POST['ajax_action'])) {
             if (function_exists('cmd')) {
                 cmd("vhost-tool sync " . $did . " > /dev/null 2>&1 &");
             }
-            sendResponse($res);
+            echo json_encode($res);
             exit;
         }
 
@@ -306,7 +306,7 @@ if (isset($_POST['ajax_action'])) {
             if (function_exists('cmd')) {
                 cmd("troubleshoot fix-default-page $did");
             }
-            sendResponse($res);
+            echo json_encode($res);
             exit;
         }
 
@@ -360,7 +360,7 @@ if (isset($_POST['ajax_action'])) {
             $pdo->prepare("INSERT INTO dns_records (domain_id, type, name, value) VALUES (?, ?, ?, ?)")->execute([$dom_id, $type, $host, $value]);
 
             cmd("dns-tool sync " . (int) $dom_id);
-            sendResponse($res);
+            echo json_encode($res);
             exit;
         }
 
@@ -375,7 +375,7 @@ if (isset($_POST['ajax_action'])) {
             $pdo->prepare("DELETE FROM dns_records WHERE id = ? AND domain_id = ?")->execute([$did, $dom_id]);
 
             cmd("dns-tool sync " . $dom_id);
-            sendResponse($res);
+            echo json_encode($res);
             exit;
         }
 
@@ -388,7 +388,7 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Access Denied");
 
             cmd("malware-scan $did");
-            sendResponse($res);
+            echo json_encode($res);
             exit;
         }
 
@@ -403,7 +403,7 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Access Denied");
 
             cmd("maintenance $status " . escapeshellarg($d_info['domain']));
-            sendResponse($res);
+            echo json_encode($res);
             exit;
         }
 
@@ -538,9 +538,9 @@ include 'layout/header.php';
             style="margin-bottom: 2rem; border-color: transparent;">
             <!-- Domain Header - Always Visible -->
             <div class="domain-header"
-                style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: var(--radius-lg); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255, 255, 255, 0.4);"
-                onmouseover="this.style.backgroundColor='rgba(255, 255, 255, 0.8)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)';"
-                onmouseout="this.style.backgroundColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='none';"
+                style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: var(--radius-lg); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: var(--bg-surface);"
+                onmouseover="this.style.backgroundColor='var(--bg-body)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)';"
+                onmouseout="this.style.backgroundColor='var(--bg-surface)'; this.style.boxShadow='none';"
                 onclick="toggleDomain(<?= $domain_id ?>)">
                 <div style="display: flex; align-items: center; gap: 1.25rem;">
                     <div
@@ -636,16 +636,16 @@ include 'layout/header.php';
                 <div style="padding: 1.25rem;">
                     <!-- Configuration Row -->
                     <form onsubmit="handleGeneric(event, 'update_domain_config')" class="setup-form"
-                        style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1rem; margin-bottom: 1.5rem; background: rgba(248, 250, 252, 0.5); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: var(--radius-md);">
+                        style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1rem; margin-bottom: 1.5rem; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
                         <?= csrf_field() ?>
                         <input type="hidden" name="domain_id" value="<?= $d['id'] ?>">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <label
                                 style="font-size: 0.625rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em;">PHP</label>
                             <select name="php_version" class="form-select"
-                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 500; color: var(--slate-800); background-color: white; border-color: var(--slate-200); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 500; color: var(--text-primary); background-color: var(--bg-surface); border-color: var(--border-color); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
                                 onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
-                                onblur="this.style.borderColor='var(--slate-200)'; this.style.boxShadow='none';">
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
                                 <option value="8.1" <?= $d['php_version'] == '8.1' ? 'selected' : '' ?>>8.1</option>
                                 <option value="8.2" <?= $d['php_version'] == '8.2' ? 'selected' : '' ?>>8.2</option>
                                 <option value="8.3" <?= $d['php_version'] == '8.3' ? 'selected' : '' ?>>8.3</option>
@@ -655,9 +655,9 @@ include 'layout/header.php';
                             <label
                                 style="font-size: 0.625rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em;">Memory</label>
                             <select name="mem" class="form-select"
-                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 500; color: var(--slate-800); background-color: white; border-color: var(--slate-200); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
+                                style="padding: 0.5rem 2rem 0.5rem 0.75rem; font-size: 0.8125rem; font-weight: 500; color: var(--text-primary); background-color: var(--bg-surface); border-color: var(--border-color); cursor: pointer; border-radius: var(--radius-sm); outline: none; transition: border-color 0.2s, box-shadow 0.2s;"
                                 onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
-                                onblur="this.style.borderColor='var(--slate-200)'; this.style.boxShadow='none';">
+                                onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';">
                                 <?php
                                 $curr_mem = $pdo->query("SELECT memory_limit FROM php_config WHERE domain_id=" . $d['id'])->fetchColumn();
                                 if (!$curr_mem)
@@ -698,7 +698,7 @@ include 'layout/header.php';
                         $pname = $pdo->query("SELECT domain FROM domains WHERE id={$d['parent_id']}")->fetchColumn();
                         ?>
                         <div
-                            style="text-align: center; padding: 2rem; background: var(--slate-50); border-radius: 0.75rem; border: 1px dashed var(--slate-300);">
+                            style="text-align: center; padding: 2rem; background: var(--bg-body); border-radius: 0.75rem; border: 1px dashed var(--border-color);">
                             <i data-lucide="git-merge"
                                 style="width: 2rem; height: 2rem; color: var(--slate-700); margin: 0 auto 0.5rem;"></i>
                             <p style="font-size: 0.875rem; font-weight: 500; color: var(--slate-700);">DNS Managed by Parent
@@ -810,7 +810,7 @@ include 'layout/header.php';
                                         <tr>
                                             <td style="font-weight: 500; color: var(--slate-900);"><?= $r['name'] ?></td>
                                             <td><span class="badge"
-                                                    style="background: var(--slate-100); border: 1px solid var(--slate-200); color: var(--slate-700);"><?= $r['type'] ?></span>
+                                                    style="background: var(--bg-body); border: 1px solid var(--border-color); color: var(--text-secondary);"><?= $r['type'] ?></span>
                                             </td>
                                             <td
                                                 style="font-family: monospace; color: var(--slate-700); font-size: 0.75rem; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">

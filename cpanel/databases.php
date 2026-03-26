@@ -162,73 +162,78 @@ include 'layout/header.php';
 
 
 
-<div style="display: grid; grid-template-columns: 1fr; gap: 2rem; margin-bottom: 2rem;">
+<div style="display:grid;grid-template-columns:1fr;gap:2rem;margin-bottom:2rem;">
+
+    <!-- Page Header -->
+    <div style="border-bottom:1px solid var(--border-color);padding-bottom:1.5rem;">
+        <h2 style="font-size:1.875rem;font-weight:500;color:var(--text-primary);font-family:'Lexend',sans-serif;letter-spacing:-0.025em;margin-bottom:0.5rem;">Databases</h2>
+        <p style="color:var(--text-secondary);">Manage MySQL databases and users for your applications.</p>
+    </div>
+
     <!-- LEFT SIDE: FORMS -->
-    <div style="display: flex; flex-direction: column; gap: 2rem;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2rem;">
         <!-- CREATE DATABASE -->
-        <div>
-            <h3
-                style="font-size: 1.25rem; font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); margin-bottom: 1rem;">
-                Create Database</h3>
-            <form onsubmit="handleSubmit(event, 'add_db')" class="glass-card"
-                style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-                <div style="display: flex; align-items: center; background: rgba(255, 255, 255, 0.5); border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.4); overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s;"
-                    onfocusin="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
-                    onfocusout="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
-                    <div
-                        style="padding: 0.75rem 1rem; background: rgba(248, 250, 252, 0.8); color: var(--slate-600); font-family: monospace; font-size: 0.875rem; border-right: 1px solid rgba(255, 255, 255, 0.4); font-weight: 500;">
-                        <?= htmlspecialchars($username) ?>_
+        <div class="glass-card" style="padding:1.75rem;">
+            <h3 style="font-size:1rem;font-weight:700;color:var(--text-primary);font-family:var(--font-heading);margin-bottom:1.25rem;display:flex;align-items:center;gap:0.5rem;">
+                <i data-lucide="database" style="width:18px;height:18px;color:var(--primary);"></i> Create Database
+            </h3>
+            <form onsubmit="handleSubmit(event, 'add_db')" style="display:flex;flex-direction:column;gap:1rem;">
+                <?= csrf_field() ?>
+                <div>
+                    <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Database Name</label>
+                    <div style="display:flex;align-items:center;border:1px solid var(--border-color);border-radius:var(--input-radius);overflow:hidden;background:var(--bg-surface);transition:border-color 0.2s,box-shadow 0.2s;"
+                        onfocusin="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px var(--primary-light)';"
+                        onfocusout="this.style.borderColor='var(--border-color)';this.style.boxShadow='none';">
+                        <div style="padding:0 0.875rem;background:var(--bg-body);color:var(--text-secondary);font-family:monospace;font-size:0.8125rem;border-right:1px solid var(--border-color);height:var(--input-height-md);display:flex;align-items:center;white-space:nowrap;font-weight:600;"><?= htmlspecialchars($username) ?>_</div>
+                        <input name="db_name" required placeholder="dbname" style="flex:1;background:transparent;padding:0 0.875rem;border:none;outline:none;color:var(--text-primary);font-size:0.875rem;height:var(--input-height-md);">
                     </div>
-                    <input name="db_name" required placeholder="dbname"
-                        style="width: 100%; background: transparent; padding: 0.75rem 1rem; border: none; outline: none; color: var(--slate-900); font-size: 0.875rem; font-weight: 500;">
                 </div>
-                <select name="domain_id" class="form-select"
-                    style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.5); color: var(--slate-900); font-size: 0.875rem; transition: all 0.2s; outline: none;"
-                    onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
-                    onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='none';">
-                    <option value="">Global (No Domain)</option>
-                    <?php foreach ($domains as $d): ?>
-                        <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['domain']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 0.75rem; font-weight: 500; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s;"><i
-                        data-lucide="database" style="width: 1.25rem; height: 1.25rem;"></i> Create Database</button>
+                <div>
+                    <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Link to Domain (optional)</label>
+                    <select name="domain_id" class="form-input">
+                        <option value="">Global (No Domain)</option>
+                        <?php foreach ($domains as $d): ?>
+                            <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['domain']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;gap:0.5rem;">
+                    <i data-lucide="plus-circle" style="width:1rem;height:1rem;"></i> Create Database
+                </button>
             </form>
         </div>
 
         <!-- CREATE USER -->
-        <div>
-            <h3
-                style="font-size: 1.25rem; font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); margin-bottom: 1rem;">
-                Create User</h3>
-            <form onsubmit="handleSubmit(event, 'add_db_user')" class="glass-card"
-                style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-                <div style="display: flex; align-items: center; background: rgba(255, 255, 255, 0.5); border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.4); overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s;"
-                    onfocusin="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
-                    onfocusout="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='inset 0 2px 4px rgba(0,0,0,0.02)';">
-                    <div
-                        style="padding: 0.75rem 1rem; background: rgba(248, 250, 252, 0.8); color: var(--slate-600); font-family: monospace; font-size: 0.875rem; border-right: 1px solid rgba(255, 255, 255, 0.4); font-weight: 500;">
-                        <?= htmlspecialchars($username) ?>_
+        <div class="glass-card" style="padding:1.75rem;">
+            <h3 style="font-size:1rem;font-weight:700;color:var(--text-primary);font-family:var(--font-heading);margin-bottom:1.25rem;display:flex;align-items:center;gap:0.5rem;">
+                <i data-lucide="user-plus" style="width:18px;height:18px;color:var(--primary);"></i> Create DB User
+            </h3>
+            <form onsubmit="handleSubmit(event, 'add_db_user')" style="display:flex;flex-direction:column;gap:1rem;">
+                <?= csrf_field() ?>
+                <div>
+                    <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Username</label>
+                    <div style="display:flex;align-items:center;border:1px solid var(--border-color);border-radius:var(--input-radius);overflow:hidden;background:var(--bg-surface);transition:border-color 0.2s,box-shadow 0.2s;"
+                        onfocusin="this.style.borderColor='var(--primary)';this.style.boxShadow='0 0 0 3px var(--primary-light)';"
+                        onfocusout="this.style.borderColor='var(--border-color)';this.style.boxShadow='none';">
+                        <div style="padding:0 0.875rem;background:var(--bg-body);color:var(--text-secondary);font-family:monospace;font-size:0.8125rem;border-right:1px solid var(--border-color);height:var(--input-height-md);display:flex;align-items:center;white-space:nowrap;font-weight:600;"><?= htmlspecialchars($username) ?>_</div>
+                        <input name="db_user" required placeholder="username" style="flex:1;background:transparent;padding:0 0.875rem;border:none;outline:none;color:var(--text-primary);font-size:0.875rem;height:var(--input-height-md);">
                     </div>
-                    <input name="db_user" required placeholder="dbuser"
-                        style="width: 100%; background: transparent; padding: 0.75rem 1rem; border: none; outline: none; color: var(--slate-900); font-size: 0.875rem; font-weight: 500;">
                 </div>
-                <input name="db_pass" type="password" required placeholder="Password" class="form-input"
-                    style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.5); font-size: 0.875rem; transition: all 0.2s; outline: none;"
-                    onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
-                    onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='none';">
-                <select name="target_db" class="form-select"
-                    style="width: 100%; padding: 0.75rem 1rem; border-radius: var(--radius-lg); border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.5); color: var(--slate-900); font-size: 0.875rem; transition: all 0.2s; outline: none;"
-                    onfocus="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 0 0 3px rgba(37, 99, 235, 0.1)';"
-                    onblur="this.style.borderColor='rgba(255, 255, 255, 0.4)'; this.style.boxShadow='none';">
-                    <?php foreach ($my_dbs as $db): ?>
-                        <option value="<?= $db['db_name'] ?>"><?= $db['db_name'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <button type="submit" class="btn btn-secondary"
-                    style="width: 100%; padding: 0.75rem; font-weight: 500; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s;"><i
-                        data-lucide="user-plus" style="width: 1.25rem; height: 1.25rem;"></i> Create User</button>
+                <div>
+                    <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Password</label>
+                    <input name="db_pass" type="password" required placeholder="••••••••" class="form-input">
+                </div>
+                <div>
+                    <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Assign to Database</label>
+                    <select name="target_db" class="form-input">
+                        <?php foreach ($my_dbs as $db): ?>
+                            <option value="<?= $db['db_name'] ?>"><?= htmlspecialchars($db['db_name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-secondary" style="width:100%;gap:0.5rem;">
+                    <i data-lucide="user-plus" style="width:1rem;height:1rem;"></i> Create User
+                </button>
             </form>
         </div>
     </div>
@@ -244,7 +249,7 @@ include 'layout/header.php';
                 <div class="table-container custom-scrollbar">
                     <table class="modern-table w-full text-left border-collapse" style="width: 100%;">
                         <thead>
-                            <tr style="border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50);">
+                            <tr style="border-bottom:1px solid var(--border-color);background:var(--bg-body);">
                                 <th
                                     style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                                     Name</th>
@@ -267,8 +272,8 @@ include 'layout/header.php';
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($my_dbs as $db): ?>
-                                    <tr style="border-bottom: 1px solid var(--slate-100); transition: background-color 0.2s;"
-                                        onmouseover="this.style.backgroundColor='var(--slate-50)'"
+                                    <tr style="border-bottom:1px solid var(--border-color);transition:background-color 0.2s;"
+                                        onmouseover="this.style.backgroundColor='var(--bg-body)'"
                                         onmouseout="this.style.backgroundColor='transparent'">
                                         <td style="padding: 1rem 1.5rem;">
                                             <div
@@ -314,7 +319,7 @@ include 'layout/header.php';
                 <div class="table-container custom-scrollbar">
                     <table class="modern-table w-full text-left border-collapse" style="width: 100%;">
                         <thead>
-                            <tr style="border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50);">
+                            <tr style="border-bottom:1px solid var(--border-color);background:var(--bg-body);">
                                 <th
                                     style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-700); font-size: 0.875rem; letter-spacing: 0.05em; text-transform: uppercase;">
                                     Username</th>
@@ -342,8 +347,8 @@ include 'layout/header.php';
                                 </tr>
                             <?php else:
                                 foreach ($users_list as $u): ?>
-                                    <tr style="border-bottom: 1px solid var(--slate-100); transition: background-color 0.2s;"
-                                        onmouseover="this.style.backgroundColor='var(--slate-50)'"
+                                    <tr style="border-bottom:1px solid var(--border-color);transition:background-color 0.2s;"
+                                        onmouseover="this.style.backgroundColor='var(--bg-body)'"
                                         onmouseout="this.style.backgroundColor='transparent'">
                                         <td
                                             style="padding: 1rem 1.5rem; font-weight: 500; color: var(--slate-900); font-size: 0.875rem;">
@@ -402,15 +407,15 @@ include 'layout/header.php';
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             if (res.status === 'success') {
-                showToast('success', res.msg);
+                showToast('success', 'Success', res.msg || 'Done');
                 setTimeout(() => location.reload(), 1000);
             } else {
-                showToast('error', res.msg);
+                showToast('error', 'Error', res.msg || 'Action failed.');
                 btn.disabled = false;
                 btn.classList.remove('btn-loading');
                 btn.innerText = originalText;
             }
-        } catch (e) { showToast('error', 'Server error occurred'); }
+        } catch (e) { showToast('error', 'Error', 'Server connection failed.'); }
     }
 
     /**
@@ -432,15 +437,15 @@ include 'layout/header.php';
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
             if (res.status === 'success') {
-                showToast('success', 'Deleted successfully');
+                showToast('success', 'Deleted', val + ' deleted successfully.');
                 setTimeout(() => location.reload(), 800);
             } else {
-                showToast('error', res.msg);
+                showToast('error', 'Delete Failed', res.msg);
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
                 if (window.lucide) lucide.createIcons();
             }
-        } catch (e) { showToast('error', 'Connection error'); }
+        } catch (e) { showToast('error', 'Error', 'Connection error.'); }
     }
 
     /**
@@ -462,8 +467,10 @@ include 'layout/header.php';
 
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-            showToast(res.status, res.msg);
-        } catch (e) { showToast('error', 'Reset failed'); }
+            showToast(res.status === 'success' ? 'success' : 'error',
+                      res.status === 'success' ? 'Password Updated' : 'Failed',
+                      res.msg || 'Done');
+        } catch (e) { showToast('error', 'Error', 'Reset failed.'); }
 
         btn.innerHTML = originalHtml;
         if (window.lucide) lucide.createIcons();

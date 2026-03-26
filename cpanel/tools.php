@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../shared/config.php';
 
 if (!isset($_SESSION['client'])) {
@@ -29,8 +29,8 @@ if (isset($_POST['ajax_action'])) {
         // --- APPS HANDLER ---
         if ($action == 'install_app') {
             $app = $_POST['app'];
-            $dom_id = $_POST['domain_id'];
-            $domain = $pdo->query("SELECT domain FROM domains WHERE id=$dom_id AND client_id=$cid")->fetchColumn();
+            $dom_id = (int)$_POST['domain_id'];
+            $domain = $pdo->prepare("SELECT domain FROM domains WHERE id=? AND client_id=?")->execute([$dom_id, $cid]) ? $pdo->query("SELECT domain FROM domains WHERE id=$dom_id AND client_id=$cid")->fetchColumn() : false;
             if (!$domain)
                 throw new Exception("Invalid Domain");
 
@@ -43,10 +43,10 @@ if (isset($_POST['ajax_action'])) {
             $stmt->execute([$cid, $dom_id, $app, $db_name, $db_user, $db_pass]);
 
             $cmd = "app-tool install " . escapeshellarg($app) . " " . escapeshellarg($domain) . " " . escapeshellarg($db_name) . " " . escapeshellarg($db_user) . " " . escapeshellarg($db_pass);
-            if (function_exists('cmd'))
-                cmd("$cmd > /dev/null 2>&1 &");
+            cmd($cmd);
 
-            sendResponse($res);
+            $res['msg'] = ucfirst($app) . ' installation started';
+            echo json_encode($res);
             exit;
         }
 
@@ -72,7 +72,8 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("FTP User already exists");
 
             cmd("ftp-tool add-user " . escapeshellarg($username) . " " . escapeshellarg($ftp_user) . " " . escapeshellarg($pass) . " " . escapeshellarg($home));
-            sendResponse($res);
+            $res['msg'] = "FTP account '$ftp_user' created";
+            echo json_encode($res);
             exit;
         }
 
@@ -82,7 +83,8 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("Permission Denied");
             
             cmd("ftp-tool delete-user " . escapeshellarg($userToDelete));
-            sendResponse($res);
+            $res['msg'] = 'FTP account deleted';
+            echo json_encode($res);
             exit;
         }
 
@@ -95,51 +97,57 @@ if (isset($_POST['ajax_action'])) {
 
         // --- SECURITY HANDLERS ---
         if ($action == 'add_ssh') {
-            cmd("ssh-key add " . escapeshellarg($username) . " " . escapeshellarg($_POST['key']));
-            sendResponse($res);
+            $key = trim($_POST['key'] ?? '');
+            if (empty($key)) throw new Exception('SSH key cannot be empty');
+            cmd("ssh-key add " . escapeshellarg($username) . " " . escapeshellarg($key));
+            $res['msg'] = 'SSH key added';
+            echo json_encode($res);
             exit;
         }
         if ($action == 'del_ssh') {
             cmd("ssh-key delete " . escapeshellarg($username) . " " . (int) $_POST['line']);
-            sendResponse($res);
+            $res['msg'] = 'SSH key deleted';
+            echo json_encode($res);
             exit;
         }
         if ($action == 'list_ssh') {
             $out = cmd("ssh-key list " . escapeshellarg($username));
-            $lines = array_filter(explode("\n", $out));
-            echo json_encode(['status' => 'success', 'data' => array_values($lines)]);
+            $lines = array_values(array_filter(explode("\n", $out)));
+            echo json_encode(['status' => 'success', 'data' => $lines]);
             exit;
         }
 
         if ($action == 'fix_perms') {
             cmd("fix-permissions " . escapeshellarg($username));
-            sendResponse($res);
+            $res['msg'] = 'Permissions fixed';
+            echo json_encode($res);
             exit;
         }
 
         // --- BACKUP HANDLERS ---
         if ($action == 'create_backup') {
             cmd("backup create " . escapeshellarg($username));
-            sendResponse($res);
+            $res['msg'] = 'Backup started';
+            echo json_encode($res);
             exit;
         }
         if ($action == 'list_backups') {
-            $out = cmd("backup list " . escapeshellarg($username));
-            $backups = [];
-            foreach (explode("\n", $out) as $line) {
-                if (!trim($line))
-                    continue;
-                $parts = preg_split('/\s+/', $line);
-                if (count($parts) >= 5) {
-                    $backups[] = ['name' => end($parts), 'size' => $parts[0], 'date' => $parts[1] . ' ' . $parts[2] . ' ' . $parts[3]];
-                }
-            }
-            echo json_encode(['status' => 'success', 'data' => $backups]);
+            $stmt = $pdo->prepare("
+                SELECT b.id, b.filename, b.size_mb, b.status, b.created_at
+                FROM backups b
+                WHERE b.client_id = ?
+                ORDER BY b.created_at DESC LIMIT 50
+            ");
+            $stmt->execute([$cid]);
+            echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
             exit;
         }
         if ($action == 'restore_backup') {
-            cmd("backup restore " . escapeshellarg($username) . " " . escapeshellarg($_POST['file']));
-            sendResponse($res);
+            $file = shm_clean($_POST['file'] ?? '');
+            if (!$file) throw new Exception('No backup file specified');
+            cmd("backup restore " . escapeshellarg($username) . " " . escapeshellarg($file));
+            $res['msg'] = 'Restore started';
+            echo json_encode($res);
             exit;
         }
 
@@ -159,14 +167,15 @@ if (isset($_POST['ajax_action'])) {
             if ($action == 'fix_config') {
                 $domain = $domainData['domain'];
                 cmd("troubleshoot fix-config $domain");
-                sendResponse(['status' => 'success', 'msg' => 'Configuration fixes applied.']);
+                $res['msg'] = 'Configuration fixes applied.';
             } else {
-                sendResponse($res);
+                $res['msg'] = 'Action completed.';
             }
+            echo json_encode($res);
             exit;
         }
 
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
     }
@@ -389,11 +398,85 @@ include 'layout/header.php';
 </div>
 
 <!-- SECURITY & BACKUPS (Placeholders for now, to be implemented similarly) -->
-<div id="tab-security" class="<?= $active_tab == 'security' ? '' : 'hidden' ?>">
-    <div style="text-align: center; padding: 3rem; color: var(--slate-700);">SSH Key Management coming soon.</div>
+<div id="tab-security" style="display: <?= $active_tab == 'security' ? 'block' : 'none' ?>">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <!-- Add SSH Key -->
+        <div class="glass-card" style="padding: 2rem; height: fit-content;">
+            <h3 style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading); font-size: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="key" style="width: 20px; height: 20px; color: var(--primary);"></i> Add SSH Key
+            </h3>
+            <form onsubmit="handleToolAction(event, 'add_ssh', loadSSH)" style="display: flex; flex-direction: column; gap: 1rem;">
+                <textarea name="key" required placeholder="Paste your public key here (ssh-rsa AAAA...)"
+                    style="width: 100%; min-height: 120px; background-color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.4); border-radius: var(--radius-lg); padding: 0.875rem 1rem; font-family: monospace; font-size: 0.8rem; color: var(--slate-900); outline: none; resize: vertical;"
+                    onfocus="this.style.borderColor='var(--primary)'"
+                    onblur="this.style.borderColor='rgba(255,255,255,0.4)'"></textarea>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.875rem; border-radius: var(--radius-lg);">Add SSH Key</button>
+            </form>
+        </div>
+        <!-- SSH Key List -->
+        <div class="glass-card table-card" style="padding: 0; overflow: hidden; grid-column: span 2;">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading);">Authorized Keys</h3>
+                <button onclick="loadSSH()" style="color: var(--slate-500); background: transparent; border: none; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-md); transition: all 0.2s;" onmouseover="this.style.color='var(--slate-900)'; this.style.backgroundColor='var(--slate-100)';" onmouseout="this.style.color='var(--slate-500)'; this.style.backgroundColor='transparent';">
+                    <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i>
+                </button>
+            </div>
+            <div class="table-container custom-scrollbar">
+                <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                    <thead style="background-color: var(--slate-50); font-size: 0.75rem; text-transform: uppercase; color: var(--slate-500); font-weight: 800; letter-spacing: 0.05em; border-bottom: 1px solid var(--slate-200);">
+                        <tr>
+                            <th style="padding: 1rem 1.5rem;">#</th>
+                            <th style="padding: 1rem 1.5rem;">Key</th>
+                            <th style="padding: 1rem 1.5rem; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ssh-list">
+                        <tr><td colspan="3" style="padding: 2rem; text-align: center; color: var(--slate-500);">Loading&hellip;</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
-<div id="tab-backups" class="<?= $active_tab == 'backups' ? '' : 'hidden' ?>">
-    <div style="text-align: center; padding: 3rem; color: var(--slate-700);">Backup Management coming soon.</div>
+
+<div id="tab-backups" style="display: <?= $active_tab == 'backups' ? 'block' : 'none' ?>">
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Create Backup -->
+        <div class="glass-card" style="padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+            <div>
+                <h3 style="font-weight: 700; color: var(--slate-900); margin-bottom: 0.25rem;">Create Backup</h3>
+                <p style="font-size: 0.8125rem; color: var(--slate-500);">Creates a full backup of your account files and databases.</p>
+            </div>
+            <button onclick="createBackup()" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem;">
+                <i data-lucide="archive" style="width: 1rem; height: 1rem;"></i> Create Backup Now
+            </button>
+        </div>
+        <!-- Backup List -->
+        <div class="glass-card table-card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--slate-200); background-color: var(--slate-50); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-weight: 800; color: var(--slate-900); font-family: var(--font-heading);">Your Backups</h3>
+                <button onclick="loadBackups()" style="color: var(--slate-500); background: transparent; border: none; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-md); transition: all 0.2s;" onmouseover="this.style.color='var(--slate-900)'; this.style.backgroundColor='var(--slate-100)';" onmouseout="this.style.color='var(--slate-500)'; this.style.backgroundColor='transparent';">
+                    <i data-lucide="refresh-cw" style="width: 1rem; height: 1rem;"></i>
+                </button>
+            </div>
+            <div class="table-container custom-scrollbar">
+                <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                    <thead style="background-color: var(--slate-50); font-size: 0.75rem; text-transform: uppercase; color: var(--slate-500); font-weight: 800; letter-spacing: 0.05em; border-bottom: 1px solid var(--slate-200);">
+                        <tr>
+                            <th style="padding: 1rem 1.5rem;">Filename</th>
+                            <th style="padding: 1rem 1.5rem;">Size</th>
+                            <th style="padding: 1rem 1.5rem;">Status</th>
+                            <th style="padding: 1rem 1.5rem;">Created</th>
+                            <th style="padding: 1rem 1.5rem; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="backup-list">
+                        <tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--slate-500);">Loading&hellip;</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="tab-troubleshoot" style="display: <?= $active_tab == 'troubleshoot' ? 'block' : 'none' ?>;">
@@ -454,6 +537,8 @@ include 'layout/header.php';
 </div>
 
 <script>
+    const CSRF = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
     // Generic Tool Action Handler
     async function handleToolAction(e, action, callback = null) {
         e.preventDefault();
@@ -465,6 +550,7 @@ include 'layout/header.php';
 
         const fd = new FormData(e.target);
         fd.append('ajax_action', action);
+        fd.append('csrf_token', CSRF());
 
         try {
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
@@ -488,7 +574,6 @@ include 'layout/header.php';
     function handleAppInstall(e) {
         handleToolAction(e, 'install_app', () => {
             loadApps();
-            // Start polling
             if (!window.appPoll) window.appPoll = setInterval(loadApps, 5000);
         });
     }
@@ -496,7 +581,9 @@ include 'layout/header.php';
     async function loadApps() {
         const tbody = document.getElementById('app-list');
         try {
-            const fd = new FormData(); fd.append('ajax_action', 'list_apps');
+            const fd = new FormData();
+            fd.append('ajax_action', 'list_apps');
+            fd.append('csrf_token', CSRF());
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
 
             if (res.status === 'success' && res.data.length > 0) {
@@ -510,45 +597,36 @@ include 'layout/header.php';
     </td>
     <td style="padding: 1.25rem 1.5rem; color: var(--slate-700); font-size: 0.875rem; font-weight: 500;">${app.domain}</td>
     <td style="padding: 1.25rem 1.5rem;">
-        <span style="padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.25rem; ${app.status === 'active' ? 'background-color: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.2);' :
-                        (app.status === 'failed' ? 'background-color: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2);' :
-                            'background-color: rgba(59, 130, 246, 0.1); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.2);')
-                    }">
+        <span style="padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.25rem; ${app.status === 'active' ? 'background-color: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2);' : (app.status === 'failed' ? 'background-color: rgba(239,68,68,0.1); color: #dc2626; border: 1px solid rgba(239,68,68,0.2);' : 'background-color: rgba(59,130,246,0.1); color: #2563eb; border: 1px solid rgba(59,130,246,0.2);')}">
             ${app.status === 'installing' ? '<i data-lucide="loader-2" class="animate-spin" style="width: 10px; height: 10px;"></i>' : ''}
             ${app.status}
         </span>
     </td>
     <td style="padding: 1.25rem 1.5rem; text-align: right;">
-        ${app.status === 'active' ?
-                        `<a href="http://${app.domain}" target="_blank" style="padding: 0.5rem; color: var(--primary); background: rgba(37, 99, 235, 0.1); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: var(--radius-md); transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;" onmouseover="this.style.backgroundColor='rgba(37, 99, 235, 0.2)'; this.style.borderColor='rgba(37, 99, 235, 0.3)';" onmouseout="this.style.backgroundColor='rgba(37, 99, 235, 0.1)'; this.style.borderColor='rgba(37, 99, 235, 0.2)';"><i
-                data-lucide="external-link" style="width: 16px; height: 16px;"></i></a>` :
-                        ''}
+        ${app.status === 'active' ? `<a href="http://${app.domain}" target="_blank" style="padding: 0.5rem; color: var(--primary); background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.2); border-radius: var(--radius-md); transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;"><i data-lucide="external-link" style="width: 16px; height: 16px;"></i></a>` : ''}
     </td>
-</tr>
-`).join('');
+</tr>`).join('');
                 lucide.createIcons();
             } else {
-                tbody.innerHTML = `<tr>
-    <td colspan="4" style="padding: 3rem 1.5rem; text-align: center; color: var(--slate-500);">
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-            <i data-lucide="inbox" style="width: 48px; height: 48px; opacity: 0.5;"></i>
-            <span>No recent installations found.</span>
-        </div>
-    </td>
-</tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="padding: 3rem 1.5rem; text-align: center; color: var(--slate-500);">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+        <i data-lucide="inbox" style="width: 48px; height: 48px; opacity: 0.5;"></i>
+        <span>No recent installations found.</span>
+    </div></td></tr>`;
+                lucide.createIcons();
             }
         } catch (e) { console.error(e); }
     }
 
     // FTP Logic
-    function handleFTPAdd(e) {
-        handleToolAction(e, 'add_ftp', loadFTP);
-    }
+    function handleFTPAdd(e) { handleToolAction(e, 'add_ftp', loadFTP); }
 
     async function loadFTP() {
         const tbody = document.getElementById('ftp-list');
         try {
-            const fd = new FormData(); fd.append('ajax_action', 'list_ftp');
+            const fd = new FormData();
+            fd.append('ajax_action', 'list_ftp');
+            fd.append('csrf_token', CSRF());
             const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
 
             if (res.status === 'success' && res.data.length > 0) {
@@ -560,23 +638,14 @@ include 'layout/header.php';
             ${user.userid}
         </div>
     </td>
-    <td style="padding: 1.25rem 1.5rem; color: var(--primary); font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; font-weight: 500;">${user.homedir}</td>
+    <td style="padding: 1.25rem 1.5rem; color: var(--primary); font-family: monospace; font-size: 0.8125rem; font-weight: 500;">${user.homedir}</td>
     <td style="padding: 1.25rem 1.5rem; text-align: right;">
-        <button onclick="delFTP('${user.userid}')" style="padding: 0.5rem; color: var(--accent-red); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius-md); transition: all 0.2s; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'; this.style.borderColor='rgba(239, 68, 68, 0.3)';" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'; this.style.borderColor='rgba(239, 68, 68, 0.2)';"><i
-                data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
+        <button onclick="delFTP('${user.userid}')" style="padding: 0.5rem; color: var(--accent-red); background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: var(--radius-md); transition: all 0.2s; cursor: pointer; display: inline-flex;" onmouseover="this.style.backgroundColor='rgba(239,68,68,0.2)';" onmouseout="this.style.backgroundColor='rgba(239,68,68,0.1)';"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
     </td>
-</tr>
-`).join('');
+</tr>`).join('');
                 lucide.createIcons();
             } else {
-                tbody.innerHTML = `<tr>
-    <td colspan="3" style="padding: 3rem 1.5rem; text-align: center; color: var(--slate-500);">
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-            <i data-lucide="users" style="width: 48px; height: 48px; opacity: 0.5;"></i>
-            <span>No FTP accounts found.</span>
-        </div>
-    </td>
-</tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" style="padding: 3rem; text-align: center; color: var(--slate-500);">No FTP accounts found.</td></tr>`;
             }
         } catch (e) { console.error(e); }
     }
@@ -586,55 +655,158 @@ include 'layout/header.php';
         const fd = new FormData();
         fd.append('ajax_action', 'del_ftp');
         fd.append('user', user);
-        await fetch('', { method: 'POST', body: fd });
-        showToast('success', 'FTP User Deleted');
+        fd.append('csrf_token', CSRF());
+        const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+        showToast(res.status === 'success' ? 'success' : 'error', res.msg || 'FTP User Deleted');
         loadFTP();
     }
 
-    // Init
-    document.addEventListener('DOMContentLoaded', () => {
-        if (document.getElementById('tab-apps') && !document.getElementById('tab-apps').classList.contains('hidden')) {
-            loadApps();
-            // Poll for status updates
-            window.appPoll = setInterval(loadApps, 10000);
-        }
-        if (document.getElementById('tab-ftp') && !document.getElementById('tab-ftp').classList.contains('hidden')) {
-            loadFTP();
-        }
-    });
+    // SSH Logic
+    async function loadSSH() {
+        const tbody = document.getElementById('ssh-list');
+        if (!tbody) return;
+        try {
+            const fd = new FormData();
+            fd.append('ajax_action', 'list_ssh');
+            fd.append('csrf_token', CSRF());
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success' && res.data.length > 0) {
+                tbody.innerHTML = res.data.map((key, i) => `
+<tr style="border-bottom:1px solid var(--slate-100);">
+    <td style="padding:1rem 1.5rem; color:var(--slate-500); font-size:0.75rem; font-weight:800;">${i + 1}</td>
+    <td style="padding:1rem 1.5rem; font-family:monospace; font-size:0.75rem; color:var(--slate-700); max-width:400px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${key}">${key}</td>
+    <td style="padding:1rem 1.5rem; text-align:right;">
+        <button onclick="delSSH(${i + 1})" style="padding:0.5rem; color:var(--accent-red); background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:var(--radius-md); cursor:pointer; display:inline-flex;"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></button>
+    </td>
+</tr>`).join('');
+                lucide.createIcons();
+            } else {
+                tbody.innerHTML = `<tr><td colspan="3" style="padding:3rem;text-align:center;color:var(--slate-500);">No SSH keys found.</td></tr>`;
+            }
+        } catch(e) { console.error(e); }
+    }
 
-    // Utility: Prompt domain ID
+    async function delSSH(line) {
+        if (!confirm('Delete SSH key #' + line + '?')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'del_ssh');
+        fd.append('line', line);
+        fd.append('csrf_token', CSRF());
+        const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+        showToast(res.status === 'success' ? 'success' : 'error', res.msg || 'SSH key deleted');
+        loadSSH();
+    }
+
+    // Backup Logic
+    async function createBackup() {
+        if (!confirm('Create a full backup of your account now?')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'create_backup');
+        fd.append('csrf_token', CSRF());
+        showToast('info', 'Backup started…');
+        const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+        showToast(res.status === 'success' ? 'success' : 'error', res.msg);
+        setTimeout(loadBackups, 2000);
+    }
+
+    async function loadBackups() {
+        const tbody = document.getElementById('backup-list');
+        if (!tbody) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'list_backups');
+        fd.append('csrf_token', CSRF());
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            if (res.status === 'success' && res.data.length > 0) {
+                const badge = (s) => {
+                    const cfg = { completed:['rgba(16,185,129,0.1)','#059669'], running:['rgba(59,130,246,0.1)','#2563eb'], failed:['rgba(239,68,68,0.1)','#dc2626'] };
+                    const [bg, color] = cfg[s] || ['rgba(100,100,100,0.1)','var(--slate-500)'];
+                    return `<span style="padding:0.2rem 0.6rem;border-radius:9999px;background:${bg};color:${color};font-size:0.65rem;font-weight:800;text-transform:uppercase;">${s}</span>`;
+                };
+                tbody.innerHTML = res.data.map(b => `
+<tr style="border-bottom:1px solid var(--slate-100);transition:background 0.2s;" onmouseover="this.style.backgroundColor='var(--slate-50)'" onmouseout="this.style.backgroundColor='transparent'">
+    <td style="padding:1rem 1.5rem;font-family:monospace;font-size:0.75rem;color:var(--slate-700);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${b.filename??''}">${b.filename??'—'}</td>
+    <td style="padding:1rem 1.5rem;font-size:0.8125rem;color:var(--slate-500);">${b.size_mb ? parseFloat(b.size_mb).toFixed(1)+' MB' : '—'}</td>
+    <td style="padding:1rem 1.5rem;">${badge(b.status??'unknown')}</td>
+    <td style="padding:1rem 1.5rem;font-size:0.8125rem;color:var(--slate-500);white-space:nowrap;">${b.created_at ? new Date(b.created_at).toLocaleString() : '—'}</td>
+    <td style="padding:1rem 1.5rem;text-align:right;">
+        ${b.status==='completed' && b.filename ? `<button onclick="restoreBackup('${b.filename}')" style="padding:0.4rem 0.875rem;font-size:0.75rem;font-weight:600;color:#2563eb;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:var(--radius-md);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(59,130,246,0.2)'" onmouseout="this.style.background='rgba(59,130,246,0.1)'">Restore</button>` : ''}
+    </td>
+</tr>`).join('');
+                lucide.createIcons();
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" style="padding:3rem;text-align:center;color:var(--slate-500);">No backups found. Create your first backup above.</td></tr>`;
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    async function restoreBackup(file) {
+        if (!confirm('Restore from ' + file + '? This will overwrite current files.')) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'restore_backup');
+        fd.append('file', file);
+        fd.append('csrf_token', CSRF());
+        showToast('info', 'Restore started…');
+        const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+        showToast(res.status === 'success' ? 'success' : 'error', res.msg);
+    }
+
+    // Utility: domain selector via <select>
     function getDomId() {
-        let domList = "Available IDs:\n";
-        <?php foreach ($domains as $d)
-            echo "domList += \"{$d['id']}: {$d['domain']}\\n\";\n"; ?>
-        return prompt(`Select Domain ID:\n\n${domList}`);
+        <?php if (!empty($domains)): ?>
+        const opts = [<?php foreach ($domains as $d) echo "{id:{$d['id']},name:'{$d['domain']}'},"; ?>];
+        return new Promise(resolve => {
+            const sel = document.createElement('select');
+            sel.style.cssText = 'width:100%;padding:0.5rem;font-size:0.875rem;';
+            opts.forEach(o => {
+                const opt = document.createElement('option');
+                opt.value = o.id; opt.textContent = o.name;
+                sel.appendChild(opt);
+            });
+            if (confirm('Select domain — press OK then choose from the dialog.\n\nDomains: ' + opts.map(o=>o.name).join(', '))) {
+                // fallback simple prompt
+                const id = prompt('Enter domain ID:\n' + opts.map(o=>`${o.id}: ${o.name}`).join('\n'));
+                resolve(id);
+            } else { resolve(null); }
+        });
+        <?php else: ?>
+        alert('No domains found on your account.');
+        return Promise.resolve(null);
+        <?php endif; ?>
     }
 
     // Troubleshoot AJAX
     async function fixWebsite() {
-        const did = getDomId(); if (!did) return;
-        if (!confirm("This will fix permissions and default pages for this domain. Continue?")) return;
-        const fd = new FormData(); fd.append('ajax_action', 'fix_website'); fd.append('domain_id', did);
-        await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-        showToast('success', 'Website Fixed');
-    }
-    async function restartServices() {
-        const did = getDomId(); if (!did) return;
-        const fd = new FormData(); fd.append('ajax_action', 'restart_services'); fd.append('domain_id', did);
-        await fetch('', { method: 'POST', body: fd });
-        showToast('success', 'Services Restarted');
+        const did = await getDomId(); if (!did) return;
+        if (!confirm('Fix permissions and default pages for this domain?')) return;
+        const fd = new FormData(); fd.append('ajax_action', 'fix_website'); fd.append('domain_id', did); fd.append('csrf_token', CSRF());
+        const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+        showToast(res.status === 'success' ? 'success' : 'error', res.msg || 'Website Fixed');
     }
 
-    // NEW: Fix Config
-    async function fixConfig() {
-        const did = getDomId(); if (!did) return;
-        if (!confirm("This will fix server configuration issues for this domain. Continue?")) return;
-        const fd = new FormData(); fd.append('ajax_action', 'fix_config'); fd.append('domain_id', did);
+    async function restartServices() {
+        const did = await getDomId(); if (!did) return;
+        const fd = new FormData(); fd.append('ajax_action', 'restart_services'); fd.append('domain_id', did); fd.append('csrf_token', CSRF());
         const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
-        if (res.status === 'success') showToast('success', 'Config Fixed', res.msg);
-        else showToast('error', 'Failed', res.msg);
+        showToast(res.status === 'success' ? 'success' : 'error', res.msg || 'Services Restarted');
     }
+
+    async function fixConfig() {
+        const did = await getDomId(); if (!did) return;
+        if (!confirm('Fix server configuration for this domain?')) return;
+        const fd = new FormData(); fd.append('ajax_action', 'fix_config'); fd.append('domain_id', did); fd.append('csrf_token', CSRF());
+        const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+        showToast(res.status === 'success' ? 'success' : 'error', res.msg || 'Config Fixed');
+    }
+
+    // Init: load data for active tab only
+    document.addEventListener('DOMContentLoaded', () => {
+        const tab = new URLSearchParams(window.location.search).get('tab') || 'apps';
+        if (tab === 'apps')     { loadApps(); window.appPoll = setInterval(loadApps, 10000); }
+        if (tab === 'ftp')      loadFTP();
+        if (tab === 'security') loadSSH();
+        if (tab === 'backups')  loadBackups();
+    });
 </script>
 
 <?php include 'layout/footer.php'; ?>

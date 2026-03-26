@@ -26,7 +26,7 @@ if (isset($_POST['ajax_action'])) {
 
             $sys_user = shm_clean($_POST['sys_user']);
             $ftp_user = shm_clean($_POST['ftp_user']) . '@' . $sys_user; 
-            $pass = md5($_POST['pass']); // Note: ProFTPD Crypt expectation
+            $pass = md5($_POST['pass']);
 
             $home = "/var/www/clients/$sys_user/public_html";
 
@@ -47,7 +47,9 @@ if (isset($_POST['ajax_action'])) {
                 throw new Exception("FTP User already exists");
 
             $pdo->prepare("INSERT INTO ftp_users (userid, passwd, homedir, uid, gid) VALUES (?,?,?,?,?)")->execute([$ftp_user, $pass, $home, $uid, $gid]);
-            sendResponse($res);
+            $res['msg'] = "FTP account '$ftp_user' created";
+            echo json_encode($res);
+            exit;
         }
 
         if ($action == 'list_ftp') {
@@ -58,7 +60,8 @@ if (isset($_POST['ajax_action'])) {
 
         if ($action == 'del_ftp') {
             $pdo->prepare("DELETE FROM ftp_users WHERE userid = ?")->execute([$_POST['user']]);
-            sendResponse($res);
+            $res['msg'] = 'FTP account deleted';
+            echo json_encode($res);
             exit;
         }
 
@@ -87,7 +90,9 @@ if (isset($_POST['ajax_action'])) {
             $client_id = $dinfo['client_id'];
 
             $pdo->prepare("INSERT INTO mail_users (client_id, domain_id, email, password) VALUES (?,?,?,?)")->execute([$client_id, $did, $full, $pass]);
-            sendResponse($res);
+            $res['msg'] = "Mailbox '$full' created";
+            echo json_encode($res);
+            exit;
         }
 
         if ($action == 'list_mail') {
@@ -99,8 +104,22 @@ if (isset($_POST['ajax_action'])) {
         if ($action == 'del_mail') {
             $id = (int) $_POST['id'];
             $pdo->prepare("DELETE FROM mail_users WHERE id = ?")->execute([$id]);
-            // Optional: Call backend to remove physical mailbox if needed
-            sendResponse($res);
+            $res['msg'] = 'Mailbox deleted';
+            echo json_encode($res);
+            exit;
+        }
+
+        // --- BACKUP HANDLER ---
+        if ($action == 'list_backups') {
+            $stmt = $pdo->query("
+                SELECT b.id, b.filename, b.size_mb, b.status, b.created_at,
+                       c.username
+                FROM backups b
+                LEFT JOIN clients c ON b.client_id = c.id
+                ORDER BY b.created_at DESC
+                LIMIT 100
+            ");
+            echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
             exit;
         }
 
@@ -134,7 +153,7 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
-    } catch (Exception $e) {
+    } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
     }
@@ -183,6 +202,12 @@ include 'layout/header.php';
         onmouseover="this.style.color='var(--text-primary)'"
         onmouseout="this.style.color='<?= $active_tab == 'network' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>'">
         Network Settings
+    </a>
+    <a href="?tab=backups"
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500; border-bottom: 2px solid <?= $active_tab == 'backups' ? 'var(--primary)' : 'transparent' ?>; color: <?= $active_tab == 'backups' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>; transition: all var(--transition-normal); white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--text-primary)'"
+        onmouseout="this.style.color='<?= $active_tab == 'backups' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>'">
+        Backups
     </a>
 </div>
 
@@ -413,6 +438,40 @@ include 'layout/header.php';
     </div>
 </div>
 
+</div>
+
+<!-- CONTENT: BACKUPS -->
+<div style="display: <?= $active_tab == 'backups' ? 'block' : 'none' ?>;">
+    <div class="glass-card animate-slide-right hover-glow"
+        style="border-radius: 1.5rem; overflow: hidden;">
+        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+            <h3 style="font-size: 1.125rem; font-weight: 500; color: var(--text-primary); display: flex; align-items: center; gap: 0.75rem;">
+                <div style="padding: 0.5rem; background: rgba(16,185,129,0.1); border-radius: 0.5rem; color: var(--accent-emerald);">
+                    <i data-lucide="archive" style="width: 1.25rem; height: 1.25rem;"></i>
+                </div>
+                All Backups
+            </h3>
+            <span id="backup-count" style="font-size: 0.75rem; color: var(--text-secondary);"></span>
+        </div>
+        <div style="overflow-x: auto;" class="custom-scrollbar">
+            <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                <thead style="background: var(--bg-body); font-size: 0.625rem; font-weight: 500; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.04em;">
+                    <tr>
+                        <th style="padding: 0.875rem 1.25rem;">Account</th>
+                        <th style="padding: 0.875rem 1.25rem;">Filename</th>
+                        <th style="padding: 0.875rem 1.25rem;">Size</th>
+                        <th style="padding: 0.875rem 1.25rem;">Status</th>
+                        <th style="padding: 0.875rem 1.25rem;">Created</th>
+                    </tr>
+                </thead>
+                <tbody id="backup-list">
+                    <tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-secondary);">Loading&hellip;</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <?php include 'layout/footer.php'; ?>
 <script>
     // Generic Handler for Tool Actions
@@ -524,10 +583,64 @@ include 'layout/header.php';
         loadMail();
     }
 
-    // Initial Load based on Active Tab
+    async function loadBackups() {
+        const list = document.getElementById('backup-list');
+        if (!list) return;
+
+        const fd = new FormData();
+        fd.append('ajax_action', 'list_backups');
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            list.innerHTML = '';
+
+            if (res.data && res.data.length > 0) {
+                document.getElementById('backup-count').textContent = res.data.length + ' backup(s)';
+
+                const statusBadge = (s) => {
+                    const cfg = {
+                        completed: ['rgba(16,185,129,0.1)', '#10b981', 'check-circle'],
+                        running:   ['rgba(59,130,246,0.1)',  '#3b82f6', 'loader'],
+                        failed:    ['rgba(239,68,68,0.1)',   '#ef4444', 'alert-circle'],
+                    };
+                    const [bg, color, icon] = cfg[s] || ['rgba(100,100,100,0.1)', 'var(--text-secondary)', 'help-circle'];
+                    return `<span style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.2rem 0.65rem;border-radius:9999px;background:${bg};color:${color};font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
+                                <i data-lucide="${icon}" style="width:0.75rem;height:0.75rem;"></i>${s}
+                            </span>`;
+                };
+
+                res.data.forEach(b => {
+                    const sizeTxt = b.size_mb ? parseFloat(b.size_mb).toFixed(1) + ' MB' : '—';
+                    const date = b.created_at ? new Date(b.created_at).toLocaleString() : '—';
+                    list.innerHTML += `
+                        <tr style="border-bottom:1px solid var(--border-color);transition:background 0.15s;" onmouseover="this.style.background='var(--bg-body)'" onmouseout="this.style.background='transparent'">
+                            <td style="padding:1rem 1.25rem;">
+                                <span style="font-size:0.8125rem;font-family:monospace;font-weight:500;color:var(--text-primary);">${b.username ?? '—'}</span>
+                            </td>
+                            <td style="padding:1rem 1.25rem;font-family:monospace;font-size:0.75rem;color:var(--text-secondary);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${b.filename ?? ''}">${b.filename ?? '—'}</td>
+                            <td style="padding:1rem 1.25rem;font-size:0.8125rem;color:var(--text-secondary);">${sizeTxt}</td>
+                            <td style="padding:1rem 1.25rem;">${statusBadge(b.status ?? 'unknown')}</td>
+                            <td style="padding:1rem 1.25rem;font-size:0.8125rem;color:var(--text-secondary);white-space:nowrap;">${date}</td>
+                        </tr>
+                    `;
+                });
+                lucide.createIcons();
+            } else {
+                document.getElementById('backup-count').textContent = '0 backups';
+                list.innerHTML = '<tr><td colspan="5" style="padding:3rem;text-align:center;color:var(--text-secondary);font-style:italic;">No backups found.</td></tr>';
+            }
+        } catch (e) {
+            list.innerHTML = '<tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--accent-red);">Error loading backups.</td></tr>';
+        }
+    }
+
+    // Initial Load: only fetch data for the active tab
     document.addEventListener('DOMContentLoaded', () => {
-        loadFTP();
-        loadMail();
+        const activeTab = new URLSearchParams(window.location.search).get('tab') || 'ftp';
+        if (activeTab === 'ftp')     loadFTP();
+        if (activeTab === 'mail')    loadMail();
+        if (activeTab === 'backups') loadBackups();
     });
 
 </script>
