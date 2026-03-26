@@ -489,13 +489,25 @@ include 'layout/header.php';
     function delAcc(id, user) {
         if (!confirm(`PERMANENTLY DELETE user ${user}? This will delete all files, DNS, mail and databases.`)) return;
         
-        // Create a dummy form to utilize the robust handleGeneric AJAX handler
-        const dummyForm = document.createElement('form');
-        dummyForm.innerHTML = `<input type="hidden" name="id" value="${id}"><input type="hidden" name="user" value="${user}"><button type="submit"></button>`;
-        dummyForm.onsubmit = (e) => handleGeneric(e, 'delete_account');
+        const fd = new FormData();
+        fd.append('ajax_action', 'delete_account');
+        fd.append('id', id);
+        fd.append('user', user);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '');
         
-        // Background click
-        dummyForm.querySelector('button').click();
+        showToast('info', `Deleting account ${user}…`);
+        
+        fetch('', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast('success', data.msg || 'Account deleted successfully');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('error', data.msg || 'Deletion failed');
+                }
+            })
+            .catch(() => showToast('error', 'Server error while deleting account'));
     }
 
     function loginAs(user, cid) {

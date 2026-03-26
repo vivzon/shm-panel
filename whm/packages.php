@@ -172,12 +172,24 @@ include 'layout/header.php';
     async function delPkg(id) {
         if (!confirm('Delete this package?')) return;
         
-        // Create a dummy form to utilize handleGeneric for consistent toasts and CSRF appending
-        const dummyForm = document.createElement('form');
-        dummyForm.innerHTML = `<input type="hidden" name="id" value="${id}"><button type="submit"></button>`;
-        dummyForm.onsubmit = (e) => handleGeneric(e, 'delete_package');
+        const fd = new FormData();
+        fd.append('ajax_action', 'delete_package');
+        fd.append('id', id);
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '');
         
-        // Trigger submission
-        dummyForm.querySelector('button').click();
+        showToast('info', 'Deleting package…');
+        
+        try {
+            const res = await fetch('', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('success', data.msg || 'Package deleted successfully');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('error', data.msg || 'Deletion failed');
+            }
+        } catch {
+            showToast('error', 'Server error while deleting package');
+        }
     }
 </script>
