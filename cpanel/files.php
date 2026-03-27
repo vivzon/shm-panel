@@ -542,224 +542,230 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Permission check for other operations (skip for chmod which is handled above)
-    if (!$is_writable && !isset($_POST['chmod_item'])) {
-        // Diagnostic Info
-        $process_user = (function_exists('posix_getpwuid') && function_exists('posix_geteuid')) ? posix_getpwuid(posix_geteuid())['name'] : get_current_user();
-        $path_owner = file_exists($full_path) ? fileowner($full_path) : 'N/A';
-        $perms = file_exists($full_path) ? substr(sprintf('%o', fileperms($full_path)), -4) : 'N/A';
+    // Permission check: only LOG the warning — do NOT block operations.
+    // Each individual operation handles its own failure with specific errors.
+    if (!$is_writable && !isset($_POST['chmod_item']) && !isset($_POST['upload_files']) && !isset($_POST['download_items']) && !isset($_POST['preview_item'])) {
+        $process_user_tmp = (function_exists('posix_getpwuid') && function_exists('posix_geteuid')) ? posix_getpwuid(posix_geteuid())['name'] : get_current_user();
+        error_log("SHM-FM Warning: Directory may not be writable. Path: $full_path | Process: $process_user_tmp");
+    }
 
-        $debug = "Path: $full_path | Process: $process_user | Owner: $path_owner | Perms: $perms";
-
-        $msg = $setup_error ? "System Error: $setup_error" : "Permission Denied. $debug";
-
-        error_log("SHM-FM Error: $msg");
-
-        if ($is_ajax) {
-            echo json_encode(['status' => 'error', 'msg' => $msg]);
-            exit;
+    // Safe path helper: validates path is inside base WITHOUT requiring physical existence (for copy/move dest)
+    function shm_safe_dest_path($base, $relative) {
+        $real_base = realpath($base);
+        if ($real_base === false) return false;
+        $real_base = rtrim(str_replace('\\', '/', $real_base), '/');
+        $relative = str_replace(chr(0), '', $relative);
+        $relative = str_replace(['\\', '//'], '/', $relative);
+        $parts = array_filter(explode('/', ltrim($relative, '/')));
+        $safe = [];
+        foreach ($parts as $part) {
+            if ($part === '.') continue;
+            if ($part === '..') { if (!empty($safe)) array_pop($safe); }
+            else $safe[] = $part;
         }
+        $full = $real_base . '/' . implode('/', $safe);
+        if (strpos($full, $real_base) !== 0) return false;
+        return $full;
     }
 
     // 2. CREATE
     if (isset($_POST['create_item'])) {
-        $name = preg_replace('/[^\w\.\-]/', '', $_POST['name']);
-        if (empty($name)) {
-            fm_return('error', 'Invalid name');
-        }
+        $name = preg_replace('/[^\w\.\-]/', '', $_POST['name'] ?? '');
+        if (empty($name)) fm_return('error', 'Invalid name — only letters, numbers, dots and dashes allowed');
         $target = $full_path . '/' . $name;
-        if (file_exists($target))
-            fm_return('error', 'Item already exists');
+        if (file_exists($target)) fm_return('error', 'An item with that name already exists');
 
-        if ($_POST['type'] == 'folder') {
+        if (($_POST['type'] ?? 'file') === 'folder') {
             $old_umask = umask(0);
-            if (mkdir($target, 0775, true))
-                fm_return('success', 'Folder created');
+            $ok = @mkdir($target, 0775, true);
             umask($old_umask);
+            if ($ok) fm_return('success', 'Folder created');
+            $err = error_get_last();
+            fm_return('error', 'Folder creation failed: ' . ($err['message'] ?? 'Permission denied'));
         } else {
-            if (file_put_contents($target, '') !== false) {
-                $old_umask = umask(0);
-                @chmod($target, 0644);
-                umask($old_umask);
-                fm_return('success', 'File created');
-            }
+            $old_umask = umask(0);
+            $bytes = @file_put_contents($target, '');
+            umask($old_umask);
+            if ($bytes !== false) { @chmod($target, 0644); fm_return('success', 'File created'); }
+            $err = error_get_last();
+            fm_return('error', 'File creation failed: ' . ($err['message'] ?? 'Permission denied'));
         }
-        fm_return('error', 'Creation failed');
     }
 
     // 3. DELETE
     if (isset($_POST['delete_paths'])) {
         $count = 0;
-        foreach ($_POST['paths'] as $p) {
+        $del_errors = [];
+        $del_paths = is_array($_POST['paths'] ?? null) ? $_POST['paths'] : [];
+        foreach ($del_paths as $p) {
             $abs = shm_build_path($base_path, $p);
-            // Critical Safeguard: Prevent Deletion of Root or parent directories
-            if (!$abs || $abs === $base_path || strpos($abs, $base_path) !== 0)
-                continue;
-
-            if ($abs && shm_rrmdir($abs))
-                $count++;
+            if (!$abs || $abs === $base_path || strpos($abs, $base_path) !== 0) continue;
+            if (shm_rrmdir($abs)) { $count++; }
+            else { $del_errors[] = basename($abs) . ': delete failed'; }
         }
-        fm_return('success', "$count items deleted");
+        $dmsg = "$count item" . ($count !== 1 ? 's' : '') . " deleted";
+        if (!empty($del_errors)) $dmsg .= ' (' . implode(', ', $del_errors) . ')';
+        fm_return('success', $dmsg);
     }
 
-    // 4. ZIP
+    // 4. ZIP / ARCHIVE
     if (isset($_POST['zip_paths'])) {
-        if (!class_exists('ZipArchive')) {
-            fm_return('error', 'ZipArchive extension not available');
-        }
-
+        if (!class_exists('ZipArchive')) fm_return('error', 'ZipArchive PHP extension not available on this server');
+        $zip_paths = is_array($_POST['paths'] ?? null) ? $_POST['paths'] : [];
+        if (empty($zip_paths)) fm_return('error', 'No files selected to archive');
         $zip = new ZipArchive();
-        $zip_name = $full_path . '/' . (count($_POST['paths']) > 1 ? 'archive_' . date('Ymd_His') . '.zip' : basename($_POST['paths'][0]) . '.zip');
-        if ($zip->open($zip_name, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-            foreach ($_POST['paths'] as $p) {
-                $abs = shm_build_path($base_path, $p);
-                if (is_file($abs))
-                    $zip->addFile($abs, basename($abs));
-                if (is_dir($abs)) {
-                    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($abs), RecursiveIteratorIterator::LEAVES_ONLY);
-                    foreach ($files as $name => $file) {
-                        if (!$file->isDir()) {
-                            $filePath = $file->getRealPath();
-                            $relativePath = substr($filePath, strlen($abs) + 1);
-                            $zip->addFile($filePath, basename($abs) . '/' . $relativePath);
-                        }
-                    }
+        $zip_name = $full_path . '/' . (count($zip_paths) > 1 ? 'archive_' . date('Ymd_His') . '.zip' : basename($zip_paths[0]) . '.zip');
+        $open_res = $zip->open($zip_name, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        if ($open_res !== TRUE) fm_return('error', 'Cannot create archive — check write permissions (code: ' . $open_res . ')');
+        foreach ($zip_paths as $p) {
+            $abs = shm_build_path($base_path, $p);
+            if (!$abs) continue;
+            if (is_file($abs)) {
+                $zip->addFile($abs, basename($abs));
+            } elseif (is_dir($abs)) {
+                $iter = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($abs, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
+                foreach ($iter as $fobj) {
+                    if (!$fobj->isDir()) { $zip->addFile($fobj->getRealPath(), basename($abs) . '/' . substr($fobj->getRealPath(), strlen($abs) + 1)); }
                 }
             }
-            $zip->close();
-            @chmod($zip_name, 0644);
-            fm_return('success', 'Archive created');
         }
-        fm_return('error', 'Zip creation failed');
+        $zip->close();
+        @chmod($zip_name, 0644);
+        fm_return('success', 'Archive created: ' . basename($zip_name));
     }
 
     // 5. RENAME
     if (isset($_POST['rename_item'])) {
-        $old = shm_build_path($base_path, $_POST['old']);
-        // Build new path using just the basename to prevent accidental moves
-        $new_name = basename($_POST['new_name']);
+        $old = shm_build_path($base_path, $_POST['old'] ?? '');
+        $new_name = preg_replace('/[^\w\.\-]/', '_', basename($_POST['new_name'] ?? ''));
+        if (!$old || !file_exists($old)) fm_return('error', 'Source file not found');
+        if (empty($new_name)) fm_return('error', 'Invalid new name');
         $new = shm_build_path($base_path, dirname($_POST['old']) . '/' . $new_name);
-        if (!$old || !$new) {
-            fm_return('error', 'Invalid path');
-        }
-        if (file_exists($new) && realpath($new) !== realpath($old)) {
+        if (!$new) fm_return('error', 'Invalid destination path');
+        if (file_exists($new) && realpath($new) !== realpath($old))
             fm_return('error', 'A file or folder with that name already exists');
-        }
-        if (rename($old, $new))
-            fm_return('success', 'Renamed successfully');
-        fm_return('error', 'Rename failed');
+        if (@rename($old, $new)) fm_return('success', 'Renamed to ' . $new_name);
+        $err = error_get_last();
+        fm_return('error', 'Rename failed: ' . ($err['message'] ?? 'Permission denied'));
     }
 
-    // 6. COPY/MOVE
+    // 6. COPY / MOVE
     if (isset($_POST['copy_move_items'])) {
-        $action = $_POST['action'];
-        $dest_folder = shm_build_path($base_path, $_POST['destination']);
-        $count = 0;
-        if ($dest_folder) {
-            foreach ($_POST['paths'] as $p) {
-                $src = shm_build_path($base_path, $p);
-                $name = basename($src);
-                $dest = $dest_folder . '/' . $name;
-                if ($src && $action == 'move' && rename($src, $dest))
-                    $count++;
-                if ($src && $action == 'copy') {
-                    shm_rcopy($src, $dest);
-                    $count++;
-                }
-            }
-            fm_return('success', "$count items processed");
+        $action = $_POST['action'] ?? '';
+        if (!in_array($action, ['copy', 'move'])) fm_return('error', 'Invalid action');
+        $cm_paths = is_array($_POST['paths'] ?? null) ? $_POST['paths'] : [];
+        if (empty($cm_paths)) fm_return('error', 'No files selected');
+        // Use safe path (doesn't require physical existence)
+        $dest_folder = shm_safe_dest_path($base_path, $_POST['destination'] ?? '');
+        if (!$dest_folder) fm_return('error', 'Invalid or unsafe destination path');
+        // Auto-create destination folder if it doesn't exist
+        if (!is_dir($dest_folder)) {
+            $old_umask = umask(0); $made = @mkdir($dest_folder, 0775, true); umask($old_umask);
+            if (!$made) fm_return('error', 'Destination folder does not exist and could not be created');
         }
-        fm_return('error', 'Invalid destination');
+        $count = 0; $cm_errors = [];
+        foreach ($cm_paths as $p) {
+            $src = shm_build_path($base_path, $p);
+            if (!$src) { $cm_errors[] = "$p: invalid path"; continue; }
+            $dest_item = $dest_folder . '/' . basename($src);
+            if ($action === 'move') {
+                if (@rename($src, $dest_item)) { $count++; }
+                else { $err = error_get_last(); $cm_errors[] = basename($src) . ': ' . ($err['message'] ?? 'move failed'); }
+            } else {
+                if (shm_rcopy($src, $dest_item)) { $count++; }
+                else { $cm_errors[] = basename($src) . ': copy failed'; }
+            }
+        }
+        $verb = $action === 'move' ? 'moved' : 'copied';
+        $cmsg = "$count item" . ($count !== 1 ? 's' : '') . " $verb";
+        if (!empty($cm_errors)) $cmsg .= ' (' . count($cm_errors) . ' failed: ' . implode(', ', $cm_errors) . ')';
+        if ($count > 0) fm_return('success', $cmsg);
+        fm_return('error', ucfirst($action) . ' failed: ' . implode(', ', $cm_errors));
     }
 
-    // 7. UNZIP
+    // 7. UNZIP / EXTRACT
     if (isset($_POST['unzip_item'])) {
-        if (!class_exists('ZipArchive')) {
-            fm_return('error', 'ZipArchive extension not available');
-        }
-
-        $zip_file = shm_build_path($base_path, $_POST['item']);
+        if (!class_exists('ZipArchive')) fm_return('error', 'ZipArchive PHP extension not available on this server');
+        $zip_file = shm_build_path($base_path, $_POST['item'] ?? '');
+        if (!$zip_file || !is_file($zip_file)) fm_return('error', 'Zip file not found');
         $zip = new ZipArchive;
-        if ($zip->open($zip_file) === TRUE) {
+        $open_res = $zip->open($zip_file);
+        if ($open_res === TRUE) {
             $zip->extractTo(dirname($zip_file));
             $zip->close();
-            fm_return('success', 'Extracted successfully');
+            fm_return('success', 'Extracted to ' . dirname($_POST['item']));
         }
-        fm_return('error', 'Extraction failed');
+        fm_return('error', 'Extraction failed (ZipArchive error code: ' . $open_res . ')');
     }
 
     // 8. DOWNLOAD
     if (isset($_POST['download_items'])) {
-        $paths = $_POST['paths'];
+        $dl_paths = is_array($_POST['paths'] ?? null) ? $_POST['paths'] : [];
+        if (empty($dl_paths)) { header('Content-Type: application/json'); echo json_encode(['status' => 'error', 'msg' => 'No files selected']); exit; }
 
-        if (count($paths) === 1 && is_file(shm_build_path($base_path, $paths[0]))) {
-            $file = shm_build_path($base_path, $paths[0]);
-            if (file_exists($file)) {
+        // Single file — direct stream
+        if (count($dl_paths) === 1) {
+            $file = shm_build_path($base_path, $dl_paths[0]);
+            if ($file && is_file($file)) {
                 header('Content-Type: application/octet-stream');
-                header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+                header('Content-Disposition: attachment; filename="' . addslashes(basename($file)) . '"');
                 header('Content-Length: ' . filesize($file));
                 header('Cache-Control: private, max-age=0, must-revalidate');
                 header('Pragma: public');
+                ob_clean(); flush();
                 readfile($file);
                 exit;
             }
-        } else {
-            // Zip Download
-            if (!class_exists('ZipArchive')) {
-                die('ZipArchive extension not available');
-            }
+        }
 
-            $zip_name = 'download_' . date('Ymd_His') . '.zip';
-            $tmp_zip = sys_get_temp_dir() . '/' . $zip_name;
-            $zip = new ZipArchive();
-            if ($zip->open($tmp_zip, ZipArchive::CREATE)) {
-                foreach ($paths as $p) {
-                    $abs = shm_build_path($base_path, $p);
-                    if (is_dir($abs) || is_file($abs)) {
-                        if (is_file($abs))
-                            $zip->addFile($abs, basename($abs));
-                        if (is_dir($abs)) {
-                            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($abs), RecursiveIteratorIterator::LEAVES_ONLY);
-                            foreach ($files as $name => $file) {
-                                if (!$file->isDir()) {
-                                    $filePath = $file->getRealPath();
-                                    $relativePath = substr($filePath, strlen($abs) + 1);
-                                    $zip->addFile($filePath, basename($abs) . '/' . $relativePath);
-                                }
-                            }
-                        }
-                    }
-                }
-                $zip->close();
-                if (file_exists($tmp_zip)) {
-                    header('Content-Type: application/zip');
-                    header('Content-disposition: attachment; filename=' . $zip_name);
-                    header('Content-Length: ' . filesize($tmp_zip));
-                    readfile($tmp_zip);
-                    unlink($tmp_zip);
-                    exit;
+        // Multi-file or folder — bundle into zip
+        if (!class_exists('ZipArchive')) { header('Content-Type: application/json'); echo json_encode(['status' => 'error', 'msg' => 'ZipArchive not available']); exit; }
+        $zip_name = 'download_' . date('Ymd_His') . '.zip';
+        $tmp_zip = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $zip_name;
+        $zip = new ZipArchive();
+        if ($zip->open($tmp_zip, ZipArchive::CREATE) !== TRUE) {
+            header('Content-Type: application/json'); echo json_encode(['status' => 'error', 'msg' => 'Could not create temporary archive']); exit;
+        }
+        foreach ($dl_paths as $p) {
+            $abs = shm_build_path($base_path, $p);
+            if (!$abs) continue;
+            if (is_file($abs)) {
+                $zip->addFile($abs, basename($abs));
+            } elseif (is_dir($abs)) {
+                $iter = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($abs, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::LEAVES_ONLY);
+                foreach ($iter as $fobj) {
+                    if (!$fobj->isDir()) { $zip->addFile($fobj->getRealPath(), basename($abs) . '/' . substr($fobj->getRealPath(), strlen($abs) + 1)); }
                 }
             }
         }
-        fm_return('error', 'Download failed');
+        $zip->close();
+        if (file_exists($tmp_zip)) {
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $zip_name . '"');
+            header('Content-Length: ' . filesize($tmp_zip));
+            ob_clean(); flush();
+            readfile($tmp_zip);
+            @unlink($tmp_zip);
+            exit;
+        }
+        header('Content-Type: application/json'); echo json_encode(['status' => 'error', 'msg' => 'Download archive could not be created']); exit;
     }
 
     // 9. PREVIEW
     if (isset($_POST['preview_item'])) {
-        $file = shm_build_path($base_path, $_POST['item']);
-        if (is_file($file)) {
-            // Security: Check file size before previewing
-            $filesize = filesize($file);
-            if ($filesize > 10485760) { // 10MB limit for preview
-                echo json_encode(['status' => 'error', 'msg' => 'File too large for preview (max 10MB)']);
-                exit;
-            }
-
-            $content = file_get_contents($file, false, NULL, 0, 10240);
-            echo json_encode(['status' => 'success', 'type' => 'code', 'content' => htmlspecialchars($content, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')]);
-        } else {
+        header('Content-Type: application/json');
+        $file = shm_build_path($base_path, $_POST['item'] ?? '');
+        if (!$file || !is_file($file)) {
             echo json_encode(['status' => 'error', 'msg' => 'File not found']);
+            exit;
         }
+        $filesize = filesize($file);
+        if ($filesize > 10485760) {
+            echo json_encode(['status' => 'error', 'msg' => 'File too large for preview (max 10MB)']);
+            exit;
+        }
+        $content = file_get_contents($file, false, NULL, 0, 102400); // up to 100KB preview
+        echo json_encode(['status' => 'success', 'type' => 'code', 'content' => htmlspecialchars($content, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')]);
         exit;
     }
 }
@@ -2277,6 +2283,15 @@ if (is_dir($full_path)) {
             </div>
         </div>
     </div>
+
+    <!-- DOWNLOAD FORM (hidden, used by JS bulk download) -->
+    <form id="form-download" method="POST" style="display:none;">
+        <input type="hidden" name="download_items" value="1">
+        <input type="hidden" name="domain_id" value="<?= $domain_id ?>">
+        <input type="hidden" name="path" value="<?= htmlspecialchars($current_path) ?>">
+        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+        <div id="download-inputs"></div>
+    </form>
 
     <!-- TOAST -->
     <div id="toast">
