@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../shared/config.php';
 
 if (!isset($_SESSION['client'])) {
@@ -28,22 +28,31 @@ if (isset($_POST['ajax_action'])) {
     try {
         // --- APPS HANDLER ---
         if ($action == 'install_app') {
-            $app = $_POST['app'];
+            $app = shm_clean($_POST['app'] ?? '');
             $dom_id = (int)$_POST['domain_id'];
-            $domain = $pdo->prepare("SELECT domain FROM domains WHERE id=? AND client_id=?")->execute([$dom_id, $cid]) ? $pdo->query("SELECT domain FROM domains WHERE id=$dom_id AND client_id=$cid")->fetchColumn() : false;
+
+            $stmt = $pdo->prepare("SELECT domain FROM domains WHERE id=? AND client_id=?");
+            $stmt->execute([$dom_id, $cid]);
+            $domain = $stmt->fetchColumn();
             if (!$domain)
                 throw new Exception("Invalid Domain");
 
-            $rand = substr(md5(uniqid()), 0, 6);
-            $db_name = $username . "_wp_" . $rand;
-            $db_user = $username . "_" . $rand;
+            $rand    = substr(md5(uniqid()), 0, 6);
+            $db_name = 'db_' . $cid . '_' . $rand;
+            $db_user = 'u_'  . $cid . '_' . $rand;
             $db_pass = bin2hex(random_bytes(8));
 
-            $stmt = $pdo->prepare("INSERT INTO app_installations (client_id, domain_id, app_type, db_name, db_user, db_pass, status) VALUES (?, ?, ?, ?, ?, ?, 'installing')");
-            $stmt->execute([$cid, $dom_id, $app, $db_name, $db_user, $db_pass]);
+            $ins = $pdo->prepare("INSERT INTO app_installations (client_id, domain_id, app_type, db_name, db_user, db_pass, status) VALUES (?, ?, ?, ?, ?, ?, 'installing')");
+            $ins->execute([$cid, $dom_id, $app, $db_name, $db_user, $db_pass]);
 
-            $cmd = "app-tool install " . escapeshellarg($app) . " " . escapeshellarg($domain) . " " . escapeshellarg($db_name) . " " . escapeshellarg($db_user) . " " . escapeshellarg($db_pass);
-            cmd($cmd);
+            // Dispatch in background: shm-manage app-tool install <app> <domain> <db_name> <db_user> <db_pass>
+            $cmd = 'app-tool install '
+                 . escapeshellarg($app)    . ' '
+                 . escapeshellarg($domain) . ' '
+                 . escapeshellarg($db_name) . ' '
+                 . escapeshellarg($db_user) . ' '
+                 . escapeshellarg($db_pass);
+            cmd($cmd . ' > /dev/null 2>&1 &');
 
             $res['msg'] = ucfirst($app) . ' installation started';
             echo json_encode($res);
@@ -54,6 +63,33 @@ if (isset($_POST['ajax_action'])) {
             $stmt = $pdo->prepare("SELECT a.*, d.domain FROM app_installations a JOIN domains d ON a.domain_id = d.id WHERE a.client_id = ? ORDER BY a.created_at DESC");
             $stmt->execute([$cid]);
             echo json_encode(['status' => 'success', 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+            exit;
+        }
+
+        if ($action == 'uninstall_app') {
+            $inst_id = (int)($_POST['install_id'] ?? 0);
+            $inst = $pdo->prepare("SELECT * FROM app_installations WHERE id=? AND client_id=?");
+            $inst->execute([$inst_id, $cid]);
+            $row = $inst->fetch();
+            if (!$row) throw new Exception('Installation not found or access denied');
+
+            $dom_stmt = $pdo->prepare("SELECT domain FROM domains WHERE id=?");
+            $dom_stmt->execute([$row['domain_id']]);
+            $dom = $dom_stmt->fetchColumn();
+
+            // Run background uninstall
+            $cmd = 'app-tool uninstall '
+                 . escapeshellarg($row['app_type']) . ' '
+                 . escapeshellarg($dom) . ' '
+                 . escapeshellarg($row['db_name'])  . ' '
+                 . escapeshellarg($row['db_user']);
+            cmd($cmd . ' > /dev/null 2>&1 &');
+
+            // Remove tracking record immediately
+            $pdo->prepare("DELETE FROM app_installations WHERE id=?")->execute([$inst_id]);
+
+            $res['msg'] = 'Application removed successfully';
+            echo json_encode($res);
             exit;
         }
 
@@ -602,8 +638,9 @@ include 'layout/header.php';
             ${app.status}
         </span>
     </td>
-    <td style="padding: 1.25rem 1.5rem; text-align: right;">
-        ${app.status === 'active' ? `<a href="http://${app.domain}" target="_blank" style="padding: 0.5rem; color: var(--primary); background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.2); border-radius: var(--radius-md); transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;"><i data-lucide="external-link" style="width: 16px; height: 16px;"></i></a>` : ''}
+    <td style="padding: 1.25rem 1.5rem; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;">
+        ${app.status === 'active' ? `<a href="http://${app.domain}" target="_blank" style="padding: 0.4rem 0.5rem; color: var(--primary); background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.2); border-radius: var(--radius-md); transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;" title="Visit Site"><i data-lucide="external-link" style="width: 15px; height: 15px;"></i></a>` : ''}
+        <button onclick="delApp(${app.id}, '${app.app_type}', '${app.domain}')" style="padding: 0.4rem 0.5rem; color: #dc2626; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: var(--radius-md); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'" title="Remove"><i data-lucide="trash-2" style="width: 15px; height: 15px;"></i></button>
     </td>
 </tr>`).join('');
                 lucide.createIcons();
@@ -616,6 +653,21 @@ include 'layout/header.php';
                 lucide.createIcons();
             }
         } catch (e) { console.error(e); }
+    }
+
+    async function delApp(id, app, domain) {
+        if (!confirm(`Remove ${app} from ${domain}?\n\nThis will delete the application files and its database. This cannot be undone.`)) return;
+        const fd = new FormData();
+        fd.append('ajax_action', 'uninstall_app');
+        fd.append('install_id', id);
+        fd.append('csrf_token', CSRF());
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            showToast(res.status === 'success' ? 'success' : 'error', res.msg || 'Done');
+            if (res.status === 'success') loadApps();
+        } catch (err) {
+            showToast('error', 'Request failed');
+        }
     }
 
     // FTP Logic

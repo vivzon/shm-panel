@@ -1417,7 +1417,7 @@ EOF
                         sed -i "s/DB_DATABASE=laravel/DB_DATABASE=$DB_NAME_VAL/" "$ENV_FILE"
                         sed -i "s/DB_USERNAME=root/DB_USERNAME=$DB_USER_VAL/" "$ENV_FILE"
                         sed -i "s/DB_PASSWORD=/DB_PASSWORD=$DB_PASS/" "$ENV_FILE"
-                        sed -i "s/APP_URL=http://localhost/APP_URL=http:\/\/$DOM/" "$ENV_FILE"
+                        sed -i "s|APP_URL=http://localhost|APP_URL=http://$DOM|" "$ENV_FILE"
                         
                         # Set Permissions
                         chown -R "$USER:www-data" "$DOCROOT"
@@ -1482,10 +1482,10 @@ EOF
                     fi
                     
                     # Create React app
-                    if sudo -u "$USER" npm create vite@latest "$TMP/react-app" -- --template react --quiet; then
+                    if sudo -u "$USER" npm create vite@latest "$TMP/react-app" -- --template react --yes 2>&1; then
                         cd "$TMP/react-app"
-                        sudo -u "$USER" npm install --quiet
-                        sudo -u "$USER" npm run build --quiet
+                        sudo -u "$USER" npm install 2>&1
+                        sudo -u "$USER" npm run build 2>&1
                         
                         cp -r "$TMP/react-app/dist/"* "$DOCROOT/"
                         
