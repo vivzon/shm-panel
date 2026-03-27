@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../shared/config.php';
 
 if (!isset($_SESSION['client'])) {
@@ -56,6 +56,30 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
+        if ($action == 'get_dns_records') {
+            $domain = $_POST['domain'];
+            // Security check: ensure domain belongs to client
+            $check = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
+            $check->execute([$domain, $cid]);
+            if (!$check->fetch()) throw new Exception("Access Denied");
+            
+            $output = cmd("dns-tool get-records " . escapeshellarg($domain));
+            echo json_encode(['status' => 'success', 'data' => $output]);
+            exit;
+        }
+
+        if ($action == 'generate_dkim') {
+            $domain = $_POST['domain'];
+            // Security check: ensure domain belongs to client
+            $check = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
+            $check->execute([$domain, $cid]);
+            if (!$check->fetch()) throw new Exception("Access Denied");
+            
+            $output = cmd("dns-tool gen-dkim " . escapeshellarg($domain));
+            echo json_encode(['status' => 'success', 'msg' => $output]);
+            exit;
+        }
+
     } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
@@ -94,36 +118,68 @@ include 'layout/header.php';
         </div>
     </div>
 
-    <!-- CREATE EMAIL -->
-    <div class="glass-card" style="padding:2rem;">
-        <h3 style="font-size:1rem;font-weight:700;color:var(--text-primary);font-family:var(--font-heading);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem;">
-            <i data-lucide="mail-plus" style="width:18px;height:18px;color:var(--primary);"></i>
-            Create Mailbox
-        </h3>
-        <form onsubmit="handleAddEmail(event)" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;" id="form-add-email">
-            <?= csrf_field() ?>
-            <div>
-                <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Mailbox Name</label>
-                <input name="user" required placeholder="e.g. info, support" class="form-input">
-            </div>
-            <div>
-                <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Domain</label>
-                <select name="domain" class="form-input form-select" style="appearance:none;">
-                    <?php foreach ($domains as $d): ?>
-                        <option value="<?= $d['domain'] ?>">@<?= htmlspecialchars($d['domain']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div>
-                <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Password</label>
-                <input name="pass" type="password" required placeholder="••••••••" class="form-input">
-            </div>
-            <div style="display:flex;align-items:flex-end;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:2rem;">
+        <!-- CREATE EMAIL -->
+        <div class="glass-card" style="padding:2rem;">
+            <h3 style="font-size:1rem;font-weight:700;color:var(--text-primary);font-family:var(--font-heading);margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem;">
+                <i data-lucide="mail-plus" style="width:18px;height:18px;color:var(--primary);"></i>
+                Create Mailbox
+            </h3>
+            <form onsubmit="handleAddEmail(event)" style="display:flex;flex-direction:column;gap:1rem;" id="form-add-email">
+                <?= csrf_field() ?>
+                <div>
+                    <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Mailbox Name</label>
+                    <input name="user" required placeholder="e.g. info, support" class="form-input">
+                </div>
+                <div>
+                    <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Domain</label>
+                    <select name="domain" class="form-input form-select" style="appearance:none;">
+                        <?php foreach ($domains as $d): ?>
+                            <option value="<?= $d['domain'] ?>">@<?= htmlspecialchars($d['domain']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.375rem;">Password</label>
+                    <input name="pass" type="password" required placeholder="••••••••" class="form-input">
+                </div>
                 <button class="btn btn-primary" style="width:100%;height:var(--input-height-md);gap:0.5rem;">
                     <i data-lucide="plus-circle" style="width:1rem;height:1rem;"></i> Create Mailbox
                 </button>
+            </form>
+        </div>
+
+        <!-- DNS AUTH SETTINGS -->
+        <div class="glass-card" style="padding:2rem;display:flex;flex-direction:column;gap:1.25rem;">
+            <div>
+                <h3 style="font-size:1rem;font-weight:700;color:var(--text-primary);font-family:var(--font-heading);margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i data-lucide="shield-check" style="width:18px;height:18px;color:var(--accent-green);"></i>
+                    Mail Authentication
+                </h3>
+                <p style="font-size:0.75rem;color:var(--text-secondary);">Configure SPF, DKIM and DMARC to prevent spam flags.</p>
             </div>
-        </form>
+            
+            <div style="flex:1;display:flex;flex-direction:column;gap:0.75rem;">
+                <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;">Select Domain</label>
+                <select id="dns-domain-select" class="form-input form-select">
+                    <?php foreach ($domains as $d): ?>
+                        <option value="<?= $d['domain'] ?>"><?= htmlspecialchars($d['domain']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                    <button onclick="showDnsRecords()" class="btn btn-secondary" style="font-size:0.75rem;padding:0.5rem;">
+                        <i data-lucide="eye" style="width:14px;height:14px;"></i> View Records
+                    </button>
+                    <button onclick="generateDkim()" class="btn btn-secondary" style="font-size:0.75rem;padding:0.5rem;">
+                        <i data-lucide="key" style="width:14px;height:14px;"></i> Gen-DKIM
+                    </button>
+                </div>
+            </div>
+            
+            <div id="dns-status-hint" style="font-size:0.7rem;color:var(--text-muted);background:var(--bg-body);padding:0.75rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
+                <strong>Note:</strong> If you use external DNS (Cloudflare, etc.), you MUST manually add these records.
+            </div>
+        </div>
     </div>
 
     <!-- LIST -->
@@ -205,10 +261,81 @@ include 'layout/header.php';
 
 <?php include 'layout/footer.php'; ?>
 
+<!-- DNS Records Modal -->
+<div id="dnsModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);">
+    <div class="glass-card" style="width:100%;max-width:700px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;padding:0;">
+        <div style="padding:1.5rem;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;background:var(--bg-body);">
+            <h3 style="font-family:var(--font-heading);font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:0.5rem;">
+                <i data-lucide="info" style="width:18px;height:18px;color:var(--primary);"></i>
+                DNS Configuration for <span id="modal-domain-name"></span>
+            </h3>
+            <button onclick="document.getElementById('dnsModal').style.display='none'" style="background:transparent;border:none;color:var(--text-secondary);cursor:pointer;padding:0.5rem;border-radius:var(--radius-md);"><i data-lucide="x"></i></button>
+        </div>
+        <div id="dns-records-list" style="padding:1.5rem;overflow-y:auto;background:var(--bg-surface);font-family:monospace;font-size:0.8rem;line-height:1.5;color:var(--text-primary);white-space:pre-wrap;">
+            <!-- Content loaded via JS -->
+            <div style="text-align:center;padding:2rem;color:var(--text-muted);">
+                <i data-lucide="loader-2" style="width:32px;height:32px;animation:spin 1s linear infinite;margin-bottom:1rem;"></i>
+                <p>Fetching records...</p>
+            </div>
+        </div>
+        <div style="padding:1.25rem;border-top:1px solid var(--border-color);background:var(--bg-body);display:flex;justify-content:flex-end;gap:0.75rem;">
+            <p style="font-size:0.65rem;color:var(--text-muted);margin:0;align-self:center;margin-right:auto;">Add these TXT records to your domain's DNS provider.</p>
+            <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="document.getElementById('dnsModal').style.display='none'">Close</button>
+        </div>
+    </div>
+</div>
+
 <script>
 function getCsrf() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
         || document.querySelector('input[name="csrf_token"]')?.value || '';
+}
+
+async function showDnsRecords() {
+    const dom = document.getElementById('dns-domain-select').value;
+    const modal = document.getElementById('dnsModal');
+    const list = document.getElementById('dns-records-list');
+    document.getElementById('modal-domain-name').innerText = dom;
+    
+    modal.style.display = 'flex';
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);"><i data-lucide="loader-2" style="width:32px;height:32px;animation:spin 1s linear infinite;margin-bottom:1rem;"></i><p>Fetching records...</p></div>';
+    lucide.createIcons();
+    
+    const fd = new FormData();
+    fd.append('ajax_action', 'get_dns_records');
+    fd.append('domain', dom);
+    fd.append('csrf_token', getCsrf());
+    
+    try {
+        const res = await fetch('', { method:'POST', body:fd }).then(r => r.json());
+        if (res.status === 'success') {
+            list.innerHTML = '<div style="background:rgba(0,0,0,0.1);padding:1rem;border-radius:4px;border:1px solid var(--border-color);">' + res.data + '</div>';
+        } else {
+            list.innerHTML = '<div style="color:var(--accent-red);padding:1rem;">Error: ' + res.msg + '</div>';
+        }
+    } catch(e) {
+        list.innerHTML = '<div style="color:var(--accent-red);padding:1rem;">Fatal error communicating with server.</div>';
+    }
+}
+
+async function generateDkim() {
+    const dom = document.getElementById('dns-domain-select').value;
+    if (!confirm('Generate new DKIM keys for ' + dom + '? This will overwrite existing keys.')) return;
+    
+    const fd = new FormData();
+    fd.append('ajax_action', 'generate_dkim');
+    fd.append('domain', dom);
+    fd.append('csrf_token', getCsrf());
+    
+    try {
+        const res = await fetch('', { method:'POST', body:fd }).then(r => r.json());
+        if (res.status === 'success') {
+            showToast('success', 'DKIM Generated', res.msg);
+            showDnsRecords(); // Refresh display
+        } else {
+            showToast('error', 'Failed', res.msg);
+        }
+    } catch(e) { showToast('error', 'Error', 'Request failed.'); }
 }
 
 async function handleAddEmail(e) {

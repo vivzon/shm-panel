@@ -2708,8 +2708,135 @@ EOF
                 echo "Password reset"
                 ;;
                 
+    # --------------------------------------------------------------------------
+    # DNS TOOL
+    # --------------------------------------------------------------------------
+    dns-tool)
+        SUB="$2"
+        
+        case "$SUB" in
+            sync)
+                # For now, just a placeholder as we mostly use external DNS
+                DOM_ID="$3"
+                log_action "DNS Sync triggered for Domain ID: $DOM_ID"
+                echo "DNS records synced (internal)"
+                ;;
+            get-records)
+                # $3: domain_name
+                DOM="$3"
+                IP=$(curl.exe -s https://api.ipify.org 2>/dev/null || curl -s https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')
+                
+                echo "--- DNS Records for $DOM ---"
+                echo "Type: TXT, Name: @, Value: v=spf1 ip4:$IP +a +mx ~all"
+                
+                DKIM_SELECTOR="default"
+                DKIM_FILE="/etc/dkimkeys/$DOM.txt"
+                if [ -f "$DKIM_FILE" ]; then
+                    # Extract DKIM value safely
+                    DKIM_VAL=$(grep -v '^--' "$DKIM_FILE" | tr -d '\n\t ' | sed 's/.*"\(p=.*\)"/\1/' | sed 's/".*//')
+                    echo "Type: TXT, Name: $DKIM_SELECTOR._domainkey, Value: v=DKIM1; k=rsa; $DKIM_VAL"
+                else
+                    echo "Type: TXT, Name: $DKIM_SELECTOR._domainkey, Value: [DKIM NOT GENERATED - Run shm-manage dns-tool gen-dkim $DOM]"
+                fi
+                
+                echo "Type: TXT, Name: _dmarc, Value: v=DMARC1; p=quarantine; ruf=mailto:admin@$DOM"
+                ;;
+            gen-dkim)
+                DOM="$3"
+                mkdir -p /etc/dkimkeys
+                if [ ! -f "/etc/dkimkeys/$DOM.private" ]; then
+                    # Check if opendkim-genkey exists
+                    if ! command -v opendkim-genkey &> /dev/null; then
+                        echo "Error: opendkim-tools not installed. Run: apt install opendkim-tools"
+                        exit 1
+                    fi
+                    opendkim-genkey -r -d "$DOM" -s default -D /etc/dkimkeys
+                    mv "/etc/dkimkeys/default.private" "/etc/dkimkeys/$DOM.private"
+                    mv "/etc/dkimkeys/default.txt" "/etc/dkimkeys/$DOM.txt"
+                    chown opendkim:opendkim "/etc/dkimkeys/$DOM.private" 2>/dev/null || true
+                    echo "DKIM keys generated for $DOM"
+                else
+                    echo "DKIM keys already exist for $DOM"
+                fi
+                ;;
             *)
-                echo "Unknown ftp-tool subcommand: $SUB"
+                echo "Unknown dns-tool subcommand: $SUB"
+                exit 1
+                ;;
+        esac
+        ;;
+        
+    # --------------------------------------------------------------------------
+    # VHOST TOOL
+    # --------------------------------------------------------------------------
+    vhost-tool)
+        SUB="$2"
+        case "$SUB" in
+            sync)
+                # Re-sync all domains
+                DOMAINS=$(mysql -N -s -e "SELECT d.domain, c.username FROM domains d JOIN clients c ON d.client_id=c.id" "$DB_NAME" 2>/dev/null)
+                if [ -z "$DOMAINS" ]; then
+                    echo "No domains found to sync"
+                else
+                    while read -r DOM USER; do
+                        echo "Syncing $DOM ($USER)..."
+                        $0 add-domain "$USER" "$DOM"
+                    done <<< "$DOMAINS"
+                    echo "All vhosts synced"
+                fi
+                ;;
+            *)
+                echo "Unknown vhost-tool subcommand: $SUB"
+                exit 1
+                ;;
+        esac
+        ;;
+
+    # --------------------------------------------------------------------------
+    # MYSQL TOOL
+    # --------------------------------------------------------------------------
+    mysql-tool)
+        SUB="$2"
+        case "$SUB" in
+            create-db)
+                DB="$3"
+                validate_input "$DB" "db_name"
+                mysql -e "CREATE DATABASE IF NOT EXISTS \`$DB\`;" || exit 1
+                echo "Database created"
+                ;;
+            delete-db)
+                DB="$3"
+                validate_input "$DB" "db_name"
+                mysql -e "DROP DATABASE IF EXISTS \`$DB\`;" || exit 1
+                echo "Database deleted"
+                ;;
+            create-user)
+                USER_DB="$3"
+                PASS_DB="$4"
+                TARGET_DB="$5"
+                validate_input "$USER_DB" "db_user"
+                mysql -e "CREATE USER IF NOT EXISTS '$USER_DB'@'localhost' IDENTIFIED BY '$PASS_DB';" || exit 1
+                if [ -n "$TARGET_DB" ]; then
+                    mysql -e "GRANT ALL PRIVILEGES ON \`$TARGET_DB\`.* TO '$USER_DB'@'localhost';" || exit 1
+                fi
+                mysql -e "FLUSH PRIVILEGES;" || exit 1
+                echo "User created"
+                ;;
+            delete-user)
+                USER_DB="$3"
+                validate_input "$USER_DB" "db_user"
+                mysql -e "DROP USER IF EXISTS '$USER_DB'@'localhost';" || exit 1
+                echo "User deleted"
+                ;;
+            reset-pass)
+                USER_DB="$3"
+                PASS_DB="$4"
+                validate_input "$USER_DB" "db_user"
+                mysql -e "ALTER USER '$USER_DB'@'localhost' IDENTIFIED BY '$PASS_DB';" || exit 1
+                echo "Password reset"
+                ;;
+            *)
+                echo "Unknown mysql-tool subcommand: $SUB"
                 exit 1
                 ;;
         esac
