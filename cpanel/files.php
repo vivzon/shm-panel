@@ -636,8 +636,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 5. RENAME
     if (isset($_POST['rename_item'])) {
         $old = shm_build_path($base_path, $_POST['old']);
-        $new = shm_build_path($base_path, $_POST['new_name']);
-        if ($old && $new && rename($old, $new))
+        // Build new path using just the basename to prevent accidental moves
+        $new_name = basename($_POST['new_name']);
+        $new = shm_build_path($base_path, dirname($_POST['old']) . '/' . $new_name);
+        if (!$old || !$new) {
+            fm_return('error', 'Invalid path');
+        }
+        if (file_exists($new) && realpath($new) !== realpath($old)) {
+            fm_return('error', 'A file or folder with that name already exists');
+        }
+        if (rename($old, $new))
             fm_return('success', 'Renamed successfully');
         fm_return('error', 'Rename failed');
     }
@@ -1798,7 +1806,7 @@ if (is_dir($full_path)) {
 
     <?php
     $current_page = 'files.php';
-    $collapse_sidebar = true;
+    $no_sidebar = true; // File manager is full-screen, no cpanel sidebar needed
     include 'layout/sidebar.php';
     ?>
 
@@ -1887,7 +1895,12 @@ if (is_dir($full_path)) {
                             MB</span>
                     </div>
                     <div class="fm-storage-bar">
-                        <div class="fm-storage-fill" style="width:<?= min(100, ($domain['disk_usage'] ?? 0) / 10) ?>%;">
+                        <?php
+                        $disk_used = (float)($domain['disk_usage'] ?? 0);
+                        $disk_quota = (float)($domain['disk_quota'] ?? 1000); // fallback 1000 MB
+                        $disk_pct = $disk_quota > 0 ? min(100, round($disk_used / $disk_quota * 100, 1)) : 0;
+                        ?>
+                        <div class="fm-storage-fill" style="width:<?= $disk_pct ?>%;">
                         </div>
                     </div>
                 </div>
@@ -2731,6 +2744,9 @@ if (is_dir($full_path)) {
                         const fd = new FormData();
                         fd.append('preview_item', '1');
                         fd.append('item', path);
+                        fd.append('domain_id', CONFIG.domainId);
+                        fd.append('path', CONFIG.currentPath);
+                        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
                         const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
                         if (res.status === 'success') {
                             container.innerHTML = `<pre style="font-size: 0.8125rem; font-family: 'JetBrains Mono', monospace; line-height: 1.6; color: var(--slate-700); padding: 1.5rem; width: 100%; height: 100%; overflow: auto; text-align: left; margin: 0; tab-size: 4;">${res.content}</pre>`;
