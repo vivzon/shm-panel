@@ -261,9 +261,9 @@ function fm_return($status, $msg = '', $data = [])
 {
     global $domain_id, $current_path;
 
-    // Add helpful tip for permission errors
-    if ($status === 'error' && (stripos($msg, 'permission') !== false || stripos($msg, 'writable') !== false || stripos($msg, 'denied') !== false)) {
-        $msg .= "<br><br><strong>Ã°Å¸â€™Â¡ Tip:</strong> Go to <b>Tools > Troubleshoot</b> and run <b>Fix Permissions</b>.";
+    // Add helpful tip for permission errors (only when $msg is a string)
+    if ($status === 'error' && is_string($msg) && (stripos($msg, 'permission') !== false || stripos($msg, 'writable') !== false || stripos($msg, 'denied') !== false)) {
+        $msg .= "<br><br><strong>💡 Tip:</strong> Go to <b>Tools &gt; Troubleshoot</b> and run <b>Fix Permissions</b>.";
     }
 
     $is_ajax = isset($_POST['ajax']) || isset($_POST['ajax_action']);
@@ -2116,7 +2116,7 @@ if (is_dir($full_path)) {
                     <p style="font-size:0.75rem;color:var(--slate-400);margin-top:0.375rem;">
                         Quick:
                         <span style="color:var(--primary);cursor:pointer;font-weight: 500;"
-                            onclick="document.getElementById('chmod-val').value='0775'">0775</span> (dir) Â·
+                            onclick="document.getElementById('chmod-val').value='0775'">0775</span> (dir) &middot;
                         <span style="color:var(--primary);cursor:pointer;font-weight: 500;"
                             onclick="document.getElementById('chmod-val').value='0664'">0664</span> (file)
                     </p>
@@ -2185,7 +2185,7 @@ if (is_dir($full_path)) {
                             style="width:14px;height:14px;vertical-align:middle;margin-right:0.25rem;"></i> Folder
                     </button>
                 </div>
-                <input id="input-create" type="text" placeholder="Enter nameâ€¦" class="form-input">
+                <input id="input-create" type="text" placeholder="Enter name&hellip;" class="form-input">
             </div>
             <div class="modal-footer">
                 <button onclick="FM.closeModals()" class="btn btn-secondary btn-sm">Cancel</button>
@@ -2206,7 +2206,7 @@ if (is_dir($full_path)) {
                         style="width:15px;height:15px;"></i></button>
             </div>
             <div class="modal-body">
-                <input id="input-rename" type="text" class="form-input" placeholder="New nameâ€¦">
+                <input id="input-rename" type="text" class="form-input" placeholder="New name&hellip;">
                 <input id="rename-target" type="hidden">
             </div>
             <div class="modal-footer">
@@ -2497,7 +2497,7 @@ if (is_dir($full_path)) {
                 }
 
                 syncHeaderCheckbox() {
-                    const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
+                    const headerCheckbox = document.getElementById('header-select-all');
                     if (!headerCheckbox) return;
 
                     const fileItems = document.querySelectorAll('.file-item');
@@ -2550,7 +2550,7 @@ if (is_dir($full_path)) {
                         if (checkbox) checkbox.checked = false;
                     });
                     // Also uncheck the header checkbox
-                    const headerCheckbox = document.querySelector('.list-header input[type="checkbox"]');
+                    const headerCheckbox = document.getElementById('header-select-all');
                     if (headerCheckbox) headerCheckbox.checked = false;
                     this.updateActionBar();
                 }
@@ -2651,7 +2651,7 @@ if (is_dir($full_path)) {
                                     errorMsg += '\n\n' + json.msg.details;
                                 }
                                 if (json.msg.solutions && json.msg.solutions.length > 0) {
-                                    errorMsg += '\n\nPossible solutions:\nÃ¢â‚¬Â¢ ' + json.msg.solutions.join('\nÃ¢â‚¬Â¢ ');
+                                    errorMsg += '\n\nPossible solutions:\n• ' + json.msg.solutions.join('\n• ');
                                 }
                                 if (json.msg.current_perms) {
                                     errorMsg += '\n\nCurrent permissions: ' + json.msg.current_perms;
@@ -2718,7 +2718,9 @@ if (is_dir($full_path)) {
                         const fd = new FormData();
                         fd.append('download_items', '1');
                         fd.append('paths[]', path);
-                        // We fetch blob
+                        fd.append('domain_id', CONFIG.domainId);
+                        fd.append('path', CONFIG.currentPath);
+                        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
                         try {
                             const res = await fetch('', { method: 'POST', body: fd });
                             const blob = await res.blob();
