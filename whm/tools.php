@@ -152,8 +152,73 @@ if (isset($_POST['ajax_action'])) {
             cmd("network-tool set-interface " . escapeshellarg($iface));
             exit;
         }
+        if ($action == 'fix_permissions') {
+            // Fetch all domains with their document roots
+            $all_domains = $pdo->query("
+                SELECT d.id, d.domain, d.document_root, c.username
+                FROM domains d
+                JOIN clients c ON d.client_id = c.id
+                ORDER BY c.username ASC, d.domain ASC
+            ")->fetchAll(PDO::FETCH_ASSOC);
 
-    } catch (Throwable $e) {
+            if (empty($all_domains)) throw new Exception('No domains found in database');
+
+            $results = [];
+            foreach ($all_domains as $dom) {
+                $docroot = rtrim($dom['document_root'], '/');
+                if (empty($docroot)) {
+                    $results[] = ['domain' => $dom['domain'], 'status' => 'skipped', 'msg' => 'No document_root set'];
+                    continue;
+                }
+                if (!is_dir($docroot)) {
+                    $results[] = ['domain' => $dom['domain'], 'status' => 'warning', 'msg' => 'Directory does not exist: ' . $docroot];
+                    continue;
+                }
+
+                $ok = true;
+                $errors = [];
+
+                // Try chown via shm-manage (requires sudo)
+                try {
+                    cmd('webdir-fix-perms ' . escapeshellarg($dom['username']) . ' ' . escapeshellarg($docroot));
+                } catch (Throwable $e) {
+                    // Fallback: try exec directly
+                    if (function_exists('exec') && !in_array('exec', array_map('trim', explode(',', ini_get('disable_functions'))))) {
+                        $out = []; $rc = 0;
+                        exec('sudo chown -R www-data:www-data ' . escapeshellarg($docroot) . ' 2>&1', $out, $rc);
+                        exec('sudo chmod -R 755 ' . escapeshellarg($docroot) . ' 2>&1', $out2, $rc2);
+                        if ($rc !== 0 || $rc2 !== 0) {
+                            $errors[] = 'chown/chmod failed: ' . implode(', ', array_merge($out, $out2 ?? []));
+                            $ok = false;
+                        }
+                    } else {
+                        // Last resort: PHP chmod (can only fix read bits, not ownership)
+                        $iter = new RecursiveIteratorIterator(
+                            new RecursiveDirectoryIterator($docroot, RecursiveDirectoryIterator::SKIP_DOTS),
+                            RecursiveIteratorIterator::SELF_FIRST
+                        );
+                        foreach ($iter as $fileObj) {
+                            @chmod($fileObj->getPathname(), $fileObj->isDir() ? 0755 : 0644);
+                        }
+                        @chmod($docroot, 0755);
+                        $errors[] = 'Note: chown requires root. Only chmod applied via PHP.';
+                    }
+                }
+
+                $results[] = [
+                    'domain' => $dom['domain'],
+                    'user'   => $dom['username'],
+                    'path'   => $docroot,
+                    'status' => $ok ? 'ok' : 'partial',
+                    'msg'    => $ok ? 'Permissions fixed' : implode('; ', $errors)
+                ];
+            }
+
+            echo json_encode(['status' => 'success', 'results' => $results]);
+            exit;
+        }
+
+
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
     }
@@ -208,6 +273,12 @@ include 'layout/header.php';
         onmouseover="this.style.color='var(--text-primary)'"
         onmouseout="this.style.color='<?= $active_tab == 'backups' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>'">
         Backups
+    </a>
+    <a href="?tab=permissions"
+        style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500; border-bottom: 2px solid <?= $active_tab == 'permissions' ? 'var(--primary)' : 'transparent' ?>; color: <?= $active_tab == 'permissions' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>; transition: all var(--transition-normal); white-space: nowrap; text-decoration: none;"
+        onmouseover="this.style.color='var(--text-primary)'"
+        onmouseout="this.style.color='<?= $active_tab == 'permissions' ? 'var(--text-primary)' : 'var(--text-secondary)' ?>'">
+        🔧 Fix Permissions
     </a>
 </div>
 
@@ -473,6 +544,36 @@ include 'layout/header.php';
 </div>
 
 <?php include 'layout/footer.php'; ?>
+
+<!-- CONTENT: PERMISSIONS -->
+<div style="display: <?= $active_tab == 'permissions' ? 'block' : 'none' ?>;">
+    <div class="glass-card animate-slide-right hover-glow"
+        style="padding: 2rem; border-radius: 1.5rem; position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -2.5rem; top: -2.5rem; width: 10rem; height: 10rem; background: rgba(245, 158, 11, 0.1); border-radius: 9999px; filter: blur(24px);"></div>
+        <h3 style="font-size: 1.25rem; font-weight: 500; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-primary); font-family: var(--font-heading);">
+            <div style="display: flex; align-items: center; justify-content: center; padding: 0.5rem; background: rgba(245, 158, 11, 0.1); border-radius: 0.5rem; border: 1px solid rgba(245, 158, 11, 0.2); color: #f59e0b;">
+                <i data-lucide="shield-check" style="width: 1.25rem; height: 1.25rem;"></i>
+            </div>
+            Fix Permissions — All Domains
+        </h3>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
+            Applies <code style="background:rgba(255,255,255,0.08);padding:0.1rem 0.4rem;border-radius:0.25rem;">chown www-data:www-data</code> and
+            <code style="background:rgba(255,255,255,0.08);padding:0.1rem 0.4rem;border-radius:0.25rem;">chmod 755</code>
+            to every domain's document root registered in the database.
+        </p>
+        <div style="padding: 0.875rem 1rem; border-radius: 0.75rem; background: rgba(245, 158, 11, 0.07); border: 1px solid rgba(245, 158, 11, 0.2); margin-bottom: 1.5rem; font-size: 0.8125rem; color: rgba(253, 186, 116, 0.9);">
+            ⚠️ <strong>Requires root/sudo</strong> access via <code>shm-manage</code>. If not available, only <code>chmod</code> is applied via PHP as a fallback.
+        </div>
+        <button onclick="runFixPerms()" id="btn-fix-perms" class="btn btn-primary" style="padding: 0.875rem 2rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="zap" style="width: 1rem; height: 1rem;"></i>
+            Fix All Domain Permissions
+        </button>
+        <div id="fix-perms-results" style="margin-top: 1.5rem; display: none;">
+            <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem;">Results</h4>
+            <div id="fix-perms-list" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+        </div>
+    </div>
+</div>
 <script>
     // Generic Handler for Tool Actions
     async function handleToolAction(e, action, callback = null) {
@@ -642,5 +743,59 @@ include 'layout/header.php';
         if (activeTab === 'mail')    loadMail();
         if (activeTab === 'backups') loadBackups();
     });
+
+    async function runFixPerms() {
+        const btn = document.getElementById('btn-fix-perms');
+        const resultsBox = document.getElementById('fix-perms-results');
+        const list = document.getElementById('fix-perms-list');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader" style="width:1rem;height:1rem;animation:spin 1s linear infinite;"></i> Fixing permissions...';
+        lucide.createIcons();
+        resultsBox.style.display = 'none';
+        list.innerHTML = '';
+
+        const fd = new FormData();
+        fd.append('ajax_action', 'fix_permissions');
+        fd.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+        try {
+            const res = await fetch('', { method: 'POST', body: fd }).then(r => r.json());
+            resultsBox.style.display = 'block';
+
+            if (res.status === 'success' && res.results) {
+                const statusCfg = {
+                    ok:      { bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.25)', color: '#10b981', icon: 'check-circle' },
+                    partial: { bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.25)', color: '#f59e0b', icon: 'alert-triangle' },
+                    warning: { bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.25)', color: '#f59e0b', icon: 'alert-triangle' },
+                    skipped: { bg: 'rgba(100,116,139,0.08)', border: 'rgba(100,116,139,0.2)', color: 'var(--text-secondary)', icon: 'minus-circle' },
+                };
+                res.results.forEach(r => {
+                    const cfg = statusCfg[r.status] || statusCfg.skipped;
+                    list.innerHTML += `
+                        <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:0.75rem;background:${cfg.bg};border:1px solid ${cfg.border};">
+                            <i data-lucide="${cfg.icon}" style="width:1rem;height:1rem;color:${cfg.color};flex-shrink:0;"></i>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:0.875rem;font-weight:500;color:var(--text-primary);">${r.domain}</div>
+                                <div style="font-size:0.75rem;color:var(--text-secondary);font-family:monospace;">${r.path ?? ''}</div>
+                            </div>
+                            <span style="font-size:0.75rem;color:${cfg.color};white-space:nowrap;">${r.msg}</span>
+                        </div>`;
+                });
+                lucide.createIcons();
+                const ok = res.results.filter(r => r.status === 'ok').length;
+                const total = res.results.length;
+                showToast('success', `Fixed ${ok} of ${total} domains`);
+            } else {
+                showToast('error', res.msg || 'Fix failed');
+            }
+        } catch (e) {
+            showToast('error', 'Communication error: ' + e.message);
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="zap" style="width:1rem;height:1rem;"></i> Fix All Domain Permissions';
+        lucide.createIcons();
+    }
 
 </script>
