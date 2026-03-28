@@ -4,16 +4,22 @@
  */
 require_once __DIR__ . '/../shared/config.php';
 
-$host = $_SERVER['HTTP_HOST'];
+$host   = $_SERVER['HTTP_HOST'];
+$scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+
 if (filter_var($host, FILTER_VALIDATE_IP)) {
-    $base   = $host;
-    $scheme = 'http://';
+    // IP-based access — cpanel at same host, no subdomain trick
+    $base      = $host;
+    $cpanelUrl = $scheme . $host . '/cpanel';
 } else {
-    $parts  = explode('.', $host);
-    $base   = implode('.', array_slice($parts, -2));
-    $scheme = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
+    $parts = explode('.', $host);
+    $base  = implode('.', array_slice($parts, -2)); // e.g. vivzon.cloud
+    // cpanel lives at client.<base> (mirrors WHM at admin.<base>)
+    $cpanelUrl = $scheme . 'client.' . $base;
+    // Allow override via config.local.php  (define('CPANEL_URL', 'https://...'))
+    if (defined('CPANEL_URL')) $cpanelUrl = rtrim(CPANEL_URL, '/');
 }
-$clientUrl = $scheme . $base;
+
 $brandName = get_branding();
 
 $plans = [
@@ -235,7 +241,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
             <a href="#faq"       class="nav-link">FAQ</a>
         </div>
         <div class="nav-cta">
-            <a href="<?= e($clientUrl) ?>" class="btn btn-ghost" style="padding:.625rem 1.25rem;">
+            <a href="<?= e($cpanelUrl) ?>/login.php" class="btn btn-ghost" style="padding:.625rem 1.25rem;">
                 <i data-lucide="log-in" style="width:15px;height:15px;"></i> Login
             </a>
             <a href="#pricing" class="btn btn-primary" style="padding:.625rem 1.25rem;">
@@ -264,7 +270,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
             <a href="#pricing" class="btn btn-primary btn-lg">
                 See Plans <i data-lucide="arrow-right"></i>
             </a>
-            <a href="<?= e($clientUrl) ?>" class="btn btn-ghost btn-lg">
+            <a href="<?= e($cpanelUrl) ?>/login.php" class="btn btn-ghost btn-lg">
                 <i data-lucide="layout-dashboard"></i> Client Portal
             </a>
         </div>
@@ -339,7 +345,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
                     <?php endforeach; ?>
                 </div>
                 <div class="price-cta">
-                    <a href="<?= e($clientUrl) ?>/checkout.php?plan=<?= urlencode($plan['name']) ?>"
+                    <a href="checkout.php?plan=<?= urlencode($plan['name']) ?>"
                        class="btn-plan <?= $plan['popular'] ? 'btn-plan-p' : 'btn-plan-s' ?>">
                         Get Started
                     </a>
@@ -418,7 +424,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
                 <a href="#pricing" class="btn btn-primary btn-lg">
                     Choose a Plan <i data-lucide="arrow-right"></i>
                 </a>
-                <a href="<?= e($clientUrl) ?>" class="btn btn-ghost btn-lg">
+                <a href="<?= e($cpanelUrl) ?>/login.php" class="btn btn-ghost btn-lg">
                     <i data-lucide="log-in"></i> Sign In
                 </a>
             </div>
@@ -444,7 +450,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
                 <a href="#features" class="footer-link">Features</a>
                 <a href="#pricing"  class="footer-link">Pricing</a>
                 <a href="#faq"      class="footer-link">FAQ</a>
-                <a href="<?= e($clientUrl) ?>" class="footer-link">Client Portal</a>
+                <a href="<?= e($cpanelUrl) ?>/login.php" class="footer-link">Client Portal</a>
             </div>
             <div>
                 <div class="footer-label">Legal</div>

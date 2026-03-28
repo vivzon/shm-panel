@@ -45,6 +45,22 @@ $stmt_mail = $pdo->prepare("SELECT COUNT(*) FROM mail_users WHERE domain_id IN (
 $stmt_mail->execute([$cid]);
 $usage_mail = $stmt_mail->fetchColumn();
 
+// Webmail Data
+$mail_accounts = $pdo->prepare("
+    SELECT mu.email, md.domain
+    FROM mail_users mu
+    JOIN mail_domains md ON mu.domain_id = md.id
+    WHERE md.domain IN (SELECT domain FROM domains WHERE client_id = ?)
+    ORDER BY mu.email ASC
+    LIMIT 20
+");
+$mail_accounts->execute([$cid]);
+$mail_list = $mail_accounts->fetchAll(PDO::FETCH_ASSOC);
+
+// Derive mail server hostname from server host or first domain
+$mail_server_host = 'mail.' . ($domains[0]['domain'] ?? ($_SERVER['SERVER_NAME'] ?? gethostname()));
+$webmail_url = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $mail_server_host . '/webmail';
+
 // Calculate Disk Usage
 $used_bytes = 0;
 try {
@@ -358,6 +374,70 @@ include 'layout/header.php';
 
         <!-- Right Column: Logs & Info -->
         <div style="display: flex; flex-direction: column; gap: 2rem;">
+
+            <!-- Webmail Details Card -->
+            <div class="premium-glass" style="padding: 1.5rem; border-radius: 1.25rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 500; color: var(--slate-900); display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="mail" style="width:18px;height:18px;color:#6366f1;"></i> Webmail
+                    </h3>
+                    <a href="<?= htmlspecialchars($webmail_url) ?>" target="_blank"
+                       style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.375rem 0.875rem; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); border-radius: 9999px; font-size: 0.75rem; font-weight: 600; color: #6366f1; text-decoration: none; transition: all 0.2s;"
+                       onmouseover="this.style.background='rgba(99,102,241,0.18)'"
+                       onmouseout="this.style.background='rgba(99,102,241,0.1)'">
+                        <i data-lucide="external-link" style="width:12px;height:12px;"></i> Open Webmail
+                    </a>
+                </div>
+
+                <!-- Connection Settings -->
+                <div style="background: var(--bg-body); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; font-size: 0.8125rem;">
+                    <div style="font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 0.75rem;">Mail Server Settings</div>
+                    <?php
+                    $settings = [
+                        ['Incoming (IMAP)', $mail_server_host, '993', 'SSL', '#3b82f6'],
+                        ['Incoming (POP3)', $mail_server_host, '995', 'SSL', '#8b5cf6'],
+                        ['Outgoing (SMTP)', $mail_server_host, '465', 'SSL', '#10b981'],
+                        ['Webmail URL', $webmail_url, '',   '',    '#f59e0b'],
+                    ];
+                    foreach ($settings as $s): ?>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                        <span style="color: var(--text-secondary); font-size: 0.8125rem;"><?= $s[0] ?></span>
+                        <div style="text-align: right;">
+                            <span style="font-family: monospace; color: var(--text-primary); font-size: 0.8125rem;"><?= htmlspecialchars($s[1]) ?></span>
+                            <?php if ($s[2]): ?>
+                            <span style="margin-left: 0.5rem; font-size: 0.625rem; font-weight: 700; color: <?= $s[4] ?>; background: <?= $s[4] ?>18; padding: 0.1rem 0.4rem; border-radius: 4px;"><?= $s[2] ?> <?= $s[3] ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <!-- Mail Accounts List -->
+                <div style="font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 0.6rem;">Your Mailboxes</div>
+                <?php if (empty($mail_list)): ?>
+                <div style="text-align: center; padding: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
+                    No email accounts yet. <a href="emails.php" style="color: var(--primary);">Create one →</a>
+                </div>
+                <?php else: ?>
+                <div style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 160px; overflow-y: auto;" class="custom-scrollbar">
+                    <?php foreach ($mail_list as $ma): ?>
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; background: var(--bg-body); border-radius: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(99,102,241,0.12); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; font-weight: 700; flex-shrink: 0;">
+                                <?= strtoupper(substr($ma['email'], 0, 1)) ?>
+                            </div>
+                            <span style="font-size: 0.8125rem; color: var(--text-primary); font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px;" title="<?= htmlspecialchars($ma['email']) ?>"><?= htmlspecialchars($ma['email']) ?></span>
+                        </div>
+                        <a href="<?= htmlspecialchars($webmail_url) ?>" target="_blank"
+                           style="font-size: 0.7rem; color: #6366f1; padding: 0.2rem 0.6rem; border: 1px solid rgba(99,102,241,0.25); border-radius: 999px; white-space: nowrap; text-decoration: none;"
+                           onmouseover="this.style.background='rgba(99,102,241,0.1)'"
+                           onmouseout="this.style.background='transparent'">Open</a>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+            </div>
+
             <!-- Server Info -->
             <div class="premium-glass" style="padding: 1.5rem; border-radius: 1.25rem;">
                 <h3 style="font-size: 1.125rem; font-weight: 500; color: var(--slate-900); margin-bottom: 1rem;">Server
