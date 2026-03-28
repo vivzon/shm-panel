@@ -1,884 +1,495 @@
 <?php
 /**
- * VIVZON CLOUD - LANDING PAGE (Modern Vanilla CSS)
+ * LANDING PAGE - Premium Redesign
  */
 require_once __DIR__ . '/../shared/config.php';
 
 $host = $_SERVER['HTTP_HOST'];
 if (filter_var($host, FILTER_VALIDATE_IP)) {
-    $base = $host;
-    $scheme = "http://";
+    $base   = $host;
+    $scheme = 'http://';
 } else {
-    $parts = explode('.', $host);
-    $base = implode('.', array_slice($parts, -2));
-    $scheme = isset($_SERVER['HTTPS']) ? "https://" : "http://";
+    $parts  = explode('.', $host);
+    $base   = implode('.', array_slice($parts, -2));
+    $scheme = isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
 }
-
-$clientUrl = $scheme . '' . $base;
+$clientUrl = $scheme . $base;
 $brandName = get_branding();
 
-// Fetch plans from DB for pricing section
-try {
-    $plans = $pdo->query("SELECT * FROM packages ORDER BY price ASC LIMIT 3")->fetchAll();
-} catch (Exception $e) {
-    $plans = [];
-}
+$plans = [
+    ['name' => 'Starter',  'price' => '₹49',  'popular' => false, 'color' => '#3b82f6',
+     'perks' => ['1 Website', '1 GB NVMe Storage', '2 Email Accounts', '2 MySQL DBs', 'Free SSL']],
+    ['name' => 'Smart',    'price' => '₹149', 'popular' => true,  'color' => '#6366f1',
+     'perks' => ['3 Websites', '5 GB NVMe Storage', '10 Email Accounts', '5 MySQL DBs', 'Free SSL + CDN']],
+    ['name' => 'Pro',      'price' => '₹249', 'popular' => false, 'color' => '#8b5cf6',
+     'perks' => ['10 Websites', '15 GB NVMe Storage', '25 Email Accounts', '20 MySQL DBs', 'SSL + Backup']],
+    ['name' => 'Agency',   'price' => '₹399', 'popular' => false, 'color' => '#10b981',
+     'perks' => ['Unlimited Websites', '40 GB NVMe Storage', '100 Email Accounts', 'Unlimited DBs', 'Dedicated Resources']],
+];
+$features = [
+    ['zap',          '#f59e0b', 'NVMe Speed', 'Up to 10× faster storage. Sub-millisecond I/O that keeps your apps flying.'],
+    ['shield-check', '#10b981', 'DDoS Shield', 'Multi-layer traffic scrubbing absorbs attacks before they touch your app.'],
+    ['globe-2',      '#3b82f6', 'Global CDN',  'Edge nodes deliver your content from the closest point. Latency drops, rankings rise.'],
+    ['lock',         '#6366f1', 'Auto SSL',    "Let's Encrypt certs issued and renewed automatically. Zero config."],
+    ['terminal',     '#ec4899', 'Full SSH',    'Root or user SSH, SFTP, WP-CLI, and Git deploy hooks out of the box.'],
+    ['headphones',   '#f97316', '24/7 Support','Real engineers, not bots. Average first response: under 4 minutes.'],
+];
+$faqs = [
+    ["What is NVMe Cloud Hosting?",       "NVMe (Non-Volatile Memory Express) is a modern storage protocol that is up to 10× faster than traditional SSDs, ensuring your site loads instantly."],
+    ["How does free SSL work?",           "We automatically provision Let's Encrypt certificates for every domain at no extra cost and handle renewals before they expire."],
+    ["Can I upgrade my plan later?",      "Absolutely. You can upgrade any time from the client portal with no downtime. Resources are provisioned immediately."],
+    ["Is there a money-back guarantee?",  "Yes — every plan comes with a 7-day money-back guarantee, no questions asked."],
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="<?= e($brandName) ?> — Enterprise-grade NVMe cloud hosting with 99.9% uptime, DDoS protection, global CDN, and 24/7 expert support.">
-    <title><?= e($brandName) ?> | Premium Cloud Hosting</title>
-
-    <!-- Unified modern design system -->
-    <link rel="stylesheet" href="/assets/css/modern-design.css">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-        /* Landing Page Specific Styles */
-        body {
-            overflow-x: hidden;
-        }
-
-        /* Ambient Blobs */
-        .ambient-bg {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: -1;
-        }
-
-        .blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
-        .blob-1 {
-            width: 900px;
-            height: 900px;
-            background: rgba(147, 197, 253, 0.4);
-            top: -20%;
-            left: -15%;
-            animation: float 8s ease-in-out infinite;
-        }
-
-        .blob-2 {
-            width: 700px;
-            height: 700px;
-            background: rgba(196, 181, 253, 0.3);
-            bottom: -15%;
-            right: -10%;
-            animation: float 10s ease-in-out infinite reverse;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-24px) rotate(2deg);
-            }
-        }
-
-        /* Navbar Layout */
-        .navbar {
-            position: fixed;
-            width: 100%;
-            z-index: 50;
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--slate-200);
-            transition: background 0.3s;
-        }
-
-        .navbar.navbar-scrolled {
-            background: rgba(255, 255, 255, 0.97);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .navbar-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 72px;
-        }
-
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.125rem;
-            font-weight: 500;
-            font-family: 'Outfit', sans-serif;
-            color: var(--slate-800);
-            letter-spacing: -0.02em;
-        }
-
-        .nav-brand-icon {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            padding: 10px;
-            border-radius: 12px;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .nav-links {
-            display: none;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        @media(min-width: 768px) {
-            .nav-links {
-                display: flex;
-            }
-        }
-
-        .nav-link-item {
-            color: var(--slate-500);
-            font-weight: 500;
-            font-size: 0.875rem;
-            position: relative;
-        }
-
-        .nav-link-item:hover {
-            color: var(--slate-900);
-        }
-
-        .nav-link-item::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--primary);
-            transform: scaleX(0);
-            transition: transform 0.25s ease;
-        }
-
-        .nav-link-item:hover::after {
-            transform: scaleX(1);
-        }
-
-        /* Hero Section */
-        .hero-section {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding-top: 5rem;
-            padding-bottom: 6rem;
-            position: relative;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.5rem 1.25rem;
-            border-radius: var(--radius-full);
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            background: rgba(37, 99, 235, 0.08);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            color: var(--secondary);
-            margin-bottom: 2rem;
-        }
-
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--accent-emerald);
-            border-radius: 50%;
-            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-
-        @keyframes ping {
-
-            75%,
-            100% {
-                transform: scale(2);
-                opacity: 0;
-            }
-        }
-
-        .hero-title {
-            font-size: 3.5rem;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-        }
-
-        @media(min-width: 768px) {
-            .hero-title {
-                font-size: 5rem;
-            }
-        }
-
-        .hero-subtitle {
-            font-size: 1.125rem;
-            color: var(--slate-600);
-            max-width: 800px;
-            margin: 0 auto 3rem;
-            font-weight: 400;
-        }
-
-        .hero-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        /* Stats Grid */
-        .stats-section {
-            padding: 4rem 0;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-
-        @media(min-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        .stat-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--slate-200);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: var(--primary-light);
-            box-shadow: var(--shadow-md);
-            transform: translateY(-4px);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 500;
-            font-family: 'Outfit', sans-serif;
-            color: var(--slate-800);
-            margin: 0.5rem 0;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--slate-500);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        /* Features Section */
-        .section-padding {
-            padding: 6rem 0;
-        }
-
-        .section-title-wrap {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        .badge-label {
-            display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--secondary);
-            background: rgba(79, 70, 229, 0.1);
-            border: 1px solid rgba(79, 70, 229, 0.2);
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-full);
-            margin-bottom: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        @media(min-width: 768px) {
-            .section-title {
-                font-size: 3rem;
-            }
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-
-        @media(min-width: 768px) {
-            .features-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media(min-width: 1024px) {
-            .features-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        .feature-icon-wrap {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            background: var(--slate-100);
-            color: var(--primary);
-        }
-
-        /* Pricing Section */
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        @media(min-width: 768px) {
-            .pricing-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media(min-width: 1024px) {
-            .pricing-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        .pricing-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--slate-200);
-            border-radius: var(--radius-xl);
-            padding: 2.5rem 2rem;
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .pricing-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--primary-light);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .pricing-card.featured {
-            border-color: var(--primary);
-            box-shadow: var(--shadow-glow);
-        }
-
-        .pricing-badge {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            font-size: 0.625rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 0.375rem 1rem;
-            border-radius: var(--radius-full);
-        }
-
-        .pricing-price {
-            font-size: 3.5rem;
-            font-weight: 500;
-            font-family: 'Outfit', sans-serif;
-            color: var(--text-primary);
-            margin: 1rem 0 1.5rem;
-        }
-
-        .pricing-perk {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-            font-size: 0.875rem;
-            color: var(--slate-600);
-        }
-
-        .pricing-perk i {
-            color: var(--accent-emerald);
-        }
-
-        /* Footer */
-        .footer {
-            background: var(--slate-100);
-            padding: 4rem 0 2rem;
-            border-top: 1px solid var(--slate-200);
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 3rem;
-            margin-bottom: 3rem;
-        }
-
-        @media(min-width: 768px) {
-            .footer-grid {
-                grid-template-columns: 2fr 1fr 1fr;
-            }
-        }
-
-        .footer-col h4 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--slate-500);
-            margin-bottom: 1.5rem;
-        }
-
-        .footer-link {
-            display: block;
-            color: var(--slate-600);
-            font-size: 0.875rem;
-            margin-bottom: 0.75rem;
-            transition: color 0.2s;
-        }
-
-        .footer-link:hover {
-            color: var(--slate-900);
-        }
-
-        .footer-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            padding-top: 2rem;
-            border-top: 1px solid var(--slate-200);
-            font-size: 0.875rem;
-            color: var(--slate-500);
-        }
-
-        /* Utility */
-        .mt-4 {
-            margin-top: 1rem;
-        }
-
-        .mb-4 {
-            margin-bottom: 1rem;
-        }
-
-        .mb-8 {
-            margin-bottom: 2rem;
-        }
-
-        .w-full {
-            width: 100%;
-        }
-
-        .block {
-            display: block;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="<?= e($brandName) ?> — Enterprise NVMe cloud hosting with DDoS protection, auto SSL, and 24/7 support.">
+<title><?= e($brandName) ?> | Premium Cloud Hosting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+/* ── Reset & Tokens ─────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --bg:        #080b14;
+    --bg-s:      #0e1221;
+    --bg-card:   rgba(255,255,255,0.04);
+    --border:    rgba(255,255,255,0.08);
+    --border-h:  rgba(255,255,255,0.16);
+    --text:      #f1f5f9;
+    --muted:     #94a3b8;
+    --p:         #6366f1;
+    --p-glow:    rgba(99,102,241,0.35);
+    --radius:    1rem;
+    --radius-lg: 1.5rem;
+}
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+a { text-decoration: none; color: inherit; }
+img { display: block; max-width: 100%; }
+h1,h2,h3,h4 { font-family: 'Outfit', sans-serif; line-height: 1.15; }
+
+/* ── Layout ─────────────────────────────────── */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+.section { padding: 6rem 0; }
+
+/* ── Gradient Text ───────────────────────────── */
+.grad { background: linear-gradient(135deg, #818cf8, #c084fc 50%, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* ── Buttons ─────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; gap: .5rem; padding: .75rem 1.5rem; border-radius: 9999px; font-weight: 600; font-size: .875rem; cursor: pointer; transition: all .25s ease; border: none; }
+.btn-primary { background: linear-gradient(135deg, var(--p), #7c3aed); color: #fff; box-shadow: 0 0 24px var(--p-glow); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px var(--p-glow); }
+.btn-ghost { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover { border-color: var(--border-h); transform: translateY(-2px); }
+.btn-lg { padding: 1rem 2rem; font-size: 1rem; }
+
+/* ── Cards ───────────────────────────────────── */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); backdrop-filter: blur(12px); transition: border-color .3s, transform .3s, box-shadow .3s; }
+.card:hover { border-color: var(--border-h); transform: translateY(-4px); }
+
+/* ── Noise overlay ───────────────────────────── */
+body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: .5; }
+
+/* ── Ambient blobs ───────────────────────────── */
+.blobs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.blob { position: absolute; border-radius: 50%; filter: blur(120px); opacity: .35; animation: drift 12s ease-in-out infinite; }
+.blob-1 { width: 900px; height: 900px; background: radial-gradient(circle, #4f46e5, transparent 70%); top: -20%; left: -15%; }
+.blob-2 { width: 700px; height: 700px; background: radial-gradient(circle, #7c3aed, transparent 70%); bottom: -15%; right: -10%; animation-delay: -4s; animation-direction: reverse; }
+.blob-3 { width: 500px; height: 500px; background: radial-gradient(circle, #0ea5e9, transparent 70%); top: 40%; left: 50%; animation-delay: -8s; }
+@keyframes drift { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.04); } }
+
+/* ── Navbar ───────────────────────────────────── */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; transition: background .3s, backdrop-filter .3s, box-shadow .3s; }
+.nav.scrolled { background: rgba(8,11,20,.85); backdrop-filter: blur(20px); box-shadow: 0 1px 0 var(--border); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+.nav-brand { display: flex; align-items: center; gap: .75rem; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.125rem; }
+.brand-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #7c3aed); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px var(--p-glow); }
+.nav-links { display: none; gap: 2.5rem; }
+@media(min-width:768px) { .nav-links { display: flex; } }
+.nav-link { font-size: .875rem; font-weight: 500; color: var(--muted); transition: color .2s; }
+.nav-link:hover { color: var(--text); }
+.nav-cta { display: flex; align-items: center; gap: .75rem; }
+
+/* ── Hero ─────────────────────────────────────── */
+.hero { min-height: 100vh; display: flex; align-items: center; padding-top: 5rem; position: relative; z-index: 1; }
+.hero-inner { text-align: center; padding: 4rem 0; }
+.hero-pill { display: inline-flex; align-items: center; gap: .625rem; padding: .4rem 1rem; border-radius: 9999px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.3); color: #a5b4fc; margin-bottom: 2rem; }
+.pulse { width: 7px; height: 7px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 0 0 rgba(74,222,128,.4); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(74,222,128,.4); } 70% { box-shadow: 0 0 0 8px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+.hero-title { font-size: clamp(3rem,8vw,5.5rem); font-weight: 800; line-height: 1.05; letter-spacing: -.03em; margin-bottom: 1.5rem; }
+.hero-sub { font-size: 1.125rem; color: var(--muted); max-width: 680px; margin: 0 auto 2.5rem; line-height: 1.7; }
+.hero-cta { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.hero-trust { display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin-top: 3.5rem; font-size: .8125rem; color: var(--muted); flex-wrap: wrap; }
+.trust-item { display: flex; align-items: center; gap: .5rem; }
+.trust-item i { width: 14px; height: 14px; }
+
+/* ── Stats ────────────────────────────────────── */
+.stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; position: relative; z-index: 1; }
+@media(min-width:768px) { .stats-row { grid-template-columns: repeat(4, 1fr); } }
+.stat-cell { background: var(--bg-s); padding: 2rem; text-align: center; transition: background .3s; }
+.stat-cell:hover { background: rgba(99,102,241,.06); }
+.stat-num { font-family: 'Outfit', sans-serif; font-size: 2.25rem; font-weight: 700; }
+.stat-lbl { font-size: .75rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-top: .25rem; }
+
+/* ── Features ─────────────────────────────────── */
+.feat-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media(min-width:640px) { .feat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media(min-width:1024px) { .feat-grid { grid-template-columns: repeat(3, 1fr); } }
+.feat-card { padding: 2rem; }
+.feat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; }
+.feat-card h3 { font-size: 1.0625rem; font-weight: 600; margin-bottom: .5rem; color: var(--text); }
+.feat-card p { font-size: .875rem; color: var(--muted); line-height: 1.65; }
+
+/* ── Pricing ──────────────────────────────────── */
+.price-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media(min-width:640px) { .price-grid { grid-template-columns: repeat(2, 1fr); } }
+@media(min-width:1024px) { .price-grid { grid-template-columns: repeat(4, 1fr); } }
+.price-card { padding: 2rem; display: flex; flex-direction: column; position: relative; }
+.price-card.popular { border-color: rgba(99,102,241,.5); box-shadow: 0 0 40px rgba(99,102,241,.2); }
+.pop-badge { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, var(--p), #7c3aed); color: #fff; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; padding: .3rem 1rem; border-radius: 9999px; white-space: nowrap; }
+.price-name { font-size: .9375rem; font-weight: 600; color: var(--muted); margin-bottom: .75rem; }
+.price-num { font-family: 'Outfit', sans-serif; font-size: 3rem; font-weight: 800; line-height: 1; margin-bottom: .25rem; }
+.price-per { font-size: .8125rem; color: var(--muted); margin-bottom: 1.75rem; }
+.perk { display: flex; align-items: center; gap: .625rem; font-size: .875rem; color: var(--muted); margin-bottom: .875rem; }
+.perk i { flex-shrink: 0; width: 14px; height: 14px; }
+.price-cta { margin-top: auto; padding-top: 1.5rem; }
+.btn-plan { display: block; text-align: center; padding: .75rem; border-radius: 9999px; font-weight: 600; font-size: .875rem; transition: all .25s; }
+.btn-plan-p { background: linear-gradient(135deg, var(--p), #7c3aed); color: #fff; box-shadow: 0 0 20px var(--p-glow); }
+.btn-plan-p:hover { box-shadow: 0 0 40px var(--p-glow); transform: translateY(-1px); }
+.btn-plan-s { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); }
+.btn-plan-s:hover { border-color: var(--border-h); transform: translateY(-1px); }
+
+/* ── Testimonials ─────────────────────────────── */
+.testi-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media(min-width:768px) { .testi-grid { grid-template-columns: repeat(3, 1fr); } }
+.testi-card { padding: 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
+.stars { display: flex; gap: .2rem; color: #fbbf24; }
+.stars i { width: 1rem; height: 1rem; }
+.testi-text { font-size: .9375rem; color: var(--muted); line-height: 1.7; font-style: italic; flex: 1; }
+.testi-author { display: flex; align-items: center; gap: .875rem; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8125rem; flex-shrink: 0; }
+.author-name { font-weight: 600; font-size: .9375rem; color: var(--text); }
+.author-role { font-size: .8125rem; color: var(--muted); }
+
+/* ── FAQ ──────────────────────────────────────── */
+.faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.faq-item { background: var(--bg-s); }
+.faq-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.5rem; text-align: left; cursor: pointer; background: none; border: none; color: var(--text); font-family: 'Inter', sans-serif; font-size: .9375rem; font-weight: 600; transition: background .2s; }
+.faq-btn:hover { background: rgba(99,102,241,.05); }
+.faq-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--muted); transition: transform .3s; }
+.faq-body { max-height: 0; overflow: hidden; transition: max-height .4s ease, padding .3s; }
+.faq-body p { padding: 0 1.5rem 1.5rem; font-size: .9rem; color: var(--muted); line-height: 1.7; }
+.faq-item.open .faq-icon { transform: rotate(45deg); }
+.faq-item.open .faq-body { max-height: 300px; }
+
+/* ── CTA Banner ───────────────────────────────── */
+.cta-banner { background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(124,58,237,.15)); border: 1px solid rgba(99,102,241,.25); border-radius: var(--radius-lg); padding: 4rem 2rem; text-align: center; position: relative; overflow: hidden; }
+.cta-banner::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(99,102,241,.05), transparent); pointer-events: none; }
+
+/* ── Footer ───────────────────────────────────── */
+.footer { border-top: 1px solid var(--border); padding: 4rem 0 2rem; }
+.footer-grid { display: grid; grid-template-columns: 1fr; gap: 3rem; margin-bottom: 3rem; }
+@media(min-width:768px) { .footer-grid { grid-template-columns: 2fr 1fr 1fr; } }
+.footer-label { font-size: .6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 1.25rem; }
+.footer-link { display: block; font-size: .875rem; color: var(--muted); margin-bottom: .75rem; transition: color .2s; }
+.footer-link:hover { color: var(--text); }
+.footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; padding-top: 2rem; border-top: 1px solid var(--border); font-size: .8125rem; color: var(--muted); }
+
+/* ── Divider ──────────────────────────────────── */
+.section-title { text-align: center; margin-bottom: 4rem; }
+.section-tag { display: inline-block; font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: #a5b4fc; background: rgba(99,102,241,.12); border: 1px solid rgba(99,102,241,.25); padding: .35rem 1rem; border-radius: 9999px; margin-bottom: 1.25rem; }
+.section-h { font-size: clamp(2rem,4vw,3rem); font-weight: 800; letter-spacing: -.03em; margin-bottom: 1rem; }
+.section-sub { font-size: 1rem; color: var(--muted); max-width: 600px; margin: 0 auto; line-height: 1.7; }
+
+/* ── Animations ────────────────────────────────── */
+.fade-up { opacity: 0; transform: translateY(28px); transition: opacity .6s ease, transform .6s ease; }
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+</style>
 </head>
-
 <body>
 
-    <!-- Ambient BG -->
-    <div class="ambient-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-    </div>
+<!-- Ambient -->
+<div class="blobs" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+</div>
 
-    <!-- Navbar -->
-    <nav class="navbar" id="navbar">
-        <div class="container navbar-content">
-            <a href="#" class="nav-brand">
-                <div class="nav-brand-icon"><i data-lucide="cloud" style="width:20px;height:20px;"></i></div>
-                <span><?= e(strtoupper($brandName)) ?></span>
+<!-- Navbar -->
+<nav class="nav" id="nav">
+    <div class="container nav-inner">
+        <a href="#" class="nav-brand">
+            <div class="brand-icon"><i data-lucide="cloud" style="width:20px;height:20px;color:#fff;"></i></div>
+            <span><?= e(strtoupper($brandName)) ?></span>
+        </a>
+        <div class="nav-links">
+            <a href="#features"  class="nav-link">Features</a>
+            <a href="#pricing"   class="nav-link">Pricing</a>
+            <a href="#reviews"   class="nav-link">Reviews</a>
+            <a href="#faq"       class="nav-link">FAQ</a>
+        </div>
+        <div class="nav-cta">
+            <a href="<?= e($clientUrl) ?>" class="btn btn-ghost" style="padding:.625rem 1.25rem;">
+                <i data-lucide="log-in" style="width:15px;height:15px;"></i> Login
             </a>
-            <div class="nav-links">
-                <a href="#features" class="nav-link-item">Features</a>
-                <a href="#stats" class="nav-link-item">Performance</a>
-                <a href="#pricing" class="nav-link-item">Pricing</a>
-                <a href="#testimonials" class="nav-link-item">Reviews</a>
-            </div>
-            <div class="flex items-center gap-3">
-                <a href="<?= e($clientUrl) ?>" class="btn btn-secondary">
-                    <i data-lucide="log-in" style="width:16px;height:16px;"></i> Login
-                </a>
-                <a href="#pricing" class="btn btn-primary">
-                    Get Started <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
-                </a>
-            </div>
+            <a href="#pricing" class="btn btn-primary" style="padding:.625rem 1.25rem;">
+                Get Started <i data-lucide="arrow-right" style="width:15px;height:15px;"></i>
+            </a>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <!-- Hero -->
-    <section class="hero-section">
-        <div class="container text-center">
-            <div class="hero-badge animate-fade-in">
-                <div class="live-dot"></div>
-                All Systems Operational · 99.97% Uptime This Month
+<!-- Hero -->
+<section class="hero">
+    <div class="container hero-inner">
+        <div class="hero-pill fade-up">
+            <span class="pulse"></span>
+            All Systems Operational &middot; 99.97% Uptime This Month
+        </div>
+        <h1 class="hero-title fade-up" style="transition-delay:.1s;">
+            Cloud Hosting Built<br>
+            <span class="grad">For Builders.</span>
+        </h1>
+        <p class="hero-sub fade-up" style="transition-delay:.2s;">
+            Deploy on <strong style="color:var(--text);">NVMe-powered cloud</strong> in seconds.
+            Auto SSL, DDoS protection, and a control panel that actually makes sense.
+        </p>
+        <div class="hero-cta fade-up" style="transition-delay:.3s;">
+            <a href="#pricing" class="btn btn-primary btn-lg">
+                See Plans <i data-lucide="arrow-right"></i>
+            </a>
+            <a href="<?= e($clientUrl) ?>" class="btn btn-ghost btn-lg">
+                <i data-lucide="layout-dashboard"></i> Client Portal
+            </a>
+        </div>
+        <div class="hero-trust fade-up" style="transition-delay:.4s;">
+            <div class="trust-item"><i data-lucide="check-circle" style="color:#4ade80;"></i> No credit card needed</div>
+            <div class="trust-item"><i data-lucide="check-circle" style="color:#4ade80;"></i> 7-day money-back</div>
+            <div class="trust-item"><i data-lucide="check-circle" style="color:#4ade80;"></i> Instant setup</div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats -->
+<div class="container" style="position:relative;z-index:1;margin-bottom:2rem;">
+    <div class="stats-row fade-up">
+        <?php foreach ([
+            ['99.97%', 'Uptime SLA',       '#4ade80'],
+            ['<10ms',  'Avg Response Time', '#38bdf8'],
+            ['3',      'Data Centres',      '#a78bfa'],
+            ['24/7',   'Expert Support',    '#fb923c'],
+        ] as $s): ?>
+        <div class="stat-cell">
+            <div class="stat-num" style="color:<?= $s[2] ?>;"><?= $s[0] ?></div>
+            <div class="stat-lbl"><?= $s[1] ?></div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<!-- Features -->
+<section class="section" id="features" style="position:relative;z-index:1;">
+    <div class="container">
+        <div class="section-title">
+            <span class="section-tag">Why <?= e($brandName) ?></span>
+            <h2 class="section-h fade-up">Enterprise-Grade,<br>Developer-Friendly</h2>
+            <p class="section-sub fade-up" style="transition-delay:.1s;">All the power of a dedicated server, with the simplicity of a managed platform.</p>
+        </div>
+        <div class="feat-grid">
+            <?php foreach ($features as $i => $f): ?>
+            <div class="card feat-card fade-up" style="transition-delay:<?= $i * 0.07 ?>s;">
+                <div class="feat-icon" style="background:<?= $f[1] ?>18; color:<?= $f[1] ?>;">
+                    <i data-lucide="<?= $f[0] ?>" style="width:24px;height:24px;"></i>
+                </div>
+                <h3><?= $f[2] ?></h3>
+                <p><?= $f[3] ?></p>
             </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
 
-            <h1 class="hero-title animate-fade-in" style="animation-delay: 0.1s;">
-                Hosting Built<br>
-                <span class="text-gradient">For Builders.</span>
-            </h1>
+<!-- Pricing -->
+<section class="section" id="pricing" style="background:var(--bg-s);position:relative;z-index:1;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="container">
+        <div class="section-title">
+            <span class="section-tag">Simple Pricing</span>
+            <h2 class="section-h fade-up">Plans That Scale With You</h2>
+            <p class="section-sub fade-up" style="transition-delay:.1s;">No hidden fees. Upgrade or downgrade any time from the portal.</p>
+        </div>
+        <div class="price-grid">
+            <?php foreach ($plans as $i => $plan): ?>
+            <div class="card price-card <?= $plan['popular'] ? 'popular' : '' ?> fade-up" style="transition-delay:<?= $i * 0.08 ?>s;">
+                <?php if ($plan['popular']): ?><div class="pop-badge">⭐ Most Popular</div><?php endif; ?>
+                <div class="price-name"><?= $plan['name'] ?></div>
+                <div class="price-num" style="color:<?= $plan['color'] ?>;"><?= $plan['price'] ?></div>
+                <div class="price-per">per month · billed monthly</div>
+                <div>
+                    <?php foreach ($plan['perks'] as $perk): ?>
+                    <div class="perk">
+                        <i data-lucide="check" style="color:<?= $plan['color'] ?>;"></i>
+                        <span><?= e($perk) ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="price-cta">
+                    <a href="<?= e($clientUrl) ?>/checkout.php?plan=<?= urlencode($plan['name']) ?>"
+                       class="btn-plan <?= $plan['popular'] ? 'btn-plan-p' : 'btn-plan-s' ?>">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
 
-            <p class="hero-subtitle animate-fade-in" style="animation-delay: 0.2s;">
-                Deploy on <strong>NVMe-powered cloud</strong> in seconds.
-                Automatic SSL, DDoS protection, and a control panel that actually makes sense.
+<!-- Testimonials -->
+<section class="section" id="reviews" style="position:relative;z-index:1;">
+    <div class="container">
+        <div class="section-title">
+            <span class="section-tag">Customer Reviews</span>
+            <h2 class="section-h fade-up">Trusted by Thousands</h2>
+            <p class="section-sub fade-up" style="transition-delay:.1s;">Real customers, real results — no cherry-picking.</p>
+        </div>
+        <div class="testi-grid">
+            <?php foreach ([
+                ['AR', '#6366f1', "The NVMe speeds are unbelievable. Our WooCommerce store load times dropped by 60% after migrating here. Best decision we've made.", 'Alex Rivera', 'E-commerce Owner'],
+                ['SK', '#7c3aed', "We host 50+ client sites on the Agency Plan. Built-in backups and free SSL automation alone save us hours every week.", 'Sarah Khan', 'Digital Agency Founder'],
+                ['MJ', '#10b981', "Support is genuinely 24/7. DNS issue at 2 AM on a Sunday — fixed in under 5 minutes. Incredible service.", 'Mark Johnson', 'Software Developer'],
+            ] as $i => $t): ?>
+            <div class="card testi-card fade-up" style="transition-delay:<?= $i * 0.1 ?>s;">
+                <div class="stars">
+                    <?php for ($s=0;$s<5;$s++): ?><i data-lucide="star" style="fill:currentColor;"></i><?php endfor; ?>
+                </div>
+                <p class="testi-text">"<?= $t[2] ?>"</p>
+                <div class="testi-author">
+                    <div class="avatar" style="background:<?= $t[1] ?>22;color:<?= $t[1] ?>;"><?= $t[0] ?></div>
+                    <div>
+                        <div class="author-name"><?= $t[3] ?></div>
+                        <div class="author-role"><?= $t[4] ?></div>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq" style="background:var(--bg-s);border-top:1px solid var(--border);position:relative;z-index:1;">
+    <div class="container">
+        <div class="section-title">
+            <span class="section-tag">FAQ</span>
+            <h2 class="section-h fade-up">Got Questions?</h2>
+        </div>
+        <div class="faq-list fade-up" style="transition-delay:.1s;">
+            <?php foreach ($faqs as $faq): ?>
+            <div class="faq-item">
+                <button class="faq-btn" onclick="toggleFaq(this)">
+                    <span><?= e($faq[0]) ?></span>
+                    <i data-lucide="plus" class="faq-icon"></i>
+                </button>
+                <div class="faq-body"><p><?= e($faq[1]) ?></p></div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Banner -->
+<section class="section" style="position:relative;z-index:1;">
+    <div class="container">
+        <div class="cta-banner fade-up">
+            <span class="section-tag">Ready to Launch?</span>
+            <h2 style="font-family:'Outfit',sans-serif;font-size:clamp(2rem,4vw,2.75rem);font-weight:800;letter-spacing:-.03em;margin-bottom:1rem;">
+                Start Hosting in <span class="grad">60 Seconds</span>
+            </h2>
+            <p style="color:var(--muted);margin-bottom:2rem;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.7;">
+                No credit card required. Instant provisioning. Cancel any time.
             </p>
-
-            <div class="hero-actions animate-fade-in" style="animation-delay: 0.3s;">
-                <a href="#pricing" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1rem;">
-                    View Plans <i data-lucide="arrow-right"></i>
+            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                <a href="#pricing" class="btn btn-primary btn-lg">
+                    Choose a Plan <i data-lucide="arrow-right"></i>
                 </a>
-                <a href="<?= e($clientUrl) ?>" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1rem;">
-                    <i data-lucide="layout-dashboard"></i> Client Portal
+                <a href="<?= e($clientUrl) ?>" class="btn btn-ghost btn-lg">
+                    <i data-lucide="log-in"></i> Sign In
                 </a>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- Stats -->
-    <section id="stats" class="stats-section">
-        <div class="container">
-            <div class="stats-grid">
-                <?php
-                $stats = [
-                    ['99.97%', 'Uptime SLA', 'activity', '#10b981'],
-                    ['<10ms', 'Response Time', 'zap', '#2563eb'],
-                    ['3 DC', 'Global Locations', 'globe', '#4f46e5'],
-                    ['24 / 7', 'Expert Support', 'headphones', '#7c3aed'],
-                ];
-                foreach ($stats as $s):
-                    ?>
-                    <div class="stat-card">
-                        <i data-lucide="<?= $s[2] ?>" style="width:24px;height:24px;color:<?= $s[3] ?>;"></i>
-                        <div class="stat-value"><?= $s[0] ?></div>
-                        <div class="stat-label"><?= $s[1] ?></div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features -->
-    <section id="features" class="section-padding">
-        <div class="container">
-            <div class="section-title-wrap">
-                <span class="badge-label">Why <?= e($brandName) ?></span>
-                <h2 class="section-title">Enterprise-Grade, <br>Developer-Friendly</h2>
-                <p style="color:var(--slate-600);max-width:600px;margin:1rem auto;">
-                    All the power of a dedicated server, with the simplicity of a managed platform.
+<!-- Footer -->
+<footer class="footer" style="position:relative;z-index:1;">
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <div class="nav-brand" style="margin-bottom:1rem;">
+                    <div class="brand-icon" style="width:32px;height:32px;border-radius:8px;"><i data-lucide="cloud" style="width:16px;height:16px;color:#fff;"></i></div>
+                    <span style="font-size:1rem;"><?= e(strtoupper($brandName)) ?></span>
+                </div>
+                <p style="font-size:.875rem;color:var(--muted);line-height:1.7;max-width:280px;">
+                    Enterprise NVMe cloud hosting built for developers, designers, and growing businesses.
                 </p>
             </div>
-
-            <div class="features-grid">
-                <?php
-                $features = [
-                    ['zap', 'Blazing NVMe I/O', 'Up to 10× faster storage vs traditional SSD. Queries fly, apps load.'],
-                    ['shield-check', 'DDoS Protection', 'Multi-layer traffic scrubbing absorbs attacks before they reach your app.'],
-                    ['globe-2', 'Global CDN Edge', 'Content delivered from the nearest node. Lower latency.'],
-                    ['lock', 'Auto Free SSL', 'Let\'s Encrypt certificates issued and auto-renewed out of the box.'],
-                    ['terminal', 'Full SSH Access', 'Root or user-level SSH, SFTP, and Git deployment hooks.'],
-                    ['life-buoy', '24/7 Expert Support', 'Real engineers available around the clock.'],
-                ];
-                foreach ($features as $f):
-                    ?>
-                    <div class="glass-card">
-                        <div class="feature-icon-wrap">
-                            <i data-lucide="<?= $f[0] ?>"></i>
-                        </div>
-                        <h3 style="margin-bottom: 0.5rem; font-size: 1.125rem;"><?= $f[1] ?></h3>
-                        <p style="color:var(--slate-600); font-size:0.875rem;"><?= $f[2] ?></p>
-                    </div>
-                <?php endforeach; ?>
+            <div>
+                <div class="footer-label">Product</div>
+                <a href="#features" class="footer-link">Features</a>
+                <a href="#pricing"  class="footer-link">Pricing</a>
+                <a href="#faq"      class="footer-link">FAQ</a>
+                <a href="<?= e($clientUrl) ?>" class="footer-link">Client Portal</a>
+            </div>
+            <div>
+                <div class="footer-label">Legal</div>
+                <a href="terms.php"   class="footer-link">Terms of Service</a>
+                <a href="privacy.php" class="footer-link">Privacy Policy</a>
+                <a href="refund.php"  class="footer-link">Refund Policy</a>
             </div>
         </div>
-    </section>
-
-    <!-- Pricing -->
-    <section id="pricing" class="section-padding" style="background: rgba(255,255,255,0.4);">
-        <div class="container">
-            <div class="section-title-wrap">
-                <span class="badge-label" style="color:var(--primary); background:var(--primary-light);">Simple
-                    Pricing</span>
-                <h2 class="section-title">Plans That Scale With You</h2>
-            </div>
-
-            <!-- Pricing Grid -->
-            <div class="pricing-grid">
-                <?php
-                $plans = [
-                    [
-                        'name' => 'Basic Plan',
-                        'price' => '₹49',
-                        'popular' => false,
-                        'perks' => ['1 Website', '1 GB NVMe Storage', '2 Email Accounts', '2 MySQL Databases', 'Free SSL Certificate', 'Standard Speed']
-                    ],
-                    [
-                        'name' => 'Smart Plan',
-                        'price' => '₹149',
-                        'popular' => true,
-                        'perks' => ['3 Websites', '5 GB NVMe Storage', '10 Email Accounts', '5 MySQL Databases', 'Free SSL', 'Faster Performance']
-                    ],
-                    [
-                        'name' => 'Pro Plan',
-                        'price' => '₹249',
-                        'popular' => false,
-                        'perks' => ['10 Websites', '15 GB NVMe Storage', '25 Email Accounts', '20 MySQL Databases', 'Free SSL + Backup', 'High Performance']
-                    ],
-                    [
-                        'name' => 'Agency Plan',
-                        'price' => '₹399',
-                        'popular' => false,
-                        'perks' => ['Unlimited Websites', '40 GB NVMe Storage', '100 Email Accounts', 'Unlimited MySQL Databases', 'Free SSL + Backup', 'Dedicated Resources']
-                    ]
-                ];
-
-                foreach ($plans as $plan):
-                    $featured = $plan['popular'];
-                    ?>
-                    <div class="pricing-card <?= $featured ? 'featured' : '' ?>">
-                        <?php if ($featured): ?>
-                            <div class="pricing-badge">Most Popular</div>
-                        <?php endif; ?>
-                        <h3 style="font-size:1.25rem; font-weight: 500;"><?= $plan['name'] ?></h3>
-                        <div class="pricing-price"><?= $plan['price'] ?><span
-                                style="font-size:0.875rem;color:var(--slate-500);font-weight:400;font-family:'Plus Jakarta Sans',sans-serif;">/mo</span>
-                        </div>
-
-                        <div style="margin-bottom: 2rem;">
-                            <?php foreach ($plan['perks'] as $perk): ?>
-                                <div class="pricing-perk">
-                                    <i data-lucide="check" style="width:16px;height:16px; flex-shrink:0;"></i>
-                                    <span style="flex-grow:1;"><?= e($perk) ?></span>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <a href="<?= e($clientUrl) ?>/checkout.php?plan=<?= urlencode($plan['name']) ?>"
-                            class="btn w-full block text-center <?= $featured ? 'btn-primary' : 'btn-secondary' ?>">Get
-                            Started</a>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+        <div class="footer-bottom">
+            <span>&copy; <?= date('Y') ?> <?= e($brandName) ?>. All rights reserved.</span>
+            <span style="display:flex;align-items:center;gap:.375rem;"><i data-lucide="heart" style="width:13px;height:13px;color:#f43f5e;fill:#f43f5e;"></i> Made with love</span>
         </div>
-    </section>
+    </div>
+</footer>
 
-    <!-- Testimonials Section -->
-    <section id="testimonials" class="section-padding" style="background: var(--slate-100);">
-        <div class="container">
-            <div class="section-title-wrap" style="margin-bottom: 3rem;">
-                <span class="badge-label">Customer Reviews</span>
-                <h2 class="section-title">Trusted by Thousands</h2>
-                <p style="color:var(--slate-600);max-width:600px;margin:1rem auto;">
-                    See what our customers have to say about their experience with <?= e($brandName) ?>.
-                </p>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                <!-- Review 1 -->
-                <div class="glass-card" style="padding: 2rem;">
-                    <div style="display: flex; gap: 0.25rem; color: #fbbf24; margin-bottom: 1rem;">
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                    </div>
-                    <p style="color: var(--slate-700); font-style: italic; margin-bottom: 1.5rem;">"The NVMe speeds are
-                        unbelievable. Our WooCommerce store load times dropped by 60% after migrating here. Best
-                        decision we've made."</p>
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div
-                            style="width: 40px; height: 40px; border-radius: 50%; background: rgba(37, 99, 235, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 500; font-family: 'Outfit', sans-serif;">
-                            AR</div>
-                        <div>
-                            <div style="font-weight: 500; color: var(--slate-900);">Alex Rivera</div>
-                            <div style="font-size: 0.875rem; color: var(--slate-500);">E-commerce Owner</div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Review 2 -->
-                <div class="glass-card" style="padding: 2rem;">
-                    <div style="display: flex; gap: 0.25rem; color: #fbbf24; margin-bottom: 1rem;">
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                    </div>
-                    <p style="color: var(--slate-700); font-style: italic; margin-bottom: 1.5rem;">"We host over 50
-                        client websites on the Agency Plan. The built-in backups and free SSL automation alone save us
-                        hours every week."</p>
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div
-                            style="width: 40px; height: 40px; border-radius: 50%; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: 'Outfit', sans-serif;">
-                            SK</div>
-                        <div>
-                            <div style="font-weight: 500; color: var(--slate-900);">Sarah Khan</div>
-                            <div style="font-size: 0.875rem; color: var(--slate-500);">Digital Agency Founder</div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Review 3 -->
-                <div class="glass-card" style="padding: 2rem;">
-                    <div style="display: flex; gap: 0.25rem; color: #fbbf24; margin-bottom: 1rem;">
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                        <i data-lucide="star" style="fill: currentColor; width: 1.25rem; height: 1.25rem;"></i>
-                    </div>
-                    <p style="color: var(--slate-700); font-style: italic; margin-bottom: 1.5rem;">"Support is actually
-                        available 24/7. When I had a DNS issue at 2 AM on a Sunday, they fixed it in under 5 minutes.
-                        Incredible service."</p>
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div
-                            style="width: 40px; height: 40px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: 500; font-family: 'Outfit', sans-serif;">
-                            MJ</div>
-                        <div>
-                            <div style="font-weight: 500; color: var(--slate-900);">Mark Johnson</div>
-                            <div style="font-size: 0.875rem; color: var(--slate-500);">Software Developer</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<script>
+    lucide.createIcons();
 
-    <!-- FAQ Section -->
-    <section class="section-padding" style="background: white;">
-        <div class="container">
-            <div class="section-title-wrap" style="margin-bottom: 3rem;">
-                <h2 class="section-title">Frequently Asked Questions</h2>
-            </div>
-            <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem;">
-                <div class="glass-card" style="padding: 1.5rem;">
-                    <div style="display: flex; align-items: flex-start; gap: 1rem;">
-                        <i data-lucide="help-circle"
-                            style="color: var(--primary); flex-shrink: 0; margin-top: 0.125rem;"></i>
-                        <div>
-                            <h3 style="font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem;">What is NVMe Cloud
-                                Hosting?</h3>
-                            <p style="color: var(--slate-600); font-size: 0.875rem;">NVMe (Non-Volatile Memory Express)
-                                is a modern storage protocol designed for high-speed data transfer. It is up to 10x
-                                faster than traditional SSDs, ensuring your website loads instantly.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="glass-card" style="padding: 1.5rem;">
-                    <div style="display: flex; align-items: flex-start; gap: 1rem;">
-                        <i data-lucide="save" style="color: var(--primary); flex-shrink: 0; margin-top: 0.125rem;"></i>
-                        <div>
-                            <h3 style="font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem;">Do you provide
-                                free backups?</h3>
-                            <p style="color: var(--slate-600); font-size: 0.875rem;">Yes! JetBackup is included with all
-                                plans to take automatic daily backups of your files, emails, and databases. You can
-                                easily restore them anytime from your control panel.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="glass-card" style="padding: 1.5rem;">
-                    <div style="display: flex; align-items: flex-start; gap: 1rem;">
-                        <i data-lucide="globe" style="color: var(--primary); flex-shrink: 0; margin-top: 0.125rem;"></i>
-                        <div>
-                            <h3 style="font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem;">Can I host
-                                multiple domains?</h3>
-                            <p style="color: var(--slate-600); font-size: 0.875rem;">Yes, except for the Basic Plan, all
-                                our plans allow you to host multiple domains from a single interface, making it perfect
-                                for developers and agencies.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    // Navbar scroll
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col" style="grid-column: span 1;">
-                    <div class="nav-brand" style="margin-bottom:1rem;">
-                        <div class="nav-brand-icon" style="padding:6px;"><i data-lucide="cloud"
-                                style="width:16px;height:16px;"></i></div>
-                        <span><?= e(strtoupper($brandName)) ?></span>
-                    </div>
-                    <p style="color:var(--slate-500);font-size:0.875rem;line-height:1.6;max-width:300px;">
-                        Enterprise-grade cloud hosting trusted by developers and agencies.
-                    </p>
-                </div>
-                <div class="footer-col">
-                    <h4>Platform</h4>
-                    <a href="#features" class="footer-link">Features</a>
-                    <a href="#pricing" class="footer-link">Pricing</a>
-                    <a href="<?= e($clientUrl) ?>" class="footer-link">Client Portal</a>
-                </div>
-                <div class="footer-col">
-                    <h4>Legal & Support</h4>
-                    <a href="mailto:support@<?= e($base) ?>" class="footer-link">Email Support</a>
-                    <a href="privacy.php" class="footer-link">Privacy Policy</a>
-                    <a href="terms.php" class="footer-link">Terms & Conditions</a>
-                    <a href="refund.php" class="footer-link">Refund Policy</a>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <div>&copy; <?= date('Y') ?> <?= e($brandName) ?> - Premium Cloud Hosting. All rights reserved.</div>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                    Prices are listed without GST
-                </div>
-            </div>
-        </div>
-    </footer>
+    // Scroll animations
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
 
-    <script>
-        lucide.createIcons();
+    // FAQ accordion
+    function toggleFaq(btn) {
+        const item = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+        if (!isOpen) item.classList.add('open');
+    }
 
-        // Navbar Scroll Effect
-        const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 40) {
-                navbar.classList.add('navbar-scrolled');
-            } else {
-                navbar.classList.remove('navbar-scrolled');
-            }
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            const target = document.querySelector(a.getAttribute('href'));
+            if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
         });
-    </script>
+    });
+</script>
 </body>
-
 </html>
