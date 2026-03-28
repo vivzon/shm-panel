@@ -9,15 +9,18 @@ $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://'
 
 if (filter_var($host, FILTER_VALIDATE_IP)) {
     // IP-based access — cpanel at same host, no subdomain trick
-    $base      = $host;
-    $cpanelUrl = $scheme . $host . '/cpanel';
+    $base       = $host;
+    $cpanelUrl  = $scheme . $host . '/cpanel';
+    $landingUrl = $scheme . $host;
 } else {
     $parts = explode('.', $host);
     $base  = implode('.', array_slice($parts, -2)); // e.g. vivzon.cloud
     // cpanel lives at client.<base> (mirrors WHM at admin.<base>)
-    $cpanelUrl = $scheme . 'client.' . $base;
-    // Allow override via config.local.php  (define('CPANEL_URL', 'https://...'))
-    if (defined('CPANEL_URL')) $cpanelUrl = rtrim(CPANEL_URL, '/');
+    $cpanelUrl  = $scheme . 'client.' . $base;
+    $landingUrl  = $scheme . $base;              // e.g. https://vivzon.cloud
+    // Allow override via config constant
+    if (defined('CPANEL_URL'))  $cpanelUrl  = rtrim(constant('CPANEL_URL'), '/');
+    if (defined('LANDING_URL')) $landingUrl = rtrim(constant('LANDING_URL'), '/');
 }
 
 $brandName = get_branding();
@@ -345,7 +348,7 @@ body::before { content: ''; position: fixed; inset: 0; background-image: url("da
                     <?php endforeach; ?>
                 </div>
                 <div class="price-cta">
-                    <a href="checkout.php?plan=<?= urlencode($plan['name']) ?>"
+                    <a href="<?= e($landingUrl) ?>/checkout.php?plan=<?= urlencode($plan['name']) ?>"
                        class="btn-plan <?= $plan['popular'] ? 'btn-plan-p' : 'btn-plan-s' ?>">
                         Get Started
                     </a>
