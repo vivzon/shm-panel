@@ -218,7 +218,7 @@ if (isset($_POST['ajax_action'])) {
             exit;
         }
 
-
+    } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
     }
