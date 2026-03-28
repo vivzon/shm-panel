@@ -9,6 +9,7 @@ $nav_links = [
     'infrastructure' => [
         ['href' => 'services.php', 'icon' => 'cpu', 'label' => 'Services'],
         ['href' => 'server_config.php', 'icon' => 'server-cog', 'label' => 'Server Config'],
+        ['href' => 'dns.php', 'icon' => 'globe', 'label' => 'DNS Manager'],
         ['href' => 'files-sh.php', 'icon' => 'folder-open', 'label' => 'File Manager'],
         ['href' => 'tools.php', 'icon' => 'wrench', 'label' => 'Tools'],
         ['href' => 'terminal.php', 'icon' => 'terminal', 'label' => 'Web Terminal'],

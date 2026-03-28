@@ -109,9 +109,7 @@ if (!empty($no_sidebar)) return;
                     class="sidebar-nav-link <?= ($current_page == 'tools.php' && ($_GET['tab'] ?? '') == 'backups') ? 'active-sidebar-link' : '' ?>">
                     <i data-lucide="save"></i> Backups
                 </a>
-                <a href="diagnostic.php" class="sidebar-nav-link <?= $current_page == 'diagnostic.php' ? 'active-sidebar-link' : '' ?>">
-                    <i data-lucide="stethoscope"></i> Diagnostics
-                </a>
+
             </nav>
         </div>
 
