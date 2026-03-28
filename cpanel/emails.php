@@ -70,13 +70,67 @@ if (isset($_POST['ajax_action'])) {
 
         if ($action == 'generate_dkim') {
             $domain = $_POST['domain'];
-            // Security check: ensure domain belongs to client
             $check = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
             $check->execute([$domain, $cid]);
             if (!$check->fetch()) throw new Exception("Access Denied");
-            
             $output = cmd("dns-tool gen-dkim " . escapeshellarg($domain));
             echo json_encode(['status' => 'success', 'msg' => $output]);
+            exit;
+        }
+
+        if ($action == 'get_mail_config') {
+            $domain = $_POST['domain'];
+            $check = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
+            $check->execute([$domain, $cid]);
+            if (!$check->fetch()) throw new Exception("Access Denied");
+
+            $server_ip = $_SERVER['SERVER_ADDR'] ?? gethostbyname(gethostname());
+
+            // Live DNS checks
+            $mx_recs  = @dns_get_record($domain, DNS_MX)  ?: [];
+            $txt_recs = @dns_get_record($domain, DNS_TXT) ?: [];
+            $dkim_rec = @dns_get_record('mail._domainkey.' . $domain, DNS_TXT) ?: [];
+
+            $spf_current = $dmarc_current = $dkim_current = null;
+            foreach ($txt_recs as $r) {
+                if (str_starts_with($r['txt'] ?? '', 'v=spf1'))   $spf_current   = $r['txt'];
+                if (str_starts_with($r['txt'] ?? '', 'v=DMARC1')) $dmarc_current = $r['txt'];
+            }
+            if ($dkim_rec) $dkim_current = $dkim_rec[0]['txt'] ?? null;
+
+            // Try to get DKIM public key from shm-manage
+            $dkim_pubkey = '';
+            try { $dkim_pubkey = cmd("dns-tool get-dkim " . escapeshellarg($domain)); } catch(Throwable $e) {}
+
+            echo json_encode([
+                'status'      => 'success',
+                'domain'      => $domain,
+                'server_ip'   => $server_ip,
+                'mx'          => ['records' => array_column($mx_recs, 'target'), 'suggested' => 'mail.' . $domain, 'ok' => !empty($mx_recs)],
+                'spf'         => ['current' => $spf_current,   'suggested' => "v=spf1 ip4:$server_ip a mx ~all", 'ok' => $spf_current !== null],
+                'dkim'        => ['current' => $dkim_current,  'pubkey' => trim($dkim_pubkey),                      'ok' => $dkim_current !== null],
+                'dmarc'       => ['current' => $dmarc_current, 'suggested' => "v=DMARC1; p=quarantine; rua=mailto:dmarc@$domain; fo=1", 'ok' => $dmarc_current !== null],
+            ]);
+            exit;
+        }
+
+        if ($action == 'apply_spf') {
+            $domain = $_POST['domain']; $value = trim($_POST['value']);
+            $check = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
+            $check->execute([$domain, $cid]);
+            if (!$check->fetch()) throw new Exception("Access Denied");
+            cmd("dns-tool set-txt " . escapeshellarg($domain) . " " . escapeshellarg($value));
+            echo json_encode(['status' => 'success', 'msg' => 'SPF record applied.']);
+            exit;
+        }
+
+        if ($action == 'apply_dmarc') {
+            $domain = $_POST['domain']; $value = trim($_POST['value']);
+            $check = $pdo->prepare("SELECT id FROM domains WHERE domain = ? AND client_id = ?");
+            $check->execute([$domain, $cid]);
+            if (!$check->fetch()) throw new Exception("Access Denied");
+            cmd("dns-tool set-txt _dmarc." . escapeshellarg($domain) . " " . escapeshellarg($value));
+            echo json_encode(['status' => 'success', 'msg' => 'DMARC record applied.']);
             exit;
         }
 
@@ -149,36 +203,42 @@ include 'layout/header.php';
             </form>
         </div>
 
-        <!-- DNS AUTH SETTINGS -->
+        <!-- MAIL CONFIG CARD -->
         <div class="glass-card" style="padding:2rem;display:flex;flex-direction:column;gap:1.25rem;">
-            <div>
-                <h3 style="font-size:1rem;font-weight:700;color:var(--text-primary);font-family:var(--font-heading);margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5rem;">
-                    <i data-lucide="shield-check" style="width:18px;height:18px;color:var(--accent-green);"></i>
-                    Mail Authentication
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <h3 style="font-size:1rem;font-weight:700;color:var(--text-primary);font-family:var(--font-heading);display:flex;align-items:center;gap:0.5rem;">
+                    <i data-lucide="shield-check" style="width:18px;height:18px;color:#10b981;"></i> Mail Configuration
                 </h3>
-                <p style="font-size:0.75rem;color:var(--text-secondary);">Configure SPF, DKIM and DMARC to prevent spam flags.</p>
+                <span style="font-size:0.6875rem;color:var(--text-muted);">MX · SPF · DKIM · DMARC</span>
             </div>
-            
-            <div style="flex:1;display:flex;flex-direction:column;gap:0.75rem;">
-                <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;">Select Domain</label>
+            <div>
+                <label style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.4rem;">Domain</label>
                 <select id="dns-domain-select" class="form-input form-select">
                     <?php foreach ($domains as $d): ?>
                         <option value="<?= $d['domain'] ?>"><?= htmlspecialchars($d['domain']) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-                    <button onclick="showDnsRecords()" class="btn btn-secondary" style="font-size:0.75rem;padding:0.5rem;">
-                        <i data-lucide="eye" style="width:14px;height:14px;"></i> View Records
-                    </button>
-                    <button onclick="generateDkim()" class="btn btn-secondary" style="font-size:0.75rem;padding:0.5rem;">
-                        <i data-lucide="key" style="width:14px;height:14px;"></i> Gen-DKIM
-                    </button>
+            </div>
+            <!-- Quick status row -->
+            <div id="mail-status-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;">
+                <?php foreach (['MX','SPF','DKIM','DMARC'] as $t): ?>
+                <div style="text-align:center;padding:0.75rem 0.25rem;background:var(--bg-body);border-radius:0.5rem;border:1px solid var(--border-color);">
+                    <div style="font-size:0.625rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;margin-bottom:0.35rem;"><?= $t ?></div>
+                    <div id="status-<?= strtolower($t) ?>" style="width:10px;height:10px;border-radius:50%;background:#cbd5e1;margin:0 auto;"></div>
                 </div>
+                <?php endforeach; ?>
             </div>
-            
-            <div id="dns-status-hint" style="font-size:0.7rem;color:var(--text-muted);background:var(--bg-body);padding:0.75rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
-                <strong>Note:</strong> If you use external DNS (Cloudflare, etc.), you MUST manually add these records.
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+                <button onclick="openMailConfig()" class="btn btn-primary" style="font-size:0.8125rem;">
+                    <i data-lucide="settings-2" style="width:14px;height:14px;"></i> Configure
+                </button>
+                <button onclick="generateDkim()" class="btn btn-secondary" style="font-size:0.8125rem;">
+                    <i data-lucide="key" style="width:14px;height:14px;"></i> Gen DKIM
+                </button>
             </div>
+            <p style="font-size:0.7rem;color:var(--text-muted);background:var(--bg-body);padding:0.6rem 0.75rem;border-radius:var(--radius-md);border:1px solid var(--border-color);margin:0;">
+                <strong>Tip:</strong> If using external DNS (Cloudflare etc.), copy the values and add them manually.
+            </p>
         </div>
     </div>
 
@@ -261,139 +321,234 @@ include 'layout/header.php';
 
 <?php include 'layout/footer.php'; ?>
 
-<!-- DNS Records Modal -->
-<div id="dnsModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);">
-    <div class="glass-card" style="width:100%;max-width:700px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;padding:0;">
-        <div style="padding:1.5rem;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;background:var(--bg-body);">
-            <h3 style="font-family:var(--font-heading);font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:0.5rem;">
-                <i data-lucide="info" style="width:18px;height:18px;color:var(--primary);"></i>
-                DNS Configuration for <span id="modal-domain-name"></span>
-            </h3>
-            <button onclick="document.getElementById('dnsModal').style.display='none'" style="background:transparent;border:none;color:var(--text-secondary);cursor:pointer;padding:0.5rem;border-radius:var(--radius-md);"><i data-lucide="x"></i></button>
-        </div>
-        <div id="dns-records-list" style="padding:1.5rem;overflow-y:auto;background:var(--bg-surface);font-family:monospace;font-size:0.8rem;line-height:1.5;color:var(--text-primary);white-space:pre-wrap;">
-            <!-- Content loaded via JS -->
-            <div style="text-align:center;padding:2rem;color:var(--text-muted);">
-                <i data-lucide="loader-2" style="width:32px;height:32px;animation:spin 1s linear infinite;margin-bottom:1rem;"></i>
-                <p>Fetching records...</p>
-            </div>
-        </div>
-        <div style="padding:1.25rem;border-top:1px solid var(--border-color);background:var(--bg-body);display:flex;justify-content:flex-end;gap:0.75rem;">
-            <p style="font-size:0.65rem;color:var(--text-muted);margin:0;align-self:center;margin-right:auto;">Add these TXT records to your domain's DNS provider.</p>
-            <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="document.getElementById('dnsModal').style.display='none'">Close</button>
-        </div>
+<!-- Mail Config Modal (tabbed) -->
+<div id="mailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);">
+  <div class="glass-card" style="width:100%;max-width:720px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;padding:0;">
+
+    <!-- Header -->
+    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;background:var(--bg-body);">
+      <h3 style="font-weight:700;color:var(--text-primary);font-family:var(--font-heading);display:flex;align-items:center;gap:0.5rem;">
+        <i data-lucide="mail-check" style="width:18px;height:18px;color:#6366f1;"></i>
+        Mail Config — <span id="mc-domain" style="color:#6366f1;"></span>
+      </h3>
+      <button onclick="document.getElementById('mailModal').style.display='none'" style="background:transparent;border:none;color:var(--text-secondary);cursor:pointer;"><i data-lucide="x"></i></button>
     </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border-color);background:var(--bg-body);">
+      <?php foreach (['mx'=>'Server (MX)','spf'=>'SPF','dkim'=>'DKIM','dmarc'=>'DMARC'] as $tid=>$tlabel): ?>
+      <button id="tab-<?= $tid ?>" onclick="switchTab('<?= $tid ?>')" style="padding:0.75rem 1.25rem;border:none;background:transparent;font-size:0.875rem;font-weight:600;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;"
+        onmouseover="this.style.color='var(--text-primary)'" onmouseout="if(currentTab!='<?= $tid ?>')this.style.color='var(--text-secondary)'">
+        <?= $tlabel ?>
+      </button>
+      <?php endforeach; ?>
+    </div>
+
+    <!-- Body -->
+    <div style="flex:1;overflow-y:auto;padding:1.5rem;" id="mc-body">
+      <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+        <i data-lucide="loader-2" style="width:32px;height:32px;animation:spin 1s linear infinite;"></i>
+        <p style="margin-top:1rem;">Loading DNS records…</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:1rem 1.5rem;border-top:1px solid var(--border-color);background:var(--bg-body);display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:0.75rem;color:var(--text-muted);">✅ = record found in live DNS &nbsp; ⚠️ = missing or incorrect</span>
+      <button class="btn btn-secondary" style="font-size:0.8125rem;" onclick="document.getElementById('mailModal').style.display='none'">Close</button>
+    </div>
+  </div>
 </div>
 
 <script>
-function getCsrf() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-        || document.querySelector('input[name="csrf_token"]')?.value || '';
+function getCsrf(){return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')||document.querySelector('input[name="csrf_token"]')?.value||'';}
+
+let currentTab='mx', mailData=null;
+
+async function openMailConfig(){
+    const dom=document.getElementById('dns-domain-select').value;
+    document.getElementById('mc-domain').textContent=dom;
+    document.getElementById('mailModal').style.display='flex';
+    document.getElementById('mc-body').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text-muted);"><i data-lucide="loader-2" style="width:32px;height:32px;animation:spin 1s linear infinite;"></i><p style="margin-top:1rem;">Checking DNS…</p></div>';
+    lucide.createIcons();
+    const fd=new FormData();
+    fd.append('ajax_action','get_mail_config');
+    fd.append('domain',dom);
+    fd.append('csrf_token',getCsrf());
+    try{
+        const res=await fetch('',{method:'POST',body:fd}).then(r=>r.json());
+        if(res.status==='success'){
+            mailData=res;
+            updateStatusDots(res);
+            switchTab('mx');
+        } else {
+            document.getElementById('mc-body').innerHTML='<div style="color:var(--accent-red);padding:1rem;">'+res.msg+'</div>';
+        }
+    }catch(e){document.getElementById('mc-body').innerHTML='<div style="color:var(--accent-red);padding:1rem;">Failed to load config.</div>';}
 }
 
-async function showDnsRecords() {
-    const dom = document.getElementById('dns-domain-select').value;
-    const modal = document.getElementById('dnsModal');
-    const list = document.getElementById('dns-records-list');
-    document.getElementById('modal-domain-name').innerText = dom;
-    
-    modal.style.display = 'flex';
-    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted);"><i data-lucide="loader-2" style="width:32px;height:32px;animation:spin 1s linear infinite;margin-bottom:1rem;"></i><p>Fetching records...</p></div>';
-    lucide.createIcons();
-    
-    const fd = new FormData();
-    fd.append('ajax_action', 'get_dns_records');
-    fd.append('domain', dom);
-    fd.append('csrf_token', getCsrf());
-    
-    try {
-        const res = await fetch('', { method:'POST', body:fd }).then(r => r.json());
-        if (res.status === 'success') {
-            list.innerHTML = '<div style="background:rgba(0,0,0,0.1);padding:1rem;border-radius:4px;border:1px solid var(--border-color);">' + res.data + '</div>';
-        } else {
-            list.innerHTML = '<div style="color:var(--accent-red);padding:1rem;">Error: ' + res.msg + '</div>';
-        }
-    } catch(e) {
-        list.innerHTML = '<div style="color:var(--accent-red);padding:1rem;">Fatal error communicating with server.</div>';
+function updateStatusDots(d){
+    const map={mx:d.mx.ok,spf:d.spf.ok,dkim:d.dkim.ok,dmarc:d.dmarc.ok};
+    for(const[k,ok] of Object.entries(map)){
+        const el=document.getElementById('status-'+k);
+        if(el) el.style.background= ok ? '#10b981' : '#ef4444';
     }
 }
 
-async function generateDkim() {
-    const dom = document.getElementById('dns-domain-select').value;
-    if (!confirm('Generate new DKIM keys for ' + dom + '? This will overwrite existing keys.')) return;
-    
-    const fd = new FormData();
-    fd.append('ajax_action', 'generate_dkim');
-    fd.append('domain', dom);
-    fd.append('csrf_token', getCsrf());
-    
-    try {
-        const res = await fetch('', { method:'POST', body:fd }).then(r => r.json());
-        if (res.status === 'success') {
-            showToast('success', 'DKIM Generated', res.msg);
-            showDnsRecords(); // Refresh display
-        } else {
-            showToast('error', 'Failed', res.msg);
-        }
-    } catch(e) { showToast('error', 'Error', 'Request failed.'); }
+function switchTab(tab){
+    currentTab=tab;
+    ['mx','spf','dkim','dmarc'].forEach(t=>{
+        const btn=document.getElementById('tab-'+t);
+        if(btn){btn.style.borderBottomColor=t===tab?'#6366f1':'transparent';btn.style.color=t===tab?'#6366f1':'';}
+    });
+    renderTab(tab);
 }
 
-async function handleAddEmail(e) {
+function badge(ok){return ok?'<span style="background:#dcfce7;color:#166534;font-size:0.65rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:9999px;">✓ Found</span>':'<span style="background:#fee2e2;color:#991b1b;font-size:0.65rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:9999px;">⚠ Missing</span>';}
+function mono(v){return v?`<pre style="background:var(--bg-body);border:1px solid var(--border-color);border-radius:0.5rem;padding:0.75rem;font-size:0.75rem;overflow-x:auto;white-space:pre-wrap;word-break:break-all;">${escH(v)}</pre>`:'<em style="color:var(--text-muted);font-size:0.8125rem;">None detected</em>';}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function copyText(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.value||el.textContent).then(()=>showToast('success','Copied','Value copied to clipboard.'));}
+
+function renderTab(tab){
+    if(!mailData){return;}
+    const d=mailData;
+    const body=document.getElementById('mc-body');
+    let h='';
+
+    if(tab==='mx'){
+        const mxList=d.mx.records.length?d.mx.records.map(r=>'<div style="padding:0.4rem 0.75rem;background:var(--bg-body);border-radius:0.4rem;font-family:monospace;font-size:0.8125rem;">'+escH(r)+'</div>').join(''):'<em style="color:var(--text-muted);">No MX records found</em>';
+        h=`<div style="display:flex;flex-direction:column;gap:1.25rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;"><h4 style="font-weight:700;color:var(--text-primary);">MX Records</h4>${badge(d.mx.ok)}</div>
+          <div><div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.5rem;text-transform:uppercase;">Current Records</div>${mxList}</div>
+          <div style="background:var(--bg-body);border:1px solid var(--border-color);border-radius:0.75rem;padding:1rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-secondary);margin-bottom:0.5rem;">📋 Suggested Record</div>
+            <div style="display:flex;gap:0.5rem;align-items:center;">
+              <input id="mx-val" class="form-input" style="flex:1;font-family:monospace;font-size:0.8125rem;" value="mail.${escH(d.domain)}" readonly>
+              <button onclick="copyText('mx-val')" class="btn btn-secondary" style="font-size:0.75rem;">Copy</button>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.5rem;">Host: @ (or your domain) → Priority: 10 → Value: mail.${escH(d.domain)}</p>
+          </div>
+        </div>`;
+    }
+
+    if(tab==='spf'){
+        h=`<div style="display:flex;flex-direction:column;gap:1.25rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;"><h4 style="font-weight:700;color:var(--text-primary);">SPF Record</h4>${badge(d.spf.ok)}</div>
+          <div><div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.5rem;text-transform:uppercase;">Current</div>${mono(d.spf.current)}</div>
+          <div style="background:var(--bg-body);border:1px solid var(--border-color);border-radius:0.75rem;padding:1rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-secondary);margin-bottom:0.5rem;">✏️ Suggested Value (editable)</div>
+            <textarea id="spf-val" class="form-input" style="width:100%;font-family:monospace;font-size:0.8125rem;min-height:60px;">${escH(d.spf.suggested)}</textarea>
+            <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+              <button onclick="copyText('spf-val')" class="btn btn-secondary" style="font-size:0.75rem;">Copy</button>
+              <button onclick="applyRecord('spf')" class="btn btn-primary" style="font-size:0.75rem;">Apply via Panel</button>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.5rem;">Host: @ · Type: TXT</p>
+          </div>
+        </div>`;
+    }
+
+    if(tab==='dkim'){
+        const dkimHost=`mail._domainkey.${d.domain}`;
+        h=`<div style="display:flex;flex-direction:column;gap:1.25rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;"><h4 style="font-weight:700;color:var(--text-primary);">DKIM Key</h4>${badge(d.dkim.ok)}</div>
+          <div><div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.5rem;text-transform:uppercase;">Current Key in DNS</div>${mono(d.dkim.current)}</div>
+          ${d.dkim.pubkey?`<div style="background:var(--bg-body);border:1px solid var(--border-color);border-radius:0.75rem;padding:1rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-secondary);margin-bottom:0.5rem;">📋 Public Key (add to DNS)</div>
+            <textarea id="dkim-val" class="form-input" style="width:100%;font-family:monospace;font-size:0.75rem;min-height:80px;" readonly>${escH(d.dkim.pubkey)}</textarea>
+            <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+              <button onclick="copyText('dkim-val')" class="btn btn-secondary" style="font-size:0.75rem;">Copy</button>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.5rem;">Host: <strong>${escH(dkimHost)}</strong> · Type: TXT</p>
+          </div>`:''}
+          <button onclick="generateDkim()" class="btn btn-secondary" style="font-size:0.875rem;">
+            <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Regenerate DKIM Keys
+          </button>
+        </div>`;
+    }
+
+    if(tab==='dmarc'){
+        h=`<div style="display:flex;flex-direction:column;gap:1.25rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;"><h4 style="font-weight:700;color:var(--text-primary);">DMARC Policy</h4>${badge(d.dmarc.ok)}</div>
+          <div><div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);margin-bottom:0.5rem;text-transform:uppercase;">Current</div>${mono(d.dmarc.current)}</div>
+          <div style="background:var(--bg-body);border:1px solid var(--border-color);border-radius:0.75rem;padding:1rem;">
+            <div style="font-size:0.75rem;font-weight:700;color:var(--text-secondary);margin-bottom:0.5rem;">✏️ Suggested Value (editable)</div>
+            <textarea id="dmarc-val" class="form-input" style="width:100%;font-family:monospace;font-size:0.8125rem;min-height:60px;">${escH(d.dmarc.suggested)}</textarea>
+            <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+              <button onclick="copyText('dmarc-val')" class="btn btn-secondary" style="font-size:0.75rem;">Copy</button>
+              <button onclick="applyRecord('dmarc')" class="btn btn-primary" style="font-size:0.75rem;">Apply via Panel</button>
+            </div>
+            <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.5rem;">Host: <strong>_dmarc.${escH(d.domain)}</strong> · Type: TXT</p>
+          </div>
+        </div>`;
+    }
+
+    body.innerHTML=h; lucide.createIcons();
+}
+
+async function applyRecord(type){
+    const val=document.getElementById(type+'-val')?.value;
+    if(!val)return;
+    const fd=new FormData();
+    fd.append('ajax_action','apply_'+type);
+    fd.append('domain',mailData.domain);
+    fd.append('value',val);
+    fd.append('csrf_token',getCsrf());
+    try{
+        const res=await fetch('',{method:'POST',body:fd}).then(r=>r.json());
+        showToast(res.status==='success'?'success':'error',res.status==='success'?'Applied':'Failed',res.msg);
+        if(res.status==='success') openMailConfig();
+    }catch(e){showToast('error','Error','Request failed.');}
+}
+
+async function generateDkim(){
+    const dom=document.getElementById('dns-domain-select').value;
+    if(!confirm('Generate new DKIM keys for '+dom+'? This overwrites existing keys.'))return;
+    const fd=new FormData();
+    fd.append('ajax_action','generate_dkim');
+    fd.append('domain',dom);
+    fd.append('csrf_token',getCsrf());
+    try{
+        const res=await fetch('',{method:'POST',body:fd}).then(r=>r.json());
+        showToast(res.status==='success'?'success':'error',res.status==='success'?'DKIM Generated':'Failed',res.msg);
+        if(mailData) openMailConfig();
+    }catch(e){showToast('error','Error','Request failed.');}
+}
+
+async function handleAddEmail(e){
     e.preventDefault();
-    const form = e.target;
-    const btn  = form.querySelector('button');
-    const orig = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" style="width:1rem;height:1rem;animation:spin 1s linear infinite;display:inline-block;margin-right:0.3rem;"></i>Creating…';
+    const form=e.target,btn=form.querySelector('button'),orig=btn.innerHTML;
+    btn.disabled=true;
+    btn.innerHTML='<i data-lucide="loader-2" style="width:1rem;height:1rem;animation:spin 1s linear infinite;display:inline-block;margin-right:0.3rem;"></i>Creating…';
     lucide.createIcons();
-    const fd = new FormData(form);
-    fd.append('ajax_action', 'add_email');
-    try {
-        const res = await fetch('', { method:'POST', body:fd }).then(r => r.json());
-        if (res.status === 'success') {
-            showToast('success', 'Mailbox Created', res.msg || 'Email account created successfully.');
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showToast('error', 'Failed', res.msg || 'Could not create mailbox.');
-        }
-    } catch(err) {
-        showToast('error', 'Error', 'Server connection failed.');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = orig;
-    }
+    const fd=new FormData(form);
+    fd.append('ajax_action','add_email');
+    try{
+        const res=await fetch('',{method:'POST',body:fd}).then(r=>r.json());
+        if(res.status==='success'){showToast('success','Mailbox Created',res.msg||'Done');setTimeout(()=>location.reload(),1000);}
+        else showToast('error','Failed',res.msg||'Could not create mailbox.');
+    }catch(err){showToast('error','Error','Server connection failed.');}
+    finally{btn.disabled=false;btn.innerHTML=orig;}
 }
 
-async function deleteEmail(email) {
-    if (!confirm('Delete ' + email + '? This is permanent.')) return;
-    const fd = new FormData();
-    fd.append('ajax_action', 'delete_email');
-    fd.append('email', email);
-    fd.append('csrf_token', getCsrf());
-    try {
-        const res = await fetch('', { method:'POST', body:fd }).then(r => r.json());
-        if (res.status === 'success') {
-            showToast('success', 'Deleted', 'Mailbox removed.');
-            setTimeout(() => location.reload(), 800);
-        } else {
-            showToast('error', 'Failed', res.msg);
-        }
-    } catch(e) { showToast('error', 'Error', 'Deletion failed.'); }
+async function deleteEmail(email){
+    if(!confirm('Delete '+email+'? This is permanent.'))return;
+    const fd=new FormData();
+    fd.append('ajax_action','delete_email');fd.append('email',email);fd.append('csrf_token',getCsrf());
+    try{
+        const res=await fetch('',{method:'POST',body:fd}).then(r=>r.json());
+        if(res.status==='success'){showToast('success','Deleted','Mailbox removed.');setTimeout(()=>location.reload(),800);}
+        else showToast('error','Failed',res.msg);
+    }catch(e){showToast('error','Error','Deletion failed.');}
 }
 
-async function resetMailPass(email) {
-    const newPass = prompt('New password for ' + email + ':');
-    if (!newPass) return;
-    const fd = new FormData();
-    fd.append('ajax_action', 'reset_mail_pass');
-    fd.append('email', email);
-    fd.append('new_pass', newPass);
-    fd.append('csrf_token', getCsrf());
-    try {
-        const res = await fetch('', { method:'POST', body:fd }).then(r => r.json());
-        showToast(res.status === 'success' ? 'success' : 'error',
-                  res.status === 'success' ? 'Password Updated' : 'Failed',
-                  res.msg || 'Done');
-    } catch(e) { showToast('error', 'Error', 'Reset failed.'); }
+async function resetMailPass(email){
+    const newPass=prompt('New password for '+email+':');
+    if(!newPass)return;
+    const fd=new FormData();
+    fd.append('ajax_action','reset_mail_pass');fd.append('email',email);fd.append('new_pass',newPass);fd.append('csrf_token',getCsrf());
+    try{
+        const res=await fetch('',{method:'POST',body:fd}).then(r=>r.json());
+        showToast(res.status==='success'?'success':'error',res.status==='success'?'Password Updated':'Failed',res.msg||'Done');
+    }catch(e){showToast('error','Error','Reset failed.');}
 }
 </script>
