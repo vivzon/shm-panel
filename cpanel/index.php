@@ -57,9 +57,12 @@ $mail_accounts = $pdo->prepare("
 $mail_accounts->execute([$cid]);
 $mail_list = $mail_accounts->fetchAll(PDO::FETCH_ASSOC);
 
-// Derive mail server hostname from server host or first domain
-$mail_server_host = 'mail.' . ($domains[0]['domain'] ?? ($_SERVER['SERVER_NAME'] ?? gethostname()));
-$webmail_url = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $mail_server_host . '/webmail';
+// Derive correct webmail URL: webmail.<base-domain>
+$_panel_host = $_SERVER['HTTP_HOST'] ?? '';
+$_panel_parts = explode('.', $_panel_host);
+$_base_domain = count($_panel_parts) >= 2 ? implode('.', array_slice($_panel_parts, -2)) : $_panel_host;
+$mail_server_host = 'mail.' . ($_base_domain ?: ($domains[0]['domain'] ?? gethostname()));
+$webmail_url      = 'https://webmail.' . ($_base_domain ?: ($domains[0]['domain'] ?? 'localhost')) . '/';
 
 // Calculate Disk Usage
 $used_bytes = 0;

@@ -154,7 +154,8 @@ $my_emails = $pdo->query("SELECT mu.* FROM mail_users mu JOIN mail_domains md ON
 
 $server_host = $_SERVER['HTTP_HOST'];
 $parts = explode('.', $server_host);
-$base_domain = count($parts) >= 2 ? implode('.', array_slice($parts, -2)) : $server_host;
+$base_domain  = count($parts) >= 2 ? implode('.', array_slice($parts, -2)) : $server_host;
+$webmail_url  = 'https://webmail.' . $base_domain . '/';
 
 include 'layout/header.php';
 ?>
@@ -278,7 +279,7 @@ include 'layout/header.php';
                             </td>
                             <td style="padding:1rem 1.5rem;text-align:right;">
                                 <div style="display:flex;align-items:center;justify-content:flex-end;gap:0.5rem;">
-                                    <a href="http://webmail.<?= $base_domain ?>" target="_blank"
+                                    <a href="<?= htmlspecialchars($webmail_url) ?>" target="_blank"
                                         style="font-size:0.75rem;font-weight:600;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:0.25rem;padding:0.375rem 0.75rem;border:1px solid rgba(37,99,235,0.25);border-radius:var(--radius-md);background:rgba(37,99,235,0.05);transition:all 0.2s;"
                                         onmouseover="this.style.backgroundColor='rgba(37,99,235,0.15)';" onmouseout="this.style.backgroundColor='rgba(37,99,235,0.05)';">
                                         <i data-lucide="external-link" style="width:12px;height:12px;"></i> Webmail
